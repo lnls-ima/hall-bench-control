@@ -1,1 +1,0 @@
-pyrcc4 -py3 resource_file.qrc -o resource_file_rc.py

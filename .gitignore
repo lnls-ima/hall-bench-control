@@ -1,5 +1,9 @@
 *~
 
+Data/
+interface.py
+resource_file_rc.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

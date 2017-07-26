@@ -4,7 +4,7 @@
 import numpy as _np
 
 
-class CalibrationDataError(Exception):
+class CalibrationFileError(Exception):
     """Calibration data exception."""
 
     def __init__(self, message, *args):
@@ -25,8 +25,8 @@ class CalibrationData(object):
             self.read_calibration_file(filename)
         else:
             self.filename = None
-            self.shift_x_to_y = -10
-            self.shift_z_to_y = 10
+            self.shift_x_to_y = 0
+            self.shift_z_to_y = 0
 
     def read_calibration_file(self, filename):
         """Read calibration parameters from file.

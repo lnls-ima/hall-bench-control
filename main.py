@@ -53,12 +53,12 @@ class HallBenchGUI(QtGui.QWidget):
 
         self.calibration = calibration.CalibrationData()
 
-        self.current_measurement = measurement.Measurement()
-        self.current_measurement_list = None
-        self.current_measurement_dict = None
+        self.current_scan_position = None
+        self.current_line_scan = None
+        self.current_measurement = None
 
         self.nr_measurements = 1
-        self.savedir = os.path.join(sys.path[1], 'Data')  # Rever!!!
+        self.dirpath = os.path.join(sys.path[0], 'Data')
 
         self.end_measurements = False
         self.stop = False
@@ -538,11 +538,6 @@ class HallBenchGUI(QtGui.QWidget):
             axis_a = 1
             axis_b = 2
 
-        (scan_startpos, scan_endpos, scan_incr, scan_velocity, scan_npts,
-            scan_poslist) = self._get_axis_parameters(scan_axis)
-
-        aper_displacement = (self.mconf.meas_aper_ms * scan_velocity)
-
         poslist_a = self._get_axis_parameters(axis_a)[-1]
         poslist_b = self._get_axis_parameters(axis_b)[-1]
 
@@ -563,9 +558,8 @@ class HallBenchGUI(QtGui.QWidget):
                 self._move_axis(axis_b, pos_b)
 
                 # perform measurement
-                self._measure_axis(scan_axis, scan_startpos, scan_endpos,
-                                   scan_incr, scan_npts, scan_poslist,
-                                   extra_mm, aper_displacement)
+                self._measure_line(axis_a, pos_a, axis_b, pos_b,
+                                   scan_axis, extra_mm)
 
                 name = (self._get_axis_str(axis_a) + '=' + str(pos_a) + '_' +
                         self._get_axis_str(axis_b) + '=' + str(pos_b))
@@ -573,7 +567,7 @@ class HallBenchGUI(QtGui.QWidget):
                 measurement_list = measurement.MeasurementList().copy(
                     self.current_measurement_list)
                 measurement_list.analyse_data()
-                measurement_list.save_data(name, self.savedir)
+                measurement_list.save_data(name, self.dirpath)
 
                 self.current_measurement_dict.update({name: measurement_list})
 
@@ -591,10 +585,15 @@ class HallBenchGUI(QtGui.QWidget):
             QtGui.QMessageBox.information(
                 self, 'Abort', message, QtGui.QMessageBox.Ok)
 
-    def _measure_axis(self, axis, startpos, endpos, incr, npts,
-                      poslist, extra_mm, aper_displacement):
-        self.current_measurement_list = measurement.MeasurementList(
-            axis, poslist, self.calibration)
+    def _measure_line(self, axis_a, pos_a, axis_b, pos_b, scan_axis, extra_mm):
+
+        (startpos, endpos, incr, velocity, npts,
+            poslist) = self._get_axis_parameters(scan_axis)
+
+        aper_displacement = (self.mconf.meas_aper_ms * velocity)
+
+        self.current_line_scan = measurement.MeasurementList(
+            scan_axis, poslist, self.calibration)
 
         for idx in range(self.nr_measurements):
 
@@ -611,28 +610,29 @@ class HallBenchGUI(QtGui.QWidget):
             to_pos = not(bool(idx % 2))
 
             if to_pos:
-                self._move_axis(axis, startpos - extra_mm)
+                self._move_axis(scan_axis, startpos - extra_mm)
                 self.current_measurement.position = (
                     poslist + aper_displacement/2)
             else:
-                self._move_axis(axis, endpos + extra_mm)
+                self._move_axis(scan_axis, endpos + extra_mm)
                 self.current_measurement.position = (
                     poslist - aper_displacement/2)[::-1]
 
             if self.stop is True:
                 break
 
-            self._configure_trigger(axis, startpos, endpos, incr, npts, to_pos)
+            self._configure_trigger(
+                scan_axis, startpos, endpos, incr, npts, to_pos)
             self._configure_voltmeters()
             self._start_reading_threads()
 
             if self.stop is False:
                 if to_pos:
                     self._move_axis_and_update_graph(
-                        axis, endpos + extra_mm, idx)
+                        scan_axis, endpos + extra_mm, idx)
                 else:
                     self._move_axis_and_update_graph(
-                        axis, startpos - extra_mm, idx)
+                        scan_axis, startpos - extra_mm, idx)
 
             self.end_measurements = True
 
@@ -843,50 +843,6 @@ class HallBenchGUI(QtGui.QWidget):
             del self.tx
         except Exception:
             pass
-
-    # def export_magnet_format(
-    #     self,
-    #     magnet_name,
-    #     shiftx = 0,
-    #     shifty = 0,
-    #     shiftz = 0):
-    #     local_time = time.localtime()
-    #     date = time.strftime('%Y-%m-%d',local_time)
-    #     datetime = time.strftime('%Y-%m-%d_%H-%M-%S', local_time)
-    #
-    #     filename = '{0:1s}_{1:1s}.dat'.format(date, magnet_name)
-    #     file = open(os.path.join(self.savedir, filename),'w')
-    #
-    #     file.write('fieldmap_name:    \t{0:1s}\n'.format(magnet_name))
-    #     file.write('timestamp:        \t{0:1s}\n'.format(datetime))
-    #     file.write('filename:         \t{0:1s}\n'.format(filename))
-    #     file.write('nr_magnets:       \t1\n')
-    #     file.write('\n')
-    #     file.write('magnet_name:      \t{0:1s}\n'.format(magnet_name))
-    #     file.write('gap[mm]:          \t0\n')
-    #     file.write('control_gap:      \t--\n')
-    #     file.write('magnet_length[mm]:\t0\n')
-    #     file.write('current_main[A]:  \t0\n')
-    #     file.write('NI_main[A.esp]:   \t0\n')
-    #     file.write('center_pos_z[mm]: \t0\n')
-    #     file.write('center_pos_x[mm]: \t0\n')
-    #     file.write('rotation[deg]:    \t0\n')
-    #     file.write('\n')
-    #     file.write('X[mm]\tY[mm]\tZ[mm]\tBx\tBy\tBz [T]\n')
-    #     file.write('---------------------------------------------------------------------------------------------\n')
-    #
-    #     for i in range(npts_ax1):
-    #         for pos_ax2 in self.list_meas_ax2:
-    #             for pos_ax3 in self.list_meas_ax3:
-    #                 dictname = 'Y=' + str(pos_ax2) + '_X=' + str(pos_ax3)
-    #                 file.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t{3:0.10e}\t{4:0.10e}\t{5:0.10e}\n'.format(
-    #                     pos_ax3-shiftx,
-    #                     pos_ax2-shifty,
-    #                     self.measurements[dictname].average_Bfield.position[i]-shiftz,
-    #                     self.measurements[dictname].average_Bfield.hallx[i],
-    #                     self.measurements[dictname].average_Bfield.hally[i],
-    #                     self.measurements[dictname].average_Bfield.hallz[i]))
-    #     file.close()
 
 
 class GUIThread(threading.Thread):

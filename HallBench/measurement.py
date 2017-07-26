@@ -2,132 +2,185 @@
 """Implementation of classes to store and analyse measurement data."""
 
 import os as _os
+import time as _time
 import math as _math
 import numpy as _np
 from scipy import interpolate as _interpolate
 from scipy.integrate import cumtrapz as _cumtrapz
 
 
-class Measurement(object):
-    """Position and Hall probe values of one measurement."""
+class DataSet(object):
+    """Position and data values."""
 
-    def __init__(self):
-        """Initialize variables."""
-        self.position = _np.array([])
-        self.hallx = _np.array([])
-        self.hally = _np.array([])
-        self.hallz = _np.array([])
-
-    @staticmethod
-    def reverse(m):
-        """Return the reverse of a Measurement."""
-        reverse_m = Measurement()
-        reverse_m.position = m.position[::-1]
-        reverse_m.hallx = m.hallx[::-1]
-        reverse_m.hally = m.hally[::-1]
-        reverse_m.hallz = m.hallz[::-1]
-        return reverse_m
-
-    @staticmethod
-    def copy(m):
-        """Return a copy of a Measurement."""
-        mc = Measurement()
-        mc.position = _np.copy(m.position)
-        mc.hallx = _np.copy(m.hallx)
-        mc.hally = _np.copy(m.hally)
-        mc.hallz = _np.copy(m.hallz)
-        return mc
-
-    def save_to_file(self, filename):
-        """Save measurement data to file.
-
-        Args:
-            filename (str): measurement file path.
-        """
-        data = _np.column_stack((
-            self.position, self.hallx, self.hally, self.hallz))
-        _np.savetxt(filename, data, delimiter='\t', newline='\r\n')
-
-    def read_from_file(self, filename):
-        """Read measurement data from file.
-
-        Args:
-            filename (str): measurement file path.
-        """
-        data = _np.loadtxt(filename)
-        self.position = data[:, 0]
-        self.hallx = data[:, 1]
-        self.hally = data[:, 2]
-        self.hallz = data[:, 3]
-
-    def clear(self):
-        """Clear measurement."""
-        self.position = _np.array([])
-        self.hallx = _np.array([])
-        self.hally = _np.array([])
-        self.hallz = _np.array([])
-
-
-class MeasurementList(object):
-    """List of measurements."""
-
-    def __init__(self, axis, position, calibration):
+    def __init__(self, description='', unit=''):
         """Initialize variables.
 
         Args:
-            axis (int): number of the scan axis.
-            position (array): array with position values for interpolation.
-            calibration (CalibrationData): probe calibration data.
+            unit (str): data unit.
+            description (str): data description.
         """
-        self.axis = axis
-        self.position = position
-        self.calibration = calibration
-
-        self._raw = []
-        self._interpolated = []
-        self._average_voltage = Measurement()
-        self._std_voltage = Measurement()
-        self._average_field = Measurement()
-        self._std_field = Measurement()
-        self._first_integral = Measurement()
-        self._second_integral = Measurement()
+        self.description = description
+        self.unit = unit
+        self.posx = None
+        self.posy = None
+        self.posz = None
+        self.datax = _np.array([])
+        self.datay = _np.array([])
+        self.dataz = _np.array([])
 
     @staticmethod
-    def copy(ml):
-        """Return a copy of a MeasurementList."""
-        mlc = MeasurementList()
-        mlc.axis = ml.axis
-        mlc.position = ml.position
-        mlc.calibration = ml.calibration
-        mlc._raw = [Measurement().copy(m) for m in ml._raw]
-        mlc._interpolated = [Measurement().copy(m) for m in ml._interpolated]
-        mlc._average_voltage = Measurement().copy(ml._average_voltage)
-        mlc._std_voltage = Measurement().copy(ml._std_voltage)
-        mlc._average_field = Measurement().copy(ml._average_field)
-        mlc._std_field = Measurement().copy(ml._std_field)
-        mlc._first_integral = Measurement().copy(ml._first_integral)
-        mlc._second_integral = Measurement().copy(ml._second_integral)
-        return mlc
+    def reverse(dataset):
+        """Return the reverse of a DataSet."""
+        reverse_dataset = DataSet()
+        reverse_dataset.unit = dataset.unit
+        reverse_dataset.description = dataset.description
+
+        if isinstance(dataset.posx, (int, float)):
+            reverse_dataset.posx = dataset.posx
+        else:
+            reverse_dataset.posx = dataset.posx[::-1]
+
+        if isinstance(dataset.posy, (int, float)):
+            reverse_dataset.posy = dataset.posy
+        else:
+            reverse_dataset.posy = dataset.posy[::-1]
+
+        if isinstance(dataset.posz, (int, float)):
+            reverse_dataset.posz = dataset.posz
+        else:
+            reverse_dataset.posz = dataset.posz[::-1]
+
+        reverse_dataset.datax = dataset.datax[::-1]
+        reverse_dataset.datay = dataset.datay[::-1]
+        reverse_dataset.dataz = dataset.dataz[::-1]
+        return reverse_dataset
+
+    @staticmethod
+    def copy(dataset):
+        """Return a copy of a DataSet."""
+        dataset_copy = DataSet()
+        dataset_copy.unit = dataset.unit
+        dataset_copy.description = dataset.description
+
+        if isinstance(dataset.posx, (int, float)):
+            dataset_copy.posx = dataset.posx
+        else:
+            dataset_copy.posx = _np.copy(dataset.posx)
+
+        if isinstance(dataset.posy, (int, float)):
+            dataset_copy.posy = dataset.posy
+        else:
+            dataset_copy.posy = _np.copy(dataset.posy)
+
+        if isinstance(dataset.posz, (int, float)):
+            dataset_copy.posz = dataset.posz
+        else:
+            dataset_copy.posz = _np.copy(dataset.posz)
+
+        dataset_copy.datax = _np.copy(dataset.datax)
+        dataset_copy.datay = _np.copy(dataset.datay)
+        dataset_copy.dataz = _np.copy(dataset.dataz)
+        return dataset_copy
+
+    def clear(self):
+        """Clear DataSet."""
+        self.posx = None
+        self.posy = None
+        self.posz = None
+        self.datax = _np.array([])
+        self.datay = _np.array([])
+        self.dataz = _np.array([])
+
+
+class LineScan(object):
+    """Line scan data."""
+
+    def __init__(self, posx, posy, posz, cconfig, mconfig,
+                 calibration, dirpath):
+        """Initialize variables.
+
+        Args:
+            posx (float or array): x position of the scan line.
+            posy (float or array): y position of the scan line.
+            posz (float or array): z position of the scan line.
+            cconfig (ControlConfiguration): control configuration data.
+            mconfig (MeasurementConfiguration): measurement configuration data.
+            calibration (CalibrationData): probe calibration data.
+            dirpath (str): directory path to save files.
+        """
+        self.posx = posx
+        self.posy = posy
+        self.posz = posz
+        self.cconfig = cconfig
+        self.mconfig = mconfig
+        self.calibration = calibration
+        self.dirpath = dirpath
+
+        self._axis = None
+        self._timestamp = ''
+        self._raw = []
+        self._interpolated = []
+        self._avg_voltage = DataSet()
+        self._std_voltage = DataSet()
+        self._avg_field = DataSet()
+        self._std_field = DataSet()
+        self._first_integral = DataSet()
+        self._second_integral = DataSet()
+
+        self._set_scan_axis()
+
+    @staticmethod
+    def copy(linescan):
+        """Return a copy of a LineScan."""
+        lsc = LineScan()
+        lsc.posx = linescan.posx
+        lsc.posy = linescan.posy
+        lsc.posz = linescan.posz
+        lsc.cconfig = linescan.cconfig
+        lsc.mconfig = linescan.mconfig
+        lsc.calibration = linescan.calibration
+        lsc.dirpath = linescan.dirpath
+        lsc._axis = linescan._axis
+        lsc._timestamp = linescan._timestamp
+        lsc._raw = [DataSet().copy(s) for s in linescan._raw]
+        lsc._interpolated = [DataSet().copy(s) for s in linescan._interpolated]
+        lsc._avg_voltage = DataSet().copy(linescan._avg_voltage)
+        lsc._std_voltage = DataSet().copy(linescan._std_voltage)
+        lsc._avg_field = DataSet().copy(linescan._avg_field)
+        lsc._std_field = DataSet().copy(linescan._std_field)
+        lsc._first_integral = DataSet().copy(linescan._first_integral)
+        lsc._second_integral = DataSet().copy(linescan._second_integral)
+        return lsc
 
     @property
-    def nr_measurements(self):
-        """Number of measurements."""
+    def axis(self):
+        """Scan axis."""
+        return self._axis
+
+    @property
+    def timestamp(self):
+        """Scan timestamp."""
+        return self._timestamp
+
+    @property
+    def nr_scans(self):
+        """Number of scans."""
         return len(self._raw)
 
     @property
     def raw(self):
-        """List with raw measurement data."""
+        """List with raw scan data."""
         return self._raw
 
     @property
     def interpolated(self):
-        """List with the interpolated measurement data."""
+        """List with the interpolated scan data."""
         return self._interpolated
 
     @property
-    def average_voltage(self):
+    def avg_voltage(self):
         """Average voltage values."""
-        return self._average_voltage
+        return self._avg_voltage
 
     @property
     def std_voltage(self):
@@ -135,9 +188,9 @@ class MeasurementList(object):
         return self._std_voltage
 
     @property
-    def average_field(self):
+    def avg_field(self):
         """Average magnetic field values."""
-        return self._average_field
+        return self._avg_field
 
     @property
     def std_field(self):
@@ -154,271 +207,389 @@ class MeasurementList(object):
         """Magnetic field second integral."""
         return self._second_integral
 
-    def add_measurement(self, measurement):
-        """Add a measurement to the list."""
-        self._raw.append(measurement)
+    def add_scan(self, scan):
+        """Add a scan to the list."""
+        if self._valid_scan(scan):
+            self._raw.append(scan)
+        else:
+            raise Exception('Invalid scan.')
 
-    def analyse_data(self):
-        """Analyse the measurement list data."""
-        if self.nr_measurements != 0:
+    def analyse_and_save_data(self):
+        """Analyse and save the line scan data."""
+        self._timestamp = (
+            _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime()))
+
+        if self.nr_scans != 0:
             self._data_interpolation()
-            self._calculate_average_std()
-            self._convert_voltage_field()
-            self._calculate_first_integral()
-            self._calculate_second_integral()
+            self._calculate_voltage_avg_std()
+            self._convert_voltage_to_field()
+            self._calculate_field_first_integral()
+            self._calculate_field_second_integral()
 
-    def save_data(self, name, directory):
-        """Save the measurement list data."""
-        if self.nr_measurements != 0:
-            self._save_raw_data(name, directory)
-            self._save_interpolated_data(name, directory)
-            self._save_avg_std_voltage_data(name, directory)
-            self._save_avg_std_field_data(name, directory)
-            self._save_field_first_integral(name, directory)
-            self._save_field_second_integral(name, directory)
+    def _set_scan_axis(self):
+        axis = _get_scan_axis(self.posx, self.posy, self.posz)
+        if axis is not None:
+            self._axis = axis
+        else:
+            raise Exception('Invalid position arguments for LineScan.')
+
+    def _valid_scan(self, scan):
+        axis = _get_scan_axis(scan.posx, scan.posy, scan.posz)
+        if axis is not None and axis == self._axis:
+            if (axis == 'x' and scan.posy == self.posy and
+               scan.posz == self.posz):
+                return True
+            elif (axis == 'y' and scan.posx == self.posx and
+                  scan.posz == self.posz):
+                return True
+            elif (axis == 'z' and scan.posx == self.posx and
+                  scan.posy == self.posy):
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def _get_shifts(self):
-        if self.axis == 1:  # Z axis scan
+        if self._axis == 'z':
             shiftx = self.calibration.shift_x_to_y
             shifty = 0
             shiftz = self.calibration.shift_z_to_y
         return (shiftx, shifty, shiftz)
 
     def _get_number_cuts(self):
-        if self.axis == 1:  # Z axis scan
+        if self._axis == 'z':
             n_cuts = _math.ceil(_np.array(
-                [abs(self._calibration.shift_x_to_y),
-                 abs(self._calibration.shift_z_to_y)]).max())
+                [abs(self.calibration.shift_x_to_y),
+                 abs(self.calibration.shift_z_to_y)]).max())
         return n_cuts
 
     def _data_interpolation(self):
-        """Interpolate each measurement."""
+        """Interpolate each scan."""
         sx, sy, sz = self._get_shifts()
 
         # correct curves displacement due to trigger and
         # integration time (half integration time)
         self._interpolated = []
-        for rm in self._raw:
-            m = Measurement()
+        interp_pos = _get_scan_position(self.posx, self.posy, self.posz)
 
-            m.axis = rm.axis
-            m.position = self.position
+        idx = 1
+        for raw in self._raw:
+            interp = DataSet()
+            interp.description = 'Interpolated_Voltage'
+            interp.unit = 'V'
 
-            fx = _interpolate.splrep(rm.position + sx, rm.hallx, s=0, k=1)
-            m.hallx = _interpolate.splev(m.position, fx, der=0)
+            interp.posx = self.posx
+            interp.posy = self.posy
+            interp.posz = self.posz
 
-            fy = _interpolate.splrep(rm.position + sy, rm.hally, s=0, k=1)
-            m.hally = _interpolate.splev(m.position, fy, der=0)
+            rawpos = _get_scan_position(raw.posx, raw.posy, raw.posz)
 
-            fz = _interpolate.splrep(rm.position + sz, rm.hallz, s=0, k=1)
-            m.hallz = _interpolate.splev(m.position, fz, der=0)
+            fx = _interpolate.splrep(rawpos + sx, raw.datax, s=0, k=1)
+            interp.datax = _interpolate.splev(interp_pos, fx, der=0)
 
-            self._interpolated.append(m)
+            fy = _interpolate.splrep(rawpos + sy, raw.datay, s=0, k=1)
+            interp.datay = _interpolate.splev(interp_pos, fy, der=0)
 
-    def _calculate_average_std(self):
+            fz = _interpolate.splrep(rawpos + sz, raw.dataz, s=0, k=1)
+            interp.dataz = _interpolate.splev(interp_pos, fz, der=0)
+
+            self._interpolated.append(interp)
+
+            self._save_data(raw, idx=idx)
+            self._save_data(interp, idx=idx)
+            idx += 1
+
+    def _calculate_voltage_avg_std(self):
         """Calculate the average and std of voltage values."""
-        n = self.nr_measurements
+        n = self.nr_scans
+
+        interpolation_npts = len(
+            _get_scan_position(self.posx, self.posy, self.posz))
 
         # average calculation
-        self._avarage_voltage.position = self.position
-        self._average_voltage.hallx = _np.zeros(len(self.position))
-        self._average_voltage.hally = _np.zeros(len(self.position))
-        self._average_voltage.hallz = _np.zeros(len(self.position))
+        self._avg_voltage.description = 'Avg_Voltage'
+        self._avg_voltage.unit = 'V'
+        self._avg_voltage.posx = self.posx
+        self._avg_voltage.posy = self.posy
+        self._avg_voltage.posz = self.posz
+        self._avg_voltage.datax = _np.zeros(interpolation_npts)
+        self._avg_voltage.datay = _np.zeros(interpolation_npts)
+        self._avg_voltage.dataz = _np.zeros(interpolation_npts)
 
         if n > 1:
             for i in range(n):
-                self._average_voltage.hallx += self._interpolated[i].hallx
-                self._average_voltage.hally += self._interpolated[i].hally
-                self._average_voltage.hallz += self._interpolated[i].hallz
+                self._avg_voltage.datax += self._interpolated[i].datax
+                self._avg_voltage.datay += self._interpolated[i].datay
+                self._avg_voltage.dataz += self._interpolated[i].dataz
 
-            self._average_voltage.hallx /= n
-            self._average_voltage.hally /= n
-            self._average_voltage.hallz /= n
-        else:
-            self._average_voltage.hallx = self._interpolated[i].hallx
-            self._average_voltage.hally = self._interpolated[i].hally
-            self._average_voltage.hallz = self._interpolated[i].hallz
+            self._avg_voltage.datax /= n
+            self._avg_voltage.datay /= n
+            self._avg_voltage.dataz /= n
+
+        elif n == 1:
+            self._avg_voltage.datax = self._interpolated[0].datax
+            self._avg_voltage.datay = self._interpolated[0].datay
+            self._avg_voltage.dataz = self._interpolated[0].dataz
 
         # standard std calculation
-        self._std_voltage.position = self.position
-        self._std_voltage.hallx = _np.zeros(len(self.position))
-        self._std_voltage.hally = _np.zeros(len(self.position))
-        self._std_voltage.hallz = _np.zeros(len(self.position))
+        self._std_voltage.description = 'Std_Voltage'
+        self._std_voltage.unit = 'V'
+        self._std_voltage.posx = self.posx
+        self._std_voltage.posy = self.posy
+        self._std_voltage.posz = self.posz
+        self._std_voltage.datax = _np.zeros(interpolation_npts)
+        self._std_voltage.datay = _np.zeros(interpolation_npts)
+        self._std_voltage.dataz = _np.zeros(interpolation_npts)
 
         if n > 1:
             for i in range(n):
-                self._std_voltage.hallx += pow((
-                    self._interpolated[i].hallx -
-                    self._average_voltage.hallx), 2)
+                self._std_voltage.datax += pow((
+                    self._interpolated[i].datax -
+                    self._avg_voltage.datax), 2)
 
-                self._std_voltage.hally += pow((
-                    self._interpolated[i].hally -
-                    self._average_voltage.hally), 2)
+                self._std_voltage.datay += pow((
+                    self._interpolated[i].datay -
+                    self._avg_voltage.datay), 2)
 
-                self._std_voltage.hallz += pow((
-                    self._interpolated[i].hallz -
-                    self._average_voltage.hallz), 2)
+                self._std_voltage.dataz += pow((
+                    self._interpolated[i].dataz -
+                    self._avg_voltage.dataz), 2)
 
-            self._std_voltage.hallx /= n
-            self._std_voltage.hally /= n
-            self._std_voltage.hallz /= n
+            self._std_voltage.datax /= n
+            self._std_voltage.datay /= n
+            self._std_voltage.dataz /= n
 
         # cut extra points due to shift sensors
-        n_cuts = self._get_number_cuts()
+        nc = self._get_number_cuts()
 
-        if n_cuts != 0:
-            self._average_voltage.position = (
-                self._average_voltage.position[n_cuts:-n_cuts])
-            self._average_voltage.hallx = (
-                self._average_voltage.hallx[n_cuts:-n_cuts])
-            self._average_voltage.hally = (
-                self._average_voltage.hally[n_cuts:-n_cuts])
-            self._average_voltage.hallz = (
-                self._average_voltage.hallz[n_cuts:-n_cuts])
+        if nc != 0:
+            if self._axis == 'x':
+                self._avg_voltage.posx = self._avg_voltage.posx[nc:-nc]
+                self._std_voltage.posx = self._std_voltage.posx[nc:-nc]
+            elif self._axis == 'y':
+                self._avg_voltage.posy = self._avg_voltage.posy[nc:-nc]
+                self._std_voltage.posy = self._std_voltage.posy[nc:-nc]
+            elif self._axis == 'z':
+                self._avg_voltage.posz = self._avg_voltage.posz[nc:-nc]
+                self._std_voltage.posz = self._std_voltage.posz[nc:-nc]
 
-            self._std_voltage.position = (
-                self._std_voltage.position[n_cuts:-n_cuts])
-            self._std_voltage.hallx = (
-                self._std_voltage.hallx[n_cuts:-n_cuts])
-            self._std_voltage.hally = (
-                self._std_voltage.hally[n_cuts:-n_cuts])
-            self._std_voltage.hallz = (
-                self._std_voltage.hallz[n_cuts:-n_cuts])
+            self._avg_voltage.datax = self._avg_voltage.datax[nc:-nc]
+            self._avg_voltage.datay = self._avg_voltage.datay[nc:-nc]
+            self._avg_voltage.dataz = self._avg_voltage.dataz[nc:-nc]
 
-    def _convert_voltage_field(self):
+            self._std_voltage.datax = self._std_voltage.datax[nc:-nc]
+            self._std_voltage.datay = self._std_voltage.datay[nc:-nc]
+            self._std_voltage.dataz = self._std_voltage.dataz[nc:-nc]
+
+        self._save_data(self._avg_voltage, self._std_voltage)
+
+    def _convert_voltage_to_field(self):
         """Calculate the average and std of magnetic field values."""
-        self._average_field.position = self.position
+        self._avg_field.description = 'Avg_Field'
+        self._avg_field.unit = 'T'
+        self._avg_field.posx = self.posx
+        self._avg_field.posy = self.posy
+        self._avg_field.posz = self.posz
 
-        self._average_field.hallx = self.calibration.convert_probe_x(
-            self._average_voltage.hallx)
+        self._avg_field.datax = self.calibration.convert_probe_x(
+            self._avg_voltage.datax)
 
-        self._average_field.hally = self.calibration.convert_probe_y(
-            self._average_voltage.hally)
+        self._avg_field.datay = self.calibration.convert_probe_y(
+            self._avg_voltage.datay)
 
-        self._average_field.hallz = self.calibration.convert_probe_z(
-            self._average_voltage.hallz)
+        self._avg_field.dataz = self.calibration.convert_probe_z(
+            self._avg_voltage.dataz)
 
-        self._std_field.position = self.position
+        self._std_field.description = 'Std_Field'
+        self._std_field.unit = 'T'
+        self._std_field.posx = self.posx
+        self._std_field.posy = self.posy
+        self._std_field.posz = self.posz
 
-        self._std_field.hallx = self.calibration.convert_probe_x(
-            self._std_voltage.hallx)
+        self._std_field.datax = self.calibration.convert_probe_x(
+            self._std_voltage.datax)
 
-        self._std_field.hally = self.calibration.convert_probe_y(
-            self._std_voltage.hally)
+        self._std_field.datay = self.calibration.convert_probe_y(
+            self._std_voltage.datay)
 
-        self._std_field.hallz = self.calibration.convert_probe_z(
-            self._std_voltage.hallz)
+        self._std_field.dataz = self.calibration.convert_probe_z(
+            self._std_voltage.dataz)
 
-    def _calculate_first_integral(self):
+        self._save_data(self._avg_field, self._std_field)
+
+    def _calculate_field_first_integral(self):
         """Calculate the magnetic field first integral."""
-        self._first_integral.position = self.position
+        self._first_integral.description = 'First_Integral'
+        self._first_integral.unit = 'T.m'
+        self._first_integral.posx = self.posx
+        self._first_integral.posy = self.posy
+        self._first_integral.posz = self.posz
 
-        self._first_integral.hallx = _cumtrapz(
-            x=self._average_field.position,
-            y=self._average_field.hallx,
-            initial=0)
+        field_pos = _get_scan_position(self._avg_field.posx,
+                                       self._avg_field.posy,
+                                       self._avg_field.posz)
 
-        self._first_integral.hally = _cumtrapz(
-            x=self._average_field.position,
-            y=self._average_field.hally,
-            initial=0)
+        self._first_integral.datax = _cumtrapz(
+            x=field_pos, y=self._avg_field.datax, initial=0)
 
-        self._first_integral.hallz = _cumtrapz(
-            x=self._average_field.position,
-            y=self._average_field.hallz,
-            initial=0)
+        self._first_integral.datay = _cumtrapz(
+            x=field_pos, y=self._avg_field.datay, initial=0)
 
-    def _calculate_second_integral(self):
+        self._first_integral.dataz = _cumtrapz(
+            x=field_pos, y=self._avg_field.dataz, initial=0)
+
+        self._save_data(self._first_integral)
+
+    def _calculate_field_second_integral(self):
         """Calculate the magnetic field second integral."""
-        self._second_integral.position = self.position
+        self._second_integral.description = 'Second_Integral'
+        self._second_integral.unit = 'T.m^2'
+        self._second_integral.posx = self.posx
+        self._second_integral.posy = self.posy
+        self._second_integral.posz = self.posz
 
-        self._second_integral.hallx = _cumtrapz(
-            x=self._first_integral.position,
-            y=self._first_integral.hallx,
-            initial=0)
+        field_pos = _get_scan_position(self._avg_field.posx,
+                                       self._avg_field.posy,
+                                       self._avg_field.posz)
 
-        self._second_integral.hally = _cumtrapz(
-            x=self._first_integral.position,
-            y=self._first_integral.hally,
-            initial=0)
+        self._second_integral.datax = _cumtrapz(
+            x=field_pos, y=self._first_integral.datax, initial=0)
 
-        self._second_integral.hallz = _cumtrapz(
-            x=self._first_integral.position,
-            y=self._first_integral.hallz,
-            initial=0)
+        self._second_integral.datay = _cumtrapz(
+            x=field_pos, y=self._first_integral.datay, initial=0)
 
-    def _save_raw_data(self, name, directory):
-        """Save raw data to files.
+        self._second_integral.dataz = _cumtrapz(
+            x=field_pos, y=self._first_integral.dataz, initial=0)
 
-        Args:
-            name (str): name specifying the measurement location.
-            directory (str): directory path.
-        """
-        for i in range(self.nr_measurements):
-            filename = 'Raw_Data_' + name + '_' + str(i + 1) + '.dat'
-            filename = _os.path.join(directory, filename)
-            self._raw[i].save_to_file(filename)
+        self._save_data(self._second_integral)
 
-    def _save_interpolated_data(self, name, directory):
-        """Save intepolated data to files.
+    def _get_filename(self, dataset1, dataset2=None, idx=None):
+        if self._axis == 'x':
+            linepos = 'Z=' + str(self.posz) + 'mm_Y=' + str(self.posy) + 'mm'
+        elif self._axis == 'y':
+            linepos = 'Z=' + str(self.posz) + 'mm_X=' + str(self.posx) + 'mm'
+        elif self._axis == 'z':
+            linepos = 'Y=' + str(self.posy) + 'mm_X=' + str(self.posx) + 'mm'
 
-        Args:
-            name (str): name specifying the measurement location.
-            directory (str): directory path.
-        """
-        for i in range(self.nr_measurements):
-            filename = 'Interpolated_Data_' + name + '_'+str(i + 1)+'.dat'
-            filename = _os.path.join(directory, filename)
-            self._interpolated[i].save_to_file(filename)
+        if dataset2 is not None:
+            description = dataset1.description + '_' + dataset2.description
+        else:
+            description = dataset1.description
 
-    def _save_avg_std_voltage_data(self, name, directory):
-        """Save voltage average and std values to file.
+        if idx is not None:
+            filename = description + '_' + linepos + '_' + str(idx) + '.dat'
+        else:
+            filename = description + '_' + linepos + '.dat'
 
-        Args:
-            name (str): name specifying the measurement location.
-            directory (str): directory path.
-        """
-        filename = 'Average_Data_' + name + '.dat'
-        filename = _os.path.join(directory, filename)
-        _save_avg_std(filename, self._average_voltage, self._std_voltage)
+        filename = _os.path.join(self.dirpath, filename)
 
-    def _save_avg_std_field_data(self, name, directory):
-        """Save magnetic field average and std values to file.
+        return filename
 
-        Args:
-            name (str): name specifying the measurement location.
-            directory (str): directory path.
-        """
-        filename = 'Average_B_field_Data_' + name + '.dat'
-        filename = _os.path.join(directory, filename)
-        _save_avg_std(filename, self._average_field, self._std_field)
+    def _save_data(self, dataset1, dataset2=None, idx=None):
+        filename = self._get_filename(dataset1, dataset2, idx)
 
-    def _save_field_first_integral(self, name, directory):
-        """Save magnetic field first integral to file.
+        if self._axis == 'x':
+            pos_str = 'X [mm]'
+            pos_values = dataset1.posx
+        elif self._axis == 'y':
+            pos_str = 'Y [mm]'
+            pos_values = dataset1.posy
+        elif self._axis == 'z':
+            pos_str = 'Z [mm]'
+            pos_values = dataset1.posz
 
-        Args:
-            name (str): name specifying the measurement location.
-            directory (str): directory path.
-        """
-        filename = 'First_integral_B_Data_' + name + '.dat'
-        filename = _os.path.join(directory, filename)
-        self._first_integral.save_to_file(filename)
+        if dataset2 is not None:
+            description = dataset1.description + '_' + dataset2.description
+            columns_names = (
+                '%s\t' % pos_str +
+                '%s X [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%s Y [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%s Z [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%s X [%s]\t' % (dataset2.description, dataset2.unit) +
+                '%s Y [%s]\t' % (dataset2.description, dataset2.unit) +
+                '%s Z [%s]' % (dataset2.description, dataset2.unit))
+            columns = _np.column_stack((
+                pos_values, dataset1.datax, dataset1.datay, dataset1.dataz,
+                dataset2.datax, dataset2.datay, dataset2.dataz))
+        else:
+            description = dataset1.description
+            columns_names = (
+                '%s\t' % pos_str +
+                '%s X [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%s Y [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%s Z [%s]' % (dataset1.description, dataset1.unit))
+            columns = _np.column_stack((
+                pos_values, dataset1.datax, dataset1.datay, dataset1.dataz))
 
-    def _save_field_second_integral(self, name, directory):
-        """Save magnetic field second integral to file.
+        f = open(filename, mode='w')
 
-        Args:
-            name (str): name specifying the measurement location.
-            directory (str): directory path.
-        """
-        filename = 'Second_integral_B_Data_' + name + '.dat'
-        filename = _os.path.join(directory, filename)
-        self._second_integral.save_to_file(filename)
+        cconfig_filename = _os.path.split(self.cconfig.filename)[1]
+        mconfig_filename = _os.path.split(self.mconfig.filename)[1]
+        calibration_filename = _os.path.split(self.calibration.filename)[1]
+
+        f.write('data:                     \t%s\n' % description)
+        f.write('timestamp:                \t%s\n' % self._timestamp)
+        f.write('control_configuration:    \t%s\n' % cconfig_filename)
+        f.write('measurement_configuration:\t%s\n' % mconfig_filename)
+        f.write('calibration:              \t%s\n' % calibration_filename)
+
+        if self._axis == 'x':
+            f.write('position X [mm]:          \t--\n')
+            f.write('position Y [mm]:          \t%f\n' % dataset1.posy)
+            f.write('position Z [mm]:          \t%f\n' % dataset1.posz)
+        elif self._axis == 'y':
+            f.write('position X [mm]:          \t%f\n' % dataset1.posx)
+            f.write('position Y [mm]:          \t--\n')
+            f.write('position Z [mm]:          \t%f\n' % dataset1.posz)
+        elif self._axis == 'z':
+            f.write('position X [mm]:          \t%f\n' % dataset1.posx)
+            f.write('position Y [mm]:          \t%f\n' % dataset1.posy)
+            f.write('position Z [mm]:          \t--\n')
+
+        f.write('\n')
+        f.write('%s\n' % columns_names)
+        f.write('---------------------------------------------------' +
+                '---------------------------------------------------\n')
+
+        for i in range(columns.shape[0]):
+            line = '{0:0.3f}'.format(columns[i, 0])
+            for j in range(1, columns.shape[1]):
+                line = line + '\t' + '{0:0.10e}'.format(columns[i, j])
+            f.write(line + '\n')
+
+        f.close()
 
 
-def _save_avg_std(filename, avg, std):
-    data = _np.column_stack((
-        avg.position,
-        avg.hallx, avg.hally, avg.hallz,
-        std.hallx, std.hally, std.hallz))
-    _np.savetxt(filename, data, delimiter='\t', newline='\r\n')
+def _get_scan_axis(posx, posy, posz):
+    if (not isinstance(posx, (int, float)) and
+       isinstance(posy, (int, float)) and
+       isinstance(posz, (int, float))):
+        return 'x'
+    elif (not isinstance(posy, (int, float)) and
+          isinstance(posx, (int, float)) and
+          isinstance(posz, (int, float))):
+        return 'y'
+    elif (not isinstance(posz, (int, float)) and
+          isinstance(posx, (int, float)) and
+          isinstance(posy, (int, float))):
+        return 'z'
+    else:
+        return None
+
+
+def _get_scan_position(posx, posy, posz):
+    if (not isinstance(posx, (int, float)) and
+       isinstance(posy, (int, float)) and
+       isinstance(posz, (int, float))):
+        return posx
+    elif (not isinstance(posy, (int, float)) and
+          isinstance(posx, (int, float)) and
+          isinstance(posz, (int, float))):
+        return posy
+    elif (not isinstance(posz, (int, float)) and
+          isinstance(posx, (int, float)) and
+          isinstance(posy, (int, float))):
+        return posz
+    else:
+        return None

@@ -7,8 +7,8 @@ import HallBench.GPIB as _GPIB
 import HallBench.Pmac as _Pmac
 
 
-class Voltmeter(_GPIB.GPIB_A3458A):
-    """Hall bench voltmeter."""
+class DigitalMultimeter(_GPIB.GPIB_A3458A):
+    """Hall bench digital multimeter."""
 
     def __init__(self, logfile, address):
         """Initiate variables and prepare log file.
@@ -24,7 +24,7 @@ class Voltmeter(_GPIB.GPIB_A3458A):
 
     def connect(self):
         """Connect device."""
-        return super(Voltmeter, self).connect(self.address)
+        return super(DigitalMultimeter, self).connect(self.address)
 
     def read(self, stop_flag, end_meas_flag, formtype=0):
         """Read voltage from the device.
@@ -139,11 +139,11 @@ class HallBenchDevices(object):
         """Load devices."""
         try:
             self.pmac = _Pmac.Pmac()
-            self.voltx = Voltmeter(
+            self.voltx = DigitalMultimeter(
                 'volt_x.log', self.config.control_voltx_addr)
-            self.volty = Voltmeter(
+            self.volty = DigitalMultimeter(
                 'volt_y.log', self.config.control_volty_addr)
-            self.voltz = Voltmeter(
+            self.voltz = DigitalMultimeter(
                 'volt_z.log', self.config.control_voltz_addr)
             self.multich = Multichannel(
                 'multi.log', self.config.control_multich_addr)
@@ -177,8 +177,8 @@ class HallBenchDevices(object):
         """
         connection_dict = {}
         connection_dict['pmac'] = self.pmac_connected
-        connection_dict['voltimeter x'] = self.voltx_connected
-        connection_dict['voltimeter y'] = self.volty_connected
-        connection_dict['voltimeter z'] = self.voltz_connected
+        connection_dict['multimeter x'] = self.voltx_connected
+        connection_dict['multimeter y'] = self.volty_connected
+        connection_dict['multimeter z'] = self.voltz_connected
         connection_dict['multichannel'] = self.multich_connected
         return connection_dict

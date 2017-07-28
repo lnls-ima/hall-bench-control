@@ -24,9 +24,9 @@ class CalibrationData(object):
         if filename is not None:
             self.read_calibration_file(filename)
         else:
-            self.filename = None
-            self.shift_x_to_y = 0
-            self.shift_z_to_y = 0
+            self._filename = None
+            self._shift_x_to_y = 0
+            self._shift_z_to_y = 0
 
     def read_calibration_file(self, filename):
         """Read calibration parameters from file.

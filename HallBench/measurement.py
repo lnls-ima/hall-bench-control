@@ -3,10 +3,18 @@
 
 import os as _os
 import time as _time
-import math as _math
 import numpy as _np
+import shutil as _shutil
 from scipy import interpolate as _interpolate
 from scipy.integrate import cumtrapz as _cumtrapz
+
+
+class MeasurementDataError(Exception):
+    """Measurement data exception."""
+
+    def __init__(self, message, *args):
+        """Initialize variables."""
+        self.message = message
 
 
 class DataSet(object):
@@ -108,15 +116,27 @@ class LineScan(object):
             calibration (CalibrationData): probe calibration data.
             dirpath (str): directory path to save files.
         """
-        self.posx = posx
-        self.posy = posy
-        self.posz = posz
+        if isinstance(posx, (int, float)):
+            self.posx = round(posx, 4)
+        else:
+            self.posx = _np.around(posx, decimals=4)
+
+        if isinstance(posy, (int, float)):
+            self.posy = round(posy, 4)
+        else:
+            self.posy = _np.around(posy, decimals=4)
+
+        if isinstance(posz, (int, float)):
+            self.posz = round(posz, 4)
+        else:
+            self.posz = _np.around(posz, decimals=4)
+
         self.cconfig = cconfig
         self.mconfig = mconfig
         self.calibration = calibration
         self.dirpath = dirpath
 
-        self._axis = None
+        self._scan_axis = None
         self._timestamp = ''
         self._raw = []
         self._interpolated = []
@@ -140,7 +160,7 @@ class LineScan(object):
         lsc.mconfig = linescan.mconfig
         lsc.calibration = linescan.calibration
         lsc.dirpath = linescan.dirpath
-        lsc._axis = linescan._axis
+        lsc._scan_axis = linescan._scan_axis
         lsc._timestamp = linescan._timestamp
         lsc._raw = [DataSet().copy(s) for s in linescan._raw]
         lsc._interpolated = [DataSet().copy(s) for s in linescan._interpolated]
@@ -153,19 +173,31 @@ class LineScan(object):
         return lsc
 
     @property
-    def axis(self):
-        """Scan axis."""
-        return self._axis
+    def scan_axis(self):
+        """Scan axis label."""
+        return self._scan_axis
 
     @property
-    def timestamp(self):
-        """Scan timestamp."""
-        return self._timestamp
+    def scan_positions(self):
+        """Scan axis position values."""
+        if self._scan_axis == 'x':
+            return self.posx
+        elif self._scan_axis == 'y':
+            return self.posy
+        elif self._scan_axis == 'z':
+            return self.posz
+        else:
+            return []
 
     @property
     def nr_scans(self):
         """Number of scans."""
         return len(self._raw)
+
+    @property
+    def timestamp(self):
+        """Scan timestamp."""
+        return self._timestamp
 
     @property
     def raw(self):
@@ -212,7 +244,7 @@ class LineScan(object):
         if self._valid_scan(scan):
             self._raw.append(scan)
         else:
-            raise Exception('Invalid scan.')
+            raise MeasurementDataError('Invalid scan.')
 
     def analyse_and_save_data(self):
         """Analyse and save the line scan data."""
@@ -226,24 +258,46 @@ class LineScan(object):
             self._calculate_field_first_integral()
             self._calculate_field_second_integral()
 
+        # copy configuration files
+        try:
+            _shutil.copy(self.cconfig.filename, self.dirpath)
+            _shutil.copy(self.mconfig.filename, self.dirpath)
+            _shutil.copy(self.calibration.filename, self.dirpath)
+        except Exception:
+            pass
+
+    def clear(self):
+        """Clear LineScan."""
+        self._scan_axis = None
+        self._timestamp = ''
+        self._raw = []
+        self._interpolated = []
+        self._avg_voltage = DataSet()
+        self._std_voltage = DataSet()
+        self._avg_field = DataSet()
+        self._std_field = DataSet()
+        self._first_integral = DataSet()
+        self._second_integral = DataSet()
+
     def _set_scan_axis(self):
-        axis = _get_scan_axis(self.posx, self.posy, self.posz)
-        if axis is not None:
-            self._axis = axis
+        scan_axis = _get_scan_axis(self.posx, self.posy, self.posz)
+        if scan_axis is not None:
+            self._scan_axis = scan_axis
         else:
-            raise Exception('Invalid position arguments for LineScan.')
+            raise MeasurementDataError(
+                'Invalid position arguments for LineScan.')
 
     def _valid_scan(self, scan):
-        axis = _get_scan_axis(scan.posx, scan.posy, scan.posz)
-        if axis is not None and axis == self._axis:
-            if (axis == 'x' and scan.posy == self.posy and
-               scan.posz == self.posz):
+        scan_axis = _get_scan_axis(scan.posx, scan.posy, scan.posz)
+        if scan_axis is not None and scan_axis == self._scan_axis:
+            if (scan_axis == 'x' and round(scan.posy, 4) == self.posy and
+               round(scan.posz, 4) == self.posz):
                 return True
-            elif (axis == 'y' and scan.posx == self.posx and
-                  scan.posz == self.posz):
+            elif (scan_axis == 'y' and round(scan.posx, 4) == self.posx and
+                  round(scan.posz, 4) == self.posz):
                 return True
-            elif (axis == 'z' and scan.posx == self.posx and
-                  scan.posy == self.posy):
+            elif (scan_axis == 'z' and round(scan.posx, 4) == self.posx and
+                  round(scan.posy, 4) == self.posy):
                 return True
             else:
                 return False
@@ -251,18 +305,17 @@ class LineScan(object):
             return False
 
     def _get_shifts(self):
-        if self._axis == 'z':
+        if self._scan_axis == 'z':
             shiftx = self.calibration.shift_x_to_y
             shifty = 0
             shiftz = self.calibration.shift_z_to_y
         return (shiftx, shifty, shiftz)
 
-    def _get_number_cuts(self):
-        if self._axis == 'z':
-            n_cuts = _math.ceil(_np.array(
-                [abs(self.calibration.shift_x_to_y),
-                 abs(self.calibration.shift_z_to_y)]).max())
-        return n_cuts
+    def _raw_data_unit(self):
+        if all([raw.unit == self._raw[0].unit for raw in self._raw]):
+            return self._raw[0].unit
+        else:
+            return ''
 
     def _data_interpolation(self):
         """Interpolate each scan."""
@@ -271,13 +324,13 @@ class LineScan(object):
         # correct curves displacement due to trigger and
         # integration time (half integration time)
         self._interpolated = []
-        interp_pos = _get_scan_position(self.posx, self.posy, self.posz)
+        scan_pos = self.scan_positions
 
         idx = 1
         for raw in self._raw:
             interp = DataSet()
             interp.description = 'Interpolated_Voltage'
-            interp.unit = 'V'
+            interp.unit = raw.unit
 
             interp.posx = self.posx
             interp.posy = self.posy
@@ -286,13 +339,13 @@ class LineScan(object):
             rawpos = _get_scan_position(raw.posx, raw.posy, raw.posz)
 
             fx = _interpolate.splrep(rawpos + sx, raw.datax, s=0, k=1)
-            interp.datax = _interpolate.splev(interp_pos, fx, der=0)
+            interp.datax = _interpolate.splev(scan_pos, fx, der=0)
 
             fy = _interpolate.splrep(rawpos + sy, raw.datay, s=0, k=1)
-            interp.datay = _interpolate.splev(interp_pos, fy, der=0)
+            interp.datay = _interpolate.splev(scan_pos, fy, der=0)
 
             fz = _interpolate.splrep(rawpos + sz, raw.dataz, s=0, k=1)
-            interp.dataz = _interpolate.splev(interp_pos, fz, der=0)
+            interp.dataz = _interpolate.splev(scan_pos, fz, der=0)
 
             self._interpolated.append(interp)
 
@@ -304,12 +357,11 @@ class LineScan(object):
         """Calculate the average and std of voltage values."""
         n = self.nr_scans
 
-        interpolation_npts = len(
-            _get_scan_position(self.posx, self.posy, self.posz))
+        interpolation_npts = len(self.scan_positions)
 
         # average calculation
         self._avg_voltage.description = 'Avg_Voltage'
-        self._avg_voltage.unit = 'V'
+        self._avg_voltage.unit = self._raw_data_unit()
         self._avg_voltage.posx = self.posx
         self._avg_voltage.posy = self.posy
         self._avg_voltage.posz = self.posz
@@ -334,7 +386,7 @@ class LineScan(object):
 
         # standard std calculation
         self._std_voltage.description = 'Std_Voltage'
-        self._std_voltage.unit = 'V'
+        self._std_voltage.unit = self._raw_data_unit()
         self._std_voltage.posx = self.posx
         self._std_voltage.posy = self.posy
         self._std_voltage.posz = self.posz
@@ -359,28 +411,6 @@ class LineScan(object):
             self._std_voltage.datax /= n
             self._std_voltage.datay /= n
             self._std_voltage.dataz /= n
-
-        # cut extra points due to shift sensors
-        nc = self._get_number_cuts()
-
-        if nc != 0:
-            if self._axis == 'x':
-                self._avg_voltage.posx = self._avg_voltage.posx[nc:-nc]
-                self._std_voltage.posx = self._std_voltage.posx[nc:-nc]
-            elif self._axis == 'y':
-                self._avg_voltage.posy = self._avg_voltage.posy[nc:-nc]
-                self._std_voltage.posy = self._std_voltage.posy[nc:-nc]
-            elif self._axis == 'z':
-                self._avg_voltage.posz = self._avg_voltage.posz[nc:-nc]
-                self._std_voltage.posz = self._std_voltage.posz[nc:-nc]
-
-            self._avg_voltage.datax = self._avg_voltage.datax[nc:-nc]
-            self._avg_voltage.datay = self._avg_voltage.datay[nc:-nc]
-            self._avg_voltage.dataz = self._avg_voltage.dataz[nc:-nc]
-
-            self._std_voltage.datax = self._std_voltage.datax[nc:-nc]
-            self._std_voltage.datay = self._std_voltage.datay[nc:-nc]
-            self._std_voltage.dataz = self._std_voltage.dataz[nc:-nc]
 
         self._save_data(self._avg_voltage, self._std_voltage)
 
@@ -421,7 +451,7 @@ class LineScan(object):
     def _calculate_field_first_integral(self):
         """Calculate the magnetic field first integral."""
         self._first_integral.description = 'First_Integral'
-        self._first_integral.unit = 'T.m'
+        self._first_integral.unit = 'T.mm'
         self._first_integral.posx = self.posx
         self._first_integral.posy = self.posy
         self._first_integral.posz = self.posz
@@ -444,7 +474,7 @@ class LineScan(object):
     def _calculate_field_second_integral(self):
         """Calculate the magnetic field second integral."""
         self._second_integral.description = 'Second_Integral'
-        self._second_integral.unit = 'T.m^2'
+        self._second_integral.unit = 'T.mm^2'
         self._second_integral.posx = self.posx
         self._second_integral.posy = self.posy
         self._second_integral.posz = self.posz
@@ -465,12 +495,15 @@ class LineScan(object):
         self._save_data(self._second_integral)
 
     def _get_filename(self, dataset1, dataset2=None, idx=None):
-        if self._axis == 'x':
-            linepos = 'Z=' + str(self.posz) + 'mm_Y=' + str(self.posy) + 'mm'
-        elif self._axis == 'y':
-            linepos = 'Z=' + str(self.posz) + 'mm_X=' + str(self.posx) + 'mm'
-        elif self._axis == 'z':
-            linepos = 'Y=' + str(self.posy) + 'mm_X=' + str(self.posx) + 'mm'
+        if self._scan_axis == 'x':
+            linepos = ('Z=' + '{0:0.3f}'.format(self.posz) + 'mm_' +
+                       'Y=' + '{0:0.3f}'.format(self.posy) + 'mm')
+        elif self._scan_axis == 'y':
+            linepos = ('Z=' + '{0:0.3f}'.format(self.posz) + 'mm_' +
+                       'X=' + '{0:0.3f}'.format(self.posx) + 'mm')
+        elif self._scan_axis == 'z':
+            linepos = ('Y=' + '{0:0.3f}'.format(self.posy) + 'mm_' +
+                       'X=' + '{0:0.3f}'.format(self.posx) + 'mm')
 
         if dataset2 is not None:
             description = dataset1.description + '_' + dataset2.description
@@ -482,20 +515,24 @@ class LineScan(object):
         else:
             filename = description + '_' + linepos + '.dat'
 
-        filename = _os.path.join(self.dirpath, filename)
+        datadir = _os.path.join(self.dirpath, 'data')
+        if not _os.path.isdir(datadir):
+            _os.mkdir(datadir)
+
+        filename = _os.path.join(datadir, filename)
 
         return filename
 
     def _save_data(self, dataset1, dataset2=None, idx=None):
         filename = self._get_filename(dataset1, dataset2, idx)
 
-        if self._axis == 'x':
+        if self._scan_axis == 'x':
             pos_str = 'X [mm]'
             pos_values = dataset1.posx
-        elif self._axis == 'y':
+        elif self._scan_axis == 'y':
             pos_str = 'Y [mm]'
             pos_values = dataset1.posy
-        elif self._axis == 'z':
+        elif self._scan_axis == 'z':
             pos_str = 'Z [mm]'
             pos_values = dataset1.posz
 
@@ -503,12 +540,12 @@ class LineScan(object):
             description = dataset1.description + '_' + dataset2.description
             columns_names = (
                 '%s\t' % pos_str +
-                '%s X [%s]\t' % (dataset1.description, dataset1.unit) +
-                '%s Y [%s]\t' % (dataset1.description, dataset1.unit) +
-                '%s Z [%s]\t' % (dataset1.description, dataset1.unit) +
-                '%s X [%s]\t' % (dataset2.description, dataset2.unit) +
-                '%s Y [%s]\t' % (dataset2.description, dataset2.unit) +
-                '%s Z [%s]' % (dataset2.description, dataset2.unit))
+                '%sX [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%sY [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%sZ [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%sX [%s]\t' % (dataset2.description, dataset2.unit) +
+                '%sY [%s]\t' % (dataset2.description, dataset2.unit) +
+                '%sZ [%s]' % (dataset2.description, dataset2.unit))
             columns = _np.column_stack((
                 pos_values, dataset1.datax, dataset1.datay, dataset1.dataz,
                 dataset2.datax, dataset2.datay, dataset2.dataz))
@@ -516,9 +553,9 @@ class LineScan(object):
             description = dataset1.description
             columns_names = (
                 '%s\t' % pos_str +
-                '%s X [%s]\t' % (dataset1.description, dataset1.unit) +
-                '%s Y [%s]\t' % (dataset1.description, dataset1.unit) +
-                '%s Z [%s]' % (dataset1.description, dataset1.unit))
+                '%sX [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%sY [%s]\t' % (dataset1.description, dataset1.unit) +
+                '%sZ [%s]' % (dataset1.description, dataset1.unit))
             columns = _np.column_stack((
                 pos_values, dataset1.datax, dataset1.datay, dataset1.dataz))
 
@@ -534,15 +571,15 @@ class LineScan(object):
         f.write('measurement_configuration:\t%s\n' % mconfig_filename)
         f.write('calibration:              \t%s\n' % calibration_filename)
 
-        if self._axis == 'x':
+        if self._scan_axis == 'x':
             f.write('position X [mm]:          \t--\n')
             f.write('position Y [mm]:          \t%f\n' % dataset1.posy)
             f.write('position Z [mm]:          \t%f\n' % dataset1.posz)
-        elif self._axis == 'y':
+        elif self._scan_axis == 'y':
             f.write('position X [mm]:          \t%f\n' % dataset1.posx)
             f.write('position Y [mm]:          \t--\n')
             f.write('position Z [mm]:          \t%f\n' % dataset1.posz)
-        elif self._axis == 'z':
+        elif self._scan_axis == 'z':
             f.write('position X [mm]:          \t%f\n' % dataset1.posx)
             f.write('position Y [mm]:          \t%f\n' % dataset1.posy)
             f.write('position Z [mm]:          \t--\n')
@@ -558,6 +595,178 @@ class LineScan(object):
                 line = line + '\t' + '{0:0.10e}'.format(columns[i, j])
             f.write(line + '\n')
 
+        f.close()
+
+
+class Measurement(object):
+    """Measurement data."""
+
+    def __init__(self, cconfig, mconfig, calibration, dirpath):
+        """Initialize variables.
+
+        Args:
+            cconfig (ControlConfiguration): control configuration data.
+            mconfig (MeasurementConfiguration): measurement configuration data.
+            calibration (CalibrationData): probe calibration data.
+            dirpath (str): directory path to save files.
+        """
+        self.cconfig = cconfig
+        self.mconfig = mconfig
+        self.calibration = calibration
+        self.dirpath = dirpath
+        self._scan_axis = None
+        self._scan_positions = []
+        self._data = {}
+
+    @property
+    def scan_axis(self):
+        """Scan axis label."""
+        return self._scan_axis
+
+    @property
+    def scan_positions(self):
+        """Scan axis positin values."""
+        return self._scan_positions
+
+    @property
+    def data(self):
+        """Measurement data."""
+        return self._data
+
+    @property
+    def data_list(self):
+        """Measurement data list."""
+        datalist = []
+        for d in self._data.values():
+            for v in d.values():
+                datalist.append(v)
+        return datalist
+
+    def add_line_scan(self, ls):
+        """Add a line scan to measurement data."""
+        if self._scan_axis is None:
+            self._scan_axis = ls.scan_axis
+            self._scan_positions = ls.scan_positions
+
+        if (ls.scan_axis == self._scan_axis and
+           all(ls.scan_positions == self._scan_positions)):
+            if self._scan_axis == 'x':
+                if ls.posz not in self._data.keys():
+                    self._data[ls.posz] = {}
+                self._data[ls.posz][ls.posy] = ls
+            elif self._scan_axis == 'y':
+                if ls.posz not in self._data.keys():
+                    self._data[ls.posz] = {}
+                self._data[ls.posz][ls.posx] = ls
+            elif self._scan_axis == 'z':
+                if ls.posy not in self._data.keys():
+                    self._data[ls.posy] = {}
+                self._data[ls.posy][ls.posx] = ls
+            else:
+                raise MeasurementDataError('Invalid line scan.')
+        else:
+            raise MeasurementDataError('Invalid line scan.')
+
+    def clear(self):
+        """Clear Measurement."""
+        self._scan_axis = None
+        self._scan_positions = []
+        self._data = {}
+
+    def _get_positions(self):
+        data_list = self.data_list
+
+        if self._scan_axis == 'x':
+            posx = self._scan_positions
+            posy = sorted(list(set([ls.posy for ls in data_list])))
+            posz = sorted(list(set([ls.posz for ls in data_list])))
+        elif self._scan_axis == 'y':
+            posx = sorted(list(set([ls.posx for ls in data_list])))
+            posy = self._scan_positions
+            posz = sorted(list(set([ls.posz for ls in data_list])))
+        elif self._scan_axis == 'z':
+            posx = sorted(list(set([ls.posx for ls in data_list])))
+            posy = sorted(list(set([ls.posy for ls in data_list])))
+            posz = self._scan_positions
+
+        return posx, posy, posz
+
+    def _get_avg_field_at_point(self, posx, posy, posz):
+        try:
+            if self._scan_axis == 'x':
+                ls = self._data[posz][posy]
+                idx = _np.where(ls.posx == posx)[0][0]
+            elif self._scan_axis == 'y':
+                ls = self._data[posz][posx]
+                idx = _np.where(ls.posy == posy)[0][0]
+            elif self._scan_axis == 'z':
+                ls = self._data[posy][posx]
+                idx = _np.where(ls.posz == posz)[0][0]
+
+            bx = ls.avg_field.datax[idx]
+            by = ls.avg_field.datay[idx]
+            bz = ls.avg_field.dataz[idx]
+        except Exception:
+            bx, by, bz = _np.nan, _np.nan, _np.nan
+
+        return (bx, by, bz)
+
+    def _get_avg_field_data(self):
+        posx_vec, posy_vec, posz_vec = self._get_positions()
+
+        size = len(posx_vec)*len(posy_vec)*len(posz_vec)
+        field_data = _np.zeros([size, 6])
+
+        count = 0
+        for posz in posz_vec:
+            for posy in posy_vec:
+                for posx in posx_vec:
+                    bx, by, bz = self._get_avg_field_at_point(posx, posy, posz)
+                    field_data[count, 0] = posx
+                    field_data[count, 1] = posy
+                    field_data[count, 2] = posz
+                    field_data[count, 3] = bx
+                    field_data[count, 4] = by
+                    field_data[count, 5] = bz
+                    count += 1
+
+        return field_data
+
+    def save_measurement(self, name):
+        """Save measurement data."""
+        t = _time.localtime()
+        date = _time.strftime('%Y-%m-%d', t)
+        datetime = _time.strftime('%Y-%m-%d_%H-%M-%S', t)
+
+        field_data = self._get_avg_field_data()
+
+        filename = '{0:1s}_{1:1s}.dat'.format(date, name)
+        f = open(_os.path.join(self.dirpath, filename), 'w')
+
+        f.write('fieldmap_name:     \t{0:1s}\n'.format(name))
+        f.write('timestamp:         \t{0:1s}\n'.format(datetime))
+        f.write('filename:          \t{0:1s}\n'.format(filename))
+        f.write('nr_magnets:        \t1\n')
+        f.write('\n')
+        f.write('magnet_name:       \t{0:1s}\n'.format(name))
+        f.write('gap[mm]:           \t\n')
+        f.write('control_gap:       \t--\n')
+        f.write('magnet_length[mm]: \t\n')
+        f.write('current_main[A]:   \t\n')
+        f.write('NI_main[A.esp]:    \t\n')
+        f.write('center_pos_z[mm]:  \t0\n')
+        f.write('center_pos_x[mm]:  \t0\n')
+        f.write('rotation[deg]:     \t0\n')
+        f.write('\n')
+        f.write('X[mm]\tY[mm]\tZ[mm]\tBx\tBy\tBz [T]\n')
+        f.write('-----------------------------------------------' +
+                '----------------------------------------------\n')
+
+        for i in range(field_data.shape[0]):
+            f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
+                field_data[i, 0], field_data[i, 1], field_data[i, 2]))
+            f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
+                field_data[i, 3], field_data[i, 4], field_data[i, 5]))
         f.close()
 
 

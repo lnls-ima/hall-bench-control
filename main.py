@@ -39,8 +39,8 @@ class HallBenchGUI(QtGui.QWidget):
         """Initialize variables with default values."""
         self.selected_axis = -1
 
-        self.cconf = None
-        self.mconf = None
+        self.cconfig = None
+        self.mconfig = None
         self.devices = None
 
         self.tx = None
@@ -53,7 +53,7 @@ class HallBenchGUI(QtGui.QWidget):
 
         self.calibration = calibration.CalibrationData()
 
-        self.current_scan_position = None
+        self.current_postion_list = []
         self.current_line_scan = None
         self.current_measurement = None
 
@@ -188,10 +188,10 @@ class HallBenchGUI(QtGui.QWidget):
 
         if len(filename) != 0:
             try:
-                if self.cconf is None:
-                    self.cconf = configuration.ControlConfiguration(filename)
+                if self.cconfig is None:
+                    self.cconfig = configuration.ControlConfiguration(filename)
                 else:
-                    self.cconf.read_configuration_from_file(filename)
+                    self.cconfig.read_configuration_from_file(filename)
             except configuration.ConfigurationFileError as e:
                 QtGui.QMessageBox.critical(
                     self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
@@ -199,28 +199,28 @@ class HallBenchGUI(QtGui.QWidget):
 
             self.ui.le_filenameconfig.setText(filename)
 
-            self.ui.cb_PMAC_enable.setChecked(self.cconf.control_pmac_enable)
+            self.ui.cb_PMAC_enable.setChecked(self.cconfig.control_pmac_enable)
 
-            self.ui.cb_DMM_X.setChecked(self.cconf.control_voltx_enable)
-            self.ui.sb_DMM_X_address.setValue(self.cconf.control_voltx_addr)
+            self.ui.cb_DMM_X.setChecked(self.cconfig.control_voltx_enable)
+            self.ui.sb_DMM_X_address.setValue(self.cconfig.control_voltx_addr)
 
-            self.ui.cb_DMM_Y.setChecked(self.cconf.control_volty_enable)
-            self.ui.sb_DMM_Y_address.setValue(self.cconf.control_volty_addr)
+            self.ui.cb_DMM_Y.setChecked(self.cconfig.control_volty_enable)
+            self.ui.sb_DMM_Y_address.setValue(self.cconfig.control_volty_addr)
 
-            self.ui.cb_DMM_Z.setChecked(self.cconf.control_voltz_enable)
-            self.ui.sb_DMM_Z_address.setValue(self.cconf.control_voltz_addr)
+            self.ui.cb_DMM_Z.setChecked(self.cconfig.control_voltz_enable)
+            self.ui.sb_DMM_Z_address.setValue(self.cconfig.control_voltz_addr)
 
             self.ui.cb_Multichannel_enable.setChecked(
-                self.cconf.control_multich_enable)
+                self.cconfig.control_multich_enable)
 
             self.ui.sb_Multichannel_address.setValue(
-                self.cconf.control_multich_addr)
+                self.cconfig.control_multich_addr)
 
             self.ui.cb_Autocolimator_enable.setChecked(
-                self.cconf.control_colimator_enable)
+                self.cconfig.control_colimator_enable)
 
             self.ui.cb_Autocolimator_port.setCurrentIndex(
-                self.cconf.control_colimator_addr)
+                self.cconfig.control_colimator_addr)
 
     def save_control_configuration_file(self):
         """Save devices parameters to file."""
@@ -230,36 +230,36 @@ class HallBenchGUI(QtGui.QWidget):
         if len(filename) != 0:
             if self._update_control_configuration():
                 try:
-                    self.cconf.save_configuration_to_file(filename)
+                    self.cconfig.save_configuration_to_file(filename)
                 except configuration.ConfigurationFileError as e:
                     QtGui.QMessageBox.critical(
                         self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
 
     def _update_control_configuration(self):
-        if self.cconf is None:
-            self.cconf = configuration.ControlConfiguration()
+        if self.cconfig is None:
+            self.cconfig = configuration.ControlConfiguration()
 
-        self.cconf.control_pmac_enable = self.ui.cb_PMAC_enable.isChecked()
+        self.cconfig.control_pmac_enable = self.ui.cb_PMAC_enable.isChecked()
 
-        self.cconf.control_voltx_enable = self.ui.cb_DMM_X.isChecked()
-        self.cconf.control_volty_enable = self.ui.cb_DMM_Y.isChecked()
-        self.cconf.control_voltz_enable = self.ui.cb_DMM_Z.isChecked()
+        self.cconfig.control_voltx_enable = self.ui.cb_DMM_X.isChecked()
+        self.cconfig.control_volty_enable = self.ui.cb_DMM_Y.isChecked()
+        self.cconfig.control_voltz_enable = self.ui.cb_DMM_Z.isChecked()
 
         multich_enable = self.ui.cb_Multichannel_enable.isChecked()
         colimator_enable = self.ui.cb_Autocolimator_enable.isChecked()
-        self.cconf.control_multich_enable = multich_enable
-        self.cconf.control_colimator_enable = colimator_enable
+        self.cconfig.control_multich_enable = multich_enable
+        self.cconfig.control_colimator_enable = colimator_enable
 
-        self.cconf.control_voltx_addr = self.ui.sb_DMM_X_address.value()
-        self.cconf.control_volty_addr = self.ui.sb_DMM_Y_address.value()
-        self.cconf.control_voltz_addr = self.ui.sb_DMM_Z_address.value()
+        self.cconfig.control_voltx_addr = self.ui.sb_DMM_X_address.value()
+        self.cconfig.control_volty_addr = self.ui.sb_DMM_Y_address.value()
+        self.cconfig.control_voltz_addr = self.ui.sb_DMM_Z_address.value()
 
         multich_addr = self.ui.sb_Multichannel_address.value()
         colimator_addr = self.ui.cb_Autocolimator_port.currentIndex()
-        self.cconf.control_multich_addr = multich_addr
-        self.cconf.control_colimator_addr = colimator_addr
+        self.cconfig.control_multich_addr = multich_addr
+        self.cconfig.control_colimator_addr = colimator_addr
 
-        if self.cconf.valid_configuration():
+        if self.cconfig.valid_configuration():
             return True
         else:
             message = 'Invalid control configuration'
@@ -274,11 +274,11 @@ class HallBenchGUI(QtGui.QWidget):
 
         if len(filename) != 0:
             try:
-                if self.mconf is None:
-                    self.mconf = configuration.MeasurementConfiguration(
+                if self.mconfig is None:
+                    self.mconfig = configuration.MeasurementConfiguration(
                         filename)
                 else:
-                    self.mconf.read_configuration_from_file(filename)
+                    self.mconfig.read_configuration_from_file(filename)
             except configuration.ConfigurationFileError as e:
                 QtGui.QMessageBox.critical(
                     self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
@@ -286,29 +286,30 @@ class HallBenchGUI(QtGui.QWidget):
 
             self.ui.le_filenamemeasurement.setText(filename)
 
-            self.ui.cb_Hall_X_enable.setChecked(self.mconf.meas_probeX)
-            self.ui.cb_Hall_Y_enable.setChecked(self.mconf.meas_probeY)
-            self.ui.cb_Hall_Z_enable.setChecked(self.mconf.meas_probeZ)
+            self.ui.cb_Hall_X_enable.setChecked(self.mconfig.meas_probeX)
+            self.ui.cb_Hall_Y_enable.setChecked(self.mconfig.meas_probeY)
+            self.ui.cb_Hall_Z_enable.setChecked(self.mconfig.meas_probeZ)
 
-            self.ui.le_DMM_aper.setText(str(self.mconf.meas_aper_ms))
-            self.ui.cb_DMM_precision.setCurrentIndex(self.mconf.meas_precision)
+            self.ui.le_DMM_aper.setText(str(self.mconfig.meas_aper_ms))
+            self.ui.cb_DMM_precision.setCurrentIndex(
+                self.mconfig.meas_precision)
 
             axis_measurement = [1, 2, 3, 5]
             for axis in axis_measurement:
                 tmp = getattr(self.ui, 'le_axis' + str(axis) + '_start')
-                value = getattr(self.mconf, 'meas_startpos_ax' + str(axis))
+                value = getattr(self.mconfig, 'meas_startpos_ax' + str(axis))
                 tmp.setText(str(value))
 
                 tmp = getattr(self.ui, 'le_axis' + str(axis) + '_end')
-                value = getattr(self.mconf, 'meas_endpos_ax' + str(axis))
+                value = getattr(self.mconfig, 'meas_endpos_ax' + str(axis))
                 tmp.setText(str(value))
 
                 tmp = getattr(self.ui, 'le_axis' + str(axis) + '_step')
-                value = getattr(self.mconf, 'meas_incr_ax' + str(axis))
+                value = getattr(self.mconfig, 'meas_incr_ax' + str(axis))
                 tmp.setText(str(value))
 
                 tmp = getattr(self.ui, 'le_axis' + str(axis) + '_vel')
-                value = getattr(self.mconf, 'meas_vel_ax' + str(axis))
+                value = getattr(self.mconfig, 'meas_vel_ax' + str(axis))
                 tmp.setText(str(value))
 
     def save_measurement_configuration_file(self):
@@ -319,48 +320,48 @@ class HallBenchGUI(QtGui.QWidget):
         if len(filename) != 0:
             if self._update_measurement_configuration():
                 try:
-                    self.mconf.save_configuration_to_file(filename)
+                    self.mconfig.save_configuration_to_file(filename)
                 except configuration.ConfigurationFileError as e:
                     QtGui.QMessageBox.critical(
                         self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
 
     def _update_measurement_configuration(self):
-        if self.mconf is None:
-            self.mconf = configuration.MeasurementConfiguration()
+        if self.mconfig is None:
+            self.mconfig = configuration.MeasurementConfiguration()
 
-        self.mconf.meas_probeX = self.ui.cb_Hall_X_enable.isChecked()
-        self.mconf.meas_probeY = self.ui.cb_Hall_Y_enable.isChecked()
-        self.mconf.meas_probeZ = self.ui.cb_Hall_Z_enable.isChecked()
+        self.mconfig.meas_probeX = self.ui.cb_Hall_X_enable.isChecked()
+        self.mconfig.meas_probeY = self.ui.cb_Hall_Y_enable.isChecked()
+        self.mconfig.meas_probeZ = self.ui.cb_Hall_Z_enable.isChecked()
 
-        self.mconf.meas_precision = self.ui.cb_DMM_precision.currentIndex()
-        self.mconf.meas_trig_axis = 1
+        self.mconfig.meas_precision = self.ui.cb_DMM_precision.currentIndex()
+        self.mconfig.meas_trig_axis = 1
 
         self.nr_measurements = self.ui.sb_number_of_measurements.value()
 
         tmp = self.ui.le_DMM_aper.text()
         if bool(tmp and tmp.strip()):
-            self.mconf.meas_aper_ms = float(tmp)
+            self.mconfig.meas_aper_ms = float(tmp)
 
         axis_measurement = [1, 2, 3, 5]
         for axis in axis_measurement:
             tmp = getattr(self.ui, 'le_axis' + str(axis) + '_start').text()
             if bool(tmp and tmp.strip()):
-                setattr(self.mconf, 'meas_startpos_ax' + str(axis), float(tmp))
-                print('aqui')
+                setattr(
+                    self.mconfig, 'meas_startpos_ax' + str(axis), float(tmp))
 
             tmp = getattr(self.ui, 'le_axis' + str(axis) + '_end').text()
             if bool(tmp and tmp.strip()):
-                setattr(self.mconf, 'meas_endpos_ax' + str(axis), float(tmp))
+                setattr(self.mconfig, 'meas_endpos_ax' + str(axis), float(tmp))
 
             tmp = getattr(self.ui, 'le_axis' + str(axis) + '_step').text()
             if bool(tmp and tmp.strip()):
-                setattr(self.mconf, 'meas_incr_ax' + str(axis), float(tmp))
+                setattr(self.mconfig, 'meas_incr_ax' + str(axis), float(tmp))
 
             tmp = getattr(self.ui, 'le_axis' + str(axis) + '_vel').text()
             if bool(tmp and tmp.strip()):
-                setattr(self.mconf, 'meas_vel_ax' + str(axis), float(tmp))
+                setattr(self.mconfig, 'meas_vel_ax' + str(axis), float(tmp))
 
-        if self.mconf.valid_configuration():
+        if self.mconfig.valid_configuration():
             return True
         else:
             message = 'Invalid measurement configuration'
@@ -373,7 +374,7 @@ class HallBenchGUI(QtGui.QWidget):
         if not self._update_control_configuration():
             return
 
-        self.devices = devices.HallBenchDevices(self.cconf)
+        self.devices = devices.HallBenchDevices(self.cconfig)
         self.devices.load()
         self.devices.connect()
 
@@ -389,7 +390,7 @@ class HallBenchGUI(QtGui.QWidget):
             QtGui.QMessageBox.information(
                 self, 'Information', message, QtGui.QMessageBox.Ok)
 
-        if self.cconf.control_pmac_enable:
+        if self.cconfig.control_pmac_enable:
             if self.devices.pmac_connected:
                 self.ui.tabWidget.setTabEnabled(1, True)
                 self.ui.tabWidget.setTabEnabled(2, True)
@@ -412,7 +413,7 @@ class HallBenchGUI(QtGui.QWidget):
         if self.devices is None:
             return
 
-        if self.cconf.control_pmac_enable and self.devices.pmac_connected:
+        if self.cconfig.control_pmac_enable and self.devices.pmac_connected:
             if not self.devices.pmac.activate_bench():
                 message = 'Failed to active bench.'
                 QtGui.QMessageBox.critical(
@@ -502,10 +503,8 @@ class HallBenchGUI(QtGui.QWidget):
         self.devices.pmac.kill_all_axis()
 
     def stop_measurements(self):
-        """Stop measurements and store current measurement values."""
+        """Stop measurements."""
         self.stop = True
-        if self.devices is not None:
-            self._update_current_measurement()
 
     def configure_and_measure(self):
         """Configure and start measurements."""
@@ -515,24 +514,26 @@ class HallBenchGUI(QtGui.QWidget):
             return
 
         self.stop = False
-        self.current_measurement_dict = {}
 
         self._clear_graph()
         self._set_axes_speed()
 
-        if self.ui.rb_triggering_axis1.isChecked():  # Z axis scan
+        self.current_measurement = measurement.Measurement(
+            self.cconfig, self.mconfig, self.calibration, self.dirpath)
+
+        if self.ui.rb_triggering_axis1.isChecked():
             extra_mm = 1
             scan_axis = 1
             axis_a = 2
             axis_b = 3
 
-        elif self.ui.rb_triggering_axis2.isChecked():  # Y axis scan
+        elif self.ui.rb_triggering_axis2.isChecked():
             extra_mm = 0.1
             scan_axis = 2
             axis_a = 1
             axis_b = 3
 
-        elif self.ui.rb_triggering_axis3.isChecked():  # X axis scan
+        elif self.ui.rb_triggering_axis3.isChecked():
             extra_mm = 0.1
             scan_axis = 3
             axis_a = 1
@@ -561,15 +562,8 @@ class HallBenchGUI(QtGui.QWidget):
                 self._measure_line(axis_a, pos_a, axis_b, pos_b,
                                    scan_axis, extra_mm)
 
-                name = (self._get_axis_str(axis_a) + '=' + str(pos_a) + '_' +
-                        self._get_axis_str(axis_b) + '=' + str(pos_b))
-
-                measurement_list = measurement.MeasurementList().copy(
-                    self.current_measurement_list)
-                measurement_list.analyse_data()
-                measurement_list.save_data(name, self.dirpath)
-
-                self.current_measurement_dict.update({name: measurement_list})
+                line_scan = measurement.LineScan().copy(self.current_line_scan)
+                self.current_measurement.add_line_scan(line_scan)
 
         if self.stop is False:
             self._move_to_start_position()
@@ -588,12 +582,16 @@ class HallBenchGUI(QtGui.QWidget):
     def _measure_line(self, axis_a, pos_a, axis_b, pos_b, scan_axis, extra_mm):
 
         (startpos, endpos, incr, velocity, npts,
-            poslist) = self._get_axis_parameters(scan_axis)
+            scan_list) = self._get_axis_parameters(scan_axis)
 
-        aper_displacement = (self.mconf.meas_aper_ms * velocity)
+        aper_displacement = (self.mconfig.meas_aper_ms * velocity)
 
-        self.current_line_scan = measurement.MeasurementList(
-            scan_axis, poslist, self.calibration)
+        posx, posy, posz = self._get_position_xyz(
+            axis_a, pos_a, axis_b, pos_b, scan_axis, scan_list)
+
+        self.current_line_scan = measurement.LineScan(
+            posx, posy, posz, self.cconfig, self.mconfig,
+            self.calibration, self.dirpath)
 
         for idx in range(self.nr_measurements):
 
@@ -610,20 +608,19 @@ class HallBenchGUI(QtGui.QWidget):
             to_pos = not(bool(idx % 2))
 
             if to_pos:
+                self.current_position_list = scan_list + aper_displacement/2
                 self._move_axis(scan_axis, startpos - extra_mm)
-                self.current_measurement.position = (
-                    poslist + aper_displacement/2)
             else:
+                self.current_position_list = (
+                    scan_list - aper_displacement/2)[::-1]
                 self._move_axis(scan_axis, endpos + extra_mm)
-                self.current_measurement.position = (
-                    poslist - aper_displacement/2)[::-1]
 
             if self.stop is True:
                 break
 
             self._configure_trigger(
                 scan_axis, startpos, endpos, incr, npts, to_pos)
-            self._configure_voltmeters()
+            self._configure_multimeters()
             self._start_reading_threads()
 
             if self.stop is False:
@@ -638,20 +635,106 @@ class HallBenchGUI(QtGui.QWidget):
 
             self._stop_trigger()
             self._wait_reading_threads()
-            self._update_current_measurement()
+
+            posx, posy, posz = self._get_position_xyz(
+                axis_a, pos_a, axis_b, pos_b,
+                scan_axis, self.current_position_list)
+
+            scan = measurement.DataSet(description='Raw_Data', unit='V')
+            scan.posx = posx
+            scan.posy = posy
+            scan.posz = posz
+            scan.datax = self.devices.voltx.voltage
+            scan.datay = self.devices.volty.voltage
+            scan.dataz = self.devices.voltz.voltage
+
             self._kill_reading_threads()
 
             if self.stop is True:
                 break
 
             if to_pos is True:
-                self.current_measurement_list.add_measurement(
-                    measurement.Measurement().copy(
-                        self.current_measurement))
+                self.current_line_scan.add_scan(scan)
             else:
-                self.current_measurement_list.add_measurement(
-                    measurement.Measurement().reverse(
-                        self.current_measurement))
+                self.current_line_scan.add_scan(
+                    measurement.DataSet().reverse(scan))
+
+        self.current_line_scan.analyse_and_save_data()
+
+    def _set_axes_speed(self):
+        self.devices.pmac.set_axis_speed(1, self.mconfig.meas_vel_ax1)
+        self.devices.pmac.set_axis_speed(2, self.mconfig.meas_vel_ax2)
+        self.devices.pmac.set_axis_speed(3, self.mconfig.meas_vel_ax3)
+        self.devices.pmac.set_axis_speed(5, self.mconfig.meas_vel_ax5)
+
+    def _get_axis_parameters(self, axis):
+        startpos = getattr(self.mconfig, 'meas_startpos_ax' + str(axis))
+        endpos = getattr(self.mconfig, 'meas_endpos_ax' + str(axis))
+        incr = getattr(self.mconfig, 'meas_incr_ax' + str(axis))
+        vel = getattr(self.mconfig, 'meas_vel_ax' + str(axis))
+        npts = int(round((endpos - startpos) / incr, 4) + 1)
+        poslist = np.linspace(startpos, endpos, npts)
+        return (startpos, endpos, incr, vel, npts, poslist)
+
+    def _get_position_xyz(self, axis_a, pos_a, axis_b, pos_b, axis_c, pos_c):
+        if axis_a == 3:
+            posx = pos_a
+        elif axis_b == 3:
+            posx == pos_b
+        elif axis_c == 3:
+            posx = pos_c
+        else:
+            posx = None
+
+        if axis_a == 2:
+            posy = pos_a
+        elif axis_b == 2:
+            posy == pos_b
+        elif axis_c == 2:
+            posy = pos_c
+        else:
+            posy = None
+
+        if axis_a == 1:
+            posz = pos_a
+        elif axis_b == 1:
+            posz == pos_b
+        elif axis_c == 1:
+            posz = pos_c
+        else:
+            posz = None
+
+        return (posx, posy, posz)
+
+    def _clear_measurement(self):
+        self.current_position_list = []
+        self.devices.voltx.voltage = np.array([])
+        self.devices.volty.voltage = np.array([])
+        self.devices.voltz.voltage = np.array([])
+
+    def _update_measurement_number(self, number):
+        self.ui.l_n_meas_status.setText('{0:1d}'.format(number))
+
+    def _move_axis(self, axis, position):
+        if self.stop is False:
+            self.devices.pmac.move_axis(axis, position)
+            while ((self.devices.pmac.axis_status(axis) & 1) == 0 and
+                   self.stop is False):
+                QtGui.QApplication.processEvents()
+
+    def _move_axis_and_update_graph(self, axis, position, graph_idx):
+        if self.stop is False:
+            self.devices.pmac.move_axis(axis, position)
+            while ((self.devices.pmac.axis_status(axis) & 1) == 0 and
+                   self.stop is False):
+                self._update_graph(graph_idx)
+                QtGui.QApplication.processEvents()
+                time.sleep(0.05)
+
+    def _move_to_start_position(self):
+        self._move_axis(1, self.mconfig.meas_startpos_ax1)
+        self._move_axis(2, self.mconfig.meas_startpos_ax2)
+        self._move_axis(3, self.mconfig.meas_startpos_ax3)
 
     def _configure_graph(self):
         self.graph_curve_x = np.append(
@@ -692,102 +775,44 @@ class HallBenchGUI(QtGui.QWidget):
         self.graph_curve_z = np.array([])
 
     def _update_graph(self, n):
-        lx = len(self.devices.voltx.voltage)
-        ly = len(self.devices.volty.voltage)
-        lz = len(self.devices.voltz.voltage)
-
         self.graph_curve_x[n].setData(
-            self.current_measurement.position[:lx], self.devices.voltx.voltage)
-        self.graph_curve_y[n].setData(
-            self.current_measurement.position[:ly], self.devices.volty.voltage)
-        self.graph_curve_z[n].setData(
-            self.current_measurement.position[:lz], self.devices.voltz.voltage)
+            self.current_position_list[:len(self.devices.voltx.voltage)],
+            self.devices.voltx.voltage)
 
-    def _plot_all(self, data='average_field'):
+        self.graph_curve_y[n].setData(
+            self.current_position_list[:len(self.devices.volty.voltage)],
+            self.devices.volty.voltage)
+
+        self.graph_curve_z[n].setData(
+            self.current_position_list[:len(self.devices.voltz.voltage)],
+            self.devices.voltz.voltage)
+
+    def _plot_all(self, data='avg_field'):
         self._clear_graph()
 
         n = 0
-        for key in self.current_measurement_dict.keys():
+        for ls in self.current_measurement.data_list():
             self._configure_graph()
-            curve = getattr(self.current_measurement_dict[key], data)
+            curve = getattr(ls, data)
+            position = ls.scan_positions
 
-            self.graph_curve_x[n].setData(curve.position, curve.hallx)
-            self.graph_curve_y[n].setData(curve.position, curve.hally)
-            self.graph_curve_z[n].setData(curve.position, curve.hallz)
+            self.graph_curve_x[n].setData(position, curve.datax)
+            self.graph_curve_y[n].setData(position, curve.datay)
+            self.graph_curve_z[n].setData(position, curve.dataz)
             n += 1
 
-    def _set_axes_speed(self):
-        self.devices.pmac.set_axis_speed(1, self.mconf.meas_vel_ax1)
-        self.devices.pmac.set_axis_speed(2, self.mconf.meas_vel_ax2)
-        self.devices.pmac.set_axis_speed(3, self.mconf.meas_vel_ax3)
-        self.devices.pmac.set_axis_speed(5, self.mconf.meas_vel_ax5)
-
-    def _clear_measurement(self):
-        self.current_measurement.clear()
-        self.devices.voltx.voltage = np.array([])
-        self.devices.volty.voltage = np.array([])
-        self.devices.voltz.voltage = np.array([])
-
-    def _update_current_measurement(self):
-        self.current_measurement.hallx = self.devices.voltx.voltage
-        self.current_measurement.hally = self.devices.volty.voltage
-        self.current_measurement.hallz = self.devices.voltz.voltage
-
-    def _update_measurement_number(self, number):
-        self.ui.l_n_meas_status.setText('{0:1d}'.format(number))
-
-    def _get_axis_parameters(self, axis):
-        startpos = getattr(self.mconf, 'meas_startpos_ax' + str(axis))
-        endpos = getattr(self.mconf, 'meas_endpos_ax' + str(axis))
-        incr = getattr(self.mconf, 'meas_incr_ax' + str(axis))
-        vel = getattr(self.mconf, 'meas_vel_ax' + str(axis))
-        npts = int(round((endpos - startpos) / incr, 4) + 1)
-        poslist = np.linspace(startpos, endpos, npts)
-        return (startpos, endpos, incr, vel, npts, poslist)
-
-    def _get_axis_str(axis):
-        if axis == 1:
-            return 'Z'
-        elif axis == 2:
-            return 'Y'
-        elif axis == 3:
-            return 'X'
-        else:
-            return ''
-
-    def _move_axis(self, axis, position):
-        if self.stop is False:
-            self.devices.pmac.move_axis(axis, position)
-            while ((self.devices.pmac.axis_status(axis) & 1) == 0 and
-                   self.stop is False):
-                QtGui.QApplication.processEvents()
-
-    def _move_axis_and_update_graph(self, axis, position, graph_idx):
-        if self.stop is False:
-            self.devices.pmac.move_axis(axis, position)
-            while ((self.devices.pmac.axis_status(axis) & 1) == 0 and
-                   self.stop is False):
-                self._update_graph(graph_idx)
-                QtGui.QApplication.processEvents()
-                time.sleep(0.05)
-
-    def _move_to_start_position(self):
-        self._move_axis(1, self.mconf.meas_startpos_ax1)
-        self._move_axis(2, self.mconf.meas_startpos_ax2)
-        self._move_axis(3, self.mconf.meas_startpos_ax3)
-
-    def _configure_voltmeters(self):
-        if self.mconf.meas_probeX:
+    def _configure_multimeters(self):
+        if self.mconfig.meas_probeX:
             self.devices.voltx.config(
-                self.mconf.meas_aper_ms, self.mconf.meas_precision)
-        if self.mconf.meas_probeY:
+                self.mconfig.meas_aper_ms, self.mconfig.meas_precision)
+        if self.mconfig.meas_probeY:
             self.devices.volty.config(
-                self.mconf.meas_aper_ms, self.mconf.meas_precision)
-        if self.mconf.meas_probeZ:
+                self.mconfig.meas_aper_ms, self.mconfig.meas_precision)
+        if self.mconfig.meas_probeZ:
             self.devices.voltz.config(
-                self.mconf.meas_aper_ms, self.mconf.meas_precision)
+                self.mconfig.meas_aper_ms, self.mconfig.meas_precision)
 
-    def _reset_voltmeters(self):
+    def _reset_multimeters(self):
         self.devices.voltx.reset()
         self.devices.volty.reset()
         self.devices.voltz.reset()
@@ -802,25 +827,25 @@ class HallBenchGUI(QtGui.QWidget):
         self.devices.pmac.stop_trigger()
 
     def _start_reading_threads(self):
-        if self.mconf.meas_probeZ:
+        if self.mconfig.meas_probeZ:
             self.tz = threading.Thread(
                 target=self.devices.voltz.read,
                 args=(self.stop, self.end_measurements,
-                      self.mconf.meas_precision,))
+                      self.mconfig.meas_precision,))
             self.tz.start()
 
-        if self.mconf.meas_probeY:
+        if self.mconfig.meas_probeY:
             self.ty = threading.Thread(
                 target=self.devices.volty.read,
                 args=(self.stop, self.end_measurements,
-                      self.mconf.meas_precision,))
+                      self.mconfig.meas_precision,))
             self.ty.start()
 
-        if self.mconf.meas_probeX:
+        if self.mconfig.meas_probeX:
             self.tx = threading.Thread(
                 target=self.devices.voltx.read,
                 args=(self.stop, self.end_measurements,
-                      self.mconf.meas_precision,))
+                      self.mconfig.meas_precision,))
             self.tx.start()
 
     def _wait_reading_threads(self):

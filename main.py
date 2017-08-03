@@ -191,7 +191,7 @@ class HallBenchGUI(QtGui.QWidget):
                 if self.cconfig is None:
                     self.cconfig = configuration.ControlConfiguration(filename)
                 else:
-                    self.cconfig.read_configuration_from_file(filename)
+                    self.cconfig.read_file(filename)
             except configuration.ConfigurationFileError as e:
                 QtGui.QMessageBox.critical(
                     self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
@@ -230,7 +230,7 @@ class HallBenchGUI(QtGui.QWidget):
         if len(filename) != 0:
             if self._update_control_configuration():
                 try:
-                    self.cconfig.save_configuration_to_file(filename)
+                    self.cconfig.save_file(filename)
                 except configuration.ConfigurationFileError as e:
                     QtGui.QMessageBox.critical(
                         self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
@@ -278,7 +278,7 @@ class HallBenchGUI(QtGui.QWidget):
                     self.mconfig = configuration.MeasurementConfiguration(
                         filename)
                 else:
-                    self.mconfig.read_configuration_from_file(filename)
+                    self.mconfig.read_file(filename)
             except configuration.ConfigurationFileError as e:
                 QtGui.QMessageBox.critical(
                     self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
@@ -320,7 +320,7 @@ class HallBenchGUI(QtGui.QWidget):
         if len(filename) != 0:
             if self._update_measurement_configuration():
                 try:
-                    self.mconfig.save_configuration_to_file(filename)
+                    self.mconfig.save_file(filename)
                 except configuration.ConfigurationFileError as e:
                     QtGui.QMessageBox.critical(
                         self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
@@ -552,17 +552,14 @@ class HallBenchGUI(QtGui.QWidget):
                     self.stop_all_axis()
                     break
 
-                # place axis A in position
                 self._move_axis(axis_a, pos_a)
 
-                # place axis B in position
                 self._move_axis(axis_b, pos_b)
 
-                # perform measurement
                 self._measure_line(axis_a, pos_a, axis_b, pos_b,
                                    scan_axis, extra_mm)
 
-                line_scan = measurement.LineScan().copy(self.current_line_scan)
+                line_scan = measurement.LineScan.copy(self.current_line_scan)
                 self.current_measurement.add_line_scan(line_scan)
 
         if self.stop is False:
@@ -640,7 +637,7 @@ class HallBenchGUI(QtGui.QWidget):
                 axis_a, pos_a, axis_b, pos_b,
                 scan_axis, self.current_position_list)
 
-            scan = measurement.DataSet(description='Raw_Data', unit='V')
+            scan = measurement.DataSet(unit='V')  # Fix!!
             scan.posx = posx
             scan.posy = posy
             scan.posz = posz
@@ -659,7 +656,7 @@ class HallBenchGUI(QtGui.QWidget):
                 self.current_line_scan.add_scan(
                     measurement.DataSet().reverse(scan))
 
-        self.current_line_scan.analyse_and_save_data()
+        self.current_line_scan.analyse_data()
 
     def _set_axes_speed(self):
         self.devices.pmac.set_axis_speed(1, self.mconfig.meas_vel_ax1)
@@ -821,7 +818,7 @@ class HallBenchGUI(QtGui.QWidget):
         if to_pos:
             self.devices.pmac.set_trigger(axis, startpos, incr, 10, npts, 1)
         else:
-            self.devices.pmac.set_trigger(axis, endpos, incr*-1, 10, npts, 1)
+            self.devices.pmac.set_trigger(axis, endpos, incr*(-1), 10, npts, 1)
 
     def _stop_trigger(self):
         self.devices.pmac.stop_trigger()

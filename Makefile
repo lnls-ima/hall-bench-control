@@ -2,7 +2,7 @@
 
 all:
 	pyuic4 interface.ui -o interface.py
-	pyrcc4 -py3 resource_file.qrc -o resource_file_rc.py
+	pyrcc4 -py3 resources.qrc -o resources_rc.py
 
 clean:
-	-rm -rf interface.py resource_file_rc.py
+	-rm -rf interface.py resources_rc.py

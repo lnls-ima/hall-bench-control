@@ -85,7 +85,7 @@
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap resource="resource_file.qrc">:/images/images/3458a.png</pixmap>
+       <pixmap resource="resources.qrc">:/images/images/3458a.png</pixmap>
       </property>
       <property name="scaledContents">
        <bool>false</bool>
@@ -225,7 +225,7 @@
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap resource="resource_file.qrc">:/images/images/pmac.jpg</pixmap>
+       <pixmap resource="resources.qrc">:/images/images/pmac.jpg</pixmap>
       </property>
       <property name="scaledContents">
        <bool>true</bool>
@@ -322,7 +322,7 @@
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap resource="resource_file.qrc">:/images/images/34970A.jpg</pixmap>
+       <pixmap resource="resources.qrc">:/images/images/34970A.jpg</pixmap>
       </property>
       <property name="scaledContents">
        <bool>true</bool>
@@ -417,7 +417,7 @@
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap resource="resource_file.qrc">:/images/images/elcomat.jpg</pixmap>
+       <pixmap resource="resources.qrc">:/images/images/elcomat.jpg</pixmap>
       </property>
       <property name="scaledContents">
        <bool>true</bool>
@@ -697,7 +697,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resource_file.qrc">:/images/images/bench.PNG</pixmap>
+      <pixmap resource="resources.qrc">:/images/images/bench.PNG</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -721,7 +721,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resource_file.qrc">:/images/images/Coordinate_System.png</pixmap>
+      <pixmap resource="resources.qrc">:/images/images/Coordinate_System.png</pixmap>
      </property>
     </widget>
     <widget class="QGroupBox" name="gb_axisreadings">
@@ -2700,7 +2700,7 @@
   <tabstop>le_axis5_vel</tabstop>
  </tabstops>
  <resources>
-  <include location="resource_file.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>

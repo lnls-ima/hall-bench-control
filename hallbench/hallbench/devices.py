@@ -3,8 +3,8 @@
 
 import numpy as _np
 import struct as _struct
-import HallBench.GPIB as _GPIB
-import HallBench.Pmac as _Pmac
+import hallbench.GPIB as _GPIB
+import hallbench.Pmac as _Pmac
 
 
 class DigitalMultimeter(_GPIB.GPIB_A3458A):

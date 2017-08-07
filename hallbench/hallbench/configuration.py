@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of classes to handle configuration files."""
 
-from HallBench import files as _files
+from hallbench import files as _files
 
 
 class ControlConfiguration(object):
@@ -116,6 +116,9 @@ class ControlConfiguration(object):
             for item in data:
                 f.write(item)
             f.close()
+
+            if self.filename is None:
+                self.filename = filename
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
@@ -260,6 +263,9 @@ class MeasurementConfiguration(object):
             for item in data:
                 f.write(item)
             f.close()
+
+            if self.filename is None:
+                self.filename = filename
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename

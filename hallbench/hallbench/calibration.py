@@ -2,7 +2,7 @@
 """Implementation of classes to handle calibration files."""
 
 import numpy as _np
-from HallBench import files as _files
+from hallbench import files as _files
 
 
 class CalibrationData(object):
@@ -99,45 +99,7 @@ class CalibrationData(object):
         Raises:
             HallBenchFileError: if cannot read file data.
         """
-        data = _files.read_file(filename)
-
-        self._field_unit = _files.find_value(data, 'field_unit')
-        self._voltage_unit = _files.find_value(data, 'voltage_unit')
-        self._probex_dx = _files.find_value(data, 'probex_dx', vtype='float')
-        self._probex_dy = _files.find_value(data, 'probex_dy', vtype='float')
-        self._probex_dz = _files.find_value(data, 'probex_dz', vtype='float')
-        self._probez_dx = _files.find_value(data, 'probez_dx', vtype='float')
-        self._probez_dy = _files.find_value(data, 'probez_dy', vtype='float')
-        self._probez_dz = _files.find_value(data, 'probez_dz', vtype='float')
-        self._angle_xy = _files.find_value(data, 'angle_xy', vtype='float')
-        self._angle_yz = _files.find_value(data, 'angle_yz', vtype='float')
-        self._angle_xz = _files.find_value(data, 'angle_xz', vtype='float')
-
-        idx_probex = next((i for i in range(len(data))
-                           if data[i].find("Probe X Data") != -1), None)
-        if idx_probex is None:
-            message = 'Probe X data not found in file: "%s"' % filename
-            raise _files.HallBenchFileError(message)
-
-        idx_probey = next((i for i in range(len(data))
-                           if data[i].find("Probe Y Data") != -1), None)
-        if idx_probey is None:
-            message = 'Probe Y data not found in file: "%s"' % filename
-            raise _files.HallBenchFileError(message)
-
-        idx_probez = next((i for i in range(len(data))
-                           if data[i].find("Probe Z Data") != -1), None)
-        if idx_probez is None:
-            message = 'Probe Z data not found in file: "%s"' % filename
-            raise _files.HallBenchFileError(message)
-
-        data_probex = data[idx_probex:idx_probey]
-        data_probey = data[idx_probey:idx_probez]
-        data_probez = data[idx_probez:]
-
-        self._read_probe_data(data_probex)
-        self._read_probe_data(data_probey)
-        self._read_probe_data(data_probez)
+        pass
 
     def save_file(self, filename):
         """Save calibration data to file.
@@ -148,7 +110,11 @@ class CalibrationData(object):
         Raises:
             HallBenchFileError: if the calibration data was not saved.
         """
-        pass
+        f = open(filename, mode='w')
+        f.close()
+
+        if self._filename is None:
+            self._filename = filename
 
     def get_conversion_factor(self, voltage_unit):
         """Get voltage consersion factor."""
@@ -166,8 +132,7 @@ class CalibrationData(object):
         Returns:
             array with magnetic field values.
         """
-        if self._filename is None:
-            return _default_hall_probe_calibration_curve(voltage_array)
+        return _default_hall_probe_calibration_curve(voltage_array)
 
     def convert_probe_y(self, voltage_array):
         """Convert voltage values to magnetic field values for probe y.
@@ -178,8 +143,7 @@ class CalibrationData(object):
         Returns:
             array with magnetic field values.
         """
-        if self._filename is None:
-            return _default_hall_probe_calibration_curve(voltage_array)
+        return _default_hall_probe_calibration_curve(voltage_array)
 
     def convert_probe_z(self, voltage_array):
         """Convert voltage values to magnetic field values for probe z.
@@ -190,8 +154,7 @@ class CalibrationData(object):
         Returns:
             array with magnetic field values.
         """
-        if self._filename is None:
-            return _default_hall_probe_calibration_curve(voltage_array)
+        return _default_hall_probe_calibration_curve(voltage_array)
 
 
 def _default_hall_probe_calibration_curve(voltage_array):
@@ -227,6 +190,46 @@ def _default_hall_probe_calibration_curve(voltage_array):
 
     return field_array
 
+    # def read_file(self)
+    #     data = _files.read_file(filename)
+    #
+    #     self._field_unit = _files.find_value(data, 'field_unit')
+    #     self._voltage_unit = _files.find_value(data, 'voltage_unit')
+    #     self._probex_dx = _files.find_value(data, 'probex_dx', vtype='float')
+    #     self._probex_dy = _files.find_value(data, 'probex_dy', vtype='float')
+    #     self._probex_dz = _files.find_value(data, 'probex_dz', vtype='float')
+    #     self._probez_dx = _files.find_value(data, 'probez_dx', vtype='float')
+    #     self._probez_dy = _files.find_value(data, 'probez_dy', vtype='float')
+    #     self._probez_dz = _files.find_value(data, 'probez_dz', vtype='float')
+    #     self._angle_xy = _files.find_value(data, 'angle_xy', vtype='float')
+    #     self._angle_yz = _files.find_value(data, 'angle_yz', vtype='float')
+    #     self._angle_xz = _files.find_value(data, 'angle_xz', vtype='float')
+    #
+    #     idx_probex = next((i for i in range(len(data))
+    #                        if data[i].find("Probe X Data") != -1), None)
+    #     if idx_probex is None:
+    #         message = 'Probe X data not found in file: "%s"' % filename
+    #         raise _files.HallBenchFileError(message)
+    #
+    #     idx_probey = next((i for i in range(len(data))
+    #                        if data[i].find("Probe Y Data") != -1), None)
+    #     if idx_probey is None:
+    #         message = 'Probe Y data not found in file: "%s"' % filename
+    #         raise _files.HallBenchFileError(message)
+    #
+    #     idx_probez = next((i for i in range(len(data))
+    #                        if data[i].find("Probe Z Data") != -1), None)
+    #     if idx_probez is None:
+    #         message = 'Probe Z data not found in file: "%s"' % filename
+    #         raise _files.HallBenchFileError(message)
+    #
+    #     data_probex = data[idx_probex:idx_probey]
+    #     data_probey = data[idx_probey:idx_probez]
+    #     data_probez = data[idx_probez:]
+    #
+    #     self._read_probe_data(data_probex)
+    #     self._read_probe_data(data_probey)
+    #     self._read_probe_data(data_probez)
 
 # def _is_on_interval(interval, value):
 #     lim = [float(v) for v in interval.strip()[1:-1].split(',')]

@@ -653,8 +653,7 @@ class HallBenchGUI(QtGui.QWidget):
             if to_pos is True:
                 self.current_line_scan.add_scan(scan)
             else:
-                self.current_line_scan.add_scan(
-                    measurement.DataSet().reverse(scan))
+                self.current_line_scan.add_scan(scan.reverse())
 
         self.current_line_scan.analyse_data()
 

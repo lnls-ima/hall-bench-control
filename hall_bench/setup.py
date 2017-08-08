@@ -2,11 +2,11 @@
 
 from setuptools import setup
 
-with open('VERSION','r') as _f:
+with open('VERSION', 'r') as _f:
     __version__ = _f.read().strip()
 
 setup(
-    name='hallbench',
+    name='hall_bench',
     version=__version__,
     author='lnls-ima',
     description='Hall Bench Package',
@@ -16,7 +16,7 @@ setup(
         'Programming Language :: Python',
         'Topic :: Scientific/Engineering'
     ],
-    packages=['hallbench'],
-    package_data={'hallbench': ['VERSION']},
+    packages=['hall_bench'],
+    package_data={'hall_bench': ['VERSION']},
     zip_safe=False
 )

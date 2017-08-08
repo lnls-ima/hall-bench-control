@@ -1,10 +1,158 @@
-"""Configuration module test."""
+"""Measurement test."""
 
 import os
 import shutil
 import unittest
+import filecmp
 import numpy as np
-import hallbench
+from hall_bench.data_handle import measurement
+from hall_bench.data_handle import configuration
+from hall_bench.data_handle import calibration
+
+
+class TestFunctions(unittest.TestCase):
+    """Test functions."""
+
+    def setUp(self):
+        """Set up."""
+        pass
+
+    def tearDown(self):
+        """Tear down."""
+        if os.path.isdir('testdir'):
+            shutil.rmtree('testdir')
+
+    def test_get_scan_axis(self):
+        scan_axis = measurement._get_scan_axis(None, None, None)
+        self.assertIsNone(scan_axis)
+
+        scan_axis = measurement._get_scan_axis([], [], [])
+        self.assertIsNone(scan_axis)
+
+        scan_axis = measurement._get_scan_axis(1, 2, 3)
+        self.assertIsNone(scan_axis)
+
+        scan_axis = measurement._get_scan_axis(1, 2, [3])
+        self.assertIsNone(scan_axis)
+
+        scan_axis = measurement._get_scan_axis([1], [2], [3])
+        self.assertIsNone(scan_axis)
+
+        scan_axis = measurement._get_scan_axis(1, 2, [3, 4])
+        self.assertEqual(scan_axis, 'z')
+
+        scan_axis = measurement._get_scan_axis([1], [2], [3, 4])
+        self.assertEqual(scan_axis, 'z')
+
+        scan_axis = measurement._get_scan_axis(np.array([1]), [2], (3, 4))
+        self.assertEqual(scan_axis, 'z')
+
+        scan_axis = measurement._get_scan_axis(1, [2, 3], 4)
+        self.assertEqual(scan_axis, 'y')
+
+        scan_axis = measurement._get_scan_axis([1, 2], 3, 4)
+        self.assertEqual(scan_axis, 'x')
+
+    def test_get_scan_positions(self):
+        scan_positions = measurement._get_scan_positions(None, None, None)
+        self.assertEqual(scan_positions.size, 0)
+
+        scan_positions = measurement._get_scan_positions([], [], [])
+        self.assertEqual(scan_positions.size, 0)
+
+        scan_positions = measurement._get_scan_positions(1, 2, 3)
+        self.assertEqual(scan_positions.size, 0)
+
+        scan_positions = measurement._get_scan_positions(1, 2, [3])
+        self.assertEqual(scan_positions.size, 0)
+
+        scan_positions = measurement._get_scan_positions([1], [2], [3])
+        self.assertEqual(scan_positions.size, 0)
+
+        scan_positions = measurement._get_scan_positions(1, 2, [3, 4])
+        np.testing.assert_array_equal(scan_positions, [3, 4])
+
+        scan_positions = measurement._get_scan_positions([1], [2], [3, 4])
+        np.testing.assert_array_equal(scan_positions, [3, 4])
+
+        scan_positions = measurement._get_scan_positions(1, [2, 3], 4)
+        np.testing.assert_array_equal(scan_positions, [2, 3])
+
+        scan_positions = measurement._get_scan_positions([1, 2], 3, 4)
+        np.testing.assert_array_equal(scan_positions, [1, 2])
+
+    def test_read_and_write_scan_file(self):
+        filename = 'scan_file.dat'
+        dataset, timestamp, cconfig, mconfig, calibration = (
+            measurement._read_scan_file(filename))
+
+        field_avg = [
+            0.0000000,
+            0.4000000,
+            0.8000000,
+            1.2000000,
+            1.6000000,
+            1.9644000,
+            2.3862752,
+            2.8555936,
+            3.4560144,
+            4.2711968,
+            5.3848000,
+        ]
+
+        self.assertEqual(timestamp, '2017-08-08_12-26-53')
+        self.assertEqual(cconfig, 'control_configuration.txt')
+        self.assertEqual(mconfig, 'measurement_configuration.txt')
+        self.assertEqual(calibration, 'calibration.txt')
+        self.assertEqual(dataset.description, 'field_avg')
+        self.assertEqual(dataset.unit, 'T')
+        self.assertEqual(dataset.posx, 1)
+        self.assertEqual(dataset.posy, 2)
+        np.testing.assert_array_almost_equal(
+            dataset.posz, np.linspace(0, 20, 11))
+        np.testing.assert_array_almost_equal(
+            dataset.datax, field_avg)
+        np.testing.assert_array_almost_equal(
+            dataset.datay, np.ones(11)*np.nan)
+        np.testing.assert_array_almost_equal(
+            dataset.dataz, np.ones(11)*np.nan)
+
+        new_filename = 'test_write_scan_file.dat'
+        measurement._write_scan_file(
+            new_filename, dataset, timestamp, cconfig, mconfig, calibration)
+        self.assertTrue(filecmp.cmp(new_filename, filename))
+        os.remove(new_filename)
+
+    def test_get_scan_files_list(self):
+        testdir = 'testdir'
+        os.mkdir(testdir)
+        os.mknod(os.path.join(testdir, 'Y=1.000mm_Z=5.000mmm_field_avg.dat'))
+        os.mknod(os.path.join(testdir, 'Z=1.000mm_Y=5.000mmm_field_avg.dat'))
+        os.mknod(os.path.join(testdir, 'Z=1.000mm_Y=5.000mmm_field_std.dat'))
+        os.mknod(os.path.join(testdir, 'Z=1.000mm_Y=5.000mmm_field_avg.txt'))
+
+        with self.assertRaises(measurement.MeasurementDataError):
+            files = measurement._get_scan_files_list(testdir)
+
+        with self.assertRaises(measurement.MeasurementDataError):
+            files = measurement._get_scan_files_list(testdir, posx=1, posy=1)
+
+        files = measurement._get_scan_files_list(testdir, posy=5, posz=1)
+        self.assertEqual(len(files), 2)
+        self.assertTrue(
+            os.path.join(testdir, 'Z=1.000mm_Y=5.000mmm_field_avg.dat')
+            in files)
+        self.assertTrue(
+            os.path.join(testdir, 'Z=1.000mm_Y=5.000mmm_field_std.dat')
+            in files)
+        self.assertFalse(
+            os.path.join(testdir, 'Z=1.000mm_Y=5.000mmm_field_avg.txt')
+            in files)
+
+        files = measurement._get_scan_files_list(testdir, posy=1, posz=5)
+        self.assertTrue(
+            os.path.join(testdir, 'Y=1.000mm_Z=5.000mmm_field_avg.dat')
+            in files)
 
 
 class TestDataSet(unittest.TestCase):
@@ -21,7 +169,7 @@ class TestDataSet(unittest.TestCase):
     def test_initialization(self):
         description = 'description'
         unit = 'unit'
-        ds = hallbench.measurement.DataSet(description, unit)
+        ds = measurement.DataSet(description, unit)
         self.assertEqual(ds.description, description)
         self.assertEqual(ds.unit, unit)
         self.assertEqual(ds.posx.size, 0)
@@ -32,24 +180,24 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds.dataz.size, 0)
 
     def test_reverse(self):
-        ds = hallbench.measurement.DataSet()
+        ds = measurement.DataSet()
         vec = np.array([1, 2, 3, 4, 5])
         ds.datax = vec
         ds.reverse()
         np.testing.assert_array_equal(ds.datax, vec[::-1])
 
     def test_copy(self):
-        ds = hallbench.measurement.DataSet()
+        ds = measurement.DataSet()
         vec = [1, 2, 3, 4, 5]
         ds.datax = vec
-        ds2 = hallbench.measurement.DataSet.copy(ds)
+        ds2 = measurement.DataSet.copy(ds)
         ds.datax = np.array([])
         np.testing.assert_array_equal(ds2.datax, vec)
 
     def test_clear(self):
         description = 'description'
         unit = 'unit'
-        ds = hallbench.measurement.DataSet(description, unit)
+        ds = measurement.DataSet(description, unit)
         ds.posx = 1
         ds.posy = 2
         ds.posz = 3
@@ -75,8 +223,12 @@ class TestLineScan(unittest.TestCase):
         scriptpath = os.path.realpath(__file__)
         parentdir = os.path.split(scriptpath)[0]
         self.dirpath = os.path.join(parentdir, 'measurement_data')
-        self.control_config_file = 'control_configuration_file.txt'
-        self.measurement_config_file = 'measurement_configuration_file.txt'
+        self.cconfig_file = 'control_configuration_file.txt'
+        self.cconfig = configuration.ControlConfiguration(self.cconfig_file)
+        self.mconfig_file = 'measurement_configuration_file.txt'
+        self.mconfig = configuration.MeasurementConfiguration(
+            self.mconfig_file)
+        self.calibration = calibration.CalibrationData()
 
         self.pos = np.linspace(0, 20, 11)
         self.voltage = np.linspace(0, 20, 11)
@@ -129,8 +281,8 @@ class TestLineScan(unittest.TestCase):
             shutil.rmtree(self.dirpath)
 
     def test_initialization_none_args(self):
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
-            ls = hallbench.measurement.LineScan(
+        with self.assertRaises(measurement.MeasurementDataError):
+            ls = measurement.LineScan(
                 None, None, None, None, None, None, None)
 
     def test_initialization_scan_axis_x(self):
@@ -138,7 +290,7 @@ class TestLineScan(unittest.TestCase):
         posy = 1
         posz = 2
 
-        ls = hallbench.measurement.LineScan(
+        ls = measurement.LineScan(
             posx, posy, posz, None, None, None, self.dirpath)
 
         self.assertIsNone(ls.control_configuration)
@@ -156,7 +308,7 @@ class TestLineScan(unittest.TestCase):
         posy = [3, 4]
         posz = 2
 
-        ls = hallbench.measurement.LineScan(
+        ls = measurement.LineScan(
             posx, posy, posz, None, None, None, self.dirpath)
 
         self.assertIsNone(ls.control_configuration)
@@ -174,7 +326,7 @@ class TestLineScan(unittest.TestCase):
         posy = 2
         posz = [3, 4]
 
-        ls = hallbench.measurement.LineScan(
+        ls = measurement.LineScan(
             posx, posy, posz, None, None, None, self.dirpath)
 
         self.assertIsNone(ls.control_configuration)
@@ -193,15 +345,15 @@ class TestLineScan(unittest.TestCase):
         posz = [3, 4]
         invalidpath = 'invalidpath'
 
-        ls = hallbench.measurement.LineScan(
+        ls = measurement.LineScan(
             posx, posy, posz, invalidpath, None, None, self.dirpath)
         self.assertIsNone(ls.control_configuration)
 
-        ls = hallbench.measurement.LineScan(
+        ls = measurement.LineScan(
             posx, posy, posz, None, invalidpath, None, self.dirpath)
         self.assertIsNone(ls.measurement_configuration)
 
-        ls = hallbench.measurement.LineScan(
+        ls = measurement.LineScan(
             posx, posy, posz, invalidpath, None, None, self.dirpath)
         self.assertIsNone(ls.calibration)
 
@@ -210,54 +362,40 @@ class TestLineScan(unittest.TestCase):
         posy = 2
         posz = [3, 4]
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, self.control_config_file,
-            None, None, self.dirpath)
+        ls = measurement.LineScan(
+            posx, posy, posz, self.cconfig_file, None, None, self.dirpath)
         self.assertEqual(
-            ls.control_configuration.filename, self.control_config_file)
+            ls.control_configuration.filename, self.cconfig_file)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, None,
-            self.measurement_config_file, None, self.dirpath)
+        ls = measurement.LineScan(
+            posx, posy, posz, None, self.mconfig_file, None, self.dirpath)
         self.assertEqual(
-            ls.measurement_configuration.filename,
-            self.measurement_config_file)
+            ls.measurement_configuration.filename, self.mconfig_file)
 
     def test_initialization_configuration_objects(self):
         posx = 1
         posy = 2
         posz = [3, 4]
-        cconfig = hallbench.configuration.ControlConfiguration(
-            self.control_config_file)
-        mconfig = hallbench.configuration.MeasurementConfiguration(
-            self.measurement_config_file)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, cconfig, None, None, self.dirpath)
+        ls = measurement.LineScan(
+            posx, posy, posz, self.cconfig, None, None, self.dirpath)
         self.assertEqual(
-            ls.control_configuration.filename, self.control_config_file)
+            ls.control_configuration.filename, self.cconfig_file)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, None, mconfig, None, self.dirpath)
+        ls = measurement.LineScan(
+            posx, posy, posz, None, self.mconfig, None, self.dirpath)
         self.assertEqual(
-            ls.measurement_configuration.filename,
-            self.measurement_config_file)
+            ls.measurement_configuration.filename, self.mconfig_file)
 
     def test_add_invalid_scan(self):
         posx = 1
         posy = 2
         posz = np.linspace(0, 10, 11)
-        cconfig = hallbench.configuration.ControlConfiguration(
-            self.control_config_file)
-        mconfig = hallbench.configuration.MeasurementConfiguration(
-            self.measurement_config_file)
-        calibration = hallbench.calibration.CalibrationData()
+        ls = measurement.LineScan(posx, posy, posz, self.cconfig, self.mconfig,
+                                  self.calibration, self.dirpath)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, cconfig, mconfig, calibration, self.dirpath)
-
-        scan = hallbench.measurement.DataSet()
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        scan = measurement.DataSet()
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.datax = np.zeros(11)
@@ -267,25 +405,25 @@ class TestLineScan(unittest.TestCase):
         scan.posx = 0
         scan.posy = 0
         scan.posz = 0
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.posx = np.linspace(0, 10, 11)
         scan.posy = 0
         scan.posz = 0
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.posx = 0
         scan.posy = np.linspace(0, 10, 11)
         scan.posz = 0
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.posx = 0
         scan.posy = 0
         scan.posz = np.linspace(0, 10, 11)
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.posx = 1
@@ -294,7 +432,7 @@ class TestLineScan(unittest.TestCase):
         scan.datax = np.array([])
         scan.datay = np.array([])
         scan.dataz = np.array([])
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.posx = 1
@@ -303,7 +441,7 @@ class TestLineScan(unittest.TestCase):
         scan.datax = np.linspace(0, 10, 5)
         scan.datay = np.array([])
         scan.dataz = np.array([])
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.posx = 1
@@ -312,7 +450,7 @@ class TestLineScan(unittest.TestCase):
         scan.datax = np.array([])
         scan.datay = np.linspace(0, 10, 5)
         scan.dataz = np.array([])
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.posx = 1
@@ -321,7 +459,7 @@ class TestLineScan(unittest.TestCase):
         scan.datax = np.array([])
         scan.datay = np.array([])
         scan.dataz = np.linspace(0, 10, 5)
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
         scan.posx = 1
@@ -330,23 +468,17 @@ class TestLineScan(unittest.TestCase):
         scan.datax = np.linspace(0, 10, 5)
         scan.datay = np.linspace(0, 10, 5)
         scan.dataz = np.linspace(0, 10, 5)
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             ls.add_scan(scan)
 
     def test_add_valid_scan(self):
         posx = 1
         posy = 2
         posz = np.linspace(0, 10, 11)
-        cconfig = hallbench.configuration.ControlConfiguration(
-            self.control_config_file)
-        mconfig = hallbench.configuration.MeasurementConfiguration(
-            self.measurement_config_file)
-        calibration = hallbench.calibration.CalibrationData()
+        ls = measurement.LineScan(posx, posy, posz, self.cconfig, self.mconfig,
+                                  self.calibration, self.dirpath)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, cconfig, mconfig, calibration, self.dirpath)
-
-        scan = hallbench.measurement.DataSet()
+        scan = measurement.DataSet()
         scan.posx = posx
         scan.posy = posy
         scan.posz = np.linspace(0, 10, 11)
@@ -375,16 +507,10 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = self.pos
-        cconfig = hallbench.configuration.ControlConfiguration(
-            self.control_config_file)
-        mconfig = hallbench.configuration.MeasurementConfiguration(
-            self.measurement_config_file)
-        calibration = hallbench.calibration.CalibrationData()
+        ls = measurement.LineScan(posx, posy, posz, self.cconfig, self.mconfig,
+                                  self.calibration, self.dirpath)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, cconfig, mconfig, calibration, self.dirpath)
-
-        scan = hallbench.measurement.DataSet()
+        scan = measurement.DataSet()
         scan.posx = posx
         scan.posy = posy
         scan.posz = self.pos
@@ -415,23 +541,17 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = self.pos
-        cconfig = hallbench.configuration.ControlConfiguration(
-            self.control_config_file)
-        mconfig = hallbench.configuration.MeasurementConfiguration(
-            self.measurement_config_file)
-        calibration = hallbench.calibration.CalibrationData()
+        ls = measurement.LineScan(posx, posy, posz, self.cconfig, self.mconfig,
+                                  self.calibration, self.dirpath)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, cconfig, mconfig, calibration, self.dirpath)
-
-        scan1 = hallbench.measurement.DataSet()
+        scan1 = measurement.DataSet()
         scan1.posx = posx
         scan1.posy = posy
         scan1.posz = vec1
         scan1.datax = vec1
         ls.add_scan(scan1)
 
-        scan2 = hallbench.measurement.DataSet()
+        scan2 = measurement.DataSet()
         scan2.posx = posx
         scan2.posy = posy
         scan2.posz = vec2
@@ -465,22 +585,17 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = self.pos
-        cconfig = hallbench.configuration.ControlConfiguration(
-            self.control_config_file)
-        mconfig = hallbench.configuration.MeasurementConfiguration(
-            self.measurement_config_file)
-        calibration = hallbench.calibration.CalibrationData()
+        ls1 = measurement.LineScan(
+            posx, posy, posz, self.cconfig,
+            self.mconfig, self.calibration, self.dirpath)
 
-        ls1 = hallbench.measurement.LineScan(
-            posx, posy, posz, cconfig, mconfig, calibration, self.dirpath)
-
-        scan1 = hallbench.measurement.DataSet()
+        scan1 = measurement.DataSet()
         scan1.posx = posx
         scan1.posy = posy
         scan1.posz = vec1
         scan1.datax = vec1
 
-        scan2 = hallbench.measurement.DataSet()
+        scan2 = measurement.DataSet()
         scan2.posx = posx
         scan2.posy = posy
         scan2.posz = vec2
@@ -490,7 +605,7 @@ class TestLineScan(unittest.TestCase):
         ls1.add_scan(scan2)
         ls1.analyse_data(save_data=True)
 
-        ls2 = hallbench.measurement.LineScan.read_from_files(
+        ls2 = measurement.LineScan.read_from_files(
             self.dirpath, posx=posx, posy=posy)
 
         self.assertEqual(ls2.nr_scans, 2)
@@ -523,22 +638,16 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = self.pos
-        cconfig = hallbench.configuration.ControlConfiguration(
-            self.control_config_file)
-        mconfig = hallbench.configuration.MeasurementConfiguration(
-            self.measurement_config_file)
-        calibration = hallbench.calibration.CalibrationData()
+        ls = measurement.LineScan(posx, posy, posz, self.cconfig,
+                                  self.mconfig, self.calibration, self.dirpath)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, cconfig, mconfig, calibration, self.dirpath)
-
-        scan1 = hallbench.measurement.DataSet()
+        scan1 = measurement.DataSet()
         scan1.posx = posx
         scan1.posy = posy
         scan1.posz = vec1
         scan1.datax = vec1
 
-        scan2 = hallbench.measurement.DataSet()
+        scan2 = measurement.DataSet()
         scan2.posx = posx
         scan2.posy = posy
         scan2.posz = vec2
@@ -563,22 +672,17 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = self.pos
-        cconfig = hallbench.configuration.ControlConfiguration(
-            self.control_config_file)
-        mconfig = hallbench.configuration.MeasurementConfiguration(
-            self.measurement_config_file)
-        calibration = hallbench.calibration.CalibrationData()
+        ls1 = measurement.LineScan(
+            posx, posy, posz, self.cconfig,
+            self.mconfig, self.calibration, self.dirpath)
 
-        ls1 = hallbench.measurement.LineScan(
-            posx, posy, posz, cconfig, mconfig, calibration, self.dirpath)
-
-        scan1 = hallbench.measurement.DataSet()
+        scan1 = measurement.DataSet()
         scan1.posx = posx
         scan1.posy = posy
         scan1.posz = vec1
         scan1.datax = vec1
 
-        scan2 = hallbench.measurement.DataSet()
+        scan2 = measurement.DataSet()
         scan2.posx = posx
         scan2.posy = posy
         scan2.posz = vec2
@@ -587,7 +691,7 @@ class TestLineScan(unittest.TestCase):
         ls1.add_scan(scan1)
         ls1.add_scan(scan2)
 
-        ls2 = hallbench.measurement.LineScan.copy(ls1)
+        ls2 = measurement.LineScan.copy(ls1)
         ls1.clear()
 
         self.assertEqual(ls1.nr_scans, 0)
@@ -598,7 +702,7 @@ class TestLineScan(unittest.TestCase):
             ls2.voltage_raw[1].datax, vec2)
 
         ls2.analyse_data(save_data=False)
-        ls3 = hallbench.measurement.LineScan.copy(ls2)
+        ls3 = measurement.LineScan.copy(ls2)
         ls2.clear()
         self.assertEqual(ls2.timestamp, '')
         self.assertEqual(len(ls2.voltage_raw), 0)
@@ -643,6 +747,7 @@ class TestMeasurement(unittest.TestCase):
         scriptpath = os.path.realpath(__file__)
         parentdir = os.path.split(scriptpath)[0]
         self.dirpath = os.path.join(parentdir, 'measurement_data')
+        self.calibration = calibration.CalibrationData()
 
     def tearDown(self):
         """Tear down."""
@@ -650,11 +755,11 @@ class TestMeasurement(unittest.TestCase):
             shutil.rmtree(self.dirpath)
 
     def test_initialization_invalid_dirpath(self):
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
-            m = hallbench.measurement.Measurement('')
+        with self.assertRaises(measurement.MeasurementDataError):
+            m = measurement.Measurement('')
 
     def test_initialization_valid_dirpath(self):
-        m = hallbench.measurement.Measurement(self.dirpath)
+        m = measurement.Measurement(self.dirpath)
         self.assertEqual(m.dirpath, self.dirpath)
         self.assertIsNone(m.scan_axis)
         self.assertEqual(len(m.data), 0)
@@ -663,57 +768,55 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(len(m.posz), 0)
 
     def test_add_empty_line_scan(self):
-        m = hallbench.measurement.Measurement(self.dirpath)
+        m = measurement.Measurement(self.dirpath)
 
         posx = 1
         posy = 2
         posz = np.linspace(0, 20, 11)
-        calibration = hallbench.calibration.CalibrationData()
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, None, None, calibration, self.dirpath)
+        ls = measurement.LineScan(
+            posx, posy, posz, None, None, None, self.dirpath)
 
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             m.add_line_scan(ls)
 
     def test_add_line_scan(self):
-        m = hallbench.measurement.Measurement(self.dirpath)
+        m = measurement.Measurement(self.dirpath)
 
         posx = 1
         posy = 2
         posz = np.linspace(0, 20, 11)
-        calibration = hallbench.calibration.CalibrationData()
 
-        scan = hallbench.measurement.DataSet()
+        scan = measurement.DataSet()
         scan.posx = posx
         scan.posy = posy
         scan.posz = posz
         scan.datax = np.linspace(0, 20, 11)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, None, None, calibration, self.dirpath)
+        ls = measurement.LineScan(
+            posx, posy, posz, None, None, None, self.dirpath)
         ls.add_scan(scan)
 
         m.add_line_scan(ls)
         self.assertEqual(len(m.data), 1)
-        self.assertEqual(list(m.data.keys())[0], posy)
-        self.assertEqual(list(list(m.data.values())[0].keys())[0], posx)
+        self.assertEqual(m.posy[0], posy)
+        self.assertEqual(m.posx[0], posx)
+        np.testing.assert_array_almost_equal(m.posz, posz)
 
     def test_add_same_line_scan_twice(self):
-        m = hallbench.measurement.Measurement(self.dirpath)
+        m = measurement.Measurement(self.dirpath)
 
         posx = 1
         posy = 2
         posz = np.linspace(0, 20, 11)
-        calibration = hallbench.calibration.CalibrationData()
 
-        scan = hallbench.measurement.DataSet()
+        scan = measurement.DataSet()
         scan.posx = posx
         scan.posy = posy
         scan.posz = posz
         scan.datax = np.linspace(0, 20, 11)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, None, None, calibration, self.dirpath)
+        ls = measurement.LineScan(
+            posx, posy, posz, None, None, None, self.dirpath)
         ls.add_scan(scan)
 
         m.add_line_scan(ls)
@@ -721,75 +824,72 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(len(m.data), 1)
 
     def test_add_line_scan_different_axis(self):
-        m = hallbench.measurement.Measurement(self.dirpath)
+        m = measurement.Measurement(self.dirpath)
 
         posx = 1
         posy = 2
         posz = np.linspace(0, 20, 11)
-        calibration = hallbench.calibration.CalibrationData()
 
-        scan = hallbench.measurement.DataSet()
+        scan = measurement.DataSet()
         scan.posx = posx
         scan.posy = posy
         scan.posz = posz
         scan.datax = np.linspace(0, 20, 11)
 
-        ls1 = hallbench.measurement.LineScan(
-            posx, posy, posz, None, None, calibration, self.dirpath)
+        ls1 = measurement.LineScan(
+            posx, posy, posz, None, None, None, self.dirpath)
         ls1.add_scan(scan)
         m.add_line_scan(ls1)
 
         scan.posy = posz
         scan.posz = posy
-        ls2 = hallbench.measurement.LineScan(
-            posx, posz, posy, None, None, calibration, self.dirpath)
+        ls2 = measurement.LineScan(
+            posx, posz, posy, None, None, None, self.dirpath)
         ls2.add_scan(scan)
 
-        with self.assertRaises(hallbench.measurement.MeasurementDataError):
+        with self.assertRaises(measurement.MeasurementDataError):
             m.add_line_scan(ls2)
 
     def test_add_line_scan_different_line(self):
-        m = hallbench.measurement.Measurement(self.dirpath)
+        m = measurement.Measurement(self.dirpath)
 
         posz = np.linspace(0, 20, 11)
-        calibration = hallbench.calibration.CalibrationData()
 
-        scan = hallbench.measurement.DataSet()
+        scan = measurement.DataSet()
         scan.posz = posz
         scan.datax = np.linspace(0, 20, 11)
 
         scan.posx = 1
         scan.posy = 2
-        ls1 = hallbench.measurement.LineScan(
-            1, 2, posz, None, None, calibration, self.dirpath)
+        ls1 = measurement.LineScan(
+            1, 2, posz, None, None, None, self.dirpath)
         ls1.add_scan(scan)
         m.add_line_scan(ls1)
 
         scan.posx = 1
         scan.posy = 20
-        ls2 = hallbench.measurement.LineScan(
-            1, 20, posz, None, None, calibration, self.dirpath)
+        ls2 = measurement.LineScan(
+            1, 20, posz, None, None, None, self.dirpath)
         ls2.add_scan(scan)
         m.add_line_scan(ls2)
 
         self.assertEqual(len(m.data), 2)
 
     def test_clear(self):
-        m = hallbench.measurement.Measurement(self.dirpath)
+        m = measurement.Measurement(self.dirpath)
 
         posx = 1
         posy = 2
         posz = np.linspace(0, 20, 11)
-        calibration = hallbench.calibration.CalibrationData()
 
-        scan = hallbench.measurement.DataSet()
+        scan = measurement.DataSet()
         scan.posx = posx
         scan.posy = posy
         scan.posz = posz
         scan.datax = np.linspace(0, 20, 11)
 
-        ls = hallbench.measurement.LineScan(
-            posx, posy, posz, None, None, calibration, self.dirpath)
+        ls = measurement.LineScan(
+            posx, posy, posz, None, None, None, self.dirpath)
         ls.add_scan(scan)
 
         m.add_line_scan(ls)
@@ -809,32 +909,61 @@ class TestMeasurement(unittest.TestCase):
 
     def test_recover_saved_data(self):
         posz = np.linspace(0, 20, 11)
-        calibration = hallbench.calibration.CalibrationData()
 
-        scan = hallbench.measurement.DataSet()
+        scan = measurement.DataSet()
         scan.posz = posz
         scan.datax = np.linspace(0, 20, 11)
 
         scan.posx = 1
         scan.posy = 2
-        ls1 = hallbench.measurement.LineScan(
-            1, 2, posz, None, None, calibration, self.dirpath)
+        ls1 = measurement.LineScan(
+            1, 2, posz, None, None, self.calibration, self.dirpath)
         ls1.add_scan(scan)
         ls1.analyse_data()
 
         scan.posx = 1
         scan.posy = 20
-        ls2 = hallbench.measurement.LineScan(
-            1, 20, posz, None, None, calibration, self.dirpath)
+        ls2 = measurement.LineScan(
+            1, 20, posz, None, None, self.calibration, self.dirpath)
         ls2.add_scan(scan)
         ls2.analyse_data()
 
-        m = hallbench.measurement.Measurement(self.dirpath)
+        x = np.ones(22)
+        y = np.array([2, 20]*11)
+        z = [
+            0, 0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14,
+            16, 16, 18, 18, 20, 20,
+        ]
+        bx = [
+            0, 0, 0.4, 0.4, 0.8, 0.8, 1.2, 1.2, 1.6, 1.6, 1.9644, 1.9644,
+            2.386275, 2.386275, 2.855594, 2.855594, 3.456014, 3.456014,
+            4.271197, 4.271197, 5.3848, 5.3848,
+        ]
+        by = np.ones(22)*np.nan
+        bz = np.ones(22)*np.nan
+
+        m = measurement.Measurement(self.dirpath)
         m.recover_saved_data()
+        field_avg_data = m._get_field_avg_data()
+        self.assertEqual(m.scan_axis, 'z')
+        self.assertFalse(m.check_control_configuration())
+        self.assertFalse(m.check_measurement_configuration())
+        self.assertTrue(m.check_calibration())
+        np.testing.assert_array_almost_equal(m.posx, 1)
+        np.testing.assert_array_almost_equal(m.posy, [2, 20])
+        np.testing.assert_array_almost_equal(m.posz, np.linspace(0, 20, 11))
+        np.testing.assert_array_almost_equal(field_avg_data[:, 0], x)
+        np.testing.assert_array_almost_equal(field_avg_data[:, 1], y)
+        np.testing.assert_array_almost_equal(field_avg_data[:, 2], z)
+        np.testing.assert_array_almost_equal(field_avg_data[:, 3], bx)
+        np.testing.assert_array_almost_equal(field_avg_data[:, 4], by)
+        np.testing.assert_array_almost_equal(field_avg_data[:, 5], bz)
 
 
 def get_suite():
     suite_list = []
+    suite_list.append(unittest.TestLoader().loadTestsFromTestCase(
+        TestFunctions))
     suite_list.append(unittest.TestLoader().loadTestsFromTestCase(
         TestDataSet))
     suite_list.append(unittest.TestLoader().loadTestsFromTestCase(

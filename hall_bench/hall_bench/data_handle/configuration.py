@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of classes to handle configuration files."""
 
-from hallbench import files as _files
+from . import utils as _utils
 
 
 class ControlConfiguration(object):
@@ -35,29 +35,29 @@ class ControlConfiguration(object):
         Args:
             filename (str): configuration file path.
         """
-        data = _files.read_file(filename)
+        data = _utils.read_file(filename)
 
-        self.control_pmac_enable = _files.find_value(
+        self.control_pmac_enable = _utils.find_value(
             data, 'control_pmac_enable', vtype='int')
-        self.control_voltx_enable = _files.find_value(
+        self.control_voltx_enable = _utils.find_value(
             data, 'control_voltx_enable', vtype='int')
-        self.control_volty_enable = _files.find_value(
+        self.control_volty_enable = _utils.find_value(
             data, 'control_volty_enable', vtype='int')
-        self.control_voltz_enable = _files.find_value(
+        self.control_voltz_enable = _utils.find_value(
             data, 'control_voltz_enable', vtype='int')
-        self.control_multich_enable = _files.find_value(
+        self.control_multich_enable = _utils.find_value(
             data, 'control_multich_enable', vtype='int')
-        self.control_colimator_enable = _files.find_value(
+        self.control_colimator_enable = _utils.find_value(
             data, 'control_colimator_enable', vtype='int')
-        self.control_voltx_addr = _files.find_value(
+        self.control_voltx_addr = _utils.find_value(
             data, 'control_voltx_addr', vtype='int')
-        self.control_volty_addr = _files.find_value(
+        self.control_volty_addr = _utils.find_value(
             data, 'control_volty_addr', vtype='int')
-        self.control_voltz_addr = _files.find_value(
+        self.control_voltz_addr = _utils.find_value(
             data, 'control_voltz_addr', vtype='int')
-        self.control_multich_addr = _files.find_value(
+        self.control_multich_addr = _utils.find_value(
             data, 'control_multich_addr', vtype='int')
-        self.control_colimator_addr = _files.find_value(
+        self.control_colimator_addr = _utils.find_value(
             data, 'control_colimator_addr', vtype='int')
         self.filename = filename
 
@@ -84,7 +84,7 @@ class ControlConfiguration(object):
         """
         if not self.valid_configuration():
             message = 'Invalid Configuration'
-            raise _files.HallBenchFileError(message)
+            raise _utils.HallBenchFileError(message)
 
         try:
             data = [
@@ -122,7 +122,7 @@ class ControlConfiguration(object):
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
-            raise _files.HallBenchFileError(message)
+            raise _utils.HallBenchFileError(message)
 
 
 class MeasurementConfiguration(object):
@@ -175,17 +175,17 @@ class MeasurementConfiguration(object):
         Args:
             filename (str): configuration file path.
         """
-        data = _files.read_file(filename)
+        data = _utils.read_file(filename)
 
-        self.meas_probeX = _files.find_value(data, 'meas_probeX', vtype='int')
-        self.meas_probeY = _files.find_value(data, 'meas_probeY', vtype='int')
-        self.meas_probeZ = _files.find_value(data, 'meas_probeZ', vtype='int')
+        self.meas_probeX = _utils.find_value(data, 'meas_probeX', vtype='int')
+        self.meas_probeY = _utils.find_value(data, 'meas_probeY', vtype='int')
+        self.meas_probeZ = _utils.find_value(data, 'meas_probeZ', vtype='int')
 
-        self.meas_aper_ms = _files.find_value(
+        self.meas_aper_ms = _utils.find_value(
             data, 'meas_aper_ms', vtype='float')
-        self.meas_precision = _files.find_value(
+        self.meas_precision = _utils.find_value(
             data, 'meas_precision', vtype='int')
-        self.meas_trig_axis = _files.find_value(
+        self.meas_trig_axis = _utils.find_value(
             data, 'meas_trig_axis', vtype='int')
 
         # Ax1, Ax2, Ax3, Ax5
@@ -195,10 +195,10 @@ class MeasurementConfiguration(object):
             epos = 'meas_endpos_ax' + str(axis)
             incr = 'meas_incr_ax' + str(axis)
             vel = 'meas_vel_ax' + str(axis)
-            setattr(self, spos, _files.find_value(data, spos, vtype='float'))
-            setattr(self, epos, _files.find_value(data, epos, vtype='float'))
-            setattr(self, incr, _files.find_value(data, incr, vtype='float'))
-            setattr(self, vel, _files.find_value(data, vel, vtype='float'))
+            setattr(self, spos, _utils.find_value(data, spos, vtype='float'))
+            setattr(self, epos, _utils.find_value(data, epos, vtype='float'))
+            setattr(self, incr, _utils.find_value(data, incr, vtype='float'))
+            setattr(self, vel, _utils.find_value(data, vel, vtype='float'))
 
         self.filename = filename
 
@@ -225,7 +225,7 @@ class MeasurementConfiguration(object):
         """
         if not self.valid_configuration():
             message = 'Invalid Configuration'
-            raise _files.HallBenchFileError(message)
+            raise _utils.HallBenchFileError(message)
 
         try:
             data = [
@@ -269,4 +269,4 @@ class MeasurementConfiguration(object):
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
-            raise _files.HallBenchFileError(message)
+            raise _utils.HallBenchFileError(message)

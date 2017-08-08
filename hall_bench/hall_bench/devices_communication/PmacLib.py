@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """Pmac Lib."""
 
-# Libraries
 import ctypes as _ctypes
 import logging as _logging
-from. PmacVars import ListOfCommands as _Pmac_Commands
+from .PmacVars import ListOfCommands as _Pmac_Commands
 
 
 class Pmac(object):

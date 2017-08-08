@@ -1,8 +1,8 @@
-"""Configuration module test."""
+"""Utils test."""
 
 import os
 import unittest
-import hallbench
+from hall_bench.data_handle import utils
 
 
 class TestFiles(unittest.TestCase):
@@ -17,11 +17,11 @@ class TestFiles(unittest.TestCase):
         pass
 
     def test_invalid_filename(self):
-        with self.assertRaises(hallbench.files.HallBenchFileError):
-            flines = hallbench.files.read_file('')
+        with self.assertRaises(utils.HallBenchFileError):
+            flines = utils.read_file('')
 
     def test_read_file(self):
-        read_flines = hallbench.files.read_file(self.filename)
+        read_flines = utils.read_file(self.filename)
         flines = [
             'Configuration File',
             '#control_pmac_enable\t1',
@@ -40,24 +40,24 @@ class TestFiles(unittest.TestCase):
             self.assertEqual(read_flines[i], flines[i])
 
     def test_find_value(self):
-        flines = hallbench.files.read_file(self.filename)
+        flines = utils.read_file(self.filename)
         variable = 'control_voltx_addr'
 
-        with self.assertRaises(hallbench.files.HallBenchFileError):
-            value = hallbench.files.find_value([], variable)
+        with self.assertRaises(utils.HallBenchFileError):
+            value = utils.find_value([], variable)
 
-        with self.assertRaises(hallbench.files.HallBenchFileError):
-            value = hallbench.files.find_value(flines, 'control_addr')
+        with self.assertRaises(utils.HallBenchFileError):
+            value = utils.find_value(flines, 'control_addr')
 
-        value = hallbench.files.find_value(flines, variable, vtype='int')
+        value = utils.find_value(flines, variable, vtype='int')
         self.assertTrue(isinstance(value, int))
         self.assertEqual(value, 20)
 
-        value = hallbench.files.find_value(flines, variable, vtype='float')
+        value = utils.find_value(flines, variable, vtype='float')
         self.assertTrue(isinstance(value, float))
         self.assertEqual(value, float(20))
 
-        value = hallbench.files.find_value(flines, variable)
+        value = utils.find_value(flines, variable)
         self.assertTrue(isinstance(value, str))
         self.assertEqual(value, '20')
 

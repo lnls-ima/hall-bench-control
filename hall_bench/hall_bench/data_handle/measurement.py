@@ -8,9 +8,9 @@ import shutil as _shutil
 from scipy import interpolate as _interpolate
 from scipy.integrate import cumtrapz as _cumtrapz
 
-from hallbench import files as _files
-from hallbench import configuration as _configuration
-from hallbench import calibration as _calibration
+from . import utils as _utils
+from . import configuration as _configuration
+from . import calibration as _calibration
 
 
 class MeasurementDataError(Exception):
@@ -822,8 +822,8 @@ class LineScan(object):
         else:
             calibration_filename = ''
 
-        _save_scan_file(filename, dataset, self._timestamp, cconfig_filename,
-                        mconfig_filename, calibration_filename)
+        _write_scan_file(filename, dataset, self._timestamp, cconfig_filename,
+                         mconfig_filename, calibration_filename)
 
     def __str__(self):
         """Printable string representation of LineScan."""
@@ -919,9 +919,6 @@ class Measurement(object):
 
     def add_line_scan(self, ls):
         """Add a line scan to measurement data."""
-        if not isinstance(ls, LineScan):
-            raise MeasurementDataError('Invalid argument.')
-
         if ls.nr_scans == 0:
             raise MeasurementDataError('Empty LineScan.')
 
@@ -1104,6 +1101,24 @@ class Measurement(object):
 
 
 def _get_scan_axis(posx, posy, posz):
+    if posx is not None:
+        if not isinstance(posx, _np.ndarray):
+            posx = _np.array(posx)
+    else:
+        posx = _np.array([])
+
+    if posy is not None:
+        if not isinstance(posy, _np.ndarray):
+            posy = _np.array(posy)
+    else:
+        posy = _np.array([])
+
+    if posz is not None:
+        if not isinstance(posz, _np.ndarray):
+            posz = _np.array(posz)
+    else:
+        posz = _np.array([])
+
     if posx.size > 1 and posy.size == 1 and posz.size == 1:
         return 'x'
     elif posy.size > 1 and posx.size == 1 and posz.size == 1:
@@ -1115,6 +1130,24 @@ def _get_scan_axis(posx, posy, posz):
 
 
 def _get_scan_positions(posx, posy, posz):
+    if posx is not None:
+        if not isinstance(posx, _np.ndarray):
+            posx = _np.array(posx)
+    else:
+        posx = _np.array([])
+
+    if posy is not None:
+        if not isinstance(posy, _np.ndarray):
+            posy = _np.array(posy)
+    else:
+        posy = _np.array([])
+
+    if posz is not None:
+        if not isinstance(posz, _np.ndarray):
+            posz = _np.array(posz)
+    else:
+        posz = _np.array([])
+
     if posx.size > 1 and posy.size == 1 and posz.size == 1:
         return posx
     elif posy.size > 1 and posx.size == 1 and posz.size == 1:
@@ -1122,29 +1155,31 @@ def _get_scan_positions(posx, posy, posz):
     elif posz.size > 1 and posx.size == 1 and posy.size == 1:
         return posz
     else:
-        return None
+        return _np.array([])
 
 
 def _get_scan_files_list(
         datadir, posx=None, posy=None, posz=None, pos_str=None):
     if pos_str is None:
-        if posx is None:
+        if posx is None and posy is not None and posz is not None:
             pos_str = ('Z=' + '{0:0.3f}'.format(posz) + 'mm_' +
                        'Y=' + '{0:0.3f}'.format(posy) + 'mm')
-        elif posy is None:
+        elif posy is None and posx is not None and posz is not None:
             pos_str = ('Z=' + '{0:0.3f}'.format(posz) + 'mm_' +
                        'X=' + '{0:0.3f}'.format(posx) + 'mm')
-        elif posz is None:
+        elif posz is None and posx is not None and posy is not None:
             pos_str = ('Y=' + '{0:0.3f}'.format(posy) + 'mm_' +
                        'X=' + '{0:0.3f}'.format(posx) + 'mm')
         else:
             message = 'Invalid position arguments for LineScan.'
             raise MeasurementDataError(message)
 
+    pos_str_reverse = '_'.join(pos_str.split('_')[::-1])
+
     tmpfiles = [f for f in _os.listdir(datadir) if f.endswith('.dat')]
 
     files = [_os.path.join(datadir, f) for f in tmpfiles
-             if pos_str in f]
+             if (pos_str in f or pos_str_reverse in f)]
 
     if len(files) == 0:
         message = 'No files found for the specified position.'
@@ -1153,8 +1188,61 @@ def _get_scan_files_list(
     return files
 
 
-def _save_scan_file(filename, dataset, timestamp, cconfig_filename,
-                    mconfig_filename, calibration_filename):
+def _read_scan_file(filename):
+    flines = _utils.read_file(filename)
+
+    data_type = _utils.find_value(flines, 'data_type')
+    data_unit = _utils.find_value(flines, 'data_unit')
+    timestamp = _utils.find_value(flines, 'timestamp')
+    cconfig_filename = _utils.find_value(flines, 'control_configuration')
+    mconfig_filename = _utils.find_value(flines, 'measurement_configuration')
+    calibration_filename = _utils.find_value(flines, 'calibration')
+    scan_axis = _utils.find_value(flines, 'scan_axis')
+    posx = _utils.find_value(flines, 'position_x')
+    posy = _utils.find_value(flines, 'position_y')
+    posz = _utils.find_value(flines, 'position_z')
+
+    idx = next((i for i in range(len(flines))
+                if flines[i].find("----------") != -1), None)
+    data = []
+    for line in flines[idx+1:]:
+        data_line = [float(d) for d in line.split('\t')]
+        data.append(data_line)
+    data = _np.array(data)
+
+    dataset = DataSet(data_type, data_unit)
+
+    if data.shape[1] == 4:
+        scan_positions = data[:, 0]
+        dataset.datax = data[:, 1]
+        dataset.datay = data[:, 2]
+        dataset.dataz = data[:, 3]
+    else:
+        message = 'Inconsistent number of columns in file: %s' % filename
+        raise MeasurementDataError(message)
+
+    if scan_axis.lower() == 'x':
+        dataset.posx = scan_positions
+        dataset.posy = float(posy)
+        dataset.posz = float(posz)
+    elif scan_axis.lower() == 'y':
+        dataset.posx = float(posx)
+        dataset.posy = scan_positions
+        dataset.posz = float(posz)
+    elif scan_axis.lower() == 'z':
+        dataset.posx = float(posx)
+        dataset.posy = float(posy)
+        dataset.posz = scan_positions
+    else:
+        message = 'Invalid scan axis found in file: %s' % filename
+        raise MeasurementDataError(message)
+
+    return (dataset, timestamp, cconfig_filename,
+            mconfig_filename, calibration_filename)
+
+
+def _write_scan_file(filename, dataset, timestamp, cconfig_filename,
+                     mconfig_filename, calibration_filename):
     scan_axis = _get_scan_axis(dataset.posx, dataset.posy, dataset.posz)
 
     if scan_axis == 'x':
@@ -1212,56 +1300,3 @@ def _save_scan_file(filename, dataset, timestamp, cconfig_filename,
             line = line + '\t' + '{0:0.10e}'.format(columns[i, j])
         f.write(line + '\n')
     f.close()
-
-
-def _read_scan_file(filename):
-    flines = _files.read_file(filename)
-
-    data_type = _files.find_value(flines, 'data_type')
-    data_unit = _files.find_value(flines, 'data_unit')
-    timestamp = _files.find_value(flines, 'timestamp')
-    cconfig_filename = _files.find_value(flines, 'control_configuration')
-    mconfig_filename = _files.find_value(flines, 'measurement_configuration')
-    calibration_filename = _files.find_value(flines, 'calibration')
-    scan_axis = _files.find_value(flines, 'scan_axis')
-    posx = _files.find_value(flines, 'position_x')
-    posy = _files.find_value(flines, 'position_y')
-    posz = _files.find_value(flines, 'position_z')
-
-    idx = next((i for i in range(len(flines))
-                if flines[i].find("----------") != -1), None)
-    data = []
-    for line in flines[idx+1:]:
-        data_line = [float(d) for d in line.split('\t')]
-        data.append(data_line)
-    data = _np.array(data)
-
-    dataset = DataSet(data_type, data_unit)
-
-    if data.shape[1] == 4:
-        scan_positions = data[:, 0]
-        dataset.datax = data[:, 1]
-        dataset.datay = data[:, 2]
-        dataset.dataz = data[:, 3]
-    else:
-        message = 'Inconsistent number of columns in file: %s' % filename
-        raise MeasurementDataError(message)
-
-    if scan_axis.lower() == 'x':
-        dataset.posx = scan_positions
-        dataset.posy = float(posy)
-        dataset.posz = float(posz)
-    elif scan_axis.lower() == 'y':
-        dataset.posx = float(posx)
-        dataset.posy = scan_positions
-        dataset.posz = float(posz)
-    elif scan_axis.lower() == 'z':
-        dataset.posx = float(posx)
-        dataset.posy = float(posy)
-        dataset.posz = scan_positions
-    else:
-        message = 'Invalid scan axis found in file: %s' % filename
-        raise MeasurementDataError(message)
-
-    return (dataset, timestamp, cconfig_filename,
-            mconfig_filename, calibration_filename)

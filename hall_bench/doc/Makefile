@@ -1,7 +1,7 @@
 # Makefile for Doxygen documentation
 
 DOXYFILE = Doxyfile
-PROJECT_DIR = ./../
+PROJECT_DIR = ./../hall_bench
 PROJECT_NUMBER = $(shell cat $(PROJECT_DIR)/VERSION)
 
 html:

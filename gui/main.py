@@ -11,10 +11,84 @@ from PyQt4 import QtCore
 from PyQt4 import QtGui
 
 from interface import Ui_HallBench
-from HallBench import calibration
-from HallBench import configuration
-from HallBench import devices
-from HallBench import measurement
+from hall_bench.data_handle import calibration
+from hall_bench.data_handle import configuration
+from hall_bench.data_handle import measurement
+from hall_bench.devices_communication import Pmac
+from hall_bench.devices_communication import DigitalMultimeter
+from hall_bench.devices_communication import Multichannel
+
+
+class HallBenchDevices(object):
+    """Hall Bench Devices."""
+
+    def __init__(self, control_configururation):
+        """Initiate variables."""
+        self.pmac = None
+        self.voltx = None
+        self.volty = None
+        self.voltz = None
+        self.multich = None
+        self.devices_loaded = False
+        self.pmac_connected = False
+        self.voltx_connected = False
+        self.volty_connected = False
+        self.voltz_connected = False
+        self.multich_connected = False
+        self.config = control_configururation
+
+    def load(self):
+        """Load devices."""
+        try:
+            self.pmac = Pmac()
+
+            self.voltx = DigitalMultimeter(
+                'volt_x.log', self.config.control_voltx_addr)
+
+            self.volty = DigitalMultimeter(
+                'volt_y.log', self.config.control_volty_addr)
+
+            self.voltz = DigitalMultimeter(
+                'volt_z.log', self.config.control_voltz_addr)
+
+            self.multich = Multichannel(
+                'multi.log', self.config.control_multich_addr)
+
+            self.devices_loaded = True
+        except Exception:
+            self.devices_loaded = False
+
+    def connect(self):
+        """Connect devices."""
+        if self.devices_loaded:
+            if self.config.control_voltx_enable:
+                self.voltx_connected = self.voltx.connect()
+
+            if self.config.control_volty_enable:
+                self.volty_connected = self.volty.connect()
+
+            if self.config.control_voltz_enable:
+                self.voltz_connected = self.voltz.connect()
+
+            if self.config.control_pmac_enable:
+                self.pmac_connected = self.pmac.connect()
+
+            if self.config.control_multich_enable:
+                self.multich_connected = self.multich.connect()
+
+    def check_connection(self):
+        """Check devices connection status.
+
+        Returns:
+            the dictionary with the devices status.
+        """
+        connection_dict = {}
+        connection_dict['pmac'] = self.pmac_connected
+        connection_dict['multimeter x'] = self.voltx_connected
+        connection_dict['multimeter y'] = self.volty_connected
+        connection_dict['multimeter z'] = self.voltz_connected
+        connection_dict['multichannel'] = self.multich_connected
+        return connection_dict
 
 
 class HallBenchGUI(QtGui.QWidget):
@@ -374,7 +448,7 @@ class HallBenchGUI(QtGui.QWidget):
         if not self._update_control_configuration():
             return
 
-        self.devices = devices.HallBenchDevices(self.cconfig)
+        self.devices = HallBenchDevices(self.cconfig)
         self.devices.load()
         self.devices.connect()
 

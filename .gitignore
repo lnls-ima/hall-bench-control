@@ -1,8 +1,8 @@
 *~
 
 Data/
-interface.py
-resource_file_rc.py
+*interface.py
+*resources_rc.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -56,12 +56,9 @@ coverage.xml
 # Django stuff:
 *.log
 
-# Sphinx documentation
-docs/_build/
-
 # Doxygen documentation
-doc/html/
-doc/documentation.html
+*/doc/html/
+*/doc/documentation.html
 
 # PyBuilder
 target/

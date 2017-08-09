@@ -45,7 +45,7 @@ class GPIB(object):
             self.logger.warning('Teste')
 
     def connect(self, address):
-        """Connect to a GPIB devide with the given address.
+        """Connect to a GPIB device with the given address.
 
         Args:
             address (int): device address.
@@ -70,6 +70,15 @@ class GPIB(object):
                 return True
             else:
                 return False
+        except Exception:
+            self.logger.error('exception', exc_info=True)
+
+    def disconnect(self):
+        """Disconnect the GPIB device."""
+        try:
+            if self.inst is not None:
+                self.inst.close()
+            return True
         except Exception:
             self.logger.error('exception', exc_info=True)
 

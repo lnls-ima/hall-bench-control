@@ -11,6 +11,7 @@ from PyQt4 import QtCore
 from PyQt4 import QtGui
 
 from interface import Ui_HallBench
+from save_dialog import Ui_SaveMeasurement
 from hall_bench.data_handle import calibration
 from hall_bench.data_handle import configuration
 from hall_bench.data_handle import measurement
@@ -76,19 +77,27 @@ class HallBenchDevices(object):
             if self.config.control_multich_enable:
                 self.multich_connected = self.multich.connect()
 
-    def check_connection(self):
-        """Check devices connection status.
+    def disconnect(self):
+        """Disconnect devices."""
+        if self.voltx is not None:
+            voltx_disconnected = self.voltx.disconnect()
+            self.voltx_connected = not voltx_disconnected
 
-        Returns:
-            the dictionary with the devices status.
-        """
-        connection_dict = {}
-        connection_dict['pmac'] = self.pmac_connected
-        connection_dict['multimeter x'] = self.voltx_connected
-        connection_dict['multimeter y'] = self.volty_connected
-        connection_dict['multimeter z'] = self.voltz_connected
-        connection_dict['multichannel'] = self.multich_connected
-        return connection_dict
+        if self.config.control_volty_enable:
+            volty_disconnected = self.volty.disconnect()
+            self.volty_connected = not volty_disconnected
+
+        if self.config.control_voltz_enable:
+            voltz_disconnected = self.voltz.disconnect()
+            self.voltz_connected = not voltz_disconnected
+
+        if self.config.control_pmac_enable:
+            pmac_disconnected = self.pmac.disconnect()
+            self.pmac_connected = pmac_disconnected
+
+        if self.config.control_multich_enable:
+            multich_disconnected = self.multich.disconnect()
+            self.multich_connected = not multich_disconnected
 
 
 class HallBenchGUI(QtGui.QWidget):
@@ -100,13 +109,13 @@ class HallBenchGUI(QtGui.QWidget):
         self.ui = Ui_HallBench()
         self.ui.setupUi(self)
 
-        self.ui.cb_selectaxis.setCurrentIndex(-1)
-        for idx in range(1, self.ui.tabWidget.count()):
-            self.ui.tabWidget.setTabEnabled(idx, False)
-        self.ui.tb_Motors_main.setItemEnabled(1, False)
+        # self.ui.cb_select_axis.setCurrentIndex(-1)
+        # for idx in range(1, self.ui.tab.count()):
+        #     self.ui.tab.setTabEnabled(idx, False)
+        # self.ui.tb_motors_main.setItemEnabled(1, False)
 
         self._initialize_variables()
-        self._connect_widgets()
+        self._connect_signals_slots()
         self._start_timer()
 
     def _initialize_variables(self):
@@ -132,56 +141,62 @@ class HallBenchGUI(QtGui.QWidget):
         self.current_measurement = None
 
         self.nr_measurements = 1
-        self.dirpath = os.path.join(sys.path[0], 'Data')
+        self.dirpath = None
+
+        self.led_on = ":/images/images/led_green.png"
+        self.led_off = ":/images/images/led_red.png"
+
+        self.save_dialog = None
 
         self.end_measurements = False
         self.stop = False
 
-    def _connect_widgets(self):
+    def _connect_signals_slots(self):
         """Make the connections between signals and slots."""
         # load and save device parameters
-        self.ui.pb_loadconfigfile.clicked.connect(
+        self.ui.pb_load_control_config.clicked.connect(
             self.load_control_configuration_file)
 
-        self.ui.pb_saveconfigfile.clicked.connect(
+        self.ui.pb_save_control_config.clicked.connect(
             self.save_control_configuration_file)
 
         # connect devices
-        self.ui.pb_connectdevices.clicked.connect(self.connect_devices)
+        self.ui.pb_connect_devices.clicked.connect(self.connect_devices)
+        self.ui.pb_disconnect_devices.clicked.connect(self.disconnect_devices)
 
         # activate bench
-        self.ui.pb_activatebench.clicked.connect(self.activate_bench)
+        self.ui.pb_activate_bench.clicked.connect(self.activate_bench)
 
         # select axis
-        self.ui.cb_selectaxis.currentIndexChanged.connect(self.axis_selection)
+        self.ui.cb_select_axis.currentIndexChanged.connect(self.axis_selection)
 
         # start homming of selected axis
-        self.ui.pb_starthomming.clicked.connect(self.start_homming)
+        self.ui.pb_start_homming.clicked.connect(self.start_homming)
 
         # move to target
-        self.ui.pb_movetotarget.clicked.connect(self.move_to_target)
+        self.ui.pb_move_to_target.clicked.connect(self.move_to_target)
 
         # stop motor
-        self.ui.pb_stopmotor.clicked.connect(self.stop_axis)
+        self.ui.pb_stop_motor.clicked.connect(self.stop_axis)
 
         # stop all motors
-        self.ui.pb_stopallmotors.clicked.connect(self.stop_all_axis)
+        self.ui.pb_stop_all_motors.clicked.connect(self.stop_all_axis)
 
         # kill all motors
-        self.ui.pb_killallmotors.clicked.connect(self.kill_all_axis)
+        self.ui.pb_kill_all_motors.clicked.connect(self.kill_all_axis)
 
         # load and save measurements parameters
-        self.ui.pb_loadmeasurementfile.clicked.connect(
+        self.ui.pb_load_measurement_config.clicked.connect(
             self.load_measurement_configuration_file)
 
-        self.ui.pb_savemeasurementfile.clicked.connect(
+        self.ui.pb_save_measurement_config.clicked.connect(
             self.save_measurement_configuration_file)
 
         # check limits
         self.ui.le_velocity.editingFinished.connect(
             lambda: self._check_value(self.ui.le_velocity, 0, 150))
-        self.ui.le_targetposition.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_targetposition, -3600, 3600))
+        self.ui.le_target_position.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target_position, -3600, 3600))
 
         # check input values for measurement
         self.ui.le_axis1_start.editingFinished.connect(
@@ -221,10 +236,13 @@ class HallBenchGUI(QtGui.QWidget):
             lambda: self._check_value(self.ui.le_axis5_vel, 0.1, 10))
 
         # Configure and start measurements
-        self.ui.pb_configure_measurement.clicked.connect(
+        self.ui.pb_configure_and_measure.clicked.connect(
             self.configure_and_measure)
 
-        self.ui.pb_stop_measurements.clicked.connect(self.stop_measurements)
+        self.ui.pb_stop_measurement.clicked.connect(self.stop_measurements)
+
+        self.ui.pb_save_measurement.clicked.connect(
+            self.open_save_measurement_dialog)
 
     def _check_value(self, obj, limit_min, limit_max):
         try:
@@ -271,29 +289,35 @@ class HallBenchGUI(QtGui.QWidget):
                     self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
                 return
 
-            self.ui.le_filenameconfig.setText(filename)
+            self.ui.le_control_config_filename.setText(filename)
 
-            self.ui.cb_PMAC_enable.setChecked(self.cconfig.control_pmac_enable)
+            self.ui.cb_pmac_enable.setChecked(self.cconfig.control_pmac_enable)
 
-            self.ui.cb_DMM_X.setChecked(self.cconfig.control_voltx_enable)
-            self.ui.sb_DMM_X_address.setValue(self.cconfig.control_voltx_addr)
+            self.ui.cb_dmm_x_enable.setChecked(
+                self.cconfig.control_voltx_enable)
+            self.ui.sb_dmm_x_address.setValue(
+                self.cconfig.control_voltx_addr)
 
-            self.ui.cb_DMM_Y.setChecked(self.cconfig.control_volty_enable)
-            self.ui.sb_DMM_Y_address.setValue(self.cconfig.control_volty_addr)
+            self.ui.cb_dmm_y_enable.setChecked(
+                self.cconfig.control_volty_enable)
+            self.ui.sb_dmm_y_address.setValue(
+                self.cconfig.control_volty_addr)
 
-            self.ui.cb_DMM_Z.setChecked(self.cconfig.control_voltz_enable)
-            self.ui.sb_DMM_Z_address.setValue(self.cconfig.control_voltz_addr)
+            self.ui.cb_dmm_z_enable.setChecked(
+                self.cconfig.control_voltz_enable)
+            self.ui.sb_dmm_z_address.setValue(
+                self.cconfig.control_voltz_addr)
 
-            self.ui.cb_Multichannel_enable.setChecked(
+            self.ui.cb_multich_enable.setChecked(
                 self.cconfig.control_multich_enable)
 
-            self.ui.sb_Multichannel_address.setValue(
+            self.ui.sb_multich_address.setValue(
                 self.cconfig.control_multich_addr)
 
-            self.ui.cb_Autocolimator_enable.setChecked(
+            self.ui.cb_colimator_enable.setChecked(
                 self.cconfig.control_colimator_enable)
 
-            self.ui.cb_Autocolimator_port.setCurrentIndex(
+            self.ui.cb_colimator_port.setCurrentIndex(
                 self.cconfig.control_colimator_addr)
 
     def save_control_configuration_file(self):
@@ -313,23 +337,23 @@ class HallBenchGUI(QtGui.QWidget):
         if self.cconfig is None:
             self.cconfig = configuration.ControlConfiguration()
 
-        self.cconfig.control_pmac_enable = self.ui.cb_PMAC_enable.isChecked()
+        self.cconfig.control_pmac_enable = self.ui.cb_pmac_enable.isChecked()
 
-        self.cconfig.control_voltx_enable = self.ui.cb_DMM_X.isChecked()
-        self.cconfig.control_volty_enable = self.ui.cb_DMM_Y.isChecked()
-        self.cconfig.control_voltz_enable = self.ui.cb_DMM_Z.isChecked()
+        self.cconfig.control_voltx_enable = self.ui.cb_dmm_x_enable.isChecked()
+        self.cconfig.control_volty_enable = self.ui.cb_dmm_y_enable.isChecked()
+        self.cconfig.control_voltz_enable = self.ui.cb_dmm_z_enable.isChecked()
 
-        multich_enable = self.ui.cb_Multichannel_enable.isChecked()
-        colimator_enable = self.ui.cb_Autocolimator_enable.isChecked()
+        multich_enable = self.ui.cb_multich_enable.isChecked()
+        colimator_enable = self.ui.cb_colimator_enable.isChecked()
         self.cconfig.control_multich_enable = multich_enable
         self.cconfig.control_colimator_enable = colimator_enable
 
-        self.cconfig.control_voltx_addr = self.ui.sb_DMM_X_address.value()
-        self.cconfig.control_volty_addr = self.ui.sb_DMM_Y_address.value()
-        self.cconfig.control_voltz_addr = self.ui.sb_DMM_Z_address.value()
+        self.cconfig.control_voltx_addr = self.ui.sb_dmm_x_address.value()
+        self.cconfig.control_volty_addr = self.ui.sb_dmm_y_address.value()
+        self.cconfig.control_voltz_addr = self.ui.sb_dmm_z_address.value()
 
-        multich_addr = self.ui.sb_Multichannel_address.value()
-        colimator_addr = self.ui.cb_Autocolimator_port.currentIndex()
+        multich_addr = self.ui.sb_multich_address.value()
+        colimator_addr = self.ui.cb_colimator_port.currentIndex()
         self.cconfig.control_multich_addr = multich_addr
         self.cconfig.control_colimator_addr = colimator_addr
 
@@ -358,14 +382,14 @@ class HallBenchGUI(QtGui.QWidget):
                     self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
                 return
 
-            self.ui.le_filenamemeasurement.setText(filename)
+            self.ui.le_measurement_config_filename.setText(filename)
 
-            self.ui.cb_Hall_X_enable.setChecked(self.mconfig.meas_probeX)
-            self.ui.cb_Hall_Y_enable.setChecked(self.mconfig.meas_probeY)
-            self.ui.cb_Hall_Z_enable.setChecked(self.mconfig.meas_probeZ)
+            self.ui.cb_hall_x_enable.setChecked(self.mconfig.meas_probeX)
+            self.ui.cb_hall_y_enable.setChecked(self.mconfig.meas_probeY)
+            self.ui.cb_hall_z_enable.setChecked(self.mconfig.meas_probeZ)
 
-            self.ui.le_DMM_aper.setText(str(self.mconfig.meas_aper_ms))
-            self.ui.cb_DMM_precision.setCurrentIndex(
+            self.ui.le_dmm_aper.setText(str(self.mconfig.meas_aper_ms))
+            self.ui.cb_dmm_precision.setCurrentIndex(
                 self.mconfig.meas_precision)
 
             axis_measurement = [1, 2, 3, 5]
@@ -403,16 +427,16 @@ class HallBenchGUI(QtGui.QWidget):
         if self.mconfig is None:
             self.mconfig = configuration.MeasurementConfiguration()
 
-        self.mconfig.meas_probeX = self.ui.cb_Hall_X_enable.isChecked()
-        self.mconfig.meas_probeY = self.ui.cb_Hall_Y_enable.isChecked()
-        self.mconfig.meas_probeZ = self.ui.cb_Hall_Z_enable.isChecked()
+        self.mconfig.meas_probeX = self.ui.cb_hall_x_enable.isChecked()
+        self.mconfig.meas_probeY = self.ui.cb_hall_y_enable.isChecked()
+        self.mconfig.meas_probeZ = self.ui.cb_hall_z_enable.isChecked()
 
-        self.mconfig.meas_precision = self.ui.cb_DMM_precision.currentIndex()
+        self.mconfig.meas_precision = self.ui.cb_dmm_precision.currentIndex()
         self.mconfig.meas_trig_axis = 1
 
-        self.nr_measurements = self.ui.sb_number_of_measurements.value()
+        self.nr_measurements = self.ui.sb_nr_measurements.value()
 
-        tmp = self.ui.le_DMM_aper.text()
+        tmp = self.ui.le_dmm_aper.text()
         if bool(tmp and tmp.strip()):
             self.mconfig.meas_aper_ms = float(tmp)
 
@@ -451,23 +475,12 @@ class HallBenchGUI(QtGui.QWidget):
         self.devices = HallBenchDevices(self.cconfig)
         self.devices.load()
         self.devices.connect()
-
-        not_connected = sorted(
-            [k for k, v in self.devices.check_connection().items() if not v])
-        if len(not_connected) != 0:
-            message = ('The following devices are not connected: \n\n' +
-                       '\n'.join(not_connected))
-            QtGui.QMessageBox.warning(
-                self, 'Warning', message, QtGui.QMessageBox.Ok)
-        else:
-            message = 'Devices successfully connected.'
-            QtGui.QMessageBox.information(
-                self, 'Information', message, QtGui.QMessageBox.Ok)
+        self._update_led_status()
 
         if self.cconfig.control_pmac_enable:
             if self.devices.pmac_connected:
-                self.ui.tabWidget.setTabEnabled(1, True)
-                self.ui.tabWidget.setTabEnabled(2, True)
+                self.ui.tab.setTabEnabled(1, True)
+                self.ui.tab.setTabEnabled(2, True)
 
                 # check if all axis are hommed and release access to movement.
                 list_of_axis = self.devices.pmac.commands.list_of_axis
@@ -477,10 +490,43 @@ class HallBenchGUI(QtGui.QWidget):
                         (self.devices.pmac.axis_status(axis) & 1024) != 0)
 
                 if all(status):
-                    self.ui.tb_Motors_main.setItemEnabled(1, True)
-                    self.ui.tb_Motors_main.setCurrentIndex(1)
+                    self.ui.tb_motors_main.setItemEnabled(1, True)
+                    self.ui.tb_motors_main.setCurrentIndex(1)
 
         self.activate_bench()
+
+    def disconnect_devices(self):
+        """Disconnect bench devices."""
+        if self.devices is not None:
+            self.devices.disconnect()
+        self._update_led_status()
+
+    def _update_led_status(self):
+        if self.devices is not None:
+            if self.devices.voltx_connected:
+                self.ui.la_dmm_x_led.setPixmap(QtGui.QPixmap(self.led_on))
+            else:
+                self.ui.la_dmm_x_led.setPixmap(QtGui.QPixmap(self.led_off))
+
+            if self.devices.volty_connected:
+                self.ui.la_dmm_y_led.setPixmap(QtGui.QPixmap(self.led_on))
+            else:
+                self.ui.la_dmm_y_led.setPixmap(QtGui.QPixmap(self.led_off))
+
+            if self.devices.voltz_connected:
+                self.ui.la_dmm_z_led.setPixmap(QtGui.QPixmap(self.led_on))
+            else:
+                self.ui.la_dmm_z_led.setPixmap(QtGui.QPixmap(self.led_off))
+
+            if self.devices.pmac_connected:
+                self.ui.la_pmac_led.setPixmap(QtGui.QPixmap(self.led_on))
+            else:
+                self.ui.la_pmac_led.setPixmap(QtGui.QPixmap(self.led_off))
+
+            if self.devices.multich_connected:
+                self.ui.la_multich_led.setPixmap(QtGui.QPixmap(self.led_on))
+            else:
+                self.ui.la_multich_led.setPixmap(QtGui.QPixmap(self.led_off))
 
     def activate_bench(self):
         """Active bench."""
@@ -496,14 +542,14 @@ class HallBenchGUI(QtGui.QWidget):
     def axis_selection(self):
         """Update seleted axis and velocity values."""
         # get axis selected
-        tmp = self.ui.cb_selectaxis.currentText()
+        tmp = self.ui.cb_select_axis.currentText()
         if tmp == '':
             self.selected_axis = -1
         else:
             self.selected_axis = int(tmp[1])
 
             # set target to zero
-            self.ui.le_targetposition.setText('{0:0.4f}'.format(0))
+            self.ui.le_target_position.setText('{0:0.4f}'.format(0))
 
             if self.devices is not None:
                 # read selected axis velocity
@@ -537,8 +583,8 @@ class HallBenchGUI(QtGui.QWidget):
                 s.append((self.devices.pmac.axis_status(axis) & 1024) != 0)
 
             if all(s):
-                self.ui.tb_Motors_main.setItemEnabled(1, True)
-                self.ui.tb_Motors_main.setCurrentIndex(1)
+                self.ui.tb_motors_main.setItemEnabled(1, True)
+                self.ui.tb_motors_main.setCurrentIndex(1)
 
     def move_to_target(self):
         """Move Hall probe to target position."""
@@ -548,7 +594,7 @@ class HallBenchGUI(QtGui.QWidget):
         # if any available axis is selected:
         if not self.selected_axis == -1:
             set_vel = float(self.ui.le_velocity.text())
-            target = float(self.ui.le_targetposition.text())
+            target = float(self.ui.le_target_position.text())
             vel = self.devices.pmac.get_velocity(self.selected_axis)
 
             if vel != set_vel:
@@ -587,6 +633,12 @@ class HallBenchGUI(QtGui.QWidget):
            not self._update_measurement_configuration()):
             return
 
+        self.dirpath = QtGui.QFileDialog.getExistingDirectory(
+            self, 'Select directory to save measurement data',
+            os.path.expanduser("~"), QtGui.QFileDialog.ShowDirsOnly)
+        if len(self.dirpath) == 0:
+            return
+
         self.stop = False
 
         self._clear_graph()
@@ -595,19 +647,19 @@ class HallBenchGUI(QtGui.QWidget):
         self.current_measurement = measurement.Measurement(
             self.cconfig, self.mconfig, self.calibration, self.dirpath)
 
-        if self.ui.rb_triggering_axis1.isChecked():
+        if self.ui.rb_axis1_triggering.isChecked():
             extra_mm = 1
             scan_axis = 1
             axis_a = 2
             axis_b = 3
 
-        elif self.ui.rb_triggering_axis2.isChecked():
+        elif self.ui.rb_axis2_triggering.isChecked():
             extra_mm = 0.1
             scan_axis = 2
             axis_a = 1
             axis_b = 3
 
-        elif self.ui.rb_triggering_axis3.isChecked():
+        elif self.ui.rb_axis3_triggering.isChecked():
             extra_mm = 0.1
             scan_axis = 3
             axis_a = 1
@@ -649,6 +701,65 @@ class HallBenchGUI(QtGui.QWidget):
             message = 'The user stopped the measurements.'
             QtGui.QMessageBox.information(
                 self, 'Abort', message, QtGui.QMessageBox.Ok)
+
+    def open_save_measurement_dialog(self):
+        """Open save measurement dialog."""
+        if self.current_measurement is not None:
+            self.save_dialog = QtGui.QDialog()
+            self.save_dialog.ui = Ui_SaveMeasurement()
+            self.save_dialog.ui.setupUi(self.save_dialog)
+            self.save_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            self.save_dialog.ui.pb_save.clicked.connect(
+                self._save_current_measurement)
+            self.save_dialog.exec_()
+
+    def _save_current_measurement(self):
+        if self.save_dialog is not None:
+            magnet_name = self.save_dialog.ui.le_magnet_name.text()
+            magnet_length = self.save_dialog.ui.le_magnet_length.text()
+            gap = self.save_dialog.ui.le_gap.text()
+            control_gap = self.save_dialog.ui.le_control_gap.text()
+
+            coils = []
+            if self.save_dialog.ui.cb_main.isChecked():
+                d = {}
+                d['name'] = 'main'
+                d['alias'] = 'mc'
+                d['current'] = self.save_dialog.ui.le_main_current
+                d['turns'] = self.save_dialog.ui.le_main_turns
+                coils.append(d)
+            if self.save_dialog.ui.cb_trim.isChecked():
+                d = {}
+                d['name'] = 'trim'
+                d['alias'] = 'tc'
+                d['current'] = self.save_dialog.ui.le_trim_current
+                d['turns'] = self.save_dialog.ui.le_trim_turns
+                coils.append(d)
+            if self.save_dialog.ui.cb_ch.isChecked():
+                d = {}
+                d['name'] = 'ch'
+                d['alias'] = 'ch'
+                d['current'] = self.save_dialog.ui.le_ch_current
+                d['turns'] = self.save_dialog.ui.le_ch_turns
+                coils.append(d)
+            if self.save_dialog.ui.cb_cv.isChecked():
+                d = {}
+                d['name'] = 'cv'
+                d['alias'] = 'cv'
+                d['current'] = self.save_dialog.ui.le_cv_current
+                d['turns'] = self.save_dialog.ui.le_cv_turns
+                coils.append(d)
+            if self.save_dialog.ui.cb_qs.isChecked():
+                d = {}
+                d['name'] = 'qs'
+                d['alias'] = 'qs'
+                d['current'] = self.save_dialog.ui.le_qs_current
+                d['turns'] = self.save_dialog.ui.le_qs_turns
+                coils.append(d)
+
+            self.current_measurement.save(
+                magnet_name=magnet_name, magnet_length=magnet_length, gap=gap,
+                control_gap=control_gap, coils=coils)
 
     def _measure_line(self, axis_a, pos_a, axis_b, pos_b, scan_axis, extra_mm):
 
@@ -783,7 +894,7 @@ class HallBenchGUI(QtGui.QWidget):
         self.devices.voltz.voltage = np.array([])
 
     def _update_measurement_number(self, number):
-        self.ui.l_n_meas_status.setText('{0:1d}'.format(number))
+        self.ui.la_nr_measurements_status.setText('{0:1d}'.format(number))
 
     def _move_axis(self, axis, position):
         if self.stop is False:
@@ -809,7 +920,7 @@ class HallBenchGUI(QtGui.QWidget):
     def _configure_graph(self):
         self.graph_curve_x = np.append(
             self.graph_curve_x,
-            self.ui.graphicsView_1.plotItem.plot(
+            self.ui.gv_measurement_graph.plotItem.plot(
                 np.array([]),
                 np.array([]),
                 pen=(255, 0, 0),
@@ -819,7 +930,7 @@ class HallBenchGUI(QtGui.QWidget):
 
         self.graph_curve_y = np.append(
             self.graph_curve_y,
-            self.ui.graphicsView_1.plotItem.plot(
+            self.ui.gv_measurement_graph.plotItem.plot(
                 np.array([]),
                 np.array([]),
                 pen=(0, 255, 0),
@@ -829,7 +940,7 @@ class HallBenchGUI(QtGui.QWidget):
 
         self.graph_curve_z = np.append(
             self.graph_curve_z,
-            self.ui.graphicsView_1.plotItem.plot(
+            self.ui.gv_measurement_graph.plotItem.plot(
                 np.array([]),
                 np.array([]),
                 pen=(0, 0, 255),
@@ -838,8 +949,8 @@ class HallBenchGUI(QtGui.QWidget):
                 symbolSize=4))
 
     def _clear_graph(self):
-        self.ui.graphicsView_1.plotItem.curves.clear()
-        self.ui.graphicsView_1.clear()
+        self.ui.gv_measurement_graph.plotItem.curves.clear()
+        self.ui.gv_measurement_graph.clear()
         self.graph_curve_x = np.array([])
         self.graph_curve_y = np.array([])
         self.graph_curve_z = np.array([])

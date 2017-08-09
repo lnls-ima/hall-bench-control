@@ -16,10 +16,10 @@
   <property name="styleSheet">
    <string notr="true">background-color: rgb(255, 255, 255);</string>
   </property>
-  <widget class="QTabWidget" name="tabWidget">
+  <widget class="QTabWidget" name="tab">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>0</x>
      <y>10</y>
      <width>1010</width>
      <height>890</height>
@@ -34,23 +34,23 @@
    <property name="currentIndex">
     <number>0</number>
    </property>
-   <widget class="QWidget" name="tab">
+   <widget class="QWidget" name="tab_connection">
     <attribute name="title">
      <string>Connection</string>
     </attribute>
-    <widget class="QGroupBox" name="groupBox_3">
+    <widget class="QGroupBox" name="gb_dmm">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>30</x>
        <y>10</y>
-       <width>221</width>
+       <width>231</width>
        <height>320</height>
       </rect>
      </property>
      <property name="title">
       <string/>
      </property>
-     <widget class="QLabel" name="label_128">
+     <widget class="QLabel" name="la_dmm">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -72,7 +72,7 @@
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="label_4">
+     <widget class="QLabel" name="la_dmm_image">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -97,9 +97,9 @@
      <widget class="QSplitter" name="splitter">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>159</y>
-        <width>180</width>
+        <x>0</x>
+        <y>170</y>
+        <width>221</width>
         <height>131</height>
        </rect>
       </property>
@@ -112,12 +112,12 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QWidget" name="layoutWidget">
-       <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
+       <layout class="QHBoxLayout" name="hl_dmm_x" stretch="1,0,0">
         <property name="spacing">
          <number>15</number>
         </property>
         <item>
-         <widget class="QCheckBox" name="cb_DMM_X">
+         <widget class="QCheckBox" name="cb_dmm_x_enable">
           <property name="font">
            <font>
             <pointsize>14</pointsize>
@@ -129,7 +129,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sb_DMM_X_address">
+         <widget class="QSpinBox" name="sb_dmm_x_address">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -140,15 +140,40 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="la_dmm_x_led">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>15</width>
+            <height>15</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="resources.qrc">:/images/images/led_red.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="layoutWidget_2">
-       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
+       <layout class="QHBoxLayout" name="hl_dmm_y" stretch="1,0,0">
         <property name="spacing">
          <number>15</number>
         </property>
         <item>
-         <widget class="QCheckBox" name="cb_DMM_Y">
+         <widget class="QCheckBox" name="cb_dmm_y_enable">
           <property name="font">
            <font>
             <pointsize>14</pointsize>
@@ -160,7 +185,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sb_DMM_Y_address">
+         <widget class="QSpinBox" name="sb_dmm_y_address">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -168,15 +193,40 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="la_dmm_y_led">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>15</width>
+            <height>15</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="resources.qrc">:/images/images/led_red.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="layoutWidget_3">
-       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0">
+       <layout class="QHBoxLayout" name="hl_dmm_z" stretch="1,0,0">
         <property name="spacing">
          <number>15</number>
         </property>
         <item>
-         <widget class="QCheckBox" name="cb_DMM_Z">
+         <widget class="QCheckBox" name="cb_dmm_z_enable">
           <property name="font">
            <font>
             <pointsize>14</pointsize>
@@ -188,7 +238,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sb_DMM_Z_address">
+         <widget class="QSpinBox" name="sb_dmm_z_address">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -196,29 +246,54 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="la_dmm_z_led">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>15</width>
+            <height>15</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="resources.qrc">:/images/images/led_red.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_4">
+    <widget class="QGroupBox" name="gb_pmac">
      <property name="geometry">
       <rect>
-       <x>280</x>
+       <x>290</x>
        <y>10</y>
-       <width>221</width>
-       <height>210</height>
+       <width>191</width>
+       <height>211</height>
       </rect>
      </property>
      <property name="title">
       <string/>
      </property>
-     <widget class="QLabel" name="label_5">
+     <widget class="QLabel" name="la_pmac_image">
       <property name="geometry">
        <rect>
         <x>16</x>
         <y>90</y>
         <width>170</width>
-        <height>60</height>
+        <height>61</height>
        </rect>
       </property>
       <property name="text">
@@ -234,7 +309,7 @@
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="label_130">
+     <widget class="QLabel" name="la_pmac">
       <property name="geometry">
        <rect>
         <x>50</x>
@@ -256,38 +331,69 @@
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QCheckBox" name="cb_PMAC_enable">
+     <widget class="QWidget" name="horizontalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>11</x>
-        <y>179</y>
-        <width>191</width>
-        <height>16</height>
+        <x>20</x>
+        <y>170</y>
+        <width>151</width>
+        <height>41</height>
        </rect>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Enable connection</string>
-      </property>
+      <layout class="QHBoxLayout" name="hl_pmac">
+       <item>
+        <widget class="QCheckBox" name="cb_pmac_enable">
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Enable</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="la_pmac_led">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>15</width>
+           <height>15</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="resources.qrc">:/images/images/led_red.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_5">
+    <widget class="QGroupBox" name="gb_multich">
      <property name="geometry">
       <rect>
-       <x>520</x>
-       <y>10</y>
-       <width>200</width>
-       <height>210</height>
+       <x>510</x>
+       <y>19</y>
+       <width>211</width>
+       <height>211</height>
       </rect>
      </property>
      <property name="title">
       <string/>
      </property>
-     <widget class="QLabel" name="label_129">
+     <widget class="QLabel" name="la_multich">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -309,7 +415,7 @@
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="label_6">
+     <widget class="QLabel" name="la_multich_image">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -331,59 +437,96 @@
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QCheckBox" name="cb_Multichannel_enable">
+     <widget class="QWidget" name="horizontalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>11</x>
-        <y>173</y>
-        <width>91</width>
-        <height>27</height>
+        <x>0</x>
+        <y>160</y>
+        <width>201</width>
+        <height>41</height>
        </rect>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Enable</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="sb_Multichannel_address">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>174</y>
-        <width>60</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-       </font>
-      </property>
-      <property name="suffix">
-       <string/>
-      </property>
+      <layout class="QHBoxLayout" name="hl_multich">
+       <item>
+        <widget class="QCheckBox" name="cb_multich_enable">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Enable</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="sb_multich_address">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="suffix">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="la_multich_led">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>15</width>
+           <height>15</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="resources.qrc">:/images/images/led_red.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_6">
+    <widget class="QGroupBox" name="gb_colimator">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="geometry">
       <rect>
-       <x>760</x>
-       <y>10</y>
-       <width>200</width>
-       <height>210</height>
+       <x>740</x>
+       <y>9</y>
+       <width>241</width>
+       <height>211</height>
       </rect>
      </property>
      <property name="title">
       <string/>
      </property>
-     <widget class="QLabel" name="label_131">
+     <widget class="QLabel" name="la_colimator">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -404,7 +547,7 @@
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="label_7">
+     <widget class="QLabel" name="la_colimator_image">
       <property name="geometry">
        <rect>
         <x>46</x>
@@ -426,120 +569,145 @@
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QComboBox" name="cb_Autocolimator_port">
+     <widget class="QWidget" name="horizontalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>102</x>
-        <y>174</y>
-        <width>87</width>
-        <height>23</height>
+        <x>0</x>
+        <y>170</y>
+        <width>231</width>
+        <height>41</height>
        </rect>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-       </font>
-      </property>
-      <item>
-       <property name="text">
-        <string>COM 1</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 2</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 3</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 4</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 5</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 6</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 7</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 8</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 9</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 10</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 11</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 12</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 13</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 14</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COM 15</string>
-       </property>
-      </item>
-     </widget>
-     <widget class="QCheckBox" name="cb_Autocolimator_enable">
-      <property name="geometry">
-       <rect>
-        <x>11</x>
-        <y>172</y>
-        <width>91</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Enable</string>
-      </property>
+      <layout class="QHBoxLayout" name="hl_colimator">
+       <item>
+        <widget class="QCheckBox" name="cb_colimator_enable">
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Enable</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cb_colimator_port">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <item>
+          <property name="text">
+           <string>COM 1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 4</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 5</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 6</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 7</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 8</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 9</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 10</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 11</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 12</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 13</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 14</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COM 15</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="la_colimator_led">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>15</width>
+           <height>15</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="resources.qrc">:/images/images/led_red.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_7">
+    <widget class="QGroupBox" name="gb_control_config">
      <property name="geometry">
       <rect>
-       <x>280</x>
-       <y>220</y>
+       <x>300</x>
+       <y>230</y>
        <width>440</width>
        <height>110</height>
       </rect>
@@ -552,13 +720,13 @@
      <property name="title">
       <string>Configuration File</string>
      </property>
-     <widget class="QLineEdit" name="le_filenameconfig">
+     <widget class="QLineEdit" name="le_control_config_filename">
       <property name="geometry">
        <rect>
         <x>88</x>
         <y>32</y>
         <width>330</width>
-        <height>20</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="font">
@@ -580,7 +748,7 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QLabel" name="label_3">
+     <widget class="QLabel" name="la_control_config_filename">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -598,7 +766,7 @@
        <string>Filename: </string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pb_saveconfigfile">
+     <widget class="QPushButton" name="pb_save_control_config">
       <property name="geometry">
        <rect>
         <x>230</x>
@@ -616,7 +784,7 @@
        <string>Save File</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pb_loadconfigfile">
+     <widget class="QPushButton" name="pb_load_control_config">
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -635,11 +803,11 @@
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_8">
+    <widget class="QGroupBox" name="gb_connect">
      <property name="geometry">
       <rect>
        <x>760</x>
-       <y>230</y>
+       <y>240</y>
        <width>200</width>
        <height>100</height>
       </rect>
@@ -647,7 +815,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QPushButton" name="pb_connectdevices">
+     <widget class="QPushButton" name="pb_connect_devices">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -665,7 +833,7 @@
        <string>Connect Devices</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pb_disconnectdevices">
+     <widget class="QPushButton" name="pb_disconnect_devices">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -684,13 +852,13 @@
       </property>
      </widget>
     </widget>
-    <widget class="QLabel" name="label_10">
+    <widget class="QLabel" name="la_hall_bench_image">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>340</y>
-       <width>670</width>
-       <height>520</height>
+       <x>180</x>
+       <y>350</y>
+       <width>651</width>
+       <height>501</height>
       </rect>
      </property>
      <property name="text">
@@ -708,7 +876,7 @@
     <attribute name="title">
      <string>Motors</string>
     </attribute>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="la_axis_image">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -724,7 +892,7 @@
       <pixmap resource="resources.qrc">:/images/images/Coordinate_System.png</pixmap>
      </property>
     </widget>
-    <widget class="QGroupBox" name="gb_axisreadings">
+    <widget class="QGroupBox" name="gb_axis_readings">
      <property name="geometry">
       <rect>
        <x>780</x>
@@ -738,7 +906,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
-       <widget class="QLabel" name="label_23">
+       <widget class="QLabel" name="la_pos1">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -770,7 +938,7 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QLabel" name="label_120">
+       <widget class="QLabel" name="la_pos1_unit">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -782,7 +950,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_24">
+       <widget class="QLabel" name="la_pos2">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -814,7 +982,7 @@
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QLabel" name="label_121">
+       <widget class="QLabel" name="la_pos2_unit">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -826,7 +994,7 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="label_25">
+       <widget class="QLabel" name="la_pos3">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -858,7 +1026,7 @@
        </widget>
       </item>
       <item row="2" column="2">
-       <widget class="QLabel" name="label_122">
+       <widget class="QLabel" name="la_pos3_unit">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -870,7 +1038,7 @@
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QLabel" name="label_26">
+       <widget class="QLabel" name="la_pos5">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -902,7 +1070,7 @@
        </widget>
       </item>
       <item row="3" column="2">
-       <widget class="QLabel" name="label_123">
+       <widget class="QLabel" name="la_pos5_unit">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -914,7 +1082,7 @@
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QLabel" name="label_27">
+       <widget class="QLabel" name="la_pos6">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -946,7 +1114,7 @@
        </widget>
       </item>
       <item row="4" column="2">
-       <widget class="QLabel" name="label_124">
+       <widget class="QLabel" name="la_pos6_unit">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -958,7 +1126,7 @@
        </widget>
       </item>
       <item row="5" column="0">
-       <widget class="QLabel" name="label_28">
+       <widget class="QLabel" name="la_pos7">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -990,7 +1158,7 @@
        </widget>
       </item>
       <item row="5" column="2">
-       <widget class="QLabel" name="label_125">
+       <widget class="QLabel" name="la_pos7_unit">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -1002,7 +1170,7 @@
        </widget>
       </item>
       <item row="6" column="0">
-       <widget class="QLabel" name="label_29">
+       <widget class="QLabel" name="la_pos8">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -1034,7 +1202,7 @@
        </widget>
       </item>
       <item row="6" column="2">
-       <widget class="QLabel" name="label_126">
+       <widget class="QLabel" name="la_pos8_unit">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -1046,7 +1214,7 @@
        </widget>
       </item>
       <item row="7" column="0">
-       <widget class="QLabel" name="label_30">
+       <widget class="QLabel" name="la_pos9">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -1078,7 +1246,7 @@
        </widget>
       </item>
       <item row="7" column="2">
-       <widget class="QLabel" name="label_127">
+       <widget class="QLabel" name="la_pos9_unit">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -1091,7 +1259,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QToolBox" name="tb_Motors_main">
+    <widget class="QToolBox" name="tb_motors_main">
      <property name="geometry">
       <rect>
        <x>440</x>
@@ -1110,7 +1278,7 @@
      <property name="currentIndex">
       <number>1</number>
      </property>
-     <widget class="QWidget" name="tbmotors_homming">
+     <widget class="QWidget" name="tb_motors_homming">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -1120,9 +1288,9 @@
        </rect>
       </property>
       <attribute name="label">
-       <string>Homming</string>
+       <string/>
       </attribute>
-      <widget class="QGroupBox" name="groupBox_9">
+      <widget class="QGroupBox" name="gb_motors_main">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -1139,7 +1307,7 @@
        <property name="title">
         <string>Select axis for homming:</string>
        </property>
-       <widget class="QPushButton" name="pb_starthomming">
+       <widget class="QPushButton" name="pb_start_homming">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -1166,7 +1334,7 @@
           <height>100</height>
          </rect>
         </property>
-        <layout class="QGridLayout" name="gridLayout_5">
+        <layout class="QGridLayout" name="gl_motors_main">
          <item row="0" column="0">
           <widget class="QCheckBox" name="cb_homming1">
            <property name="font">
@@ -1267,7 +1435,7 @@
        </widget>
       </widget>
      </widget>
-     <widget class="QWidget" name="tbmotors_movements">
+     <widget class="QWidget" name="tb_motors_movement">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -1277,9 +1445,9 @@
        </rect>
       </property>
       <attribute name="label">
-       <string>Movements</string>
+       <string/>
       </attribute>
-      <widget class="QGroupBox" name="gb_axismovement">
+      <widget class="QGroupBox" name="gb_axis_movement">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -1300,11 +1468,11 @@
           <height>100</height>
          </rect>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
+        <layout class="QVBoxLayout" name="vl_axis_movement">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <layout class="QHBoxLayout" name="hl_velocity">
            <item>
-            <widget class="QLabel" name="label_21">
+            <widget class="QLabel" name="la_velocity">
              <property name="font">
               <font>
                <pointsize>10</pointsize>
@@ -1335,9 +1503,9 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <layout class="QHBoxLayout" name="hl_select_axis">
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="la_select_axis">
              <property name="font">
               <font>
                <pointsize>15</pointsize>
@@ -1349,7 +1517,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="cb_selectaxis">
+            <widget class="QComboBox" name="cb_select_axis">
              <property name="font">
               <font>
                <pointsize>14</pointsize>
@@ -1400,9 +1568,9 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <layout class="QHBoxLayout" name="hl_target_position">
            <item>
-            <widget class="QLabel" name="label_20">
+            <widget class="QLabel" name="la_taget_position">
              <property name="font">
               <font>
                <pointsize>11</pointsize>
@@ -1414,7 +1582,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="le_targetposition">
+            <widget class="QLineEdit" name="le_target_position">
              <property name="font">
               <font>
                <pointsize>11</pointsize>
@@ -1435,7 +1603,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QGroupBox" name="groupBox">
+      <widget class="QGroupBox" name="gb_motors_movements">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -1447,7 +1615,7 @@
        <property name="title">
         <string/>
        </property>
-       <widget class="QPushButton" name="pb_stopmotor">
+       <widget class="QPushButton" name="pb_stop_motor">
         <property name="geometry">
          <rect>
           <x>168</x>
@@ -1465,7 +1633,7 @@
          <string>Stop Motor</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pb_movetotarget">
+       <widget class="QPushButton" name="pb_move_to_target">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1486,7 +1654,7 @@
       </widget>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="gb_all_motors">
      <property name="geometry">
       <rect>
        <x>440</x>
@@ -1500,7 +1668,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="1">
-       <widget class="QPushButton" name="pb_killallmotors">
+       <widget class="QPushButton" name="pb_kill_all_motors">
         <property name="font">
          <font>
           <pointsize>12</pointsize>
@@ -1512,7 +1680,7 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QPushButton" name="pb_stopallmotors">
+       <widget class="QPushButton" name="pb_stop_all_motors">
         <property name="font">
          <font>
           <pointsize>12</pointsize>
@@ -1525,7 +1693,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QPushButton" name="pb_activatebench">
+    <widget class="QPushButton" name="pb_activate_bench">
      <property name="geometry">
       <rect>
        <x>440</x>
@@ -1550,7 +1718,7 @@
     <attribute name="title">
      <string>Measurements</string>
     </attribute>
-    <widget class="QGroupBox" name="gbMedidas">
+    <widget class="QGroupBox" name="gb_measurement">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -1562,7 +1730,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QGroupBox" name="groupBox_10">
+     <widget class="QGroupBox" name="gb_hall_enable">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -1581,7 +1749,7 @@
       </property>
       <layout class="QGridLayout" name="gridLayout_11">
        <item row="0" column="0">
-        <widget class="QCheckBox" name="cb_Hall_X_enable">
+        <widget class="QCheckBox" name="cb_hall_x_enable">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -1596,7 +1764,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QCheckBox" name="cb_Hall_Y_enable">
+        <widget class="QCheckBox" name="cb_hall_y_enable">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -1611,7 +1779,7 @@
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QCheckBox" name="cb_Hall_Z_enable">
+        <widget class="QCheckBox" name="cb_hall_z_enable">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -1627,7 +1795,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QGroupBox" name="groupBox_11">
+     <widget class="QGroupBox" name="gb_dmm_param">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -1644,7 +1812,7 @@
       <property name="title">
        <string>Digital Multimeter Parameters</string>
       </property>
-      <widget class="QLabel" name="label_22">
+      <widget class="QLabel" name="la_dmm_aper">
        <property name="geometry">
         <rect>
          <x>22</x>
@@ -1662,7 +1830,7 @@
         <string>Aperture Time [s]:</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="le_DMM_aper">
+      <widget class="QLineEdit" name="le_dmm_aper">
        <property name="geometry">
         <rect>
          <x>170</x>
@@ -1680,7 +1848,7 @@
         <string>0.003</string>
        </property>
       </widget>
-      <widget class="QComboBox" name="cb_DMM_precision">
+      <widget class="QComboBox" name="cb_dmm_precision">
        <property name="geometry">
         <rect>
          <x>170</x>
@@ -1705,7 +1873,7 @@
         </property>
        </item>
       </widget>
-      <widget class="QLabel" name="label_32">
+      <widget class="QLabel" name="la_dmm_precision">
        <property name="geometry">
         <rect>
          <x>22</x>
@@ -1724,7 +1892,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="groupBox_12">
+     <widget class="QGroupBox" name="gb_position_param">
       <property name="geometry">
        <rect>
         <x>290</x>
@@ -1750,9 +1918,9 @@
          <height>160</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2" rowminimumheight="0,25,25,25,25">
+       <layout class="QGridLayout" name="gl_position_param" rowminimumheight="0,25,25,25,25">
         <item row="2" column="1">
-         <widget class="QLabel" name="label_35">
+         <widget class="QLabel" name="la_pos2_param">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -1764,7 +1932,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QLabel" name="label_16">
+         <widget class="QLabel" name="la_start">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -1779,7 +1947,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLabel" name="label_40">
+         <widget class="QLabel" name="la_pos1_param">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -1791,7 +1959,7 @@
          </widget>
         </item>
         <item row="0" column="3">
-         <widget class="QLabel" name="label_17">
+         <widget class="QLabel" name="la_end">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -1806,7 +1974,7 @@
          </widget>
         </item>
         <item row="0" column="4">
-         <widget class="QLabel" name="label_15">
+         <widget class="QLabel" name="la_step">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -1821,7 +1989,7 @@
          </widget>
         </item>
         <item row="4" column="1">
-         <widget class="QLabel" name="label_36">
+         <widget class="QLabel" name="la_pos5_param">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -1833,7 +2001,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLabel" name="label_39">
+         <widget class="QLabel" name="la_pos3_param">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -1887,7 +2055,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QRadioButton" name="rb_triggering_axis3">
+         <widget class="QRadioButton" name="rb_axis3_triggering">
           <property name="text">
            <string/>
           </property>
@@ -1929,7 +2097,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QRadioButton" name="rb_triggering_axis2">
+         <widget class="QRadioButton" name="rb_axis2_triggering">
           <property name="text">
            <string/>
           </property>
@@ -1943,7 +2111,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QRadioButton" name="rb_triggering_axis1">
+         <widget class="QRadioButton" name="rb_axis1_triggering">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -1963,7 +2131,7 @@
          </widget>
         </item>
         <item row="0" column="5">
-         <widget class="QLabel" name="label_19">
+         <widget class="QLabel" name="la_velocity_table">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -1999,7 +2167,7 @@
          </widget>
         </item>
         <item row="0" column="0" colspan="2">
-         <widget class="QLabel" name="label_18">
+         <widget class="QLabel" name="la_axis">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -2016,7 +2184,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="groupBox_13">
+     <widget class="QGroupBox" name="gb_measurement_config">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -2033,7 +2201,7 @@
       <property name="title">
        <string>Load / Save</string>
       </property>
-      <widget class="QPushButton" name="pb_savemeasurementfile">
+      <widget class="QPushButton" name="pb_save_measurement_config">
        <property name="geometry">
         <rect>
          <x>140</x>
@@ -2051,7 +2219,7 @@
         <string>Save File</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pb_loadmeasurementfile">
+      <widget class="QPushButton" name="pb_load_measurement_config">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -2069,7 +2237,7 @@
         <string>Load File</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_9">
+      <widget class="QLabel" name="la_measurement_config_filename">
        <property name="geometry">
         <rect>
          <x>12</x>
@@ -2087,7 +2255,7 @@
         <string>Filename: </string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="le_filenamemeasurement">
+      <widget class="QLineEdit" name="le_measurement_config_filename">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -2104,7 +2272,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="groupBox_14">
+     <widget class="QGroupBox" name="gb_configure_and_measure">
       <property name="geometry">
        <rect>
         <x>290</x>
@@ -2121,7 +2289,7 @@
       <property name="title">
        <string>Configure and Measure</string>
       </property>
-      <widget class="QPushButton" name="pb_configure_measurement">
+      <widget class="QPushButton" name="pb_configure_and_measure">
        <property name="geometry">
         <rect>
          <x>230</x>
@@ -2139,7 +2307,7 @@
         <string>Configure and Measure</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pb_stop_measurements">
+      <widget class="QPushButton" name="pb_stop_measurement">
        <property name="geometry">
         <rect>
          <x>230</x>
@@ -2157,10 +2325,10 @@
         <string notr="true">color: rgb(255, 0, 0);</string>
        </property>
        <property name="text">
-        <string>Stop Measurements</string>
+        <string>Stop Measurement</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_33">
+      <widget class="QLabel" name="la_nr_measurements">
        <property name="geometry">
         <rect>
          <x>42</x>
@@ -2178,7 +2346,7 @@
         <string># of Measurements:</string>
        </property>
       </widget>
-      <widget class="QSpinBox" name="sb_number_of_measurements">
+      <widget class="QSpinBox" name="sb_nr_measurements">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -2199,7 +2367,7 @@
         <number>1000000</number>
        </property>
       </widget>
-      <widget class="QLabel" name="l_n_meas_status">
+      <widget class="QLabel" name="la_nr_measurements_status">
        <property name="geometry">
         <rect>
          <x>140</x>
@@ -2218,53 +2386,21 @@
        </property>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="gb_axisreadings_2">
+     <widget class="QGroupBox" name="gb_axis_readings_2">
       <property name="geometry">
        <rect>
-        <x>770</x>
-        <y>20</y>
+        <x>760</x>
+        <y>-10</y>
         <width>210</width>
-        <height>290</height>
+        <height>281</height>
        </rect>
       </property>
       <property name="title">
        <string/>
       </property>
       <layout class="QGridLayout" name="gridLayout_6">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_34">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>#1 (+Z):</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="le_pos1_2">
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>0.00</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="2">
-        <widget class="QLabel" name="label_132">
+        <widget class="QLabel" name="la_pos1_unit_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2276,7 +2412,7 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_37">
+        <widget class="QLabel" name="la_pos2_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2308,7 +2444,7 @@
         </widget>
        </item>
        <item row="1" column="2">
-        <widget class="QLabel" name="label_133">
+        <widget class="QLabel" name="la_pos2_unit_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2320,7 +2456,7 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_38">
+        <widget class="QLabel" name="la_pos3_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2352,7 +2488,7 @@
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QLabel" name="label_134">
+        <widget class="QLabel" name="la_pos3_unit_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2364,7 +2500,7 @@
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_41">
+        <widget class="QLabel" name="la_pos5_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2396,7 +2532,7 @@
         </widget>
        </item>
        <item row="3" column="2">
-        <widget class="QLabel" name="label_135">
+        <widget class="QLabel" name="la_pos5_unit_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2408,7 +2544,7 @@
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="label_42">
+        <widget class="QLabel" name="la_pos6_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2440,7 +2576,7 @@
         </widget>
        </item>
        <item row="4" column="2">
-        <widget class="QLabel" name="label_136">
+        <widget class="QLabel" name="la_pos6_unit_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2452,7 +2588,7 @@
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QLabel" name="label_43">
+        <widget class="QLabel" name="la_pos7_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2484,7 +2620,7 @@
         </widget>
        </item>
        <item row="5" column="2">
-        <widget class="QLabel" name="label_137">
+        <widget class="QLabel" name="la_pos7_unit_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2496,7 +2632,7 @@
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_44">
+        <widget class="QLabel" name="la_pos8_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2528,7 +2664,7 @@
         </widget>
        </item>
        <item row="6" column="2">
-        <widget class="QLabel" name="label_138">
+        <widget class="QLabel" name="la_pos8_unit_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2540,7 +2676,7 @@
         </widget>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_45">
+        <widget class="QLabel" name="la_pos9_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2572,7 +2708,7 @@
         </widget>
        </item>
        <item row="7" column="2">
-        <widget class="QLabel" name="label_139">
+        <widget class="QLabel" name="la_pos9_unit_2">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -2583,10 +2719,63 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="le_pos1_2">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>0.00</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="la_pos1_2">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>#1 (+Z):</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
+     <widget class="QPushButton" name="pb_save_measurement">
+      <property name="geometry">
+       <rect>
+        <x>780</x>
+        <y>270</y>
+        <width>191</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <italic>false</italic>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Save Measurement</string>
+      </property>
+     </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_15">
+    <widget class="QGroupBox" name="gb_measurement_graph">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -2598,7 +2787,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="PlotWidget" name="graphicsView_1">
+     <widget class="PlotWidget" name="gv_measurement_graph">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -2629,40 +2818,38 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
-  <tabstop>cb_DMM_X</tabstop>
-  <tabstop>cb_DMM_Y</tabstop>
-  <tabstop>sb_DMM_X_address</tabstop>
-  <tabstop>sb_DMM_Y_address</tabstop>
-  <tabstop>cb_DMM_Z</tabstop>
-  <tabstop>sb_DMM_Z_address</tabstop>
-  <tabstop>cb_PMAC_enable</tabstop>
-  <tabstop>cb_Multichannel_enable</tabstop>
-  <tabstop>sb_Multichannel_address</tabstop>
-  <tabstop>cb_Autocolimator_enable</tabstop>
-  <tabstop>cb_Autocolimator_port</tabstop>
-  <tabstop>le_filenameconfig</tabstop>
-  <tabstop>pb_loadconfigfile</tabstop>
-  <tabstop>pb_saveconfigfile</tabstop>
-  <tabstop>pb_connectdevices</tabstop>
-  <tabstop>pb_disconnectdevices</tabstop>
-  <tabstop>pb_activatebench</tabstop>
+  <tabstop>tab</tabstop>
+  <tabstop>cb_dmm_x_enable</tabstop>
+  <tabstop>cb_dmm_y_enable</tabstop>
+  <tabstop>sb_dmm_y_address</tabstop>
+  <tabstop>cb_dmm_z_enable</tabstop>
+  <tabstop>sb_dmm_z_address</tabstop>
+  <tabstop>cb_pmac_enable</tabstop>
+  <tabstop>cb_multich_enable</tabstop>
+  <tabstop>cb_colimator_enable</tabstop>
+  <tabstop>cb_colimator_port</tabstop>
+  <tabstop>le_control_config_filename</tabstop>
+  <tabstop>pb_load_control_config</tabstop>
+  <tabstop>pb_save_control_config</tabstop>
+  <tabstop>pb_connect_devices</tabstop>
+  <tabstop>pb_disconnect_devices</tabstop>
+  <tabstop>pb_activate_bench</tabstop>
   <tabstop>cb_homming1</tabstop>
   <tabstop>cb_homming2</tabstop>
   <tabstop>cb_homming3</tabstop>
-  <tabstop>pb_starthomming</tabstop>
+  <tabstop>pb_start_homming</tabstop>
   <tabstop>cb_homming5</tabstop>
   <tabstop>cb_homming6</tabstop>
   <tabstop>cb_homming7</tabstop>
   <tabstop>cb_homming8</tabstop>
   <tabstop>cb_homming9</tabstop>
   <tabstop>le_velocity</tabstop>
-  <tabstop>cb_selectaxis</tabstop>
-  <tabstop>le_targetposition</tabstop>
-  <tabstop>pb_movetotarget</tabstop>
-  <tabstop>pb_stopmotor</tabstop>
-  <tabstop>pb_stopallmotors</tabstop>
-  <tabstop>pb_killallmotors</tabstop>
+  <tabstop>cb_select_axis</tabstop>
+  <tabstop>le_target_position</tabstop>
+  <tabstop>pb_move_to_target</tabstop>
+  <tabstop>pb_stop_motor</tabstop>
+  <tabstop>pb_stop_all_motors</tabstop>
+  <tabstop>pb_kill_all_motors</tabstop>
   <tabstop>le_pos1</tabstop>
   <tabstop>le_pos2</tabstop>
   <tabstop>le_pos3</tabstop>
@@ -2671,25 +2858,25 @@
   <tabstop>le_pos7</tabstop>
   <tabstop>le_pos8</tabstop>
   <tabstop>le_pos9</tabstop>
-  <tabstop>cb_Hall_X_enable</tabstop>
-  <tabstop>cb_Hall_Y_enable</tabstop>
-  <tabstop>cb_Hall_Z_enable</tabstop>
-  <tabstop>le_DMM_aper</tabstop>
-  <tabstop>cb_DMM_precision</tabstop>
-  <tabstop>le_filenamemeasurement</tabstop>
-  <tabstop>pb_loadmeasurementfile</tabstop>
-  <tabstop>pb_savemeasurementfile</tabstop>
-  <tabstop>rb_triggering_axis1</tabstop>
+  <tabstop>cb_hall_x_enable</tabstop>
+  <tabstop>cb_hall_y_enable</tabstop>
+  <tabstop>cb_hall_z_enable</tabstop>
+  <tabstop>le_dmm_aper</tabstop>
+  <tabstop>cb_dmm_precision</tabstop>
+  <tabstop>le_measurement_config_filename</tabstop>
+  <tabstop>pb_load_measurement_config</tabstop>
+  <tabstop>pb_save_measurement_config</tabstop>
+  <tabstop>rb_axis1_triggering</tabstop>
   <tabstop>le_axis1_start</tabstop>
   <tabstop>le_axis1_end</tabstop>
   <tabstop>le_axis1_step</tabstop>
   <tabstop>le_axis1_vel</tabstop>
-  <tabstop>rb_triggering_axis2</tabstop>
+  <tabstop>rb_axis2_triggering</tabstop>
   <tabstop>le_axis2_start</tabstop>
   <tabstop>le_axis2_end</tabstop>
   <tabstop>le_axis2_step</tabstop>
   <tabstop>le_axis2_vel</tabstop>
-  <tabstop>rb_triggering_axis3</tabstop>
+  <tabstop>rb_axis3_triggering</tabstop>
   <tabstop>le_axis3_start</tabstop>
   <tabstop>le_axis3_end</tabstop>
   <tabstop>le_axis3_step</tabstop>

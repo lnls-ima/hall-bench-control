@@ -1007,8 +1007,18 @@ class Measurement(object):
         else:
             return False
 
-    def save_measurement(self, name):
-        """Save measurement data."""
+    def save(self, magnet_name='', magnet_length='',
+             gap='', control_gap='', coils=[]):
+        """Save measurement data.
+
+        Args:
+            magnet_name (str): magnet name.
+            magnet_length (str or float): magnet length [mm].
+            gap (str or float): air gap length [mm].
+            control_gap (str or float) : control air gap length [mm].
+            coils (list of dicts): list of dictionaries with name, alias,
+                                   current and turns of each magnet coil.
+        """
         if len(self._data) == 0:
             message = "Empty measurement."
             raise MeasurementDataError(message)
@@ -1019,20 +1029,34 @@ class Measurement(object):
 
         field_data = self._get_field_avg_data()
 
-        filename = '{0:1s}_{1:1s}.dat'.format(date, name)
+        if len(magnet_name) == 0:
+            fieldmap_name = 'hall_probe_measurement'
+        else:
+            fieldmap_name = magnet_name
+            for coil in coils:
+                fieldmap_name = (
+                    fieldmap_name + '_' +
+                    coil['alias'] + '=' + str(coil['current']) + 'A')
+
+        filename = '{0:1s}_{1:1s}.dat'.format(date, fieldmap_name)
         f = open(_os.path.join(self.dirpath, filename), 'w')
 
-        f.write('fieldmap_name:     \t{0:1s}\n'.format(name))
+        f.write('fieldmap_name:     \t{0:1s}\n'.format(fieldmap_name))
         f.write('timestamp:         \t{0:1s}\n'.format(datetime))
         f.write('filename:          \t{0:1s}\n'.format(filename))
         f.write('nr_magnets:        \t1\n')
         f.write('\n')
-        f.write('magnet_name:       \t{0:1s}\n'.format(name))
-        f.write('gap[mm]:           \t\n')
-        f.write('control_gap:       \t--\n')
-        f.write('magnet_length[mm]: \t\n')
-        f.write('current_main[A]:   \t\n')
-        f.write('NI_main[A.esp]:    \t\n')
+        f.write('magnet_name:       \t{0:1s}\n'.format(magnet_name))
+        f.write('gap[mm]:           \t{0:1s}\n'.format(str(gap)))
+        f.write('control_gap:       \t{0:1s}\n'.format(str(control_gap)))
+        f.write('magnet_length[mm]: \t{0:1s}\n'.format(str(magnet_length)))
+
+        for coil in coils:
+            f.write('current_{0:1s}[A]:   \t{1:1s}\n'.format(
+                coil['name'], str(coil['current'])))
+            NI = str(float(coil['current'])*float(coil['turns']))
+            f.write('NI_{0:1s}[A.esp]:    \t{1:1s}\n'.format(coil['name'], NI))
+
         f.write('center_pos_z[mm]:  \t0\n')
         f.write('center_pos_x[mm]:  \t0\n')
         f.write('rotation[deg]:     \t0\n')
@@ -1047,6 +1071,8 @@ class Measurement(object):
             f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
                 field_data[i, 3], field_data[i, 4], field_data[i, 5]))
         f.close()
+
+        return filename
 
     def _get_field_avg_data(self):
         size = len(self.posx)*len(self.posy)*len(self.posz)

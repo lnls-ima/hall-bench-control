@@ -2,6 +2,7 @@
 
 Data/
 *interface.py
+*save_dialog.py
 *resources_rc.py
 
 # Byte-compiled / optimized / DLL files

@@ -109,10 +109,10 @@ class HallBenchGUI(QtGui.QWidget):
         self.ui = Ui_HallBench()
         self.ui.setupUi(self)
 
-        # self.ui.cb_select_axis.setCurrentIndex(-1)
-        # for idx in range(1, self.ui.tab.count()):
-        #     self.ui.tab.setTabEnabled(idx, False)
-        # self.ui.tb_motors_main.setItemEnabled(1, False)
+        self.ui.cb_select_axis.setCurrentIndex(-1)
+        for idx in range(1, self.ui.tab.count()):
+            self.ui.tab.setTabEnabled(idx, False)
+        self.ui.tb_motors_main.setItemEnabled(1, False)
 
         self._initialize_variables()
         self._connect_signals_slots()
@@ -226,6 +226,15 @@ class HallBenchGUI(QtGui.QWidget):
         self.ui.le_axis5_step.editingFinished.connect(
             lambda: self._check_value(self.ui.le_axis5_step, -10, 10))
 
+        self.ui.le_axis1_extra.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_axis1_extra, 0, 100))
+        self.ui.le_axis2_extra.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_axis2_extra, 0, 100))
+        self.ui.le_axis3_extra.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_axis3_extra, 0, 100))
+        self.ui.le_axis5_extra.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_axis5_extra, 0, 100))
+
         self.ui.le_axis1_vel.editingFinished.connect(
             lambda: self._check_value(self.ui.le_axis1_vel, 0.1, 150))
         self.ui.le_axis2_vel.editingFinished.connect(
@@ -250,8 +259,10 @@ class HallBenchGUI(QtGui.QWidget):
             if val >= limit_min and val <= limit_max:
                 obj.setText('{0:0.4f}'.format(val))
             else:
+                obj.setText('')
                 self.axis_selection()
         except Exception:
+            obj.setText('')
             self.axis_selection()
 
     def _start_timer(self):
@@ -648,19 +659,19 @@ class HallBenchGUI(QtGui.QWidget):
             self.cconfig, self.mconfig, self.calibration, self.dirpath)
 
         if self.ui.rb_axis1_triggering.isChecked():
-            extra_mm = 1
+            extra_mm = float(self.ui.le_axis1_extra.text())
             scan_axis = 1
             axis_a = 2
             axis_b = 3
 
         elif self.ui.rb_axis2_triggering.isChecked():
-            extra_mm = 0.1
+            extra_mm = float(self.ui.le_axis2_extra.text())
             scan_axis = 2
             axis_a = 1
             axis_b = 3
 
         elif self.ui.rb_axis3_triggering.isChecked():
-            extra_mm = 0.1
+            extra_mm = float(self.ui.le_axis3_extra.text())
             scan_axis = 3
             axis_a = 1
             axis_b = 2
@@ -701,65 +712,6 @@ class HallBenchGUI(QtGui.QWidget):
             message = 'The user stopped the measurements.'
             QtGui.QMessageBox.information(
                 self, 'Abort', message, QtGui.QMessageBox.Ok)
-
-    def open_save_measurement_dialog(self):
-        """Open save measurement dialog."""
-        if self.current_measurement is not None:
-            self.save_dialog = QtGui.QDialog()
-            self.save_dialog.ui = Ui_SaveMeasurement()
-            self.save_dialog.ui.setupUi(self.save_dialog)
-            self.save_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            self.save_dialog.ui.pb_save.clicked.connect(
-                self._save_current_measurement)
-            self.save_dialog.exec_()
-
-    def _save_current_measurement(self):
-        if self.save_dialog is not None:
-            magnet_name = self.save_dialog.ui.le_magnet_name.text()
-            magnet_length = self.save_dialog.ui.le_magnet_length.text()
-            gap = self.save_dialog.ui.le_gap.text()
-            control_gap = self.save_dialog.ui.le_control_gap.text()
-
-            coils = []
-            if self.save_dialog.ui.cb_main.isChecked():
-                d = {}
-                d['name'] = 'main'
-                d['alias'] = 'mc'
-                d['current'] = self.save_dialog.ui.le_main_current
-                d['turns'] = self.save_dialog.ui.le_main_turns
-                coils.append(d)
-            if self.save_dialog.ui.cb_trim.isChecked():
-                d = {}
-                d['name'] = 'trim'
-                d['alias'] = 'tc'
-                d['current'] = self.save_dialog.ui.le_trim_current
-                d['turns'] = self.save_dialog.ui.le_trim_turns
-                coils.append(d)
-            if self.save_dialog.ui.cb_ch.isChecked():
-                d = {}
-                d['name'] = 'ch'
-                d['alias'] = 'ch'
-                d['current'] = self.save_dialog.ui.le_ch_current
-                d['turns'] = self.save_dialog.ui.le_ch_turns
-                coils.append(d)
-            if self.save_dialog.ui.cb_cv.isChecked():
-                d = {}
-                d['name'] = 'cv'
-                d['alias'] = 'cv'
-                d['current'] = self.save_dialog.ui.le_cv_current
-                d['turns'] = self.save_dialog.ui.le_cv_turns
-                coils.append(d)
-            if self.save_dialog.ui.cb_qs.isChecked():
-                d = {}
-                d['name'] = 'qs'
-                d['alias'] = 'qs'
-                d['current'] = self.save_dialog.ui.le_qs_current
-                d['turns'] = self.save_dialog.ui.le_qs_turns
-                coils.append(d)
-
-            self.current_measurement.save(
-                magnet_name=magnet_name, magnet_length=magnet_length, gap=gap,
-                control_gap=control_gap, coils=coils)
 
     def _measure_line(self, axis_a, pos_a, axis_b, pos_b, scan_axis, extra_mm):
 
@@ -841,6 +793,65 @@ class HallBenchGUI(QtGui.QWidget):
                 self.current_line_scan.add_scan(scan.reverse())
 
         self.current_line_scan.analyse_data()
+
+    def open_save_measurement_dialog(self):
+        """Open save measurement dialog."""
+        if self.current_measurement is not None:
+            self.save_dialog = QtGui.QDialog()
+            self.save_dialog.ui = Ui_SaveMeasurement()
+            self.save_dialog.ui.setupUi(self.save_dialog)
+            self.save_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            self.save_dialog.ui.pb_save.clicked.connect(
+                self._save_current_measurement)
+            self.save_dialog.exec_()
+
+    def _save_current_measurement(self):
+        if self.save_dialog is not None:
+            magnet_name = self.save_dialog.ui.le_magnet_name.text()
+            magnet_length = self.save_dialog.ui.le_magnet_length.text()
+            gap = self.save_dialog.ui.le_gap.text()
+            control_gap = self.save_dialog.ui.le_control_gap.text()
+
+            coils = []
+            if self.save_dialog.ui.cb_main.isChecked():
+                d = {}
+                d['name'] = 'main'
+                d['current'] = self.save_dialog.ui.le_main_current
+                d['turns'] = self.save_dialog.ui.le_main_turns
+                coils.append(d)
+            if self.save_dialog.ui.cb_trim.isChecked():
+                d = {}
+                d['name'] = 'trim'
+                d['current'] = self.save_dialog.ui.le_trim_current
+                d['turns'] = self.save_dialog.ui.le_trim_turns
+                coils.append(d)
+            if self.save_dialog.ui.cb_ch.isChecked():
+                d = {}
+                d['name'] = 'ch'
+                d['current'] = self.save_dialog.ui.le_ch_current
+                d['turns'] = self.save_dialog.ui.le_ch_turns
+                coils.append(d)
+            if self.save_dialog.ui.cb_cv.isChecked():
+                d = {}
+                d['name'] = 'cv'
+                d['current'] = self.save_dialog.ui.le_cv_current
+                d['turns'] = self.save_dialog.ui.le_cv_turns
+                coils.append(d)
+            if self.save_dialog.ui.cb_qs.isChecked():
+                d = {}
+                d['name'] = 'qs'
+                d['current'] = self.save_dialog.ui.le_qs_current
+                d['turns'] = self.save_dialog.ui.le_qs_turns
+                coils.append(d)
+
+            origin_x = self.ui.sb_origin_x.value()
+            origin_y = self.ui.sb_origin_y.value()
+            origin_z = self.ui.sb_origin_z.value()
+            origin = [origin_x, origin_y, origin_z]
+
+            self.current_measurement.save(
+                magnet_name=magnet_name, magnet_length=magnet_length, gap=gap,
+                control_gap=control_gap, coils=coils, origin=origin)
 
     def _set_axes_speed(self):
         self.devices.pmac.set_axis_speed(1, self.mconfig.meas_vel_ax1)

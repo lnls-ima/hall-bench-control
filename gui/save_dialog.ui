@@ -7,347 +7,396 @@
     <x>0</x>
     <y>0</y>
     <width>349</width>
-    <height>579</height>
+    <height>732</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Save Hall-probe Measurement</string>
   </property>
-  <widget class="QWidget" name="formLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>9</y>
-     <width>331</width>
-     <height>128</height>
-    </rect>
-   </property>
-   <layout class="QFormLayout" name="layout">
-    <property name="fieldGrowthPolicy">
-     <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-    </property>
-    <item row="0" column="0">
-     <widget class="QLabel" name="la_magnet_name">
-      <property name="text">
-       <string>Magnet Name</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="le_magnet_name"/>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="la_magnet_length">
-      <property name="text">
-       <string>Magnet Length [mm]</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="le_magnet_length"/>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="la_gap">
-      <property name="text">
-       <string>Gap [mm]</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="le_gap"/>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="la_control_gap">
-      <property name="text">
-       <string>Control Gap [mm]</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="le_control_gap"/>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_4">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>143</y>
-     <width>334</width>
-     <height>68</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="hl_main">
-    <item>
-     <widget class="QCheckBox" name="cb_main">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Main Coil</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="vl_main">
-      <item>
-       <layout class="QHBoxLayout" name="hl_main_current">
-        <item>
-         <widget class="QLabel" name="la_main_current">
-          <property name="text">
-           <string>Current [A]</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_main_current"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="hl_main_turns">
-        <item>
-         <widget class="QLabel" name="la_main_turns">
-          <property name="text">
-           <string>Nr. Turns    </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_main_turns"/>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>221</y>
-     <width>333</width>
-     <height>68</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="hl_trim">
-    <item>
-     <widget class="QCheckBox" name="cb_trim">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Trim Coil </string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="vl_trim">
-      <item>
-       <layout class="QHBoxLayout" name="hl_trim_current">
-        <item>
-         <widget class="QLabel" name="la_trim_current">
-          <property name="text">
-           <string>Current [A]</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_trim_current"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="hl_trim_turns">
-        <item>
-         <widget class="QLabel" name="la_trim_turns">
-          <property name="text">
-           <string>Nr. Turns    </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_trim_turns"/>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_5">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>298</y>
-     <width>334</width>
-     <height>68</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="hl_ch">
-    <item>
-     <widget class="QCheckBox" name="cb_ch">
-      <property name="text">
-       <string>CH Coil    </string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="vl_ch">
-      <item>
-       <layout class="QHBoxLayout" name="hl_ch_current">
-        <item>
-         <widget class="QLabel" name="la_ch_current">
-          <property name="text">
-           <string>Current [A]</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_ch_current"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="hl_ch_turns">
-        <item>
-         <widget class="QLabel" name="la_ch_turns">
-          <property name="text">
-           <string>Nr. Turns    </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_ch_turns"/>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_6">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>376</y>
-     <width>333</width>
-     <height>68</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="hl_cv">
-    <item>
-     <widget class="QCheckBox" name="cb_cv">
-      <property name="text">
-       <string>CV Coil    </string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="vl_cv">
-      <item>
-       <layout class="QHBoxLayout" name="hl_cv_current">
-        <item>
-         <widget class="QLabel" name="la_cv_current">
-          <property name="text">
-           <string>Current [A]</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_cv_current"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="hl_cv_turns">
-        <item>
-         <widget class="QLabel" name="la_cv_turns">
-          <property name="text">
-           <string>Nr. Turns    </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_cv_turns"/>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_7">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>453</y>
-     <width>333</width>
-     <height>68</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="hl_qs">
-    <item>
-     <widget class="QCheckBox" name="cb_qs">
-      <property name="text">
-       <string>QS Coil    </string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="vl_qs">
-      <item>
-       <layout class="QHBoxLayout" name="hl_qs_current">
-        <item>
-         <widget class="QLabel" name="la_qs_current">
-          <property name="text">
-           <string>Current [A]</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_qs_current"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="hl_qs_turns">
-        <item>
-         <widget class="QLabel" name="la_qs_turns">
-          <property name="text">
-           <string>Nr. Turns    </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="le_qs_turns"/>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QPushButton" name="pb_save">
-   <property name="geometry">
-    <rect>
-     <x>60</x>
-     <y>530</y>
-     <width>221</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Save</string>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="la_section_1">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Magnet:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="layout">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="la_magnet_name">
+       <property name="text">
+        <string>Magnet Name</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="le_magnet_name"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="la_magnet_length">
+       <property name="text">
+        <string>Magnet Length [mm]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="le_magnet_length"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="la_gap">
+       <property name="text">
+        <string>Gap [mm]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="le_gap"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="la_control_gap">
+       <property name="text">
+        <string>Control Gap [mm]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="le_control_gap"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="la_section_2">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Coils:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="hl_main">
+     <item>
+      <widget class="QCheckBox" name="cb_main">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Main Coil</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="vl_main">
+       <item>
+        <layout class="QHBoxLayout" name="hl_main_current">
+         <item>
+          <widget class="QLabel" name="la_main_current">
+           <property name="text">
+            <string>Current [A]</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_main_current"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="hl_main_turns">
+         <item>
+          <widget class="QLabel" name="la_main_turns">
+           <property name="text">
+            <string>Nr. Turns    </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_main_turns"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="hl_trim">
+     <item>
+      <widget class="QCheckBox" name="cb_trim">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Trim Coil </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="vl_trim">
+       <item>
+        <layout class="QHBoxLayout" name="hl_trim_current">
+         <item>
+          <widget class="QLabel" name="la_trim_current">
+           <property name="text">
+            <string>Current [A]</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_trim_current"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="hl_trim_turns">
+         <item>
+          <widget class="QLabel" name="la_trim_turns">
+           <property name="text">
+            <string>Nr. Turns    </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_trim_turns"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="hl_ch">
+     <item>
+      <widget class="QCheckBox" name="cb_ch">
+       <property name="text">
+        <string>CH Coil    </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="vl_ch">
+       <item>
+        <layout class="QHBoxLayout" name="hl_ch_current">
+         <item>
+          <widget class="QLabel" name="la_ch_current">
+           <property name="text">
+            <string>Current [A]</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_ch_current"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="hl_ch_turns">
+         <item>
+          <widget class="QLabel" name="la_ch_turns">
+           <property name="text">
+            <string>Nr. Turns    </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_ch_turns"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="hl_cv">
+     <item>
+      <widget class="QCheckBox" name="cb_cv">
+       <property name="text">
+        <string>CV Coil    </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="vl_cv">
+       <item>
+        <layout class="QHBoxLayout" name="hl_cv_current">
+         <item>
+          <widget class="QLabel" name="la_cv_current">
+           <property name="text">
+            <string>Current [A]</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_cv_current"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="hl_cv_turns">
+         <item>
+          <widget class="QLabel" name="la_cv_turns">
+           <property name="text">
+            <string>Nr. Turns    </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_cv_turns"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="hl_qs">
+     <item>
+      <widget class="QCheckBox" name="cb_qs">
+       <property name="text">
+        <string>QS Coil    </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="vl_qs">
+       <item>
+        <layout class="QHBoxLayout" name="hl_qs_current">
+         <item>
+          <widget class="QLabel" name="la_qs_current">
+           <property name="text">
+            <string>Current [A]</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_qs_current"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="hl_qs_turns">
+         <item>
+          <widget class="QLabel" name="la_qs_turns">
+           <property name="text">
+            <string>Nr. Turns    </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_qs_turns"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="la_section_3">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Origin of the magnet coordinate system:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="fl_origin">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+     </property>
+     <item row="0" column="1">
+      <widget class="QDoubleSpinBox" name="sb_origin_x"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="la_origin_y">
+       <property name="text">
+        <string>position y [mm]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="sb_origin_y"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="la_origin_z">
+       <property name="text">
+        <string>position z [mm]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="sb_origin_z"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="la_origin_x">
+       <property name="text">
+        <string>position x [mm]               </string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pb_save">
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Save</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

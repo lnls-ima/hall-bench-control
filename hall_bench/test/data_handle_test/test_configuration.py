@@ -3,7 +3,6 @@
 import os
 import unittest
 from hall_bench.data_handle import configuration
-from hall_bench.data_handle import utils
 
 
 class TestControlConfiguration(unittest.TestCase):
@@ -47,16 +46,6 @@ class TestControlConfiguration(unittest.TestCase):
         self.assertEqual(c.control_multich_addr, 18)
         self.assertEqual(c.control_colimator_addr, 3)
 
-    def test_valid_configuration(self):
-        cnf = configuration.ControlConfiguration()
-        self.assertFalse(cnf.valid_configuration())
-
-        cwf = configuration.ControlConfiguration(self.filename)
-        self.assertTrue(cwf.valid_configuration())
-
-        cwf.control_pmac_enable = None
-        self.assertFalse(cwf.valid_configuration())
-
     def test_read_file(self):
         c = configuration.ControlConfiguration()
         c.read_file(self.filename)
@@ -73,20 +62,48 @@ class TestControlConfiguration(unittest.TestCase):
         self.assertEqual(c.control_multich_addr, 18)
         self.assertEqual(c.control_colimator_addr, 3)
 
+    def test_valid_configuration(self):
+        cnf = configuration.ControlConfiguration()
+        self.assertFalse(cnf.valid_configuration())
+
+        cwf = configuration.ControlConfiguration(self.filename)
+        self.assertTrue(cwf.valid_configuration())
+
+        cwf._control_pmac_enable = None
+        self.assertFalse(cwf.valid_configuration())
+
+    def test_clear(self):
+        c = configuration.ControlConfiguration(self.filename)
+        self.assertTrue(c.valid_configuration())
+
+        c.clear()
+        self.assertIsNone(c.filename)
+        self.assertIsNone(c.control_pmac_enable)
+        self.assertIsNone(c.control_voltx_enable)
+        self.assertIsNone(c.control_volty_enable)
+        self.assertIsNone(c.control_voltz_enable)
+        self.assertIsNone(c.control_multich_enable)
+        self.assertIsNone(c.control_colimator_enable)
+        self.assertIsNone(c.control_voltx_addr)
+        self.assertIsNone(c.control_volty_addr)
+        self.assertIsNone(c.control_voltz_addr)
+        self.assertIsNone(c.control_multich_addr)
+        self.assertIsNone(c.control_colimator_addr)
+
     def test_save_file(self):
         filename = 'control_configuration_saved_file.txt'
         cw = configuration.ControlConfiguration()
-        cw.control_pmac_enable = 1
-        cw.control_voltx_enable = 2
-        cw.control_volty_enable = 3
-        cw.control_voltz_enable = 4
-        cw.control_multich_enable = 5
-        cw.control_colimator_enable = 6
-        cw.control_voltx_addr = 7
-        cw.control_volty_addr = 8
-        cw.control_voltz_addr = 9
-        cw.control_multich_addr = 10
-        cw.control_colimator_addr = 11
+        cw.control_pmac_enable = 0
+        cw.control_voltx_enable = 0
+        cw.control_volty_enable = 0
+        cw.control_voltz_enable = 0
+        cw.control_multich_enable = 0
+        cw.control_colimator_enable = 0
+        cw.control_voltx_addr = 1
+        cw.control_volty_addr = 2
+        cw.control_voltz_addr = 3
+        cw.control_multich_addr = 4
+        cw.control_colimator_addr = 5
         cw.save_file(filename)
 
         cr = configuration.ControlConfiguration(filename)
@@ -108,7 +125,7 @@ class TestControlConfiguration(unittest.TestCase):
     def test_save_file_raise_exception(self):
         filename = 'control_configuration_saved_file.txt'
         c = configuration.ControlConfiguration()
-        with self.assertRaises(utils.HallBenchFileError):
+        with self.assertRaises(configuration.ConfigurationError):
             c.save_file(filename)
 
 
@@ -175,16 +192,6 @@ class TestMeasurementConfiguration(unittest.TestCase):
         self.assertEqual(m.meas_incr_ax5, 1.000000)
         self.assertEqual(m.meas_vel_ax5, 10.000000)
 
-    def test_valid_configuration(self):
-        mnf = configuration.MeasurementConfiguration()
-        self.assertFalse(mnf.valid_configuration())
-
-        mwf = configuration.MeasurementConfiguration(self.filename)
-        self.assertTrue(mwf.valid_configuration())
-
-        mwf.meas_probeX = None
-        self.assertFalse(mwf.valid_configuration())
-
     def test_read_file(self):
         m = configuration.MeasurementConfiguration()
         m.read_file(self.filename)
@@ -212,15 +219,54 @@ class TestMeasurementConfiguration(unittest.TestCase):
         self.assertEqual(m.meas_incr_ax5, 1.000000)
         self.assertEqual(m.meas_vel_ax5, 10.000000)
 
+    def test_valid_configuration(self):
+        mnf = configuration.MeasurementConfiguration()
+        self.assertFalse(mnf.valid_configuration())
+
+        mwf = configuration.MeasurementConfiguration(self.filename)
+        self.assertTrue(mwf.valid_configuration())
+
+        mwf._meas_probeX = None
+        self.assertFalse(mwf.valid_configuration())
+
+    def test_clear(self):
+        m = configuration.MeasurementConfiguration(self.filename)
+        self.assertTrue(m.valid_configuration())
+
+        m.clear()
+        self.assertIsNone(m.filename)
+        self.assertIsNone(m.meas_probeX)
+        self.assertIsNone(m.meas_probeY)
+        self.assertIsNone(m.meas_probeZ)
+        self.assertIsNone(m.meas_aper_ms)
+        self.assertIsNone(m.meas_precision)
+        self.assertIsNone(m.meas_trig_axis)
+        self.assertIsNone(m.meas_startpos_ax1)
+        self.assertIsNone(m.meas_endpos_ax1)
+        self.assertIsNone(m.meas_incr_ax1)
+        self.assertIsNone(m.meas_vel_ax1)
+        self.assertIsNone(m.meas_startpos_ax2)
+        self.assertIsNone(m.meas_endpos_ax2)
+        self.assertIsNone(m.meas_incr_ax2)
+        self.assertIsNone(m.meas_vel_ax2)
+        self.assertIsNone(m.meas_startpos_ax3)
+        self.assertIsNone(m.meas_endpos_ax3)
+        self.assertIsNone(m.meas_incr_ax3)
+        self.assertIsNone(m.meas_vel_ax3)
+        self.assertIsNone(m.meas_startpos_ax5)
+        self.assertIsNone(m.meas_endpos_ax5)
+        self.assertIsNone(m.meas_incr_ax5)
+        self.assertIsNone(m.meas_vel_ax5)
+
     def test_save_file(self):
         filename = 'measurement_configuration_saved_file.txt'
         mw = configuration.MeasurementConfiguration()
-        mw.meas_probeX = 1
-        mw.meas_probeY = 2
-        mw.meas_probeZ = 3
-        mw.meas_aper_ms = 4
-        mw.meas_precision = 5
-        mw.meas_trig_axis = 6
+        mw.meas_probeX = 0
+        mw.meas_probeY = 0
+        mw.meas_probeZ = 0
+        mw.meas_aper_ms = 1
+        mw.meas_precision = 1
+        mw.meas_trig_axis = 5
         mw.meas_startpos_ax1 = 7
         mw.meas_endpos_ax1 = 7
         mw.meas_incr_ax1 = 9
@@ -268,7 +314,7 @@ class TestMeasurementConfiguration(unittest.TestCase):
     def test_save_file_raise_exception(self):
         filename = 'control_configuration_saved_file.txt'
         m = configuration.MeasurementConfiguration()
-        with self.assertRaises(utils.HallBenchFileError):
+        with self.assertRaises(configuration.ConfigurationError):
             m.save_file(filename)
 
 

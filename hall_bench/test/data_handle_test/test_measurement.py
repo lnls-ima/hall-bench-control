@@ -959,6 +959,9 @@ class TestMeasurement(unittest.TestCase):
         np.testing.assert_array_almost_equal(field_avg_data[:, 4], by)
         np.testing.assert_array_almost_equal(field_avg_data[:, 5], bz)
 
+    def test_save(self):
+        pass
+
 
 def get_suite():
     suite_list = []

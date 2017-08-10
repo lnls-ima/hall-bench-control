@@ -1,6 +1,5 @@
 """Utils test."""
 
-import os
 import unittest
 from hall_bench.data_handle import utils
 

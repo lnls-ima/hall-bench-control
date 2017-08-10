@@ -6,6 +6,14 @@ import struct as _struct
 from . import GPIBLib as _GPIBLib
 
 
+class DeviceError(Exception):
+    """Device exception."""
+
+    def __init__(self, message, *args):
+        """Initialize variables."""
+        self.message = message
+
+
 class DigitalMultimeter(_GPIBLib.GPIB_A3458A):
     """Hall bench digital multimeter."""
 
@@ -16,10 +24,21 @@ class DigitalMultimeter(_GPIBLib.GPIB_A3458A):
             logfile (str): log file path.
             address (int): device address.
         """
+        if not isinstance(logfile, str):
+            raise DeviceError('Invalid value for logfile arg.')
+
+        if not isinstance(address, int):
+            raise DeviceError('Invalid value for address arg.')
+
         self.logfile = logfile
         self.address = address
-        self.voltage = _np.array([])
+        self._voltage = _np.array([])
         super().__init__(self.logfile)
+
+    @property
+    def voltage(self):
+        """Voltage values read from the device."""
+        return self._voltage
 
     def connect(self):
         """Connect device."""
@@ -42,7 +61,7 @@ class DigitalMultimeter(_GPIBLib.GPIB_A3458A):
                 else:
                     dataset = [_struct.unpack(
                         '>d', r[i:i+8])[0] for i in range(0, len(r), 8)]
-                self.voltage = _np.append(self.voltage, dataset)
+                self._voltage = _np.append(self._voltage, dataset)
         else:
             # check memory
             self.send_command(self.commands.mcount)
@@ -60,7 +79,7 @@ class DigitalMultimeter(_GPIBLib.GPIB_A3458A):
                     else:
                         dataset = [_struct.unpack(
                             '>d', r[i:i+8])[0] for i in range(0, len(r), 8)]
-                    self.voltage = _np.append(self.voltage, dataset)
+                    self._voltage = _np.append(self._voltage, dataset)
 
     def config(self, aper, formtype):
         """Configure device.

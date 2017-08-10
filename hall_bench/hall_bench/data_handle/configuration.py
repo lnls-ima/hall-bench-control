@@ -4,6 +4,14 @@
 from . import utils as _utils
 
 
+class ConfigurationError(Exception):
+    """Configuration exception."""
+
+    def __init__(self, message, *args):
+        """Initialize variables."""
+        self.message = message
+
+
 class ControlConfiguration(object):
     """Read, write and stored control configuration data."""
 
@@ -17,17 +25,152 @@ class ControlConfiguration(object):
             self.read_file(filename)
         else:
             self.filename = None
-            self.control_pmac_enable = None
-            self.control_voltx_enable = None
-            self.control_volty_enable = None
-            self.control_voltz_enable = None
-            self.control_multich_enable = None
-            self.control_colimator_enable = None
-            self.control_voltx_addr = None
-            self.control_volty_addr = None
-            self.control_voltz_addr = None
-            self.control_multich_addr = None
-            self.control_colimator_addr = None
+            self._control_pmac_enable = None
+            self._control_voltx_enable = None
+            self._control_volty_enable = None
+            self._control_voltz_enable = None
+            self._control_multich_enable = None
+            self._control_colimator_enable = None
+            self._control_voltx_addr = None
+            self._control_volty_addr = None
+            self._control_voltz_addr = None
+            self._control_multich_addr = None
+            self._control_colimator_addr = None
+
+    @property
+    def control_pmac_enable(self):
+        """Pmac enable."""
+        return self._control_pmac_enable
+
+    @control_pmac_enable.setter
+    def control_pmac_enable(self, value):
+        if value in [0, 1]:
+            self._control_pmac_enable = value
+        else:
+            raise ConfigurationError('Invalid value for control_pmac_enable.')
+
+    @property
+    def control_voltx_enable(self):
+        """Voltimeter X enable."""
+        return self._control_voltx_enable
+
+    @control_voltx_enable.setter
+    def control_voltx_enable(self, value):
+        if value in [0, 1]:
+            self._control_voltx_enable = value
+        else:
+            raise ConfigurationError('Invalid value for control_voltx_enable.')
+
+    @property
+    def control_volty_enable(self):
+        """Voltimeter Y enable."""
+        return self._control_volty_enable
+
+    @control_volty_enable.setter
+    def control_volty_enable(self, value):
+        if value in [0, 1]:
+            self._control_volty_enable = value
+        else:
+            raise ConfigurationError('Invalid value for control_volty_enable.')
+
+    @property
+    def control_voltz_enable(self):
+        """Voltimeter Z enable."""
+        return self._control_voltz_enable
+
+    @control_voltz_enable.setter
+    def control_voltz_enable(self, value):
+        if value in [0, 1]:
+            self._control_voltz_enable = value
+        else:
+            raise ConfigurationError('Invalid value for control_voltz_enable.')
+
+    @property
+    def control_multich_enable(self):
+        """Multichannel enable."""
+        return self._control_multich_enable
+
+    @control_multich_enable.setter
+    def control_multich_enable(self, value):
+        if value in [0, 1]:
+            self._control_multich_enable = value
+        else:
+            raise ConfigurationError(
+                'Invalid value for control_multich_enable.')
+
+    @property
+    def control_colimator_enable(self):
+        """Auto-colimator enable."""
+        return self._control_colimator_enable
+
+    @control_colimator_enable.setter
+    def control_colimator_enable(self, value):
+        if value in [0, 1]:
+            self._control_colimator_enable = value
+        else:
+            raise ConfigurationError(
+                'Invalid value for control_colimator_enable.')
+
+    @property
+    def control_voltx_addr(self):
+        """Voltimeter X address."""
+        return self._control_voltx_addr
+
+    @control_voltx_addr.setter
+    def control_voltx_addr(self, value):
+        if isinstance(value, int):
+            self._control_voltx_addr = value
+        else:
+            raise ConfigurationError('Invalid value for control_voltx_addr.')
+
+    @property
+    def control_volty_addr(self):
+        """Voltimeter Y address."""
+        return self._control_volty_addr
+
+    @control_volty_addr.setter
+    def control_volty_addr(self, value):
+        if isinstance(value, int):
+            self._control_volty_addr = value
+        else:
+            raise ConfigurationError('Invalid value for control_volty_addr.')
+
+    @property
+    def control_voltz_addr(self):
+        """Voltimeter Z address."""
+        return self._control_voltz_addr
+
+    @control_voltz_addr.setter
+    def control_voltz_addr(self, value):
+        if isinstance(value, int):
+            self._control_voltz_addr = value
+        else:
+            raise ConfigurationError('Invalid value for control_voltz_addr.')
+
+    @property
+    def control_multich_addr(self):
+        """Multichannel address."""
+        return self._control_multich_addr
+
+    @control_multich_addr.setter
+    def control_multich_addr(self, value):
+        if isinstance(value, int):
+            self._control_multich_addr = value
+        else:
+            raise ConfigurationError('Invalid value for control_multich_addr.')
+
+    @property
+    def control_colimator_addr(self):
+        """Auto-colimator address."""
+        return self._control_colimator_addr
+
+    @control_colimator_addr.setter
+    def control_colimator_addr(self, value):
+        if isinstance(value, int):
+            self._control_colimator_addr = value
+        else:
+            raise ConfigurationError(
+                'Invalid value for control_colimator_addr.')
 
     def read_file(self, filename):
         """Read control parameters from file.
@@ -73,6 +216,21 @@ class ControlConfiguration(object):
         else:
             return False
 
+    def clear(self):
+        """Clear control configuration."""
+        self.filename = None
+        self._control_pmac_enable = None
+        self._control_voltx_enable = None
+        self._control_volty_enable = None
+        self._control_voltz_enable = None
+        self._control_multich_enable = None
+        self._control_colimator_enable = None
+        self._control_voltx_addr = None
+        self._control_volty_addr = None
+        self._control_voltz_addr = None
+        self._control_multich_addr = None
+        self._control_colimator_addr = None
+
     def save_file(self, filename):
         """Save control parameters to file.
 
@@ -80,11 +238,11 @@ class ControlConfiguration(object):
             filename (str): configuration file path.
 
         Raises:
-            HallBenchFileError: if the configuration was not saved.
+            ConfigurationError: if the configuration was not saved.
         """
         if not self.valid_configuration():
             message = 'Invalid Configuration'
-            raise _utils.HallBenchFileError(message)
+            raise ConfigurationError(message)
 
         try:
             data = [
@@ -122,7 +280,7 @@ class ControlConfiguration(object):
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
-            raise _utils.HallBenchFileError(message)
+            raise ConfigurationError(message)
 
 
 class MeasurementConfiguration(object):
@@ -138,12 +296,12 @@ class MeasurementConfiguration(object):
             self.read_file(filename)
         else:
             self.filename = None
-            self.meas_probeX = None
-            self.meas_probeY = None
-            self.meas_probeZ = None
+            self._meas_probeX = None
+            self._meas_probeY = None
+            self._meas_probeZ = None
+            self._meas_precision = None
+            self._meas_trig_axis = None
             self.meas_aper_ms = None
-            self.meas_precision = None
-            self.meas_trig_axis = None
 
             # Ax1
             self.meas_startpos_ax1 = None
@@ -168,6 +326,66 @@ class MeasurementConfiguration(object):
             self.meas_endpos_ax5 = None
             self.meas_incr_ax5 = None
             self.meas_vel_ax5 = None
+
+    @property
+    def meas_probeX(self):
+        """Measure Hall-probe X voltage."""
+        return self._meas_probeX
+
+    @meas_probeX.setter
+    def meas_probeX(self, value):
+        if value in [0, 1]:
+            self._meas_probeX = value
+        else:
+            raise ConfigurationError('Invalid value for meas_probeX')
+
+    @property
+    def meas_probeY(self):
+        """Measure Hall-probe Y voltage."""
+        return self._meas_probeY
+
+    @meas_probeY.setter
+    def meas_probeY(self, value):
+        if value in [0, 1]:
+            self._meas_probeY = value
+        else:
+            raise ConfigurationError('Invalid value for meas_probeY')
+
+    @property
+    def meas_probeZ(self):
+        """Measure Hall-probe Z voltage."""
+        return self._meas_probeZ
+
+    @meas_probeZ.setter
+    def meas_probeZ(self, value):
+        if value in [0, 1]:
+            self._meas_probeZ = value
+        else:
+            raise ConfigurationError('Invalid value for meas_probeZ')
+
+    @property
+    def meas_precision(self):
+        """Digital multimeter precision [single=0 or double=1]."""
+        return self._meas_precision
+
+    @meas_precision.setter
+    def meas_precision(self, value):
+        if value in [0, 1]:
+            self._meas_precision = value
+        else:
+            raise ConfigurationError('Invalid value for meas_precision')
+
+    @property
+    def meas_trig_axis(self):
+        """Triggering Axis."""
+        return self._meas_trig_axis
+
+    @meas_trig_axis.setter
+    def meas_trig_axis(self, value):
+        if value in [1, 2, 3, 5]:
+            self._meas_trig_axis = value
+        else:
+            raise ConfigurationError('Invalid value for meas_trig_axis')
 
     def read_file(self, filename):
         """Read measurement parameters from file.
@@ -214,6 +432,40 @@ class MeasurementConfiguration(object):
         else:
             return False
 
+    def clear(self):
+        """Clear measurement configuration."""
+        self.filename = None
+        self._meas_probeX = None
+        self._meas_probeY = None
+        self._meas_probeZ = None
+        self._meas_precision = None
+        self._meas_trig_axis = None
+        self.meas_aper_ms = None
+
+        # Ax1
+        self.meas_startpos_ax1 = None
+        self.meas_endpos_ax1 = None
+        self.meas_incr_ax1 = None
+        self.meas_vel_ax1 = None
+
+        # Ax2
+        self.meas_startpos_ax2 = None
+        self.meas_endpos_ax2 = None
+        self.meas_incr_ax2 = None
+        self.meas_vel_ax2 = None
+
+        # Ax3
+        self.meas_startpos_ax3 = None
+        self.meas_endpos_ax3 = None
+        self.meas_incr_ax3 = None
+        self.meas_vel_ax3 = None
+
+        # Ax5
+        self.meas_startpos_ax5 = None
+        self.meas_endpos_ax5 = None
+        self.meas_incr_ax5 = None
+        self.meas_vel_ax5 = None
+
     def save_file(self, filename):
         """Save measurement parameters to file.
 
@@ -221,11 +473,11 @@ class MeasurementConfiguration(object):
             filename (str): configuration file path.
 
         Raises:
-            HallBenchFileError: if the configuration was not saved.
+            ConfigurationError: if the configuration was not saved.
         """
         if not self.valid_configuration():
             message = 'Invalid Configuration'
-            raise _utils.HallBenchFileError(message)
+            raise ConfigurationError(message)
 
         try:
             data = [
@@ -269,4 +521,4 @@ class MeasurementConfiguration(object):
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
-            raise _utils.HallBenchFileError(message)
+            raise ConfigurationError(message)

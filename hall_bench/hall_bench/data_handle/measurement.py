@@ -895,17 +895,17 @@ class Measurement(object):
     @property
     def posx(self):
         """X position."""
-        return self._get_position('x')
+        return self._get_position_list('x')
 
     @property
     def posy(self):
         """Y position."""
-        return self._get_position('y')
+        return self._get_position_list('y')
 
     @property
     def posz(self):
         """Z position."""
-        return self._get_position('z')
+        return self._get_position_list('z')
 
     @property
     def data(self):
@@ -930,14 +930,17 @@ class Measurement(object):
                 if ls.posz not in self._data.keys():
                     self._data[ls.posz] = {}
                 self._data[ls.posz][ls.posy] = ls
+
             elif self._scan_axis == 'y':
                 if ls.posz not in self._data.keys():
                     self._data[ls.posz] = {}
                 self._data[ls.posz][ls.posx] = ls
+
             elif self._scan_axis == 'z':
                 if ls.posy not in self._data.keys():
                     self._data[ls.posy] = {}
                 self._data[ls.posy][ls.posx] = ls
+
             else:
                 raise MeasurementDataError('Invalid LineScan.')
         else:
@@ -1007,8 +1010,8 @@ class Measurement(object):
         else:
             return False
 
-    def save(self, magnet_name='', magnet_length='',
-             gap='', control_gap='', coils=[]):
+    def save(self, magnet_name='', magnet_length='', gap='',
+             control_gap='', coils=[], origin=[0, 0, 0]):
         """Save measurement data.
 
         Args:
@@ -1016,8 +1019,9 @@ class Measurement(object):
             magnet_length (str or float): magnet length [mm].
             gap (str or float): air gap length [mm].
             control_gap (str or float) : control air gap length [mm].
-            coils (list of dicts): list of dictionaries with name, alias,
-                                   current and turns of each magnet coil.
+            coils (list of dicts): list of dictionaries with name, current
+                                   and turns of each magnet coil.
+            origin (list): origin of the magnet coordinate system.
         """
         if len(self._data) == 0:
             message = "Empty measurement."
@@ -1034,9 +1038,12 @@ class Measurement(object):
         else:
             fieldmap_name = magnet_name
             for coil in coils:
+                coil_symbol = coil['name']
+                if len(coil_symbol) > 2:
+                    coil_symbol = coil_symbol[0] + 'c'
                 fieldmap_name = (
                     fieldmap_name + '_' +
-                    coil['alias'] + '=' + str(coil['current']) + 'A')
+                    + 'I' + coil_symbol + '=' + str(coil['current']) + 'A')
 
         filename = '{0:1s}_{1:1s}.dat'.format(date, fieldmap_name)
         f = open(_os.path.join(self.dirpath, filename), 'w')
@@ -1066,8 +1073,9 @@ class Measurement(object):
                 '----------------------------------------------\n')
 
         for i in range(field_data.shape[0]):
-            f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
-                field_data[i, 0], field_data[i, 1], field_data[i, 2]))
+            f.write('{0:0.3f}\t'.format(field_data[i, 0] - origin[0]))
+            f.write('{0:0.3f}\t'.format(field_data[i, 1] - origin[1]))
+            f.write('{0:0.3f}\t'.format(field_data[i, 2] - origin[2]))
             f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
                 field_data[i, 3], field_data[i, 4], field_data[i, 5]))
         f.close()
@@ -1093,7 +1101,7 @@ class Measurement(object):
 
         return field_data
 
-    def _get_position(self, axis):
+    def _get_position_list(self, axis):
         pos = set()
         for data_value in self._data.values():
             for ls in data_value.values():

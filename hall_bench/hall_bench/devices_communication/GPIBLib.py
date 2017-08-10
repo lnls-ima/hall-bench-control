@@ -42,7 +42,6 @@ class GPIB(object):
                 filename=logfile,
                 level=_logging.DEBUG)
             self.logger = _logging.getLogger(__name__)
-            self.logger.warning('Teste')
 
     def connect(self, address):
         """Connect to a GPIB device with the given address.

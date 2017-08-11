@@ -18,86 +18,7 @@ from hall_bench.data_handle import measurement
 from hall_bench.devices_communication import Pmac
 from hall_bench.devices_communication import DigitalMultimeter
 from hall_bench.devices_communication import Multichannel
-
-
-class HallBenchDevices(object):
-    """Hall Bench Devices."""
-
-    def __init__(self, control_configururation):
-        """Initiate variables."""
-        self.pmac = None
-        self.voltx = None
-        self.volty = None
-        self.voltz = None
-        self.multich = None
-        self.devices_loaded = False
-        self.pmac_connected = False
-        self.voltx_connected = False
-        self.volty_connected = False
-        self.voltz_connected = False
-        self.multich_connected = False
-        self.config = control_configururation
-
-    def load(self):
-        """Load devices."""
-        try:
-            self.pmac = Pmac()
-
-            self.voltx = DigitalMultimeter(
-                'volt_x.log', self.config.control_voltx_addr)
-
-            self.volty = DigitalMultimeter(
-                'volt_y.log', self.config.control_volty_addr)
-
-            self.voltz = DigitalMultimeter(
-                'volt_z.log', self.config.control_voltz_addr)
-
-            self.multich = Multichannel(
-                'multi.log', self.config.control_multich_addr)
-
-            self.devices_loaded = True
-        except Exception:
-            self.devices_loaded = False
-
-    def connect(self):
-        """Connect devices."""
-        if self.devices_loaded:
-            if self.config.control_voltx_enable:
-                self.voltx_connected = self.voltx.connect()
-
-            if self.config.control_volty_enable:
-                self.volty_connected = self.volty.connect()
-
-            if self.config.control_voltz_enable:
-                self.voltz_connected = self.voltz.connect()
-
-            if self.config.control_pmac_enable:
-                self.pmac_connected = self.pmac.connect()
-
-            if self.config.control_multich_enable:
-                self.multich_connected = self.multich.connect()
-
-    def disconnect(self):
-        """Disconnect devices."""
-        if self.voltx is not None:
-            voltx_disconnected = self.voltx.disconnect()
-            self.voltx_connected = not voltx_disconnected
-
-        if self.config.control_volty_enable:
-            volty_disconnected = self.volty.disconnect()
-            self.volty_connected = not volty_disconnected
-
-        if self.config.control_voltz_enable:
-            voltz_disconnected = self.voltz.disconnect()
-            self.voltz_connected = not voltz_disconnected
-
-        if self.config.control_pmac_enable:
-            pmac_disconnected = self.pmac.disconnect()
-            self.pmac_connected = pmac_disconnected
-
-        if self.config.control_multich_enable:
-            multich_disconnected = self.multich.disconnect()
-            self.multich_connected = not multich_disconnected
+import magnets_info
 
 
 class HallBenchGUI(QtGui.QWidget):
@@ -122,7 +43,7 @@ class HallBenchGUI(QtGui.QWidget):
         """Initialize variables with default values."""
         self.selected_axis = -1
 
-        self.cconfig = None
+        self.dconfig = None
         self.mconfig = None
         self.devices = None
 
@@ -146,19 +67,18 @@ class HallBenchGUI(QtGui.QWidget):
         self.led_on = ":/images/images/led_green.png"
         self.led_off = ":/images/images/led_red.png"
 
-        self.save_dialog = None
-
+        self.save_measurement_dialog = SaveMeasurementDialog()
         self.end_measurements = False
         self.stop = False
 
     def _connect_signals_slots(self):
         """Make the connections between signals and slots."""
         # load and save device parameters
-        self.ui.pb_load_control_config.clicked.connect(
-            self.load_control_configuration_file)
+        self.ui.pb_load_devices_config.clicked.connect(
+            self.load_devices_configuration_file)
 
-        self.ui.pb_save_control_config.clicked.connect(
-            self.save_control_configuration_file)
+        self.ui.pb_save_devices_config.clicked.connect(
+            self.save_devices_configuration_file)
 
         # connect devices
         self.ui.pb_connect_devices.clicked.connect(self.connect_devices)
@@ -284,94 +204,94 @@ class HallBenchGUI(QtGui.QWidget):
         except Exception:
             pass
 
-    def load_control_configuration_file(self):
+    def load_devices_configuration_file(self):
         """Load configuration data to set devices parameters."""
         filename = QtGui.QFileDialog.getOpenFileName(
-            self, 'Open control configuration file')
+            self, 'Open devices configuration file')
 
         if len(filename) != 0:
             try:
-                if self.cconfig is None:
-                    self.cconfig = configuration.ControlConfiguration(filename)
+                if self.dconfig is None:
+                    self.dconfig = configuration.DevicesConfig(filename)
                 else:
-                    self.cconfig.read_file(filename)
+                    self.dconfig.read_file(filename)
             except configuration.ConfigurationFileError as e:
                 QtGui.QMessageBox.critical(
                     self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
                 return
 
-            self.ui.le_control_config_filename.setText(filename)
+            self.ui.le_devices_config_filename.setText(filename)
 
-            self.ui.cb_pmac_enable.setChecked(self.cconfig.control_pmac_enable)
+            self.ui.cb_pmac_enable.setChecked(self.dconfig.control_pmac_enable)
 
             self.ui.cb_dmm_x_enable.setChecked(
-                self.cconfig.control_voltx_enable)
+                self.dconfig.control_voltx_enable)
             self.ui.sb_dmm_x_address.setValue(
-                self.cconfig.control_voltx_addr)
+                self.dconfig.control_voltx_addr)
 
             self.ui.cb_dmm_y_enable.setChecked(
-                self.cconfig.control_volty_enable)
+                self.dconfig.control_volty_enable)
             self.ui.sb_dmm_y_address.setValue(
-                self.cconfig.control_volty_addr)
+                self.dconfig.control_volty_addr)
 
             self.ui.cb_dmm_z_enable.setChecked(
-                self.cconfig.control_voltz_enable)
+                self.dconfig.control_voltz_enable)
             self.ui.sb_dmm_z_address.setValue(
-                self.cconfig.control_voltz_addr)
+                self.dconfig.control_voltz_addr)
 
             self.ui.cb_multich_enable.setChecked(
-                self.cconfig.control_multich_enable)
+                self.dconfig.control_multich_enable)
 
             self.ui.sb_multich_address.setValue(
-                self.cconfig.control_multich_addr)
+                self.dconfig.control_multich_addr)
 
             self.ui.cb_colimator_enable.setChecked(
-                self.cconfig.control_colimator_enable)
+                self.dconfig.control_colimator_enable)
 
             self.ui.cb_colimator_port.setCurrentIndex(
-                self.cconfig.control_colimator_addr)
+                self.dconfig.control_colimator_addr)
 
-    def save_control_configuration_file(self):
+    def save_devices_configuration_file(self):
         """Save devices parameters to file."""
         filename = QtGui.QFileDialog.getSaveFileName(
-            self, 'Save control configuration file')
+            self, 'Save devices configuration file')
 
         if len(filename) != 0:
-            if self._update_control_configuration():
+            if self._update_devices_configuration():
                 try:
-                    self.cconfig.save_file(filename)
+                    self.dconfig.save_file(filename)
                 except configuration.ConfigurationFileError as e:
                     QtGui.QMessageBox.critical(
                         self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
 
-    def _update_control_configuration(self):
-        if self.cconfig is None:
-            self.cconfig = configuration.ControlConfiguration()
+    def _update_devices_configuration(self):
+        if self.dconfig is None:
+            self.dconfig = configuration.DevicesConfig()
 
-        self.cconfig.control_pmac_enable = self.ui.cb_pmac_enable.isChecked()
+        self.dconfig.control_pmac_enable = self.ui.cb_pmac_enable.isChecked()
 
-        self.cconfig.control_voltx_enable = self.ui.cb_dmm_x_enable.isChecked()
-        self.cconfig.control_volty_enable = self.ui.cb_dmm_y_enable.isChecked()
-        self.cconfig.control_voltz_enable = self.ui.cb_dmm_z_enable.isChecked()
+        self.dconfig.control_voltx_enable = self.ui.cb_dmm_x_enable.isChecked()
+        self.dconfig.control_volty_enable = self.ui.cb_dmm_y_enable.isChecked()
+        self.dconfig.control_voltz_enable = self.ui.cb_dmm_z_enable.isChecked()
 
         multich_enable = self.ui.cb_multich_enable.isChecked()
         colimator_enable = self.ui.cb_colimator_enable.isChecked()
-        self.cconfig.control_multich_enable = multich_enable
-        self.cconfig.control_colimator_enable = colimator_enable
+        self.dconfig.control_multich_enable = multich_enable
+        self.dconfig.control_colimator_enable = colimator_enable
 
-        self.cconfig.control_voltx_addr = self.ui.sb_dmm_x_address.value()
-        self.cconfig.control_volty_addr = self.ui.sb_dmm_y_address.value()
-        self.cconfig.control_voltz_addr = self.ui.sb_dmm_z_address.value()
+        self.dconfig.control_voltx_addr = self.ui.sb_dmm_x_address.value()
+        self.dconfig.control_volty_addr = self.ui.sb_dmm_y_address.value()
+        self.dconfig.control_voltz_addr = self.ui.sb_dmm_z_address.value()
 
         multich_addr = self.ui.sb_multich_address.value()
         colimator_addr = self.ui.cb_colimator_port.currentIndex()
-        self.cconfig.control_multich_addr = multich_addr
-        self.cconfig.control_colimator_addr = colimator_addr
+        self.dconfig.control_multich_addr = multich_addr
+        self.dconfig.control_colimator_addr = colimator_addr
 
-        if self.cconfig.valid_configuration():
+        if self.dconfig.valid_configuration():
             return True
         else:
-            message = 'Invalid control configuration'
+            message = 'Invalid devices configuration'
             QtGui.QMessageBox.critical(
                 self, 'Failure', message, QtGui.QMessageBox.Ignore)
             return False
@@ -384,8 +304,7 @@ class HallBenchGUI(QtGui.QWidget):
         if len(filename) != 0:
             try:
                 if self.mconfig is None:
-                    self.mconfig = configuration.MeasurementConfiguration(
-                        filename)
+                    self.mconfig = configuration.MeasurementConfig(filename)
                 else:
                     self.mconfig.read_file(filename)
             except configuration.ConfigurationFileError as e:
@@ -436,7 +355,7 @@ class HallBenchGUI(QtGui.QWidget):
 
     def _update_measurement_configuration(self):
         if self.mconfig is None:
-            self.mconfig = configuration.MeasurementConfiguration()
+            self.mconfig = configuration.MeasurementConfig()
 
         self.mconfig.meas_probeX = self.ui.cb_hall_x_enable.isChecked()
         self.mconfig.meas_probeY = self.ui.cb_hall_y_enable.isChecked()
@@ -480,15 +399,15 @@ class HallBenchGUI(QtGui.QWidget):
 
     def connect_devices(self):
         """Connect bench devices."""
-        if not self._update_control_configuration():
+        if not self._update_devices_configuration():
             return
 
-        self.devices = HallBenchDevices(self.cconfig)
+        self.devices = HallBenchDevices(self.dconfig)
         self.devices.load()
         self.devices.connect()
         self._update_led_status()
 
-        if self.cconfig.control_pmac_enable:
+        if self.dconfig.control_pmac_enable:
             if self.devices.pmac_connected:
                 self.ui.tab.setTabEnabled(1, True)
                 self.ui.tab.setTabEnabled(2, True)
@@ -544,7 +463,7 @@ class HallBenchGUI(QtGui.QWidget):
         if self.devices is None:
             return
 
-        if self.cconfig.control_pmac_enable and self.devices.pmac_connected:
+        if self.dconfig.control_pmac_enable and self.devices.pmac_connected:
             if not self.devices.pmac.activate_bench():
                 message = 'Failed to active bench.'
                 QtGui.QMessageBox.critical(
@@ -656,7 +575,7 @@ class HallBenchGUI(QtGui.QWidget):
         self._set_axes_speed()
 
         self.current_measurement = measurement.Measurement(
-            self.cconfig, self.mconfig, self.calibration, self.dirpath)
+            self.dconfig, self.mconfig, self.calibration, self.dirpath)
 
         if self.ui.rb_axis1_triggering.isChecked():
             extra_mm = float(self.ui.le_axis1_extra.text())
@@ -724,7 +643,7 @@ class HallBenchGUI(QtGui.QWidget):
             axis_a, pos_a, axis_b, pos_b, scan_axis, scan_list)
 
         self.current_line_scan = measurement.LineScan(
-            posx, posy, posz, self.cconfig, self.mconfig,
+            posx, posy, posz, self.dconfig, self.mconfig,
             self.calibration, self.dirpath)
 
         for idx in range(self.nr_measurements):
@@ -796,62 +715,8 @@ class HallBenchGUI(QtGui.QWidget):
 
     def open_save_measurement_dialog(self):
         """Open save measurement dialog."""
-        if self.current_measurement is not None:
-            self.save_dialog = QtGui.QDialog()
-            self.save_dialog.ui = Ui_SaveMeasurement()
-            self.save_dialog.ui.setupUi(self.save_dialog)
-            self.save_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            self.save_dialog.ui.pb_save.clicked.connect(
-                self._save_current_measurement)
-            self.save_dialog.exec_()
-
-    def _save_current_measurement(self):
-        if self.save_dialog is not None:
-            magnet_name = self.save_dialog.ui.le_magnet_name.text()
-            magnet_length = self.save_dialog.ui.le_magnet_length.text()
-            gap = self.save_dialog.ui.le_gap.text()
-            control_gap = self.save_dialog.ui.le_control_gap.text()
-
-            coils = []
-            if self.save_dialog.ui.cb_main.isChecked():
-                d = {}
-                d['name'] = 'main'
-                d['current'] = self.save_dialog.ui.le_main_current
-                d['turns'] = self.save_dialog.ui.le_main_turns
-                coils.append(d)
-            if self.save_dialog.ui.cb_trim.isChecked():
-                d = {}
-                d['name'] = 'trim'
-                d['current'] = self.save_dialog.ui.le_trim_current
-                d['turns'] = self.save_dialog.ui.le_trim_turns
-                coils.append(d)
-            if self.save_dialog.ui.cb_ch.isChecked():
-                d = {}
-                d['name'] = 'ch'
-                d['current'] = self.save_dialog.ui.le_ch_current
-                d['turns'] = self.save_dialog.ui.le_ch_turns
-                coils.append(d)
-            if self.save_dialog.ui.cb_cv.isChecked():
-                d = {}
-                d['name'] = 'cv'
-                d['current'] = self.save_dialog.ui.le_cv_current
-                d['turns'] = self.save_dialog.ui.le_cv_turns
-                coils.append(d)
-            if self.save_dialog.ui.cb_qs.isChecked():
-                d = {}
-                d['name'] = 'qs'
-                d['current'] = self.save_dialog.ui.le_qs_current
-                d['turns'] = self.save_dialog.ui.le_qs_turns
-                coils.append(d)
-
-            origin_x = self.ui.sb_origin_x.value()
-            origin_y = self.ui.sb_origin_y.value()
-            origin_z = self.ui.sb_origin_z.value()
-            origin = [origin_x, origin_y, origin_z]
-
-            self.current_measurement.save(
-                magnet_name=magnet_name, magnet_length=magnet_length, gap=gap,
-                control_gap=control_gap, coils=coils, origin=origin)
+        self.save_measurement_dialog.measurement = self.current_measurement
+        self.save_measurement_dialog.open()
 
     def _set_axes_speed(self):
         self.devices.pmac.set_axis_speed(1, self.mconfig.meas_vel_ax1)
@@ -1060,6 +925,232 @@ class HallBenchGUI(QtGui.QWidget):
             del self.tx
         except Exception:
             pass
+
+
+class SaveMeasurementDialog(QtGui.QDialog):
+    """Save measurement dialog."""
+
+    def __init__(self):
+        """Initialize widget."""
+        QtGui.QWidget.__init__(self)
+        self.ui = Ui_SaveMeasurement()
+        self.ui.setupUi(self)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
+        self.measurement = None
+
+        names = magnets_info.get_magnets_name()
+        for name in names:
+            self.ui.cb_predefined.addItem(name)
+
+        self.ui.cb_predefined.currentIndexChanged.connect(
+            self.load_magnet_info)
+
+        self.ui.cb_main.stateChanged.connect(
+            lambda: self.enabled_coil(self.ui.cb_main, self.ui.fm_main))
+
+        self.ui.cb_trim.stateChanged.connect(
+            lambda: self.enabled_coil(self.ui.cb_trim, self.ui.fm_trim))
+
+        self.ui.cb_ch.stateChanged.connect(
+            lambda: self.enabled_coil(self.ui.cb_ch, self.ui.fm_ch))
+
+        self.ui.cb_cv.stateChanged.connect(
+            lambda: self.enabled_coil(self.ui.cb_cv, self.ui.fm_cv))
+
+        self.ui.cb_qs.stateChanged.connect(
+            lambda: self.enabled_coil(self.ui.cb_qs, self.ui.fm_qs))
+
+        self.ui.pb_save.clicked.connect(self.save_measurement)
+
+    def open(self):
+        """Open dialog."""
+        if self.measurement is not None:
+            self.exec_()
+
+    def enabled_coil(self, checkbox, frame):
+        """Enabled or disabled coil frame."""
+        if checkbox.isChecked():
+            frame.setEnabled(True)
+        else:
+            frame.setEnabled(False)
+
+    def load_magnet_info(self):
+        """Load pre-defined magnet info."""
+        if self.ui.cb_predefined.currentIndex() < 1:
+            self.ui.la_predefined_description.setText('')
+            return
+
+        m = magnets_info.get_magnet_info(self.ui.cb_predefined.currentText())
+
+        if m is not None:
+            self.ui.la_predefined_description.setText(m['description'])
+            self.ui.le_gap.setText(str(m['gap']))
+            self.ui.le_control_gap.setText(str(m['control_gap']))
+            self.ui.le_magnet_length.setText(str(m['length']))
+
+            if 'main_coil_turns' in m.keys():
+                self.ui.le_main_turns.setText(str(m['main_coil_turns']))
+                self.ui.cb_main.setChecked(True)
+            else:
+                self.ui.le_main_turns.setText('')
+                self.ui.cb_main.setChecked(False)
+
+            if 'trim_coil_turns' in m.keys():
+                self.ui.le_trim_turns.setText(str(m['trim_coil_turns']))
+                self.ui.cb_trim.setChecked(True)
+            else:
+                self.ui.le_trim_turns.setText('')
+                self.ui.cb_trim.setChecked(False)
+
+            if 'ch_coil_turns' in m.keys():
+                self.ui.le_ch_turns.setText(str(m['ch_coil_turns']))
+                self.ui.cb_ch.setChecked(True)
+            else:
+                self.ui.le_ch_turns.setText('')
+                self.ui.cb_ch.setChecked(False)
+
+            if 'cv_coil_turns' in m.keys():
+                self.ui.le_cv_turns.setText(str(m['cv_coil_turns']))
+                self.ui.cb_cv.setChecked(True)
+            else:
+                self.ui.le_cv_turns.setText('')
+                self.ui.cb_cv.setChecked(False)
+
+            if 'qs_coil_turns' in m.keys():
+                self.ui.le_qs_turns.setText(str(m['qs_coil_turns']))
+                self.ui.cb_qs.setChecked(True)
+            else:
+                self.ui.le_qs_turns.setText('')
+                self.ui.cb_qs.setChecked(False)
+
+    def save_measurement(self):
+        """Save measurement."""
+        magnet_name = self.ui.le_magnet_name.text()
+        magnet_length = self.ui.le_magnet_length.text()
+        gap = self.ui.le_gap.text()
+        control_gap = self.ui.le_control_gap.text()
+
+        coils = []
+        if self.ui.cb_main.isChecked():
+            d = {}
+            d['name'] = 'main'
+            d['current'] = self.ui.le_main_current
+            d['turns'] = self.ui.le_main_turns
+            coils.append(d)
+        if self.ui.cb_trim.isChecked():
+            d = {}
+            d['name'] = 'trim'
+            d['current'] = self.ui.le_trim_current
+            d['turns'] = self.ui.le_trim_turns
+            coils.append(d)
+        if self.ui.cb_ch.isChecked():
+            d = {}
+            d['name'] = 'ch'
+            d['current'] = self.ui.le_ch_current
+            d['turns'] = self.ui.le_ch_turns
+            coils.append(d)
+        if self.ui.cb_cv.isChecked():
+            d = {}
+            d['name'] = 'cv'
+            d['current'] = self.ui.le_cv_current
+            d['turns'] = self.ui.le_cv_turns
+            coils.append(d)
+        if self.ui.cb_qs.isChecked():
+            d = {}
+            d['name'] = 'qs'
+            d['current'] = self.ui.le_qs_current
+            d['turns'] = self.ui.le_qs_turns
+            coils.append(d)
+
+        ref_pos_x = self.ui.sb_ref_pos_x.value()
+        ref_pos_y = self.ui.sb_ref_pos_y.value()
+        ref_pos_z = self.ui.sb_ref_pos_z.value()
+        ref_pos = [ref_pos_x, ref_pos_y, ref_pos_z]
+
+        self.measurement.save(
+            magnet_name=magnet_name, magnet_length=magnet_length, gap=gap,
+            control_gap=control_gap, coils=coils, reference_position=ref_pos)
+
+
+class HallBenchDevices(object):
+    """Hall Bench Devices."""
+
+    def __init__(self, devices_configururation):
+        """Initiate variables."""
+        self.pmac = None
+        self.voltx = None
+        self.volty = None
+        self.voltz = None
+        self.multich = None
+        self.devices_loaded = False
+        self.pmac_connected = False
+        self.voltx_connected = False
+        self.volty_connected = False
+        self.voltz_connected = False
+        self.multich_connected = False
+        self.config = devices_configururation
+
+    def load(self):
+        """Load devices."""
+        try:
+            self.pmac = Pmac()
+
+            self.voltx = DigitalMultimeter(
+                'volt_x.log', self.config.control_voltx_addr)
+
+            self.volty = DigitalMultimeter(
+                'volt_y.log', self.config.control_volty_addr)
+
+            self.voltz = DigitalMultimeter(
+                'volt_z.log', self.config.control_voltz_addr)
+
+            self.multich = Multichannel(
+                'multi.log', self.config.control_multich_addr)
+
+            self.devices_loaded = True
+        except Exception:
+            self.devices_loaded = False
+
+    def connect(self):
+        """Connect devices."""
+        if self.devices_loaded:
+            if self.config.control_voltx_enable:
+                self.voltx_connected = self.voltx.connect()
+
+            if self.config.control_volty_enable:
+                self.volty_connected = self.volty.connect()
+
+            if self.config.control_voltz_enable:
+                self.voltz_connected = self.voltz.connect()
+
+            if self.config.control_pmac_enable:
+                self.pmac_connected = self.pmac.connect()
+
+            if self.config.control_multich_enable:
+                self.multich_connected = self.multich.connect()
+
+    def disconnect(self):
+        """Disconnect devices."""
+        if self.voltx is not None:
+            voltx_disconnected = self.voltx.disconnect()
+            self.voltx_connected = not voltx_disconnected
+
+        if self.config.control_volty_enable:
+            volty_disconnected = self.volty.disconnect()
+            self.volty_connected = not volty_disconnected
+
+        if self.config.control_voltz_enable:
+            voltz_disconnected = self.voltz.disconnect()
+            self.voltz_connected = not voltz_disconnected
+
+        if self.config.control_pmac_enable:
+            pmac_disconnected = self.pmac.disconnect()
+            self.pmac_connected = pmac_disconnected
+
+        if self.config.control_multich_enable:
+            multich_disconnected = self.multich.disconnect()
+            self.multich_connected = not multich_disconnected
 
 
 class GUIThread(threading.Thread):

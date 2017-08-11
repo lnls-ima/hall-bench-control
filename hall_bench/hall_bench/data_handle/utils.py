@@ -1,6 +1,7 @@
-"""Implementation of functions to read and search file data."""
+"""Utils."""
 
 import os as _os
+import time as _time
 
 
 class HallBenchFileError(Exception):
@@ -70,3 +71,9 @@ def find_value(data, variable, vtype='str'):
         message = 'Invalid value for "%s"' % variable
         raise HallBenchFileError(message)
     return value
+
+
+def get_timestamp():
+    """Get timestamp (format: Year-month-day_hour:min:sec)."""
+    timestamp = _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime())
+    return timestamp

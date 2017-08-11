@@ -83,8 +83,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_read_and_write_scan_file(self):
         filename = 'scan_file.dat'
-        dataset, timestamp, cconfig, mconfig, calibration = (
-            measurement._read_scan_file(filename))
+        dataset, timestamp = measurement._read_scan_file(filename)
 
         field_avg = [
             0.0000000,
@@ -101,9 +100,6 @@ class TestFunctions(unittest.TestCase):
         ]
 
         self.assertEqual(timestamp, '2017-08-08_12-26-53')
-        self.assertEqual(cconfig, 'control_configuration.txt')
-        self.assertEqual(mconfig, 'measurement_configuration.txt')
-        self.assertEqual(calibration, 'calibration.txt')
         self.assertEqual(dataset.description, 'field_avg')
         self.assertEqual(dataset.unit, 'T')
         self.assertEqual(dataset.posx, 1)
@@ -118,8 +114,7 @@ class TestFunctions(unittest.TestCase):
             dataset.dataz, np.ones(11)*np.nan)
 
         new_filename = 'test_write_scan_file.dat'
-        measurement._write_scan_file(
-            new_filename, dataset, timestamp, cconfig, mconfig, calibration)
+        measurement._write_scan_file(new_filename, dataset, timestamp)
         self.assertTrue(filecmp.cmp(new_filename, filename))
         os.remove(new_filename)
 
@@ -223,11 +218,10 @@ class TestLineScan(unittest.TestCase):
         scriptpath = os.path.realpath(__file__)
         parentdir = os.path.split(scriptpath)[0]
         self.dirpath = os.path.join(parentdir, 'measurement_data')
-        self.cconfig_file = 'control_configuration_file.txt'
-        self.cconfig = configuration.ControlConfiguration(self.cconfig_file)
+        self.dconfig_file = 'devices_configuration_file.txt'
+        self.dconfig = configuration.DevicesConfig(self.dconfig_file)
         self.mconfig_file = 'measurement_configuration_file.txt'
-        self.mconfig = configuration.MeasurementConfiguration(
-            self.mconfig_file)
+        self.mconfig = configuration.MeasurementConfig(self.mconfig_file)
         self.calibration = calibration.CalibrationData()
 
         self.pos = np.linspace(0, 20, 11)
@@ -293,7 +287,7 @@ class TestLineScan(unittest.TestCase):
         ls = measurement.LineScan(
             posx, posy, posz, None, None, None, self.dirpath)
 
-        self.assertIsNone(ls.control_configuration)
+        self.assertIsNone(ls.devices_configuration)
         self.assertIsNone(ls.measurement_configuration)
         self.assertIsNone(ls.calibration)
         self.assertEqual(ls.dirpath, self.dirpath)
@@ -311,7 +305,7 @@ class TestLineScan(unittest.TestCase):
         ls = measurement.LineScan(
             posx, posy, posz, None, None, None, self.dirpath)
 
-        self.assertIsNone(ls.control_configuration)
+        self.assertIsNone(ls.devices_configuration)
         self.assertIsNone(ls.measurement_configuration)
         self.assertIsNone(ls.calibration)
         self.assertEqual(ls.dirpath, self.dirpath)
@@ -329,7 +323,7 @@ class TestLineScan(unittest.TestCase):
         ls = measurement.LineScan(
             posx, posy, posz, None, None, None, self.dirpath)
 
-        self.assertIsNone(ls.control_configuration)
+        self.assertIsNone(ls.devices_configuration)
         self.assertIsNone(ls.measurement_configuration)
         self.assertIsNone(ls.calibration)
         self.assertEqual(ls.dirpath, self.dirpath)
@@ -347,7 +341,7 @@ class TestLineScan(unittest.TestCase):
 
         ls = measurement.LineScan(
             posx, posy, posz, invalidpath, None, None, self.dirpath)
-        self.assertIsNone(ls.control_configuration)
+        self.assertIsNone(ls.devices_configuration)
 
         ls = measurement.LineScan(
             posx, posy, posz, None, invalidpath, None, self.dirpath)
@@ -363,14 +357,14 @@ class TestLineScan(unittest.TestCase):
         posz = [3, 4]
 
         ls = measurement.LineScan(
-            posx, posy, posz, self.cconfig_file, None, None, self.dirpath)
-        self.assertEqual(
-            ls.control_configuration.filename, self.cconfig_file)
+            posx, posy, posz, self.dconfig_file, None, None, self.dirpath)
+        dconfig = configuration.DevicesConfig(self.dconfig_file)
+        self.assertEqual(dconfig, ls.devices_configuration)
 
         ls = measurement.LineScan(
             posx, posy, posz, None, self.mconfig_file, None, self.dirpath)
-        self.assertEqual(
-            ls.measurement_configuration.filename, self.mconfig_file)
+        mconfig = configuration.MeasurementConfig(self.mconfig_file)
+        self.assertEqual(mconfig, ls.measurement_configuration)
 
     def test_initialization_configuration_objects(self):
         posx = 1
@@ -378,20 +372,18 @@ class TestLineScan(unittest.TestCase):
         posz = [3, 4]
 
         ls = measurement.LineScan(
-            posx, posy, posz, self.cconfig, None, None, self.dirpath)
-        self.assertEqual(
-            ls.control_configuration.filename, self.cconfig_file)
+            posx, posy, posz, self.dconfig, None, None, self.dirpath)
+        self.assertEqual(self.dconfig, ls.devices_configuration)
 
         ls = measurement.LineScan(
             posx, posy, posz, None, self.mconfig, None, self.dirpath)
-        self.assertEqual(
-            ls.measurement_configuration.filename, self.mconfig_file)
+        self.assertEqual(self.mconfig, ls.measurement_configuration)
 
     def test_add_invalid_scan(self):
         posx = 1
         posy = 2
         posz = np.linspace(0, 10, 11)
-        ls = measurement.LineScan(posx, posy, posz, self.cconfig, self.mconfig,
+        ls = measurement.LineScan(posx, posy, posz, self.dconfig, self.mconfig,
                                   self.calibration, self.dirpath)
 
         scan = measurement.DataSet()
@@ -475,7 +467,7 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = np.linspace(0, 10, 11)
-        ls = measurement.LineScan(posx, posy, posz, self.cconfig, self.mconfig,
+        ls = measurement.LineScan(posx, posy, posz, self.dconfig, self.mconfig,
                                   self.calibration, self.dirpath)
 
         scan = measurement.DataSet()
@@ -507,7 +499,7 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = self.pos
-        ls = measurement.LineScan(posx, posy, posz, self.cconfig, self.mconfig,
+        ls = measurement.LineScan(posx, posy, posz, self.dconfig, self.mconfig,
                                   self.calibration, self.dirpath)
 
         scan = measurement.DataSet()
@@ -541,7 +533,7 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = self.pos
-        ls = measurement.LineScan(posx, posy, posz, self.cconfig, self.mconfig,
+        ls = measurement.LineScan(posx, posy, posz, self.dconfig, self.mconfig,
                                   self.calibration, self.dirpath)
 
         scan1 = measurement.DataSet()
@@ -586,7 +578,7 @@ class TestLineScan(unittest.TestCase):
         posy = 2
         posz = self.pos
         ls1 = measurement.LineScan(
-            posx, posy, posz, self.cconfig,
+            posx, posy, posz, self.dconfig,
             self.mconfig, self.calibration, self.dirpath)
 
         scan1 = measurement.DataSet()
@@ -638,7 +630,7 @@ class TestLineScan(unittest.TestCase):
         posx = 1
         posy = 2
         posz = self.pos
-        ls = measurement.LineScan(posx, posy, posz, self.cconfig,
+        ls = measurement.LineScan(posx, posy, posz, self.dconfig,
                                   self.mconfig, self.calibration, self.dirpath)
 
         scan1 = measurement.DataSet()
@@ -673,7 +665,7 @@ class TestLineScan(unittest.TestCase):
         posy = 2
         posz = self.pos
         ls1 = measurement.LineScan(
-            posx, posy, posz, self.cconfig,
+            posx, posy, posz, self.dconfig,
             self.mconfig, self.calibration, self.dirpath)
 
         scan1 = measurement.DataSet()
@@ -946,9 +938,6 @@ class TestMeasurement(unittest.TestCase):
         m.recover_saved_data()
         field_avg_data = m._get_field_avg_data()
         self.assertEqual(m.scan_axis, 'z')
-        self.assertFalse(m.check_control_configuration())
-        self.assertFalse(m.check_measurement_configuration())
-        self.assertTrue(m.check_calibration())
         np.testing.assert_array_almost_equal(m.posx, 1)
         np.testing.assert_array_almost_equal(m.posy, [2, 20])
         np.testing.assert_array_almost_equal(m.posz, np.linspace(0, 20, 11))

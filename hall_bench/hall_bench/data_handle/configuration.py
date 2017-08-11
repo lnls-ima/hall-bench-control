@@ -12,19 +12,18 @@ class ConfigurationError(Exception):
         self.message = message
 
 
-class ControlConfiguration(object):
-    """Read, write and stored control configuration data."""
+class DevicesConfig(object):
+    """Read, write and stored devices configuration data."""
 
     def __init__(self, filename=None):
         """Initialize variables.
 
         Args:
-            filename (str): control configuration file path.
+            filename (str): devices configuration file path.
         """
         if filename is not None:
             self.read_file(filename)
         else:
-            self.filename = None
             self._control_pmac_enable = None
             self._control_voltx_enable = None
             self._control_volty_enable = None
@@ -36,6 +35,12 @@ class ControlConfiguration(object):
             self._control_voltz_addr = None
             self._control_multich_addr = None
             self._control_colimator_addr = None
+
+    def __eq__(self, other):
+        """Equality method."""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return False
 
     @property
     def control_pmac_enable(self):
@@ -173,7 +178,7 @@ class ControlConfiguration(object):
                 'Invalid value for control_colimator_addr.')
 
     def read_file(self, filename):
-        """Read control parameters from file.
+        """Read devices configuration from file.
 
         Args:
             filename (str): configuration file path.
@@ -202,7 +207,6 @@ class ControlConfiguration(object):
             data, 'control_multich_addr', vtype='int')
         self.control_colimator_addr = _utils.find_value(
             data, 'control_colimator_addr', vtype='int')
-        self.filename = filename
 
     def valid_configuration(self):
         """Check if parameters are valid.
@@ -217,8 +221,7 @@ class ControlConfiguration(object):
             return False
 
     def clear(self):
-        """Clear control configuration."""
-        self.filename = None
+        """Clear devices configuration."""
         self._control_pmac_enable = None
         self._control_voltx_enable = None
         self._control_volty_enable = None
@@ -232,7 +235,7 @@ class ControlConfiguration(object):
         self._control_colimator_addr = None
 
     def save_file(self, filename):
-        """Save control parameters to file.
+        """Save devices configuration to file.
 
         Args:
             filename (str): configuration file path.
@@ -275,15 +278,12 @@ class ControlConfiguration(object):
                 f.write(item)
             f.close()
 
-            if self.filename is None:
-                self.filename = filename
-
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
             raise ConfigurationError(message)
 
 
-class MeasurementConfiguration(object):
+class MeasurementConfig(object):
     """Read, write and stored measurement configuration data."""
 
     def __init__(self, filename=None):
@@ -295,7 +295,6 @@ class MeasurementConfiguration(object):
         if filename is not None:
             self.read_file(filename)
         else:
-            self.filename = None
             self._meas_probeX = None
             self._meas_probeY = None
             self._meas_probeZ = None
@@ -326,6 +325,12 @@ class MeasurementConfiguration(object):
             self.meas_endpos_ax5 = None
             self.meas_incr_ax5 = None
             self.meas_vel_ax5 = None
+
+    def __eq__(self, other):
+        """Equality method."""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return False
 
     @property
     def meas_probeX(self):
@@ -388,7 +393,7 @@ class MeasurementConfiguration(object):
             raise ConfigurationError('Invalid value for meas_trig_axis')
 
     def read_file(self, filename):
-        """Read measurement parameters from file.
+        """Read measurement configuration from file.
 
         Args:
             filename (str): configuration file path.
@@ -418,8 +423,6 @@ class MeasurementConfiguration(object):
             setattr(self, incr, _utils.find_value(data, incr, vtype='float'))
             setattr(self, vel, _utils.find_value(data, vel, vtype='float'))
 
-        self.filename = filename
-
     def valid_configuration(self):
         """Check if parameters are valid.
 
@@ -434,7 +437,6 @@ class MeasurementConfiguration(object):
 
     def clear(self):
         """Clear measurement configuration."""
-        self.filename = None
         self._meas_probeX = None
         self._meas_probeY = None
         self._meas_probeZ = None
@@ -467,7 +469,7 @@ class MeasurementConfiguration(object):
         self.meas_vel_ax5 = None
 
     def save_file(self, filename):
-        """Save measurement parameters to file.
+        """Save measurement configuration to file.
 
         Args:
             filename (str): configuration file path.
@@ -515,9 +517,6 @@ class MeasurementConfiguration(object):
             for item in data:
                 f.write(item)
             f.close()
-
-            if self.filename is None:
-                self.filename = filename
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename

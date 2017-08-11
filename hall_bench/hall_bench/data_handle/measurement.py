@@ -2,9 +2,7 @@
 """Implementation of classes to store and analyse measurement data."""
 
 import os as _os
-import time as _time
 import numpy as _np
-import shutil as _shutil
 from scipy import interpolate as _interpolate
 from scipy.integrate import cumtrapz as _cumtrapz
 
@@ -168,7 +166,7 @@ class DataSet(object):
 class LineScan(object):
     """Line scan data."""
 
-    def __init__(self, posx, posy, posz, cconfig, mconfig,
+    def __init__(self, posx, posy, posz, dconfig, mconfig,
                  calibration, dirpath):
         """Initialize variables.
 
@@ -176,8 +174,8 @@ class LineScan(object):
             posx (float or array): x position of the scan line.
             posy (float or array): y position of the scan line.
             posz (float or array): z position of the scan line.
-            cconfig (ControlConfiguration or str): control configuration.
-            mconfig (MeasurementConfiguration or str): measurement config.
+            dconfig (DevicesConfig or str): devices configuration.
+            mconfig (MeasurementConfig or str): measurement configuration.
             calibration (CalibrationData or str): probe calibration data.
             dirpath (str): directory path to save files.
 
@@ -210,7 +208,10 @@ class LineScan(object):
             except Exception:
                 raise MeasurementDataError('Invalid directory path.')
 
-        self._set_configuration(cconfig, mconfig, calibration)
+        self._set_configuration(dconfig, mconfig, calibration)
+        self._dconfig_filename = 'devices_configuration.txt'
+        self._mconfig_filename = 'measurement_configuration.txt'
+        self._calibration_filename = 'calibration.txt'
 
         self._timestamp = ''
         self._voltage_raw = []
@@ -225,52 +226,54 @@ class LineScan(object):
     @staticmethod
     def copy(linescan):
         """Return a copy of a LineScan."""
-        lsc = LineScan(
+        linescan_copy = LineScan(
             linescan.posx, linescan.posy, linescan.posz,
-            linescan.control_configuration, linescan.measurement_configuration,
-            linescan.calibration, linescan.dirpath)
+            linescan.devices_configuration,
+            linescan.measurement_configuration,
+            linescan.calibration,
+            linescan.dirpath)
 
-        lsc._timestamp = linescan.timestamp
+        linescan_copy._timestamp = linescan.timestamp
 
-        lsc._voltage_raw = [
+        linescan_copy._voltage_raw = [
             DataSet.copy(s) for s in linescan.voltage_raw]
 
-        lsc._voltage_interpolated = [
+        linescan_copy._voltage_interpolated = [
             DataSet.copy(s) for s in linescan.voltage_interpolated]
 
         if linescan.voltage_avg is not None:
-            lsc._voltage_avg = DataSet.copy(linescan.voltage_avg)
+            linescan_copy._voltage_avg = DataSet.copy(linescan.voltage_avg)
         else:
-            lsc._voltage_avg = None
+            linescan_copy._voltage_avg = None
 
         if linescan.voltage_std is not None:
-            lsc._voltage_std = DataSet.copy(linescan.voltage_std)
+            linescan_copy._voltage_std = DataSet.copy(linescan.voltage_std)
         else:
-            lsc._voltage_std = None
+            linescan_copy._voltage_std = None
 
         if linescan.field_avg is not None:
-            lsc._field_avg = DataSet.copy(linescan.field_avg)
+            linescan_copy._field_avg = DataSet.copy(linescan.field_avg)
         else:
-            lsc._field_avg = None
+            linescan_copy._field_avg = None
 
         if linescan.field_std is not None:
-            lsc._field_std = DataSet.copy(linescan.field_std)
+            linescan_copy._field_std = DataSet.copy(linescan.field_std)
         else:
-            lsc._field_std = None
+            linescan_copy._field_std = None
 
         if linescan.field_first_integral is not None:
-            lsc._field_first_integral = DataSet.copy(
+            linescan_copy._field_first_integral = DataSet.copy(
                 linescan.field_first_integral)
         else:
-            lsc._field_first_integral = None
+            linescan_copy._field_first_integral = None
 
         if linescan.field_second_integral is not None:
-            lsc._field_second_integral = DataSet.copy(
+            linescan_copy._field_second_integral = DataSet.copy(
                 linescan.field_second_integral)
         else:
-            lsc._field_second_integral = None
+            linescan_copy._field_second_integral = None
 
-        return lsc
+        return linescan_copy
 
     @staticmethod
     def read_from_files(
@@ -280,11 +283,7 @@ class LineScan(object):
         files = _get_scan_files_list(
             datadir, posx=posx, posy=posy, posz=posz, pos_str=pos_str)
 
-        cconfig = set()
-        mconfig = set()
-        calibration = set()
         timestamp = set()
-
         voltage_raw = []
         voltage_interpolated = []
         voltage_avg = None
@@ -295,41 +294,33 @@ class LineScan(object):
         field_second_integral = None
 
         for filename in files:
-            (dataset, ts, cf, mf, caf) = _read_scan_file(filename)
-
+            dataset, ts = _read_scan_file(filename)
             timestamp.add(ts)
-            cconfig.add(cf)
-            mconfig.add(mf)
-            calibration.add(caf)
 
-            if 'voltage_raw' in filename.lower():
+            if 'voltage_raw' in dataset.description:
                 voltage_raw.append(dataset)
-            elif 'voltage_interpolated' in filename.lower():
+            elif 'voltage_interpolated' in dataset.description:
                 voltage_interpolated.append(dataset)
-            elif 'voltage_avg' in filename.lower():
+            elif 'voltage_avg' in dataset.description:
                 voltage_avg = dataset
-            elif 'voltage_std' in filename.lower():
+            elif 'voltage_std' in dataset.description:
                 voltage_std = dataset
-            elif 'field_avg' in filename.lower():
+            elif 'field_avg' in dataset.description:
                 field_avg = dataset
-            elif 'field_std' in filename.lower():
+            elif 'field_std' in dataset.description:
                 field_std = dataset
-            elif 'field_first_integral' in filename.lower():
+            elif 'field_first_integral' in dataset.description:
                 field_first_integral = dataset
-            elif 'field_second_integral' in filename.lower():
+            elif 'field_second_integral' in dataset.description:
                 field_second_integral = dataset
 
-        if len(cconfig) != 1 or len(mconfig) != 1 or len(calibration) != 1:
-            message = 'Inconsistent configuration files for LineScan.'
-            raise MeasurementDataError(message)
-
-        cconfig_filename = _os.path.join(dirpath, list(cconfig)[0])
-        mconfig_filename = _os.path.join(dirpath, list(mconfig)[0])
-        calibration_filename = _os.path.join(dirpath, list(calibration)[0])
+        dconfig_fn = _os.path.join(dirpath, 'devices_configuration.txt')
+        mconfig_fn = _os.path.join(dirpath, 'measurement_configuration.txt')
+        calibration_fn = _os.path.join(dirpath, 'calibration.txt')
 
         linescan = LineScan(
-            field_avg.posx, field_avg.posy, field_avg.posz, cconfig_filename,
-            mconfig_filename, calibration_filename, dirpath)
+            field_avg.posx, field_avg.posy, field_avg.posz, dconfig_fn,
+            mconfig_fn, calibration_fn, dirpath)
 
         linescan._timestamp = sorted(list(timestamp))[-1]
         linescan._voltage_raw = voltage_raw
@@ -376,9 +367,9 @@ class LineScan(object):
         return self._posz
 
     @property
-    def control_configuration(self):
-        """Control configuration."""
-        return self._cconfig
+    def devices_configuration(self):
+        """Device configuration."""
+        return self._dconfig
 
     @property
     def measurement_configuration(self):
@@ -450,11 +441,9 @@ class LineScan(object):
 
     def analyse_data(self, save_data=True):
         """Analyse the line scan data."""
-        self._timestamp = (
-            _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime()))
+        self._timestamp = _utils.get_timestamp()
 
-        if save_data:
-            self._save_configuration()
+        self._save_configuration()
 
         if self.nr_scans != 0:
             self._data_interpolation(save_data)
@@ -527,17 +516,17 @@ class LineScan(object):
         else:
             return False
 
-    def _set_configuration(self, cconfig, mconfig, calibration):
-        if isinstance(cconfig, str) and _os.path.isfile(cconfig):
-            self._cconfig = _configuration.ControlConfiguration(cconfig)
-        elif isinstance(cconfig, _configuration.ControlConfiguration):
-            self._cconfig = cconfig
+    def _set_configuration(self, dconfig, mconfig, calibration):
+        if isinstance(dconfig, str) and _os.path.isfile(dconfig):
+            self._dconfig = _configuration.DevicesConfig(dconfig)
+        elif isinstance(dconfig, _configuration.DevicesConfig):
+            self._dconfig = dconfig
         else:
-            self._cconfig = None
+            self._dconfig = None
 
         if isinstance(mconfig, str) and _os.path.isfile(mconfig):
-            self._mconfig = _configuration.MeasurementConfiguration(mconfig)
-        elif isinstance(mconfig, _configuration.MeasurementConfiguration):
+            self._mconfig = _configuration.MeasurementConfig(mconfig)
+        elif isinstance(mconfig, _configuration.MeasurementConfig):
             self._mconfig = mconfig
         else:
             self._mconfig = None
@@ -551,29 +540,17 @@ class LineScan(object):
 
     def _save_configuration(self):
         try:
-            if self._cconfig is not None:
-                if self._cconfig.filename is not None:
-                    _shutil.copy(self._cconfig.filename, self.dirpath)
-                else:
-                    filename = _os.path.join(
-                        self.dirpath, 'control_configuration.txt')
-                    self._cconfig.save_file(filename)
+            if self._dconfig is not None:
+                self._dconfig.save_file(
+                    _os.path.join(self.dirpath, self._dconfig_filename))
 
             if self._mconfig is not None:
-                if self._mconfig.filename is not None:
-                    _shutil.copy(self._mconfig.filename, self.dirpath)
-                else:
-                    filename = _os.path.join(
-                        self.dirpath, 'measurement_configuration.txt')
-                    self._mconfig.save_file(filename)
+                self._mconfig.save_file(
+                    _os.path.join(self.dirpath, self._mconfig_filename))
 
             if self._calibration is not None:
-                if self._calibration.filename is not None:
-                    _shutil.copy(self._calibration.filename, self.dirpath)
-                else:
-                    filename = _os.path.join(self.dirpath, 'calibration.txt')
-                    self._calibration.save_file(filename)
-                    self._calibration.filename = filename
+                self._calibration.save_file(
+                    _os.path.join(self.dirpath, self._calibration_filename))
         except Exception:
             pass
 
@@ -805,25 +782,7 @@ class LineScan(object):
 
         filename = _os.path.join(datadir, filename)
 
-        if self._cconfig is not None and self._cconfig.filename is not None:
-            cconfig_filename = _os.path.split(self._cconfig.filename)[1]
-        else:
-            cconfig_filename = ''
-
-        if self._mconfig is not None and self._mconfig.filename is not None:
-            mconfig_filename = _os.path.split(self._mconfig.filename)[1]
-        else:
-            mconfig_filename = ''
-
-        if (self._calibration is not None and
-           self._calibration.filename is not None):
-            calibration_filename = _os.path.split(
-                self._calibration.filename)[1]
-        else:
-            calibration_filename = ''
-
-        _write_scan_file(filename, dataset, self._timestamp, cconfig_filename,
-                         mconfig_filename, calibration_filename)
+        _write_scan_file(filename, dataset, self._timestamp)
 
     def __str__(self):
         """Printable string representation of LineScan."""
@@ -843,16 +802,6 @@ class LineScan(object):
         if len(self._timestamp) != 0:
             r += fmtstr.format('timestamp', self._timestamp)
         r += fmtstr.format('save directory', self.dirpath)
-        if self._cconfig is not None and self._cconfig.filename is not None:
-            filename = _os.path.split(self._cconfig.filename)[-1]
-            r += fmtstr.format('control configuration', filename)
-        if self._mconfig is not None and self._mconfig.filename is not None:
-            filename = _os.path.split(self._mconfig.filename)[-1]
-            r += fmtstr.format('measurement configuration', filename)
-        if (self._calibration is not None and
-           self._calibration.filename is not None):
-            filename = _os.path.split(self._calibration.filename)[-1]
-            r += fmtstr.format('calibration data', filename)
         return r
 
 
@@ -956,62 +905,8 @@ class Measurement(object):
             ls = LineScan.read_from_files(self.dirpath, pos_str=pos_str)
             self.add_line_scan(ls)
 
-    def check_control_configuration(self):
-        """Check if all control configuration file names are equal."""
-        control_configuration = set()
-        for d in self._data.values():
-            for ls in d.values():
-                control_configuration.add(ls.control_configuration)
-
-        filenames = set()
-        if all(control_configuration):
-            for c in control_configuration:
-                filenames.add(c.filename)
-            if len(filenames) == 1:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def check_measurement_configuration(self):
-        """Check if all measurement configuration file names are equal."""
-        measurement_configuration = set()
-        for d in self._data.values():
-            for ls in d.values():
-                measurement_configuration.add(ls.measurement_configuration)
-
-        filenames = set()
-        if all(measurement_configuration):
-            for m in measurement_configuration:
-                filenames.add(m.filename)
-            if len(filenames) == 1:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def check_calibration(self):
-        """Check if all calibration file names are equal."""
-        calibration = set()
-        for d in self._data.values():
-            for ls in d.values():
-                calibration.add(ls.calibration)
-
-        filenames = set()
-        if all(calibration):
-            for c in calibration:
-                filenames.add(c.filename)
-            if len(filenames) == 1:
-                return True
-            else:
-                return False
-        else:
-            return False
-
     def save(self, magnet_name='', magnet_length='', gap='',
-             control_gap='', coils=[], origin=[0, 0, 0]):
+             control_gap='', coils=[], reference_position=[0, 0, 0]):
         """Save measurement data.
 
         Args:
@@ -1021,15 +916,14 @@ class Measurement(object):
             control_gap (str or float) : control air gap length [mm].
             coils (list of dicts): list of dictionaries with name, current
                                    and turns of each magnet coil.
-            origin (list): origin of the magnet coordinate system.
+            reference_position (list): reference position of the magnet.
         """
         if len(self._data) == 0:
             message = "Empty measurement."
             raise MeasurementDataError(message)
 
-        t = _time.localtime()
-        date = _time.strftime('%Y-%m-%d', t)
-        datetime = _time.strftime('%Y-%m-%d_%H-%M-%S', t)
+        datetime = _utils.get_timestamp()
+        date = datetime.split('_')[0]
 
         field_data = self._get_field_avg_data()
 
@@ -1048,34 +942,35 @@ class Measurement(object):
         filename = '{0:1s}_{1:1s}.dat'.format(date, fieldmap_name)
         f = open(_os.path.join(self.dirpath, filename), 'w')
 
-        f.write('fieldmap_name:     \t{0:1s}\n'.format(fieldmap_name))
-        f.write('timestamp:         \t{0:1s}\n'.format(datetime))
-        f.write('filename:          \t{0:1s}\n'.format(filename))
-        f.write('nr_magnets:        \t1\n')
+        f.write('fieldmap_name:      \t{0:1s}\n'.format(fieldmap_name))
+        f.write('timestamp:          \t{0:1s}\n'.format(datetime))
+        f.write('filename:           \t{0:1s}\n'.format(filename))
+        f.write('nr_magnets:         \t1\n')
         f.write('\n')
-        f.write('magnet_name:       \t{0:1s}\n'.format(magnet_name))
-        f.write('gap[mm]:           \t{0:1s}\n'.format(str(gap)))
-        f.write('control_gap:       \t{0:1s}\n'.format(str(control_gap)))
-        f.write('magnet_length[mm]: \t{0:1s}\n'.format(str(magnet_length)))
+        f.write('magnet_name:        \t{0:1s}\n'.format(magnet_name))
+        f.write('gap[mm]:            \t{0:1s}\n'.format(str(gap)))
+        f.write('control_gap:        \t{0:1s}\n'.format(str(control_gap)))
+        f.write('magnet_length[mm]:  \t{0:1s}\n'.format(str(magnet_length)))
 
         for coil in coils:
-            f.write('current_{0:1s}[A]:   \t{1:1s}\n'.format(
-                coil['name'], str(coil['current'])))
-            NI = str(float(coil['current'])*float(coil['turns']))
-            f.write('NI_{0:1s}[A.esp]:    \t{1:1s}\n'.format(coil['name'], NI))
+            current_label = 'current_{0:1s}[A]:'.format(coil['name']).ljust(20)
+            turns_label = 'nr_turns_{0:1s}:'.format(coil['name']).ljust(20)
+            f.write(current_label + '\t{1:1s}\n'.format(str(coil['current'])))
+            f.write(turns_label + '\t{1:1s}\n'.format(str(coil['turns'])))
 
-        f.write('center_pos_z[mm]:  \t0\n')
-        f.write('center_pos_x[mm]:  \t0\n')
-        f.write('rotation[deg]:     \t0\n')
+        f.write('center_pos_z[mm]:   \t0\n')
+        f.write('center_pos_x[mm]:   \t0\n')
+        f.write('rotation[deg]:      \t0\n')
         f.write('\n')
         f.write('X[mm]\tY[mm]\tZ[mm]\tBx\tBy\tBz [T]\n')
         f.write('-----------------------------------------------' +
                 '----------------------------------------------\n')
 
         for i in range(field_data.shape[0]):
-            f.write('{0:0.3f}\t'.format(field_data[i, 0] - origin[0]))
-            f.write('{0:0.3f}\t'.format(field_data[i, 1] - origin[1]))
-            f.write('{0:0.3f}\t'.format(field_data[i, 2] - origin[2]))
+            x = field_data[i, 0] - reference_position[0]
+            y = field_data[i, 1] - reference_position[1]
+            z = field_data[i, 2] - reference_position[2]
+            f.write('{0:0.3f}\t{0:0.3f}\t{0:0.3f}\t'.format(x, y, z))
             f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
                 field_data[i, 3], field_data[i, 4], field_data[i, 5]))
         f.close()
@@ -1228,9 +1123,6 @@ def _read_scan_file(filename):
     data_type = _utils.find_value(flines, 'data_type')
     data_unit = _utils.find_value(flines, 'data_unit')
     timestamp = _utils.find_value(flines, 'timestamp')
-    cconfig_filename = _utils.find_value(flines, 'control_configuration')
-    mconfig_filename = _utils.find_value(flines, 'measurement_configuration')
-    calibration_filename = _utils.find_value(flines, 'calibration')
     scan_axis = _utils.find_value(flines, 'scan_axis')
     posx = _utils.find_value(flines, 'position_x')
     posy = _utils.find_value(flines, 'position_y')
@@ -1271,12 +1163,10 @@ def _read_scan_file(filename):
         message = 'Invalid scan axis found in file: %s' % filename
         raise MeasurementDataError(message)
 
-    return (dataset, timestamp, cconfig_filename,
-            mconfig_filename, calibration_filename)
+    return (dataset, timestamp)
 
 
-def _write_scan_file(filename, dataset, timestamp, cconfig_filename,
-                     mconfig_filename, calibration_filename):
+def _write_scan_file(filename, dataset, timestamp):
     scan_axis = _get_scan_axis(dataset.posx, dataset.posy, dataset.posz)
 
     if scan_axis == 'x':
@@ -1305,9 +1195,6 @@ def _write_scan_file(filename, dataset, timestamp, cconfig_filename,
     f.write('data_type:                \t%s\n' % dataset.description)
     f.write('data_unit:                \t%s\n' % dataset.unit)
     f.write('timestamp:                \t%s\n' % timestamp)
-    f.write('control_configuration:    \t%s\n' % cconfig_filename)
-    f.write('measurement_configuration:\t%s\n' % mconfig_filename)
-    f.write('calibration:              \t%s\n' % calibration_filename)
     f.write('scan_axis:                \t%s\n' % scan_axis)
 
     if scan_axis == 'x':

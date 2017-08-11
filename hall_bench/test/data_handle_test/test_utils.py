@@ -9,7 +9,7 @@ class TestFiles(unittest.TestCase):
 
     def setUp(self):
         """Set up."""
-        self.filename = 'control_configuration_file.txt'
+        self.filename = 'devices_configuration_file.txt'
 
     def tearDown(self):
         """Tear down."""

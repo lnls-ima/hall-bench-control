@@ -703,7 +703,7 @@
       </layout>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="gb_control_config">
+    <widget class="QGroupBox" name="gb_devices_config">
      <property name="geometry">
       <rect>
        <x>300</x>
@@ -720,7 +720,7 @@
      <property name="title">
       <string>Configuration File</string>
      </property>
-     <widget class="QLineEdit" name="le_control_config_filename">
+     <widget class="QLineEdit" name="le_devices_config_filename">
       <property name="geometry">
        <rect>
         <x>88</x>
@@ -748,7 +748,7 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QLabel" name="la_control_config_filename">
+     <widget class="QLabel" name="la_devices_config_filename">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -766,7 +766,7 @@
        <string>Filename: </string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pb_save_control_config">
+     <widget class="QPushButton" name="pb_save_devices_config">
       <property name="geometry">
        <rect>
         <x>230</x>
@@ -784,7 +784,7 @@
        <string>Save File</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pb_load_control_config">
+     <widget class="QPushButton" name="pb_load_devices_config">
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -889,7 +889,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/images/images/Coordinate_System.png</pixmap>
+      <pixmap resource="resources.qrc">:/images/images/coordinate_system.png</pixmap>
      </property>
     </widget>
     <widget class="QGroupBox" name="gb_axis_readings">
@@ -2862,9 +2862,9 @@
   <tabstop>cb_multich_enable</tabstop>
   <tabstop>cb_colimator_enable</tabstop>
   <tabstop>cb_colimator_port</tabstop>
-  <tabstop>le_control_config_filename</tabstop>
-  <tabstop>pb_load_control_config</tabstop>
-  <tabstop>pb_save_control_config</tabstop>
+  <tabstop>le_devices_config_filename</tabstop>
+  <tabstop>pb_load_devices_config</tabstop>
+  <tabstop>pb_save_devices_config</tabstop>
   <tabstop>pb_connect_devices</tabstop>
   <tabstop>pb_disconnect_devices</tabstop>
   <tabstop>pb_activate_bench</tabstop>

@@ -16,7 +16,6 @@ class CalibrationData(object):
         if filename is not None:
             self.read_file(filename)
         else:
-            self._filename = None
             self._field_unit = 'T'
             self._voltage_unit = 'V'
             self._probex_dx = 0
@@ -28,11 +27,6 @@ class CalibrationData(object):
             self._angle_xy = 0
             self._angle_yz = 0
             self._angle_xz = 0
-
-    @property
-    def filename(self):
-        """Calibration file path."""
-        return self._filename
 
     @property
     def field_unit(self):
@@ -98,7 +92,7 @@ class CalibrationData(object):
         Raises:
             HallBenchFileError: if cannot read file data.
         """
-        self._filename = filename
+        pass
 
     def save_file(self, filename):
         """Save calibration data to file.
@@ -111,9 +105,6 @@ class CalibrationData(object):
         """
         f = open(filename, mode='w')
         f.close()
-
-        if self.filename is None:
-            self._filename = filename
 
     def get_conversion_factor(self, voltage_unit):
         """Get voltage consersion factor."""

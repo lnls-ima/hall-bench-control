@@ -77,3 +77,17 @@ def get_timestamp():
     """Get timestamp (format: Year-month-day_hour:min:sec)."""
     timestamp = _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime())
     return timestamp
+
+
+def get_nonexistant_filename(filename):
+    """Get non existant filename."""
+    uniq = 1
+    filename_split = filename.split('.')
+    name = '.'.join(filename_split[:-1])
+    extension = '.' + filename_split[-1]
+
+    while _os.path.exists(filename):
+        filename = name + '%i' % uniq + extension
+        uniq += 1
+
+    return filename

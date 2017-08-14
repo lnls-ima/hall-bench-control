@@ -997,80 +997,93 @@ class SaveMeasurementDialog(QtGui.QDialog):
                 self.ui.cb_main.setChecked(False)
 
             if 'trim_coil_turns' in m.keys():
+                self.ui.le_trim_current.setText('0')
                 self.ui.le_trim_turns.setText(str(m['trim_coil_turns']))
                 self.ui.cb_trim.setChecked(True)
             else:
+                self.ui.le_trim_current.setText('')
                 self.ui.le_trim_turns.setText('')
                 self.ui.cb_trim.setChecked(False)
 
             if 'ch_coil_turns' in m.keys():
+                self.ui.le_ch_current.setText('0')
                 self.ui.le_ch_turns.setText(str(m['ch_coil_turns']))
                 self.ui.cb_ch.setChecked(True)
             else:
+                self.ui.le_ch_current.setText('')
                 self.ui.le_ch_turns.setText('')
                 self.ui.cb_ch.setChecked(False)
 
             if 'cv_coil_turns' in m.keys():
+                self.ui.le_cv_current.setText('0')
                 self.ui.le_cv_turns.setText(str(m['cv_coil_turns']))
                 self.ui.cb_cv.setChecked(True)
             else:
+                self.ui.le_cv_current.setText('')
                 self.ui.le_cv_turns.setText('')
                 self.ui.cb_cv.setChecked(False)
 
             if 'qs_coil_turns' in m.keys():
+                self.ui.le_qs_current.setText('0')
                 self.ui.le_qs_turns.setText(str(m['qs_coil_turns']))
                 self.ui.cb_qs.setChecked(True)
             else:
+                self.ui.le_qs_current.setText('')
                 self.ui.le_qs_turns.setText('')
                 self.ui.cb_qs.setChecked(False)
 
     def save_measurement(self):
         """Save measurement."""
-        magnet_name = self.ui.le_magnet_name.text()
-        magnet_length = self.ui.le_magnet_length.text()
-        gap = self.ui.le_gap.text()
-        control_gap = self.ui.le_control_gap.text()
+        if self.measurement is not None:
+            magnet_name = self.ui.le_magnet_name.text()
+            magnet_length = self.ui.le_magnet_length.text()
+            gap = self.ui.le_gap.text()
+            control_gap = self.ui.le_control_gap.text()
 
-        coils = []
-        if self.ui.cb_main.isChecked():
-            d = {}
-            d['name'] = 'main'
-            d['current'] = self.ui.le_main_current
-            d['turns'] = self.ui.le_main_turns
-            coils.append(d)
-        if self.ui.cb_trim.isChecked():
-            d = {}
-            d['name'] = 'trim'
-            d['current'] = self.ui.le_trim_current
-            d['turns'] = self.ui.le_trim_turns
-            coils.append(d)
-        if self.ui.cb_ch.isChecked():
-            d = {}
-            d['name'] = 'ch'
-            d['current'] = self.ui.le_ch_current
-            d['turns'] = self.ui.le_ch_turns
-            coils.append(d)
-        if self.ui.cb_cv.isChecked():
-            d = {}
-            d['name'] = 'cv'
-            d['current'] = self.ui.le_cv_current
-            d['turns'] = self.ui.le_cv_turns
-            coils.append(d)
-        if self.ui.cb_qs.isChecked():
-            d = {}
-            d['name'] = 'qs'
-            d['current'] = self.ui.le_qs_current
-            d['turns'] = self.ui.le_qs_turns
-            coils.append(d)
+            coils = []
+            if self.ui.cb_main.isChecked():
+                d = {}
+                d['name'] = 'main'
+                d['current'] = self.ui.le_main_current
+                d['turns'] = self.ui.le_main_turns
+                coils.append(d)
+            if self.ui.cb_trim.isChecked():
+                d = {}
+                d['name'] = 'trim'
+                d['current'] = self.ui.le_trim_current
+                d['turns'] = self.ui.le_trim_turns
+                coils.append(d)
+            if self.ui.cb_ch.isChecked():
+                d = {}
+                d['name'] = 'ch'
+                d['current'] = self.ui.le_ch_current
+                d['turns'] = self.ui.le_ch_turns
+                coils.append(d)
+            if self.ui.cb_cv.isChecked():
+                d = {}
+                d['name'] = 'cv'
+                d['current'] = self.ui.le_cv_current
+                d['turns'] = self.ui.le_cv_turns
+                coils.append(d)
+            if self.ui.cb_qs.isChecked():
+                d = {}
+                d['name'] = 'qs'
+                d['current'] = self.ui.le_qs_current
+                d['turns'] = self.ui.le_qs_turns
+                coils.append(d)
 
-        ref_pos_x = self.ui.sb_ref_pos_x.value()
-        ref_pos_y = self.ui.sb_ref_pos_y.value()
-        ref_pos_z = self.ui.sb_ref_pos_z.value()
-        ref_pos = [ref_pos_x, ref_pos_y, ref_pos_z]
+            ref_pos_x = self.ui.sb_ref_pos_x.value()
+            ref_pos_y = self.ui.sb_ref_pos_y.value()
+            ref_pos_z = self.ui.sb_ref_pos_z.value()
+            ref_pos = [ref_pos_x, ref_pos_y, ref_pos_z]
 
-        self.measurement.save(
-            magnet_name=magnet_name, magnet_length=magnet_length, gap=gap,
-            control_gap=control_gap, coils=coils, reference_position=ref_pos)
+            self.measurement.save(
+                magnet_name=magnet_name,
+                magnet_length=magnet_length,
+                gap=gap,
+                control_gap=control_gap,
+                coils=coils,
+                reference_position=ref_pos)
 
 
 class HallBenchDevices(object):

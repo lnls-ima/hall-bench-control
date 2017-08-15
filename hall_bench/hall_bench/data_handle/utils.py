@@ -60,7 +60,8 @@ def find_value(data, variable, vtype='str'):
         HallBenchFileError: if the value was not found.
     """
     value = next(
-        (item.split('\t') for item in data if item.find(variable) != -1), None)
+        (item.split() for item in data if item.find(variable) != -1), None)
+
     try:
         value = value[1]
         if vtype == 'int':
@@ -69,7 +70,8 @@ def find_value(data, variable, vtype='str'):
             value = float(value)
     except Exception:
         message = 'Invalid value for "%s"' % variable
-        raise HallBenchFileError(message)
+        raise ValueError(message)
+
     return value
 
 

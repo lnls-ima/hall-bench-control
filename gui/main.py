@@ -55,7 +55,7 @@ class HallBenchGUI(QtGui.QWidget):
         self.graph_curve_y = np.array([])
         self.graph_curve_z = np.array([])
 
-        self.calibration = calibration.CalibrationData()
+        self.calibration_data = calibration.CalibrationData()
 
         self.current_postion_list = []
         self.current_line_scan = None
@@ -569,13 +569,12 @@ class HallBenchGUI(QtGui.QWidget):
         if len(self.dirpath) == 0:
             return
 
-        self.stop = False
+        self.current_measurement = measurement.Measurement(
+            self.dconfig, self.mconfig, self.dirpath)
 
+        self.stop = False
         self._clear_graph()
         self._set_axes_speed()
-
-        self.current_measurement = measurement.Measurement(
-            self.dconfig, self.mconfig, self.calibration, self.dirpath)
 
         if self.ui.rb_axis1_triggering.isChecked():
             extra_mm = float(self.ui.le_axis1_extra.text())
@@ -643,8 +642,7 @@ class HallBenchGUI(QtGui.QWidget):
             axis_a, pos_a, axis_b, pos_b, scan_axis, scan_list)
 
         self.current_line_scan = measurement.LineScan(
-            posx, posy, posz, self.dconfig, self.mconfig,
-            self.calibration, self.dirpath)
+            posx, posy, posz, self.calibration_data, self.dirpath)
 
         for idx in range(self.nr_measurements):
 
@@ -848,15 +846,16 @@ class HallBenchGUI(QtGui.QWidget):
         self._clear_graph()
 
         n = 0
-        for ls in self.current_measurement.data_list():
-            self._configure_graph()
-            curve = getattr(ls, data)
-            position = ls.scan_positions
+        for _dict in self.current_measurement.data.values():
+            for ls in _dict.values():
+                self._configure_graph()
+                curve = getattr(ls, data)
+                position = ls.scan_positions
 
-            self.graph_curve_x[n].setData(position, curve.datax)
-            self.graph_curve_y[n].setData(position, curve.datay)
-            self.graph_curve_z[n].setData(position, curve.dataz)
-            n += 1
+                self.graph_curve_x[n].setData(position, curve.datax)
+                self.graph_curve_y[n].setData(position, curve.datay)
+                self.graph_curve_z[n].setData(position, curve.dataz)
+                n += 1
 
     def _configure_multimeters(self):
         if self.mconfig.meas_probeX:

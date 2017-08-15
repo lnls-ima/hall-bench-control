@@ -1,7 +1,7 @@
-data_type:                	field_avg
-data_unit:                	T
-timestamp:                	2017-08-08_12-26-53
-scan_axis:                	z
+data_type:               	field_avg
+data_unit:               	T
+timestamp:               	2017-08-08_12-26-53
+scan_axis:               	z
 position_x[mm]:          	1.000000
 position_y[mm]:          	2.000000
 position_z[mm]:          	--

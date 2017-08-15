@@ -42,10 +42,10 @@ class TestFiles(unittest.TestCase):
         flines = utils.read_file(self.filename)
         variable = 'control_voltx_addr'
 
-        with self.assertRaises(utils.HallBenchFileError):
+        with self.assertRaises(ValueError):
             value = utils.find_value([], variable)
 
-        with self.assertRaises(utils.HallBenchFileError):
+        with self.assertRaises(ValueError):
             value = utils.find_value(flines, 'control_addr')
 
         value = utils.find_value(flines, variable, vtype='int')

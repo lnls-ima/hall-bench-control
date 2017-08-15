@@ -28,6 +28,12 @@ class CalibrationData(object):
             self._angle_yz = 0
             self._angle_xz = 0
 
+    def __eq__(self, other):
+        """Equality method."""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return False
+
     @property
     def field_unit(self):
         """Magnetic field unit."""
@@ -92,7 +98,17 @@ class CalibrationData(object):
         Raises:
             HallBenchFileError: if cannot read file data.
         """
-        pass
+        self._field_unit = 'T'
+        self._voltage_unit = 'V'
+        self._probex_dx = 0
+        self._probex_dy = 0
+        self._probex_dz = 0
+        self._probez_dx = 0
+        self._probez_dy = 0
+        self._probez_dz = 0
+        self._angle_xy = 0
+        self._angle_yz = 0
+        self._angle_xz = 0
 
     def save_file(self, filename):
         """Save calibration data to file.

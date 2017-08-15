@@ -166,22 +166,15 @@ class DataSet(object):
 class LineScan(object):
     """Line scan data."""
 
-    def __init__(self, posx, posy, posz, dconfig, mconfig,
-                 calibration, dirpath):
+    def __init__(self, posx, posy, posz, calibration_data, dirpath):
         """Initialize variables.
 
         Args:
             posx (float or array): x position of the scan line.
             posy (float or array): y position of the scan line.
             posz (float or array): z position of the scan line.
-            dconfig (DevicesConfig or str): devices configuration.
-            mconfig (MeasurementConfig or str): measurement configuration.
-            calibration (CalibrationData or str): probe calibration data.
+            calibration_data (CalibrationData): probe calibration data.
             dirpath (str): directory path to save files.
-
-        Raises:
-            MeasurementDataError: if dirpath is not a valid path or
-                                  position arguments are invalid.
         """
         if not isinstance(posx, _np.ndarray):
             posx = _np.array(posx)
@@ -194,25 +187,31 @@ class LineScan(object):
 
         self._scan_axis = _get_scan_axis(posx, posy, posz)
         if self._scan_axis is None:
-            message = 'Invalid position arguments for LineScan.'
-            raise MeasurementDataError(message)
+            raise ValueError('Invalid position arguments for LineScan.')
 
         self._posx = _np.around(posx, decimals=4)
         self._posy = _np.around(posy, decimals=4)
         self._posz = _np.around(posz, decimals=4)
 
-        self.dirpath = dirpath
-        if not _os.path.isdir(self.dirpath):
-            try:
-                _os.mkdir(self.dirpath)
-            except Exception:
-                raise MeasurementDataError('Invalid directory path.')
+        if isinstance(dirpath, str):
+            self.dirpath = dirpath
+            if not _os.path.isdir(self.dirpath):
+                try:
+                    _os.mkdir(self.dirpath)
+                except Exception:
+                    raise ValueError('Invalid value for dirpath.')
+        else:
+            self.dirpath = None
+            raise TypeError('dirpath must be a string.')
 
-        self._set_configuration(dconfig, mconfig, calibration)
-        self._dconfig_filename = 'devices_configuration.txt'
-        self._mconfig_filename = 'measurement_configuration.txt'
-        self._calibration_filename = 'calibration.txt'
+        if isinstance(calibration_data, _calibration.CalibrationData):
+            self._calibration_data = calibration_data
+        else:
+            self._calibration_data = None
+            raise TypeError(
+                'calibration_data must be a CalibrationData object.')
 
+        self._save_calibration()
         self._timestamp = ''
         self._voltage_raw = []
         self._voltage_interpolated = []
@@ -223,15 +222,24 @@ class LineScan(object):
         self._field_first_integral = None
         self._field_second_integral = None
 
+    def _save_calibration(self):
+        calibration_filename = 'calibration_data.txt'
+        calibration_fullpath = _os.path.join(
+            self.dirpath, calibration_filename)
+
+        if _os.path.isfile(calibration_fullpath):
+            tmp_calib_data = _calibration.CalibrationData(calibration_fullpath)
+            if not self._calibration_data == tmp_calib_data:
+                raise MeasurementDataError('Inconsistent calibration files.')
+        else:
+            self._calibration_data.save_file(calibration_fullpath)
+
     @staticmethod
     def copy(linescan):
         """Return a copy of a LineScan."""
         linescan_copy = LineScan(
             linescan.posx, linescan.posy, linescan.posz,
-            linescan.devices_configuration,
-            linescan.measurement_configuration,
-            linescan.calibration,
-            linescan.dirpath)
+            linescan.calibration_data, linescan.dirpath)
 
         linescan_copy._timestamp = linescan.timestamp
 
@@ -314,13 +322,13 @@ class LineScan(object):
             elif 'field_second_integral' in dataset.description:
                 field_second_integral = dataset
 
-        dconfig_fn = _os.path.join(dirpath, 'devices_configuration.txt')
-        mconfig_fn = _os.path.join(dirpath, 'measurement_configuration.txt')
-        calibration_fn = _os.path.join(dirpath, 'calibration.txt')
+        calibration_filename = 'calibration_data.txt'
+        calibration_data = _calibration.CalibrationData(
+            _os.path.join(dirpath, calibration_filename))
 
         linescan = LineScan(
-            field_avg.posx, field_avg.posy, field_avg.posz, dconfig_fn,
-            mconfig_fn, calibration_fn, dirpath)
+            field_avg.posx, field_avg.posy, field_avg.posz,
+            calibration_data, dirpath)
 
         linescan._timestamp = sorted(list(timestamp))[-1]
         linescan._voltage_raw = voltage_raw
@@ -367,19 +375,9 @@ class LineScan(object):
         return self._posz
 
     @property
-    def devices_configuration(self):
-        """Device configuration."""
-        return self._dconfig
-
-    @property
-    def measurement_configuration(self):
-        """Measurement configuration."""
-        return self._mconfig
-
-    @property
-    def calibration(self):
+    def calibration_data(self):
         """Calibration data."""
-        return self._calibration
+        return self._calibration_data
 
     @property
     def nr_scans(self):
@@ -442,8 +440,6 @@ class LineScan(object):
     def analyse_data(self, save_data=True):
         """Analyse the line scan data."""
         self._timestamp = _utils.get_timestamp()
-
-        self._save_configuration()
 
         if self.nr_scans != 0:
             self._data_interpolation(save_data)
@@ -515,44 +511,6 @@ class LineScan(object):
             return True
         else:
             return False
-
-    def _set_configuration(self, dconfig, mconfig, calibration):
-        if isinstance(dconfig, str) and _os.path.isfile(dconfig):
-            self._dconfig = _configuration.DevicesConfig(dconfig)
-        elif isinstance(dconfig, _configuration.DevicesConfig):
-            self._dconfig = dconfig
-        else:
-            self._dconfig = None
-
-        if isinstance(mconfig, str) and _os.path.isfile(mconfig):
-            self._mconfig = _configuration.MeasurementConfig(mconfig)
-        elif isinstance(mconfig, _configuration.MeasurementConfig):
-            self._mconfig = mconfig
-        else:
-            self._mconfig = None
-
-        if isinstance(calibration, str) and _os.path.isfile(calibration):
-            self._calibration = _calibration.CalibrationData(calibration)
-        elif isinstance(calibration, _calibration.CalibrationData):
-            self._calibration = calibration
-        else:
-            self._calibration = None
-
-    def _save_configuration(self):
-        try:
-            if self._dconfig is not None:
-                self._dconfig.save_file(
-                    _os.path.join(self.dirpath, self._dconfig_filename))
-
-            if self._mconfig is not None:
-                self._mconfig.save_file(
-                    _os.path.join(self.dirpath, self._mconfig_filename))
-
-            if self._calibration is not None:
-                self._calibration.save_file(
-                    _os.path.join(self.dirpath, self._calibration_filename))
-        except Exception:
-            pass
 
     def _data_interpolation(self, save_data=True):
         """Interpolate each scan."""
@@ -662,43 +620,42 @@ class LineScan(object):
 
     def _calculate_field_avg_std(self, save_data=True):
         """Calculate the average and std of magnetic field values."""
-        if self._calibration is None:
-            message = 'Calibration data not found.'
-            raise MeasurementDataError(message)
+        if self._calibration_data is None:
+            raise MeasurementDataError('Calibration data not found.')
 
-        conversion_factor = self._calibration.get_conversion_factor(
+        conversion_factor = self._calibration_data.get_conversion_factor(
             self.voltage_avg.unit)
 
         self._field_avg = DataSet()
         self._field_avg.description = 'field_avg'
-        self._field_avg.unit = self._calibration.field_unit
+        self._field_avg.unit = self._calibration_data.field_unit
         self._field_avg.posx = self._posx
         self._field_avg.posy = self._posy
         self._field_avg.posz = self._posz
 
-        self._field_avg.datax = self._calibration.convert_probe_x(
+        self._field_avg.datax = self._calibration_data.convert_probe_x(
             conversion_factor*self._voltage_avg.datax)
 
-        self._field_avg.datay = self._calibration.convert_probe_y(
+        self._field_avg.datay = self._calibration_data.convert_probe_y(
             conversion_factor*self._voltage_avg.datay)
 
-        self._field_avg.dataz = self._calibration.convert_probe_z(
+        self._field_avg.dataz = self._calibration_data.convert_probe_z(
             conversion_factor*self._voltage_avg.dataz)
 
         self._field_std = DataSet()
         self._field_std.description = 'field_std'
-        self._field_std.unit = self._calibration.field_unit
+        self._field_std.unit = self._calibration_data.field_unit
         self._field_std.posx = self._posx
         self._field_std.posy = self._posy
         self._field_std.posz = self._posz
 
-        self._field_std.datax = self._calibration.convert_probe_x(
+        self._field_std.datax = self._calibration_data.convert_probe_x(
             conversion_factor*self._voltage_std.datax)
 
-        self._field_std.datay = self._calibration.convert_probe_y(
+        self._field_std.datay = self._calibration_data.convert_probe_y(
             conversion_factor*self._voltage_std.datay)
 
-        self._field_std.dataz = self._calibration.convert_probe_z(
+        self._field_std.dataz = self._calibration_data.convert_probe_z(
             conversion_factor*self._voltage_std.dataz)
 
         if save_data:
@@ -808,21 +765,60 @@ class LineScan(object):
 class Measurement(object):
     """Measurement data."""
 
-    def __init__(self, dirpath):
+    def __init__(self, devices_config, measurement_config, dirpath):
         """Initialize variables.
 
         Args:
+            devices_config (DevicesConfig): devices configuration.
+            measurement_config (MeasurementConfig): measurement configuration.
             dirpath (str): directory path to save files.
         """
-        self.dirpath = dirpath
-        if not _os.path.isdir(self.dirpath):
-            try:
-                _os.mkdir(self.dirpath)
-            except Exception:
-                raise MeasurementDataError('Invalid directory path.')
+        if isinstance(dirpath, str):
+            self.dirpath = dirpath
+            if not _os.path.isdir(self.dirpath):
+                try:
+                    _os.mkdir(self.dirpath)
+                except Exception:
+                    raise ValueError('Invalid value for dirpath.')
+        else:
+            self.dirpath = None
+            raise TypeError('dirpath must be a string.')
 
+        if isinstance(devices_config, _configuration.DevicesConfig):
+            self._devices_config = devices_config
+        else:
+            raise TypeError('devices_config must be a DevicesConfig object.')
+
+        if isinstance(measurement_config, _configuration.MeasurementConfig):
+            self._measurement_config = measurement_config
+        else:
+            raise TypeError(
+                'measurement_config must be a MeasurementConfig object.')
+
+        self._save_configuration()
         self._scan_axis = None
         self._data = {}
+
+    def _save_configuration(self):
+        dc_filename = 'devices_configuration.txt'
+        mc_filename = 'measurement_configuration.txt'
+
+        dc_fullpath = _os.path.join(self.dirpath, dc_filename)
+        mc_fullpath = _os.path.join(self.dirpath, mc_filename)
+
+        if _os.path.isfile(dc_fullpath):
+            tmp_devices_config = _configuration.DevicesConfig(dc_fullpath)
+            if not self._devices_config == tmp_devices_config:
+                raise MeasurementDataError('Inconsistent configuration files.')
+        else:
+            self._devices_config.save_file(dc_fullpath)
+
+        if _os.path.isfile(mc_fullpath):
+            tmp_meas_config = _configuration.MeasurementConfig(mc_fullpath)
+            if not self._measurement_config == tmp_meas_config:
+                raise MeasurementDataError('Inconsistent configuration files.')
+        else:
+            self._measurement_config.save_file(mc_fullpath)
 
     @property
     def scan_axis(self):
@@ -860,6 +856,16 @@ class Measurement(object):
     def data(self):
         """Measurement data."""
         return self._data
+
+    @property
+    def devices_config(self):
+        """Device configuration."""
+        return self._devices_config
+
+    @property
+    def measurement_config(self):
+        """Measurement configuration."""
+        return self._measurement_config
 
     def clear(self):
         """Clear Measurement."""
@@ -1101,7 +1107,7 @@ def _get_scan_files_list(
                        'X=' + '{0:0.3f}'.format(posx) + 'mm')
         else:
             message = 'Invalid position arguments for LineScan.'
-            raise MeasurementDataError(message)
+            raise ValueError(message)
 
     pos_str_reverse = '_'.join(pos_str.split('_')[::-1])
 
@@ -1192,10 +1198,10 @@ def _write_scan_file(filename, dataset, timestamp):
 
     f = open(filename, mode='w')
 
-    f.write('data_type:                \t%s\n' % dataset.description)
-    f.write('data_unit:                \t%s\n' % dataset.unit)
-    f.write('timestamp:                \t%s\n' % timestamp)
-    f.write('scan_axis:                \t%s\n' % scan_axis)
+    f.write('data_type:               \t%s\n' % dataset.description)
+    f.write('data_unit:               \t%s\n' % dataset.unit)
+    f.write('timestamp:               \t%s\n' % timestamp)
+    f.write('scan_axis:               \t%s\n' % scan_axis)
 
     if scan_axis == 'x':
         f.write('position_x[mm]:          \t--\n')

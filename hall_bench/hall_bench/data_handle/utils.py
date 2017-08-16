@@ -45,13 +45,13 @@ def read_file(filename):
     return data
 
 
-def find_value(data, variable, vtype='str'):
+def find_value(data, variable, vtype=str):
     """Find variable value in file data.
 
     Args:
         data (list): list of file lines.
         variable (str): string to search in file lines.
-        vtype (str): variable type ['str', 'int' or 'float']
+        vtype (type): variable type
 
     Returns:
         the variable value.
@@ -59,15 +59,12 @@ def find_value(data, variable, vtype='str'):
     Raises:
         HallBenchFileError: if the value was not found.
     """
-    value = next(
-        (item.split() for item in data if item.find(variable) != -1), None)
+    file_line = next(
+        (line for line in data if line.find(variable) != -1), None)
 
     try:
-        value = value[1]
-        if vtype == 'int':
-            value = int(value)
-        elif vtype == 'float':
-            value = float(value)
+        value = file_line.split()[1]
+        value = vtype(value)
     except Exception:
         message = 'Invalid value for "%s"' % variable
         raise ValueError(message)
@@ -75,21 +72,22 @@ def find_value(data, variable, vtype='str'):
     return value
 
 
+def find_index(data, variable):
+    """Find index of line with the specified variable.
+
+    Args:
+        data (list): list of file lines.
+        variable (str): string to search in file lines.
+
+    Returns:
+        the line index.
+    """
+    index = next(
+        (i for i in range(len(data)) if data[i].find(variable) != -1), None)
+    return index
+
+
 def get_timestamp():
     """Get timestamp (format: Year-month-day_hour:min:sec)."""
     timestamp = _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime())
     return timestamp
-
-
-def get_nonexistant_filename(filename):
-    """Get non existant filename."""
-    uniq = 1
-    filename_split = filename.split('.')
-    name = '.'.join(filename_split[:-1])
-    extension = '.' + filename_split[-1]
-
-    while _os.path.exists(filename):
-        filename = name + '%i' % uniq + extension
-        uniq += 1
-
-    return filename

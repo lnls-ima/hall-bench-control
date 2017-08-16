@@ -623,9 +623,6 @@ class LineScan(object):
         if self._calibration_data is None:
             raise MeasurementDataError('Calibration data not found.')
 
-        conversion_factor = self._calibration_data.get_conversion_factor(
-            self.voltage_avg.unit)
-
         self._field_avg = DataSet()
         self._field_avg.description = 'field_avg'
         self._field_avg.unit = self._calibration_data.field_unit
@@ -634,13 +631,13 @@ class LineScan(object):
         self._field_avg.posz = self._posz
 
         self._field_avg.datax = self._calibration_data.convert_probe_x(
-            conversion_factor*self._voltage_avg.datax)
+            self._voltage_avg.datax)
 
         self._field_avg.datay = self._calibration_data.convert_probe_y(
-            conversion_factor*self._voltage_avg.datay)
+            self._voltage_avg.datay)
 
         self._field_avg.dataz = self._calibration_data.convert_probe_z(
-            conversion_factor*self._voltage_avg.dataz)
+            self._voltage_avg.dataz)
 
         self._field_std = DataSet()
         self._field_std.description = 'field_std'
@@ -650,13 +647,13 @@ class LineScan(object):
         self._field_std.posz = self._posz
 
         self._field_std.datax = self._calibration_data.convert_probe_x(
-            conversion_factor*self._voltage_std.datax)
+            self._voltage_std.datax)
 
         self._field_std.datay = self._calibration_data.convert_probe_y(
-            conversion_factor*self._voltage_std.datay)
+            self._voltage_std.datay)
 
         self._field_std.dataz = self._calibration_data.convert_probe_z(
-            conversion_factor*self._voltage_std.dataz)
+            self._voltage_std.dataz)
 
         if save_data:
             self._save_data(self._field_avg)

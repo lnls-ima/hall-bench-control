@@ -48,11 +48,11 @@ class TestFiles(unittest.TestCase):
         with self.assertRaises(ValueError):
             value = utils.find_value(flines, 'control_addr')
 
-        value = utils.find_value(flines, variable, vtype='int')
+        value = utils.find_value(flines, variable, vtype=int)
         self.assertTrue(isinstance(value, int))
         self.assertEqual(value, 20)
 
-        value = utils.find_value(flines, variable, vtype='float')
+        value = utils.find_value(flines, variable, vtype=float)
         self.assertTrue(isinstance(value, float))
         self.assertEqual(value, float(20))
 

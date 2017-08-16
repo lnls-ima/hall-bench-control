@@ -42,6 +42,12 @@ class DevicesConfig(object):
             return self.__dict__ == other.__dict__
         return False
 
+    def __ne__(self, other):
+        """Non-equality method."""
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
     @property
     def control_pmac_enable(self):
         """Pmac enable."""
@@ -186,27 +192,27 @@ class DevicesConfig(object):
         data = _utils.read_file(filename)
 
         self.control_pmac_enable = _utils.find_value(
-            data, 'control_pmac_enable', vtype='int')
+            data, 'control_pmac_enable', vtype=int)
         self.control_voltx_enable = _utils.find_value(
-            data, 'control_voltx_enable', vtype='int')
+            data, 'control_voltx_enable', vtype=int)
         self.control_volty_enable = _utils.find_value(
-            data, 'control_volty_enable', vtype='int')
+            data, 'control_volty_enable', vtype=int)
         self.control_voltz_enable = _utils.find_value(
-            data, 'control_voltz_enable', vtype='int')
+            data, 'control_voltz_enable', vtype=int)
         self.control_multich_enable = _utils.find_value(
-            data, 'control_multich_enable', vtype='int')
+            data, 'control_multich_enable', vtype=int)
         self.control_colimator_enable = _utils.find_value(
-            data, 'control_colimator_enable', vtype='int')
+            data, 'control_colimator_enable', vtype=int)
         self.control_voltx_addr = _utils.find_value(
-            data, 'control_voltx_addr', vtype='int')
+            data, 'control_voltx_addr', vtype=int)
         self.control_volty_addr = _utils.find_value(
-            data, 'control_volty_addr', vtype='int')
+            data, 'control_volty_addr', vtype=int)
         self.control_voltz_addr = _utils.find_value(
-            data, 'control_voltz_addr', vtype='int')
+            data, 'control_voltz_addr', vtype=int)
         self.control_multich_addr = _utils.find_value(
-            data, 'control_multich_addr', vtype='int')
+            data, 'control_multich_addr', vtype=int)
         self.control_colimator_addr = _utils.find_value(
-            data, 'control_colimator_addr', vtype='int')
+            data, 'control_colimator_addr', vtype=int)
 
     def valid_configuration(self):
         """Check if parameters are valid.
@@ -332,6 +338,12 @@ class MeasurementConfig(object):
             return self.__dict__ == other.__dict__
         return False
 
+    def __ne__(self, other):
+        """Non-equality method."""
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
     @property
     def meas_probeX(self):
         """Measure Hall-probe X voltage."""
@@ -400,16 +412,16 @@ class MeasurementConfig(object):
         """
         data = _utils.read_file(filename)
 
-        self.meas_probeX = _utils.find_value(data, 'meas_probeX', vtype='int')
-        self.meas_probeY = _utils.find_value(data, 'meas_probeY', vtype='int')
-        self.meas_probeZ = _utils.find_value(data, 'meas_probeZ', vtype='int')
+        self.meas_probeX = _utils.find_value(data, 'meas_probeX', vtype=int)
+        self.meas_probeY = _utils.find_value(data, 'meas_probeY', vtype=int)
+        self.meas_probeZ = _utils.find_value(data, 'meas_probeZ', vtype=int)
 
         self.meas_aper_ms = _utils.find_value(
-            data, 'meas_aper_ms', vtype='float')
+            data, 'meas_aper_ms', vtype=float)
         self.meas_precision = _utils.find_value(
-            data, 'meas_precision', vtype='int')
+            data, 'meas_precision', vtype=int)
         self.meas_trig_axis = _utils.find_value(
-            data, 'meas_trig_axis', vtype='int')
+            data, 'meas_trig_axis', vtype=int)
 
         # Ax1, Ax2, Ax3, Ax5
         axis_measurement = [1, 2, 3, 5]
@@ -418,10 +430,10 @@ class MeasurementConfig(object):
             epos = 'meas_endpos_ax' + str(axis)
             incr = 'meas_incr_ax' + str(axis)
             vel = 'meas_vel_ax' + str(axis)
-            setattr(self, spos, _utils.find_value(data, spos, vtype='float'))
-            setattr(self, epos, _utils.find_value(data, epos, vtype='float'))
-            setattr(self, incr, _utils.find_value(data, incr, vtype='float'))
-            setattr(self, vel, _utils.find_value(data, vel, vtype='float'))
+            setattr(self, spos, _utils.find_value(data, spos, vtype=float))
+            setattr(self, epos, _utils.find_value(data, epos, vtype=float))
+            setattr(self, incr, _utils.find_value(data, incr, vtype=float))
+            setattr(self, vel, _utils.find_value(data, vel, vtype=float))
 
     def valid_configuration(self):
         """Check if parameters are valid.

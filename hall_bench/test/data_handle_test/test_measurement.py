@@ -91,7 +91,7 @@ class TestFunctions(unittest.TestCase):
             0.8000000,
             1.2000000,
             1.6000000,
-            1.9644000,
+            2.0000000,
             2.3862752,
             2.8555936,
             3.4560144,
@@ -218,7 +218,7 @@ class TestLineScan(unittest.TestCase):
         scriptpath = os.path.realpath(__file__)
         parentdir = os.path.split(scriptpath)[0]
         self.dirpath = os.path.join(parentdir, 'measurement_data')
-        self.calibration = calibration.CalibrationData()
+        self.calibration = calibration.CalibrationData('calibration_data.txt')
 
         self.pos = np.linspace(0, 20, 11)
         self.voltage = np.linspace(0, 20, 11)
@@ -229,7 +229,7 @@ class TestLineScan(unittest.TestCase):
             0.8,
             1.2000000,
             1.6,
-            1.9644000,
+            2.0000000,
             2.3862752,
             2.8555936,
             3.4560144,
@@ -243,12 +243,12 @@ class TestLineScan(unittest.TestCase):
             0.0016,
             0.0036,
             0.0064,
-            0.0099644,
-            0.01431508,
-            0.01955694,
-            0.02586855,
-            0.03359576,
-            0.04325176,
+            0.01,
+            0.01438628,
+            0.01962814,
+            0.02593975,
+            0.03366696,
+            0.04332296,
         ]
 
         self.field_second_integral = [
@@ -257,12 +257,12 @@ class TestLineScan(unittest.TestCase):
             2.40000000e-06,
             7.60000000e-06,
             1.76000000e-05,
-            3.39644000e-05,
-            5.82438752e-05,
-            9.21158944e-05,
-            1.37541390e-04,
-            1.97005706e-04,
-            2.73853229e-04,
+            3.40000000e-05,
+            5.83862752e-05,
+            9.24006944e-05,
+            1.37968590e-04,
+            1.97575306e-04,
+            2.74565229e-04,
         ]
 
     def tearDown(self):
@@ -677,7 +677,8 @@ class TestMeasurement(unittest.TestCase):
         scriptpath = os.path.realpath(__file__)
         parentdir = os.path.split(scriptpath)[0]
         self.dirpath = os.path.join(parentdir, 'measurement_data')
-        self.calibration = calibration.CalibrationData()
+        self.calibration = calibration.CalibrationData(
+            'calibration_data.txt')
         self.dconfig = configuration.DevicesConfig(
             'devices_configuration_file.txt')
         self.mconfig = configuration.MeasurementConfig(
@@ -867,7 +868,7 @@ class TestMeasurement(unittest.TestCase):
             16, 16, 18, 18, 20, 20,
         ]
         bx = [
-            0, 0, 0.4, 0.4, 0.8, 0.8, 1.2, 1.2, 1.6, 1.6, 1.9644, 1.9644,
+            0, 0, 0.4, 0.4, 0.8, 0.8, 1.2, 1.2, 1.6, 1.6, 2, 2,
             2.386275, 2.386275, 2.855594, 2.855594, 3.456014, 3.456014,
             4.271197, 4.271197, 5.3848, 5.3848,
         ]

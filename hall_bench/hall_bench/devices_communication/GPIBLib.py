@@ -3,7 +3,6 @@
 GPIB communication.
 
 Created on 10/02/2015
-Modified on 19/07/2017
 @author: James Citadini
 """
 

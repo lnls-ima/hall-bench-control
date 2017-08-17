@@ -569,8 +569,20 @@ class HallBenchGUI(QtGui.QWidget):
         if len(self.dirpath) == 0:
             return
 
-        self.current_measurement = measurement.Measurement(
-            self.dconfig, self.mconfig, self.dirpath)
+        try:
+            self.current_measurement = measurement.Measurement(
+                self.dconfig, self.mconfig, self.dirpath)
+            print(self.current_measurement)
+        except measurement.MeasurementDataError:
+            question = 'Inconsistent configuration files. Overwrite files?'
+            reply = QtGui.QMessageBox.question(
+                self, 'Question', question, 'Yes', button1Text='No')
+            if reply == 0:
+                self.current_measurement = measurement.Measurement(
+                    self.dconfig, self.mconfig, self.dirpath,
+                    overwrite_config=True)
+            else:
+                return
 
         self.stop = False
         self._clear_graph()

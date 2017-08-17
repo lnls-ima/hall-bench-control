@@ -58,7 +58,7 @@ class DevicesConfig(object):
         if value in [0, 1]:
             self._control_pmac_enable = value
         else:
-            raise ConfigurationError('Invalid value for control_pmac_enable.')
+            raise ValueError('Invalid value for control_pmac_enable.')
 
     @property
     def control_voltx_enable(self):
@@ -70,7 +70,7 @@ class DevicesConfig(object):
         if value in [0, 1]:
             self._control_voltx_enable = value
         else:
-            raise ConfigurationError('Invalid value for control_voltx_enable.')
+            raise ValueError('Invalid value for control_voltx_enable.')
 
     @property
     def control_volty_enable(self):
@@ -82,7 +82,7 @@ class DevicesConfig(object):
         if value in [0, 1]:
             self._control_volty_enable = value
         else:
-            raise ConfigurationError('Invalid value for control_volty_enable.')
+            raise ValueError('Invalid value for control_volty_enable.')
 
     @property
     def control_voltz_enable(self):
@@ -94,7 +94,7 @@ class DevicesConfig(object):
         if value in [0, 1]:
             self._control_voltz_enable = value
         else:
-            raise ConfigurationError('Invalid value for control_voltz_enable.')
+            raise ValueError('Invalid value for control_voltz_enable.')
 
     @property
     def control_multich_enable(self):
@@ -106,7 +106,7 @@ class DevicesConfig(object):
         if value in [0, 1]:
             self._control_multich_enable = value
         else:
-            raise ConfigurationError(
+            raise ValueError(
                 'Invalid value for control_multich_enable.')
 
     @property
@@ -119,7 +119,7 @@ class DevicesConfig(object):
         if value in [0, 1]:
             self._control_colimator_enable = value
         else:
-            raise ConfigurationError(
+            raise ValueError(
                 'Invalid value for control_colimator_enable.')
 
     @property
@@ -132,7 +132,7 @@ class DevicesConfig(object):
         if isinstance(value, int):
             self._control_voltx_addr = value
         else:
-            raise ConfigurationError('Invalid value for control_voltx_addr.')
+            raise TypeError('control_voltx_addr must be a integer.')
 
     @property
     def control_volty_addr(self):
@@ -144,7 +144,7 @@ class DevicesConfig(object):
         if isinstance(value, int):
             self._control_volty_addr = value
         else:
-            raise ConfigurationError('Invalid value for control_volty_addr.')
+            raise TypeError('control_volty_addr must be a integer.')
 
     @property
     def control_voltz_addr(self):
@@ -156,7 +156,7 @@ class DevicesConfig(object):
         if isinstance(value, int):
             self._control_voltz_addr = value
         else:
-            raise ConfigurationError('Invalid value for control_voltz_addr.')
+            raise TypeError('control_voltz_addr must be a integer.')
 
     @property
     def control_multich_addr(self):
@@ -168,7 +168,7 @@ class DevicesConfig(object):
         if isinstance(value, int):
             self._control_multich_addr = value
         else:
-            raise ConfigurationError('Invalid value for control_multich_addr.')
+            raise TypeError('control_multich_addr must be a integer.')
 
     @property
     def control_colimator_addr(self):
@@ -180,8 +180,8 @@ class DevicesConfig(object):
         if isinstance(value, int):
             self._control_colimator_addr = value
         else:
-            raise ConfigurationError(
-                'Invalid value for control_colimator_addr.')
+            raise TypeError(
+                'control_colimator_addr must be a integer.')
 
     def read_file(self, filename):
         """Read devices configuration from file.
@@ -354,7 +354,7 @@ class MeasurementConfig(object):
         if value in [0, 1]:
             self._meas_probeX = value
         else:
-            raise ConfigurationError('Invalid value for meas_probeX')
+            raise ValueError('Invalid value for meas_probeX')
 
     @property
     def meas_probeY(self):
@@ -366,7 +366,7 @@ class MeasurementConfig(object):
         if value in [0, 1]:
             self._meas_probeY = value
         else:
-            raise ConfigurationError('Invalid value for meas_probeY')
+            raise ValueError('Invalid value for meas_probeY')
 
     @property
     def meas_probeZ(self):
@@ -378,7 +378,7 @@ class MeasurementConfig(object):
         if value in [0, 1]:
             self._meas_probeZ = value
         else:
-            raise ConfigurationError('Invalid value for meas_probeZ')
+            raise ValueError('Invalid value for meas_probeZ')
 
     @property
     def meas_precision(self):
@@ -390,7 +390,7 @@ class MeasurementConfig(object):
         if value in [0, 1]:
             self._meas_precision = value
         else:
-            raise ConfigurationError('Invalid value for meas_precision')
+            raise ValueError('Invalid value for meas_precision')
 
     @property
     def meas_trig_axis(self):
@@ -402,7 +402,7 @@ class MeasurementConfig(object):
         if value in [1, 2, 3, 5]:
             self._meas_trig_axis = value
         else:
-            raise ConfigurationError('Invalid value for meas_trig_axis')
+            raise ValueError('Invalid value for meas_trig_axis')
 
     def read_file(self, filename):
         """Read measurement configuration from file.

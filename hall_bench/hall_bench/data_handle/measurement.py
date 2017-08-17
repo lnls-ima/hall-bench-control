@@ -166,7 +166,8 @@ class DataSet(object):
 class LineScan(object):
     """Line scan data."""
 
-    def __init__(self, posx, posy, posz, calibration_data, dirpath):
+    def __init__(self, posx, posy, posz, calibration_data, dirpath,
+                 overwrite_calibration=False):
         """Initialize variables.
 
         Args:
@@ -175,6 +176,7 @@ class LineScan(object):
             posz (float or array): z position of the scan line.
             calibration_data (CalibrationData): probe calibration data.
             dirpath (str): directory path to save files.
+            overwrite_calibration (bool): if True overwrite calibration file.
         """
         if not isinstance(posx, _np.ndarray):
             posx = _np.array(posx)
@@ -211,7 +213,7 @@ class LineScan(object):
             raise TypeError(
                 'calibration_data must be a CalibrationData object.')
 
-        self._save_calibration()
+        self._save_calibration(overwrite_calibration)
         self._timestamp = ''
         self._voltage_raw = []
         self._voltage_interpolated = []
@@ -222,17 +224,17 @@ class LineScan(object):
         self._field_first_integral = None
         self._field_second_integral = None
 
-    def _save_calibration(self):
+    def _save_calibration(self, overwrite_calibration):
         calibration_filename = 'calibration_data.txt'
         calibration_fullpath = _os.path.join(
             self.dirpath, calibration_filename)
 
-        if _os.path.isfile(calibration_fullpath):
+        if not overwrite_calibration and _os.path.isfile(calibration_fullpath):
             tmp_calib_data = _calibration.CalibrationData(calibration_fullpath)
             if not self._calibration_data == tmp_calib_data:
                 raise MeasurementDataError('Inconsistent calibration files.')
-        else:
-            self._calibration_data.save_file(calibration_fullpath)
+
+        self._calibration_data.save_file(calibration_fullpath)
 
     @staticmethod
     def copy(linescan):
@@ -762,13 +764,15 @@ class LineScan(object):
 class Measurement(object):
     """Measurement data."""
 
-    def __init__(self, devices_config, measurement_config, dirpath):
+    def __init__(self, devices_config, measurement_config, dirpath,
+                 overwrite_config=False):
         """Initialize variables.
 
         Args:
             devices_config (DevicesConfig): devices configuration.
             measurement_config (MeasurementConfig): measurement configuration.
             dirpath (str): directory path to save files.
+            overwrite_config (bool): if True overwrite configuration files.
         """
         if isinstance(dirpath, str):
             self.dirpath = dirpath
@@ -792,30 +796,29 @@ class Measurement(object):
             raise TypeError(
                 'measurement_config must be a MeasurementConfig object.')
 
-        self._save_configuration()
+        self._save_configuration(overwrite_config)
         self._scan_axis = None
         self._data = {}
 
-    def _save_configuration(self):
+    def _save_configuration(self, overwrite_config):
         dc_filename = 'devices_configuration.txt'
         mc_filename = 'measurement_configuration.txt'
 
         dc_fullpath = _os.path.join(self.dirpath, dc_filename)
         mc_fullpath = _os.path.join(self.dirpath, mc_filename)
 
-        if _os.path.isfile(dc_fullpath):
+        if not overwrite_config and _os.path.isfile(dc_fullpath):
             tmp_devices_config = _configuration.DevicesConfig(dc_fullpath)
             if not self._devices_config == tmp_devices_config:
                 raise MeasurementDataError('Inconsistent configuration files.')
-        else:
-            self._devices_config.save_file(dc_fullpath)
 
-        if _os.path.isfile(mc_fullpath):
+        if not overwrite_config and _os.path.isfile(mc_fullpath):
             tmp_meas_config = _configuration.MeasurementConfig(mc_fullpath)
             if not self._measurement_config == tmp_meas_config:
                 raise MeasurementDataError('Inconsistent configuration files.')
-        else:
-            self._measurement_config.save_file(mc_fullpath)
+
+        self._devices_config.save_file(dc_fullpath)
+        self._measurement_config.save_file(mc_fullpath)
 
     @property
     def scan_axis(self):

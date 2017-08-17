@@ -6,14 +6,6 @@ import struct as _struct
 from . import GPIBLib as _GPIBLib
 
 
-class DeviceError(Exception):
-    """Device exception."""
-
-    def __init__(self, message, *args):
-        """Initialize variables."""
-        self.message = message
-
-
 class DigitalMultimeter(_GPIBLib.GPIB_A3458A):
     """Hall bench digital multimeter."""
 
@@ -25,10 +17,10 @@ class DigitalMultimeter(_GPIBLib.GPIB_A3458A):
             address (int): device address.
         """
         if not isinstance(logfile, str):
-            raise DeviceError('Invalid value for logfile arg.')
+            raise TypeError('logfile must be a string.')
 
         if not isinstance(address, int):
-            raise DeviceError('Invalid value for address arg.')
+            raise TypeError('address must be a string.')
 
         self.logfile = logfile
         self.address = address

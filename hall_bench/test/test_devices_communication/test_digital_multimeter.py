@@ -17,7 +17,7 @@ class TestDigitalMultimeter(unittest.TestCase):
         pass
 
     def test_initialization_with_none_args(self):
-        with self.assertRaises(devices.DeviceError):
+        with self.assertRaises(TypeError):
             dm = devices.DigitalMultimeter(None, None)
 
     def test_initialization_empty_logfile_str(self):

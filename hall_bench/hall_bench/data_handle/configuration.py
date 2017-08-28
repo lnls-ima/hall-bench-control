@@ -12,14 +12,14 @@ class ConfigurationError(Exception):
         self.message = message
 
 
-class DevicesConfig(object):
-    """Read, write and stored devices configuration data."""
+class ConnectionConfig(object):
+    """Read, write and stored connection configuration data."""
 
     def __init__(self, filename=None):
         """Initialize variables.
 
         Args:
-            filename (str): devices configuration file path.
+            filename (str): connection configuration file path.
         """
         if filename is not None:
             self.read_file(filename)
@@ -184,7 +184,7 @@ class DevicesConfig(object):
                 'control_colimator_addr must be a integer.')
 
     def read_file(self, filename):
-        """Read devices configuration from file.
+        """Read connection configuration from file.
 
         Args:
             filename (str): configuration file path.
@@ -227,7 +227,7 @@ class DevicesConfig(object):
             return False
 
     def clear(self):
-        """Clear devices configuration."""
+        """Clear connection configuration."""
         self._control_pmac_enable = None
         self._control_voltx_enable = None
         self._control_volty_enable = None
@@ -241,7 +241,7 @@ class DevicesConfig(object):
         self._control_colimator_addr = None
 
     def save_file(self, filename):
-        """Save devices configuration to file.
+        """Save connection configuration to file.
 
         Args:
             filename (str): configuration file path.

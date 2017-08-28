@@ -679,8 +679,8 @@ class TestMeasurement(unittest.TestCase):
         self.dirpath = os.path.join(parentdir, 'measurement_data')
         self.calibration = calibration.CalibrationData(
             'calibration_data.txt')
-        self.dconfig = configuration.DevicesConfig(
-            'devices_configuration_file.txt')
+        self.cconfig = configuration.ConnectionConfig(
+            'connection_configuration_file.txt')
         self.mconfig = configuration.MeasurementConfig(
             'measurement_configuration_file.txt')
 
@@ -691,10 +691,10 @@ class TestMeasurement(unittest.TestCase):
 
     def test_initialization_invalid_dirpath(self):
         with self.assertRaises(ValueError):
-            m = measurement.Measurement(self.dconfig, self.mconfig, '')
+            m = measurement.Measurement(self.cconfig, self.mconfig, '')
 
     def test_initialization_valid_dirpath(self):
-        m = measurement.Measurement(self.dconfig, self.mconfig, self.dirpath)
+        m = measurement.Measurement(self.cconfig, self.mconfig, self.dirpath)
         self.assertEqual(m.dirpath, self.dirpath)
         self.assertIsNone(m.scan_axis)
         self.assertEqual(len(m.data), 0)
@@ -703,7 +703,7 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(len(m.posz), 0)
 
     def test_add_empty_line_scan(self):
-        m = measurement.Measurement(self.dconfig, self.mconfig, self.dirpath)
+        m = measurement.Measurement(self.cconfig, self.mconfig, self.dirpath)
 
         posx = 1
         posy = 2
@@ -715,7 +715,7 @@ class TestMeasurement(unittest.TestCase):
             m.add_line_scan(ls)
 
     def test_add_line_scan(self):
-        m = measurement.Measurement(self.dconfig, self.mconfig, self.dirpath)
+        m = measurement.Measurement(self.cconfig, self.mconfig, self.dirpath)
 
         posx = 1
         posy = 2
@@ -738,7 +738,7 @@ class TestMeasurement(unittest.TestCase):
         np.testing.assert_array_almost_equal(m.posz, posz)
 
     def test_add_same_line_scan_twice(self):
-        m = measurement.Measurement(self.dconfig, self.mconfig, self.dirpath)
+        m = measurement.Measurement(self.cconfig, self.mconfig, self.dirpath)
 
         posx = 1
         posy = 2
@@ -759,7 +759,7 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(len(m.data), 1)
 
     def test_add_line_scan_different_axis(self):
-        m = measurement.Measurement(self.dconfig, self.mconfig, self.dirpath)
+        m = measurement.Measurement(self.cconfig, self.mconfig, self.dirpath)
 
         posx = 1
         posy = 2
@@ -786,7 +786,7 @@ class TestMeasurement(unittest.TestCase):
             m.add_line_scan(ls2)
 
     def test_add_line_scan_different_line(self):
-        m = measurement.Measurement(self.dconfig, self.mconfig, self.dirpath)
+        m = measurement.Measurement(self.cconfig, self.mconfig, self.dirpath)
 
         posz = np.linspace(0, 20, 11)
 
@@ -811,7 +811,7 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(len(m.data), 2)
 
     def test_clear(self):
-        m = measurement.Measurement(self.dconfig, self.mconfig, self.dirpath)
+        m = measurement.Measurement(self.cconfig, self.mconfig, self.dirpath)
 
         posx = 1
         posy = 2
@@ -875,7 +875,7 @@ class TestMeasurement(unittest.TestCase):
         by = np.ones(22)*np.nan
         bz = np.ones(22)*np.nan
 
-        m = measurement.Measurement(self.dconfig, self.mconfig, self.dirpath)
+        m = measurement.Measurement(self.cconfig, self.mconfig, self.dirpath)
         m.recover_saved_data()
         field_avg_data = m._get_field_avg_data()
         self.assertEqual(m.scan_axis, 'z')

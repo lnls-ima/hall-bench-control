@@ -5,19 +5,19 @@ import unittest
 from hall_bench.data_handle import configuration
 
 
-class TestDevicesConfig(unittest.TestCase):
-    """Test devices configuration."""
+class TestConnectionConfig(unittest.TestCase):
+    """Test connection configuration."""
 
     def setUp(self):
         """Set up."""
-        self.filename = 'devices_configuration_file.txt'
+        self.filename = 'connection_configuration_file.txt'
 
     def tearDown(self):
         """Tear down."""
         pass
 
     def test_initialization_without_filename(self):
-        c = configuration.DevicesConfig()
+        c = configuration.ConnectionConfig()
         self.assertIsNone(c.control_pmac_enable)
         self.assertIsNone(c.control_voltx_enable)
         self.assertIsNone(c.control_volty_enable)
@@ -31,7 +31,7 @@ class TestDevicesConfig(unittest.TestCase):
         self.assertIsNone(c.control_colimator_addr)
 
     def test_initialization_with_filename(self):
-        c = configuration.DevicesConfig(self.filename)
+        c = configuration.ConnectionConfig(self.filename)
         self.assertEqual(c.control_pmac_enable, 1)
         self.assertEqual(c.control_voltx_enable, 1)
         self.assertEqual(c.control_volty_enable, 1)
@@ -45,7 +45,7 @@ class TestDevicesConfig(unittest.TestCase):
         self.assertEqual(c.control_colimator_addr, 3)
 
     def test_read_file(self):
-        c = configuration.DevicesConfig()
+        c = configuration.ConnectionConfig()
         c.read_file(self.filename)
         self.assertEqual(c.control_pmac_enable, 1)
         self.assertEqual(c.control_voltx_enable, 1)
@@ -60,17 +60,17 @@ class TestDevicesConfig(unittest.TestCase):
         self.assertEqual(c.control_colimator_addr, 3)
 
     def test_valid_configuration(self):
-        cnf = configuration.DevicesConfig()
+        cnf = configuration.ConnectionConfig()
         self.assertFalse(cnf.valid_configuration())
 
-        cwf = configuration.DevicesConfig(self.filename)
+        cwf = configuration.ConnectionConfig(self.filename)
         self.assertTrue(cwf.valid_configuration())
 
         cwf._control_pmac_enable = None
         self.assertFalse(cwf.valid_configuration())
 
     def test_clear(self):
-        c = configuration.DevicesConfig(self.filename)
+        c = configuration.ConnectionConfig(self.filename)
         self.assertTrue(c.valid_configuration())
 
         c.clear()
@@ -87,8 +87,8 @@ class TestDevicesConfig(unittest.TestCase):
         self.assertIsNone(c.control_colimator_addr)
 
     def test_save_file(self):
-        filename = 'devices_configuration_tmp_file.txt'
-        cw = configuration.DevicesConfig()
+        filename = 'connection_configuration_tmp_file.txt'
+        cw = configuration.ConnectionConfig()
         cw.control_pmac_enable = 0
         cw.control_voltx_enable = 0
         cw.control_volty_enable = 0
@@ -102,7 +102,7 @@ class TestDevicesConfig(unittest.TestCase):
         cw.control_colimator_addr = 5
         cw.save_file(filename)
 
-        cr = configuration.DevicesConfig(filename)
+        cr = configuration.ConnectionConfig(filename)
         self.assertEqual(cr.control_pmac_enable, cw.control_pmac_enable)
         self.assertEqual(cr.control_voltx_enable, cw.control_voltx_enable)
         self.assertEqual(cr.control_volty_enable, cw.control_volty_enable)
@@ -118,8 +118,8 @@ class TestDevicesConfig(unittest.TestCase):
         os.remove(filename)
 
     def test_save_file_raise_exception(self):
-        filename = 'devices_configuration_tmp_file.txt'
-        c = configuration.DevicesConfig()
+        filename = 'connection_configuration_tmp_file.txt'
+        c = configuration.ConnectionConfig()
         with self.assertRaises(configuration.ConfigurationError):
             c.save_file(filename)
 
@@ -311,7 +311,7 @@ class TestMeasurementConfig(unittest.TestCase):
 def get_suite():
     suite_list = []
     suite_list.append(unittest.TestLoader().loadTestsFromTestCase(
-        TestDevicesConfig))
+        TestConnectionConfig))
     suite_list.append(unittest.TestLoader().loadTestsFromTestCase(
         TestMeasurementConfig))
     return unittest.TestSuite(suite_list)

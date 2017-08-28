@@ -760,7 +760,7 @@
                 <enum>QLayout::SetDefaultConstraint</enum>
                </property>
                <item>
-                <widget class="QGroupBox" name="gb_devices_config">
+                <widget class="QGroupBox" name="gb_connection_config">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                    <horstretch>0</horstretch>
@@ -777,7 +777,7 @@
                  </property>
                  <layout class="QGridLayout" name="gridLayout">
                   <item row="0" column="1" colspan="2">
-                   <widget class="QLineEdit" name="le_devices_config_filename">
+                   <widget class="QLineEdit" name="le_connection_config_filename">
                     <property name="minimumSize">
                      <size>
                       <width>410</width>
@@ -805,7 +805,7 @@
                    </widget>
                   </item>
                   <item row="1" column="0" colspan="2">
-                   <widget class="QPushButton" name="pb_load_devices_config">
+                   <widget class="QPushButton" name="pb_load_connection_config">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                       <horstretch>0</horstretch>
@@ -835,7 +835,7 @@
                    </widget>
                   </item>
                   <item row="1" column="2">
-                   <widget class="QPushButton" name="pb_save_devices_config">
+                   <widget class="QPushButton" name="pb_save_connection_config">
                     <property name="minimumSize">
                      <size>
                       <width>250</width>
@@ -859,7 +859,7 @@
                    </widget>
                   </item>
                   <item row="0" column="0">
-                   <widget class="QLabel" name="la_devices_config_filename">
+                   <widget class="QLabel" name="la_connection_config_filename">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -3034,9 +3034,9 @@
   <tabstop>cb_multich_enable</tabstop>
   <tabstop>cb_colimator_enable</tabstop>
   <tabstop>cb_colimator_port</tabstop>
-  <tabstop>le_devices_config_filename</tabstop>
-  <tabstop>pb_load_devices_config</tabstop>
-  <tabstop>pb_save_devices_config</tabstop>
+  <tabstop>le_connection_config_filename</tabstop>
+  <tabstop>pb_load_connection_config</tabstop>
+  <tabstop>pb_save_connection_config</tabstop>
   <tabstop>pb_connect_devices</tabstop>
   <tabstop>pb_disconnect_devices</tabstop>
   <tabstop>pb_activate_bench</tabstop>

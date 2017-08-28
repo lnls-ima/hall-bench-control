@@ -43,7 +43,7 @@ class HallBenchGUI(QtGui.QWidget):
         """Initialize variables with default values."""
         self.selected_axis = -1
 
-        self.dconfig = None
+        self.cconfig = None
         self.mconfig = None
         self.devices = None
 
@@ -74,11 +74,11 @@ class HallBenchGUI(QtGui.QWidget):
     def _connect_signals_slots(self):
         """Make the connections between signals and slots."""
         # load and save device parameters
-        self.ui.pb_load_devices_config.clicked.connect(
-            self.load_devices_configuration_file)
+        self.ui.pb_load_connection_config.clicked.connect(
+            self.load_connection_configuration_file)
 
-        self.ui.pb_save_devices_config.clicked.connect(
-            self.save_devices_configuration_file)
+        self.ui.pb_save_connection_config.clicked.connect(
+            self.save_connection_configuration_file)
 
         # connect devices
         self.ui.pb_connect_devices.clicked.connect(self.connect_devices)
@@ -204,94 +204,94 @@ class HallBenchGUI(QtGui.QWidget):
         except Exception:
             pass
 
-    def load_devices_configuration_file(self):
-        """Load configuration data to set devices parameters."""
+    def load_connection_configuration_file(self):
+        """Load configuration file to set connection parameters."""
         filename = QtGui.QFileDialog.getOpenFileName(
-            self, 'Open devices configuration file')
+            self, 'Open connection configuration file')
 
         if len(filename) != 0:
             try:
-                if self.dconfig is None:
-                    self.dconfig = configuration.DevicesConfig(filename)
+                if self.cconfig is None:
+                    self.cconfig = configuration.ConnectionConfig(filename)
                 else:
-                    self.dconfig.read_file(filename)
+                    self.cconfig.read_file(filename)
             except configuration.ConfigurationFileError as e:
                 QtGui.QMessageBox.critical(
                     self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
                 return
 
-            self.ui.le_devices_config_filename.setText(filename)
+            self.ui.le_connection_config_filename.setText(filename)
 
-            self.ui.cb_pmac_enable.setChecked(self.dconfig.control_pmac_enable)
+            self.ui.cb_pmac_enable.setChecked(self.cconfig.control_pmac_enable)
 
             self.ui.cb_dmm_x_enable.setChecked(
-                self.dconfig.control_voltx_enable)
+                self.cconfig.control_voltx_enable)
             self.ui.sb_dmm_x_address.setValue(
-                self.dconfig.control_voltx_addr)
+                self.cconfig.control_voltx_addr)
 
             self.ui.cb_dmm_y_enable.setChecked(
-                self.dconfig.control_volty_enable)
+                self.cconfig.control_volty_enable)
             self.ui.sb_dmm_y_address.setValue(
-                self.dconfig.control_volty_addr)
+                self.cconfig.control_volty_addr)
 
             self.ui.cb_dmm_z_enable.setChecked(
-                self.dconfig.control_voltz_enable)
+                self.cconfig.control_voltz_enable)
             self.ui.sb_dmm_z_address.setValue(
-                self.dconfig.control_voltz_addr)
+                self.cconfig.control_voltz_addr)
 
             self.ui.cb_multich_enable.setChecked(
-                self.dconfig.control_multich_enable)
+                self.cconfig.control_multich_enable)
 
             self.ui.sb_multich_address.setValue(
-                self.dconfig.control_multich_addr)
+                self.cconfig.control_multich_addr)
 
             self.ui.cb_colimator_enable.setChecked(
-                self.dconfig.control_colimator_enable)
+                self.cconfig.control_colimator_enable)
 
             self.ui.cb_colimator_port.setCurrentIndex(
-                self.dconfig.control_colimator_addr)
+                self.cconfig.control_colimator_addr)
 
-    def save_devices_configuration_file(self):
-        """Save devices parameters to file."""
+    def save_connection_configuration_file(self):
+        """Save connection parameters to file."""
         filename = QtGui.QFileDialog.getSaveFileName(
-            self, 'Save devices configuration file')
+            self, 'Save connection configuration file')
 
         if len(filename) != 0:
-            if self._update_devices_configuration():
+            if self._update_connection_configuration():
                 try:
-                    self.dconfig.save_file(filename)
+                    self.cconfig.save_file(filename)
                 except configuration.ConfigurationFileError as e:
                     QtGui.QMessageBox.critical(
                         self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
 
-    def _update_devices_configuration(self):
-        if self.dconfig is None:
-            self.dconfig = configuration.DevicesConfig()
+    def _update_connection_configuration(self):
+        if self.cconfig is None:
+            self.cconfig = configuration.ConnectionConfig()
 
-        self.dconfig.control_pmac_enable = self.ui.cb_pmac_enable.isChecked()
+        self.cconfig.control_pmac_enable = self.ui.cb_pmac_enable.isChecked()
 
-        self.dconfig.control_voltx_enable = self.ui.cb_dmm_x_enable.isChecked()
-        self.dconfig.control_volty_enable = self.ui.cb_dmm_y_enable.isChecked()
-        self.dconfig.control_voltz_enable = self.ui.cb_dmm_z_enable.isChecked()
+        self.cconfig.control_voltx_enable = self.ui.cb_dmm_x_enable.isChecked()
+        self.cconfig.control_volty_enable = self.ui.cb_dmm_y_enable.isChecked()
+        self.cconfig.control_voltz_enable = self.ui.cb_dmm_z_enable.isChecked()
 
         multich_enable = self.ui.cb_multich_enable.isChecked()
         colimator_enable = self.ui.cb_colimator_enable.isChecked()
-        self.dconfig.control_multich_enable = multich_enable
-        self.dconfig.control_colimator_enable = colimator_enable
+        self.cconfig.control_multich_enable = multich_enable
+        self.cconfig.control_colimator_enable = colimator_enable
 
-        self.dconfig.control_voltx_addr = self.ui.sb_dmm_x_address.value()
-        self.dconfig.control_volty_addr = self.ui.sb_dmm_y_address.value()
-        self.dconfig.control_voltz_addr = self.ui.sb_dmm_z_address.value()
+        self.cconfig.control_voltx_addr = self.ui.sb_dmm_x_address.value()
+        self.cconfig.control_volty_addr = self.ui.sb_dmm_y_address.value()
+        self.cconfig.control_voltz_addr = self.ui.sb_dmm_z_address.value()
 
         multich_addr = self.ui.sb_multich_address.value()
         colimator_addr = self.ui.cb_colimator_port.currentIndex()
-        self.dconfig.control_multich_addr = multich_addr
-        self.dconfig.control_colimator_addr = colimator_addr
+        self.cconfig.control_multich_addr = multich_addr
+        self.cconfig.control_colimator_addr = colimator_addr
 
-        if self.dconfig.valid_configuration():
+        if self.cconfig.valid_configuration():
             return True
         else:
-            message = 'Invalid devices configuration'
+            message = 'Invalid connection configuration'
             QtGui.QMessageBox.critical(
                 self, 'Failure', message, QtGui.QMessageBox.Ignore)
             return False
@@ -399,15 +399,15 @@ class HallBenchGUI(QtGui.QWidget):
 
     def connect_devices(self):
         """Connect bench devices."""
-        if not self._update_devices_configuration():
+        if not self._update_connection_configuration():
             return
 
-        self.devices = HallBenchDevices(self.dconfig)
+        self.devices = HallBenchDevices(self.cconfig)
         self.devices.load()
         self.devices.connect()
         self._update_led_status()
 
-        if self.dconfig.control_pmac_enable:
+        if self.cconfig.control_pmac_enable:
             if self.devices.pmac_connected:
                 self.ui.tab.setTabEnabled(1, True)
                 self.ui.tab.setTabEnabled(2, True)
@@ -463,7 +463,7 @@ class HallBenchGUI(QtGui.QWidget):
         if self.devices is None:
             return
 
-        if self.dconfig.control_pmac_enable and self.devices.pmac_connected:
+        if self.cconfig.control_pmac_enable and self.devices.pmac_connected:
             if not self.devices.pmac.activate_bench():
                 message = 'Failed to active bench.'
                 QtGui.QMessageBox.critical(
@@ -571,7 +571,7 @@ class HallBenchGUI(QtGui.QWidget):
 
         try:
             self.current_measurement = measurement.Measurement(
-                self.dconfig, self.mconfig, self.dirpath)
+                self.cconfig, self.mconfig, self.dirpath)
             print(self.current_measurement)
         except measurement.MeasurementDataError:
             question = 'Inconsistent configuration files. Overwrite files?'
@@ -579,7 +579,7 @@ class HallBenchGUI(QtGui.QWidget):
                 self, 'Question', question, 'Yes', button1Text='No')
             if reply == 0:
                 self.current_measurement = measurement.Measurement(
-                    self.dconfig, self.mconfig, self.dirpath,
+                    self.cconfig, self.mconfig, self.dirpath,
                     overwrite_config=True)
             else:
                 return
@@ -1157,7 +1157,7 @@ class SaveMeasurementDialog(QtGui.QDialog):
 class HallBenchDevices(object):
     """Hall Bench Devices."""
 
-    def __init__(self, devices_configururation):
+    def __init__(self, connection_configururation):
         """Initiate variables."""
         self.pmac = None
         self.voltx = None
@@ -1170,7 +1170,7 @@ class HallBenchDevices(object):
         self.volty_connected = False
         self.voltz_connected = False
         self.multich_connected = False
-        self.config = devices_configururation
+        self.config = connection_configururation
 
     def load(self):
         """Load devices."""

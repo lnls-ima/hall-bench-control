@@ -764,12 +764,12 @@ class LineScan(object):
 class Measurement(object):
     """Measurement data."""
 
-    def __init__(self, devices_config, measurement_config, dirpath,
+    def __init__(self, connection_config, measurement_config, dirpath,
                  overwrite_config=False):
         """Initialize variables.
 
         Args:
-            devices_config (DevicesConfig): devices configuration.
+            connection_config (ConnectionConfig): connection configuration.
             measurement_config (MeasurementConfig): measurement configuration.
             dirpath (str): directory path to save files.
             overwrite_config (bool): if True overwrite configuration files.
@@ -785,10 +785,11 @@ class Measurement(object):
             self.dirpath = None
             raise TypeError('dirpath must be a string.')
 
-        if isinstance(devices_config, _configuration.DevicesConfig):
-            self._devices_config = devices_config
+        if isinstance(connection_config, _configuration.ConnectionConfig):
+            self._connection_config = connection_config
         else:
-            raise TypeError('devices_config must be a DevicesConfig object.')
+            message = 'connection_config must be a ConnectionConfig object.'
+            raise TypeError(message)
 
         if isinstance(measurement_config, _configuration.MeasurementConfig):
             self._measurement_config = measurement_config
@@ -801,15 +802,15 @@ class Measurement(object):
         self._data = {}
 
     def _save_configuration(self, overwrite_config):
-        dc_filename = 'devices_configuration.txt'
+        dc_filename = 'connection_configuration.txt'
         mc_filename = 'measurement_configuration.txt'
 
         dc_fullpath = _os.path.join(self.dirpath, dc_filename)
         mc_fullpath = _os.path.join(self.dirpath, mc_filename)
 
         if not overwrite_config and _os.path.isfile(dc_fullpath):
-            tmp_devices_config = _configuration.DevicesConfig(dc_fullpath)
-            if not self._devices_config == tmp_devices_config:
+            tmp_conn_config = _configuration.ConnectionConfig(dc_fullpath)
+            if not self._connection_config == tmp_conn_config:
                 raise MeasurementDataError('Inconsistent configuration files.')
 
         if not overwrite_config and _os.path.isfile(mc_fullpath):
@@ -817,7 +818,7 @@ class Measurement(object):
             if not self._measurement_config == tmp_meas_config:
                 raise MeasurementDataError('Inconsistent configuration files.')
 
-        self._devices_config.save_file(dc_fullpath)
+        self._connection_config.save_file(dc_fullpath)
         self._measurement_config.save_file(mc_fullpath)
 
     @property
@@ -858,9 +859,9 @@ class Measurement(object):
         return self._data
 
     @property
-    def devices_config(self):
-        """Device configuration."""
-        return self._devices_config
+    def connection_config(self):
+        """Connection configuration."""
+        return self._connection_config
 
     @property
     def measurement_config(self):

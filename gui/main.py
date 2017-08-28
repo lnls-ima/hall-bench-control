@@ -958,19 +958,37 @@ class SaveMeasurementDialog(QtGui.QDialog):
             self.load_magnet_info)
 
         self.ui.cb_main.stateChanged.connect(
-            lambda: self.enabled_coil(self.ui.cb_main, self.ui.fm_main))
+            lambda: self.enabled_coil(
+                self.ui.cb_main, self.ui.fm_main,
+                self.ui.le_main_current, self.ui.le_main_turns))
 
         self.ui.cb_trim.stateChanged.connect(
-            lambda: self.enabled_coil(self.ui.cb_trim, self.ui.fm_trim))
+            lambda: self.enabled_coil(
+                self.ui.cb_trim, self.ui.fm_trim,
+                self.ui.le_trim_current, self.ui.le_trim_turns))
 
         self.ui.cb_ch.stateChanged.connect(
-            lambda: self.enabled_coil(self.ui.cb_ch, self.ui.fm_ch))
+            lambda: self.enabled_coil(
+                self.ui.cb_ch, self.ui.fm_ch,
+                self.ui.le_ch_current, self.ui.le_ch_turns))
 
         self.ui.cb_cv.stateChanged.connect(
-            lambda: self.enabled_coil(self.ui.cb_cv, self.ui.fm_cv))
+            lambda: self.enabled_coil(
+                self.ui.cb_cv, self.ui.fm_cv,
+                self.ui.le_cv_current, self.ui.le_cv_turns))
 
         self.ui.cb_qs.stateChanged.connect(
-            lambda: self.enabled_coil(self.ui.cb_qs, self.ui.fm_qs))
+            lambda: self.enabled_coil(
+                self.ui.cb_qs, self.ui.fm_qs,
+                self.ui.le_qs_current, self.ui.le_qs_turns))
+
+        self.ui.pb_add_row.clicked.connect(
+            lambda: self.ui.ta_additional.setRowCount(
+                self.ui.ta_additional.rowCount() + 1))
+
+        self.ui.pb_remove_row.clicked.connect(
+            lambda: self.ui.ta_additional.setRowCount(
+                self.ui.ta_additional.rowCount() - 1))
 
         self.ui.pb_save.clicked.connect(self.save_measurement)
 
@@ -979,12 +997,14 @@ class SaveMeasurementDialog(QtGui.QDialog):
         if self.measurement is not None:
             self.exec_()
 
-    def enabled_coil(self, checkbox, frame):
+    def enabled_coil(self, checkbox, frame, line_edit_1, line_edit_2):
         """Enabled or disabled coil frame."""
         if checkbox.isChecked():
             frame.setEnabled(True)
         else:
             frame.setEnabled(False)
+            line_edit_1.clear()
+            line_edit_2.clear()
 
     def load_magnet_info(self):
         """Load pre-defined magnet info."""
@@ -995,93 +1015,134 @@ class SaveMeasurementDialog(QtGui.QDialog):
         m = magnets_info.get_magnet_info(self.ui.cb_predefined.currentText())
 
         if m is not None:
-            self.ui.la_predefined_description.setText(m['description'])
-            self.ui.le_gap.setText(str(m['gap']))
-            self.ui.le_control_gap.setText(str(m['control_gap']))
-            self.ui.le_magnet_length.setText(str(m['length']))
+            m.pop('name')
+            self.ui.ta_additional.setRowCount(0)
+            self.ui.la_predefined_description.setText(m.pop('description'))
+            self.ui.le_gap.setText(str(m.pop('gap[mm]')))
+            self.ui.le_control_gap.setText(str(m.pop('control_gap[mm]')))
+            self.ui.le_magnet_length.setText(str(m.pop('magnet_length[mm]')))
 
-            if 'main_coil_turns' in m.keys():
-                self.ui.le_main_turns.setText(str(m['main_coil_turns']))
+            if 'nr_turns_main' in m.keys():
+                self.ui.le_main_turns.setText(str(m.pop('nr_turns_main')))
                 self.ui.cb_main.setChecked(True)
             else:
                 self.ui.le_main_turns.setText('')
                 self.ui.cb_main.setChecked(False)
 
-            if 'trim_coil_turns' in m.keys():
+            if 'nr_turns_trim' in m.keys():
                 self.ui.le_trim_current.setText('0')
-                self.ui.le_trim_turns.setText(str(m['trim_coil_turns']))
+                self.ui.le_trim_turns.setText(str(m.pop('nr_turns_trim')))
                 self.ui.cb_trim.setChecked(True)
             else:
                 self.ui.le_trim_current.setText('')
                 self.ui.le_trim_turns.setText('')
                 self.ui.cb_trim.setChecked(False)
 
-            if 'ch_coil_turns' in m.keys():
+            if 'nr_turns_ch' in m.keys():
                 self.ui.le_ch_current.setText('0')
-                self.ui.le_ch_turns.setText(str(m['ch_coil_turns']))
+                self.ui.le_ch_turns.setText(str(m.pop('nr_turns_ch')))
                 self.ui.cb_ch.setChecked(True)
             else:
                 self.ui.le_ch_current.setText('')
                 self.ui.le_ch_turns.setText('')
                 self.ui.cb_ch.setChecked(False)
 
-            if 'cv_coil_turns' in m.keys():
+            if 'nr_turns_cv' in m.keys():
                 self.ui.le_cv_current.setText('0')
-                self.ui.le_cv_turns.setText(str(m['cv_coil_turns']))
+                self.ui.le_cv_turns.setText(str(m.pop('nr_turns_cv')))
                 self.ui.cb_cv.setChecked(True)
             else:
                 self.ui.le_cv_current.setText('')
                 self.ui.le_cv_turns.setText('')
                 self.ui.cb_cv.setChecked(False)
 
-            if 'qs_coil_turns' in m.keys():
+            if 'nr_turns_qs' in m.keys():
                 self.ui.le_qs_current.setText('0')
-                self.ui.le_qs_turns.setText(str(m['qs_coil_turns']))
+                self.ui.le_qs_turns.setText(str(m.pop('nr_turns_qs')))
                 self.ui.cb_qs.setChecked(True)
             else:
                 self.ui.le_qs_current.setText('')
                 self.ui.le_qs_turns.setText('')
                 self.ui.cb_qs.setChecked(False)
 
+            if len(m) != 0:
+                count = 0
+                for parameter, value in m.items():
+                    self.ui.ta_additional.setRowCount(count+1)
+                    self.ui.ta_additional.setItem(
+                        count, 0, QtGui.QTableWidgetItem(str(parameter)))
+                    self.ui.ta_additional.setItem(
+                        count, 1, QtGui.QTableWidgetItem(str(value)))
+                    count = count + 1
+
     def save_measurement(self):
         """Save measurement."""
         if self.measurement is not None:
+            info = []
+
+            datetime = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+            date = datetime.split('_')[0]
             magnet_name = self.ui.le_magnet_name.text()
             magnet_length = self.ui.le_magnet_length.text()
             gap = self.ui.le_gap.text()
             control_gap = self.ui.le_control_gap.text()
 
-            coils = []
+            info.append(['fieldmap_name', magnet_name])
+            info.append(['timestamp', datetime])
+            info.append(['nr_magnets', 1])
+            info.append(['magnet_name', magnet_name])
+            info.append(['gap[mm]', gap])
+            info.append(['control_gap[mm]', control_gap])
+            info.append(['magnet_length[mm]', magnet_length])
+
+            if len(magnet_name) != 0:
+                filename = magnet_name
+            else:
+                filename = 'hall_probe_measurement'
+
             if self.ui.cb_main.isChecked():
-                d = {}
-                d['name'] = 'main'
-                d['current'] = self.ui.le_main_current
-                d['turns'] = self.ui.le_main_turns
-                coils.append(d)
+                current = self.ui.le_main_current.text()
+                info.append(['current_main[A]', current])
+                info.append(['nr_turns_main', self.ui.le_main_turns.text()])
+                if len(current) != 0:
+                    filename = filename + '_Imc=' + current + 'A'
             if self.ui.cb_trim.isChecked():
-                d = {}
-                d['name'] = 'trim'
-                d['current'] = self.ui.le_trim_current
-                d['turns'] = self.ui.le_trim_turns
-                coils.append(d)
+                current = self.ui.le_trim_current.text()
+                info.append(['current_trim[A]', current])
+                info.append(['nr_turns_trim', self.ui.le_trim_turns.text()])
+                if len(current) != 0:
+                    filename = filename + '_Itc=' + current + 'A'
             if self.ui.cb_ch.isChecked():
-                d = {}
-                d['name'] = 'ch'
-                d['current'] = self.ui.le_ch_current
-                d['turns'] = self.ui.le_ch_turns
-                coils.append(d)
+                current = self.ui.le_ch_current.text()
+                info.append(['current_ch[A]', current])
+                info.append(['nr_turns_ch', self.ui.le_ch_turns.text()])
+                if len(current) != 0:
+                    filename = filename + '_Ich=' + current + 'A'
             if self.ui.cb_cv.isChecked():
-                d = {}
-                d['name'] = 'cv'
-                d['current'] = self.ui.le_cv_current
-                d['turns'] = self.ui.le_cv_turns
-                coils.append(d)
+                current = self.ui.le_cv_current.text()
+                info.append(['current_cv[A]', current])
+                info.append(['nr_turns_cv', self.ui.le_cv_turns.text()])
+                if len(current) != 0:
+                    filename = filename + '_Icv=' + current + 'A'
             if self.ui.cb_qs.isChecked():
-                d = {}
-                d['name'] = 'qs'
-                d['current'] = self.ui.le_qs_current
-                d['turns'] = self.ui.le_qs_turns
-                coils.append(d)
+                current = self.ui.le_qs_current.text()
+                info.append(['current_qs[A]', current])
+                info.append(['nr_turns_qs', self.ui.le_qs_turns.text()])
+                if len(current) != 0:
+                    filename = filename + '_Iqs=' + current + 'A'
+
+            filename = '{0:1s}_{1:1s}.dat'.format(date, filename)
+            info.insert(2, ['filename', filename])
+
+            for i in range(self.ui.ta_additional.rowCount()):
+                parameter = self.ui.ta_additional.item(i, 0).text()
+                value = self.ui.ta_additional.item(i, 1).text()
+                if len(value) != 0:
+                    info.append([parameter.replace(" ", ""), value])
+
+            info.append(['center_pos_z[mm]', '0'])
+            info.append(['center_pos_x[mm]', '0'])
+            info.append(['rotation[deg]', '0'])
 
             ref_pos_x = self.ui.sb_ref_pos_x.value()
             ref_pos_y = self.ui.sb_ref_pos_y.value()
@@ -1089,11 +1150,7 @@ class SaveMeasurementDialog(QtGui.QDialog):
             ref_pos = [ref_pos_x, ref_pos_y, ref_pos_z]
 
             self.measurement.save(
-                magnet_name=magnet_name,
-                magnet_length=magnet_length,
-                gap=gap,
-                control_gap=control_gap,
-                coils=coils,
+                fieldmap_info=info,
                 reference_position=ref_pos)
 
 

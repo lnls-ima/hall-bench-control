@@ -911,67 +911,43 @@ class Measurement(object):
             ls = LineScan.read_from_files(self.dirpath, pos_str=pos_str)
             self.add_line_scan(ls)
 
-    def save(self, magnet_name='', magnet_length='', gap='',
-             control_gap='', coils=[], reference_position=[0, 0, 0]):
+    def save(self, fieldmap_info=[], reference_position=[0, 0, 0]):
         """Save measurement data.
 
         Args:
-            magnet_name (str): magnet name.
-            magnet_length (str or float): magnet length [mm].
-            gap (str or float): air gap length [mm].
-            control_gap (str or float) : control air gap length [mm].
-            coils (list of dicts): list of dictionaries with name, current
-                                   and turns of each magnet coil.
+            fieldmap_info (list): list with variables and values to include in
+                                  the field map header lines.
             reference_position (list): reference position of the magnet.
         """
         if len(self._data) == 0:
             message = "Empty measurement."
             raise MeasurementDataError(message)
 
-        datetime = _utils.get_timestamp()
-        date = datetime.split('_')[0]
+        if len(fieldmap_info) != 0:
+            if any(len(line) != 2 for line in fieldmap_info):
+                raise ValueError('Invalid value for fieldmap_info.')
 
-        field_data = self._get_field_avg_data()
+        filename = next((
+            line[1] for line in fieldmap_info if 'filename' in line[0]), None)
+        if filename is None:
+            date = _utils.get_timestamp().split('_')[0]
+            filename = '{0:1s}_hall_probe_measurement.dat'.format(date)
 
-        if len(magnet_name) == 0:
-            fieldmap_name = 'hall_probe_measurement'
-        else:
-            fieldmap_name = magnet_name
-            for coil in coils:
-                coil_symbol = coil['name']
-                if len(coil_symbol) > 2:
-                    coil_symbol = coil_symbol[0] + 'c'
-                fieldmap_name = (
-                    fieldmap_name + '_' +
-                    + 'I' + coil_symbol + '=' + str(coil['current']) + 'A')
-
-        filename = '{0:1s}_{1:1s}.dat'.format(date, fieldmap_name)
         f = open(_os.path.join(self.dirpath, filename), 'w')
 
-        f.write('fieldmap_name:      \t{0:1s}\n'.format(fieldmap_name))
-        f.write('timestamp:          \t{0:1s}\n'.format(datetime))
-        f.write('filename:           \t{0:1s}\n'.format(filename))
-        f.write('nr_magnets:         \t1\n')
-        f.write('\n')
-        f.write('magnet_name:        \t{0:1s}\n'.format(magnet_name))
-        f.write('gap[mm]:            \t{0:1s}\n'.format(str(gap)))
-        f.write('control_gap:        \t{0:1s}\n'.format(str(control_gap)))
-        f.write('magnet_length[mm]:  \t{0:1s}\n'.format(str(magnet_length)))
+        for line in fieldmap_info:
+            variable = (str(line[0]) + ':').ljust(20)
+            value = str(line[1])
+            f.write('{1:1s}\t{0:1s}\n'.format(variable, value))
 
-        for coil in coils:
-            current_label = 'current_{0:1s}[A]:'.format(coil['name']).ljust(20)
-            turns_label = 'nr_turns_{0:1s}:'.format(coil['name']).ljust(20)
-            f.write(current_label + '\t{1:1s}\n'.format(str(coil['current'])))
-            f.write(turns_label + '\t{1:1s}\n'.format(str(coil['turns'])))
+        if len(fieldmap_info) != 0:
+            f.write('\n')
 
-        f.write('center_pos_z[mm]:   \t0\n')
-        f.write('center_pos_x[mm]:   \t0\n')
-        f.write('rotation[deg]:      \t0\n')
-        f.write('\n')
         f.write('X[mm]\tY[mm]\tZ[mm]\tBx\tBy\tBz [T]\n')
         f.write('-----------------------------------------------' +
                 '----------------------------------------------\n')
 
+        field_data = self._get_field_avg_data()
         for i in range(field_data.shape[0]):
             x = field_data[i, 0] - reference_position[0]
             y = field_data[i, 1] - reference_position[1]

@@ -632,6 +632,7 @@ class HallBenchGUI(QtGui.QWidget):
         if self.stop is False:
             self._move_to_start_position()
             self._plot_all()
+            self.current_measurement.save()
 
             message = 'End of measurements.'
             QtGui.QMessageBox.information(

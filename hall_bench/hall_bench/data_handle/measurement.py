@@ -939,7 +939,7 @@ class Measurement(object):
         for line in fieldmap_info:
             variable = (str(line[0]) + ':').ljust(20)
             value = str(line[1])
-            f.write('{1:1s}\t{0:1s}\n'.format(variable, value))
+            f.write('{0:1s}\t{1:1s}\n'.format(variable, value))
 
         if len(fieldmap_info) != 0:
             f.write('\n')

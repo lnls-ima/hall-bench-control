@@ -16,7 +16,7 @@ class TestFiles(unittest.TestCase):
         pass
 
     def test_invalid_filename(self):
-        with self.assertRaises(utils.HallBenchFileError):
+        with self.assertRaises(IOError):
             flines = utils.read_file('')
 
     def test_read_file(self):

@@ -45,6 +45,7 @@ class HallBenchGUI(QtGui.QWidget):
 
         self.cconfig = None
         self.mconfig = None
+        self.calibration = None
         self.devices = None
 
         self.tx = None
@@ -54,8 +55,6 @@ class HallBenchGUI(QtGui.QWidget):
         self.graph_curve_x = np.array([])
         self.graph_curve_y = np.array([])
         self.graph_curve_z = np.array([])
-
-        self.calibration_data = calibration.CalibrationData()
 
         self.current_postion_list = []
         self.current_line_scan = None
@@ -104,6 +103,13 @@ class HallBenchGUI(QtGui.QWidget):
 
         # kill all motors
         self.ui.pb_kill_all_motors.clicked.connect(self.kill_all_axis)
+
+        # load calibration data
+        self.ui.pb_load_calibration.clicked.connect(self.load_calibration_data)
+
+        self.ui.tb_probex.clicked.connect(lambda: self.screen_table('x'))
+        self.ui.tb_probey.clicked.connect(lambda: self.screen_table('y'))
+        self.ui.tb_probez.clicked.connect(lambda: self.screen_table('z'))
 
         # load and save measurements parameters
         self.ui.pb_load_measurement_config.clicked.connect(
@@ -211,13 +217,10 @@ class HallBenchGUI(QtGui.QWidget):
 
         if len(filename) != 0:
             try:
-                if self.cconfig is None:
-                    self.cconfig = configuration.ConnectionConfig(filename)
-                else:
-                    self.cconfig.read_file(filename)
-            except configuration.ConfigurationFileError as e:
+                self.cconfig = configuration.ConnectionConfig(filename)
+            except Exception as e:
                 QtGui.QMessageBox.critical(
-                    self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
+                    self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
                 return
 
             self.ui.le_connection_config_filename.setText(filename)
@@ -260,9 +263,9 @@ class HallBenchGUI(QtGui.QWidget):
             if self._update_connection_configuration():
                 try:
                     self.cconfig.save_file(filename)
-                except configuration.ConfigurationFileError as e:
+                except Exception as e:
                     QtGui.QMessageBox.critical(
-                        self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
+                        self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
 
     def _update_connection_configuration(self):
         if self.cconfig is None:
@@ -303,13 +306,10 @@ class HallBenchGUI(QtGui.QWidget):
 
         if len(filename) != 0:
             try:
-                if self.mconfig is None:
-                    self.mconfig = configuration.MeasurementConfig(filename)
-                else:
-                    self.mconfig.read_file(filename)
-            except configuration.ConfigurationFileError as e:
+                self.mconfig = configuration.MeasurementConfig(filename)
+            except Exception as e:
                 QtGui.QMessageBox.critical(
-                    self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
+                    self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
                 return
 
             self.ui.le_measurement_config_filename.setText(filename)
@@ -349,9 +349,9 @@ class HallBenchGUI(QtGui.QWidget):
             if self._update_measurement_configuration():
                 try:
                     self.mconfig.save_file(filename)
-                except configuration.ConfigurationFileError as e:
+                except Exception as e:
                     QtGui.QMessageBox.critical(
-                        self, 'Failure', e.message, QtGui.QMessageBox.Ignore)
+                        self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
 
     def _update_measurement_configuration(self):
         if self.mconfig is None:
@@ -556,6 +556,93 @@ class HallBenchGUI(QtGui.QWidget):
         """Stop measurements."""
         self.stop = True
 
+    def load_calibration_data(self):
+        """Load calibration data."""
+        filename = QtGui.QFileDialog.getOpenFileName(
+            self, 'Open calibration file')
+
+        if len(filename) != 0:
+            try:
+                self.calibration = calibration.CalibrationData(filename)
+            except Exception as e:
+                QtGui.QMessageBox.critical(
+                    self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
+                return
+
+            self.ui.le_calibration_filename.setText(filename)
+
+            voltage = np.linspace(-15, 15, 101)
+
+            self.ui.gv_probex.clear()
+            self.ui.gv_probex.plotItem.plot(
+                voltage,
+                self.calibration.convert_probe_x(voltage),
+                pen={'color': 'b', 'width': 3})
+            self.ui.gv_probex.setLabel('bottom', "Voltage")
+            self.ui.gv_probex.setLabel('left', "Field")
+            self.ui.gv_probex.showGrid(x=True, y=True)
+
+            self.ui.gv_probey.clear()
+            self.ui.gv_probey.plotItem.plot(
+                voltage,
+                self.calibration.convert_probe_y(voltage),
+                pen={'color': 'b', 'width': 3})
+            self.ui.gv_probey.setLabel('bottom', "Voltage")
+            self.ui.gv_probey.setLabel('left', "Field")
+            self.ui.gv_probey.showGrid(x=True, y=True)
+
+            self.ui.gv_probez.clear()
+            self.ui.gv_probez.plotItem.plot(
+                voltage,
+                self.calibration.convert_probe_z(voltage),
+                pen={'color': 'b', 'width': 3})
+            self.ui.gv_probez.setLabel('bottom', "Voltage")
+            self.ui.gv_probez.setLabel('left', "Field")
+            self.ui.gv_probez.showGrid(x=True, y=True)
+
+    def screen_table(self, probe):
+        """Create new screen with table."""
+        if self.calibration is None:
+            return
+
+        table = QtGui.QTableWidget()
+
+        probe_data = getattr(self.calibration, 'probe' + probe + '_data')
+
+        n_rows = len(probe_data)
+        n_columns = max([len(line) for line in probe_data])
+        table.setColumnCount(n_columns)
+        table.setRowCount(n_rows)
+        for i in range(n_rows):
+            for j in range(n_columns):
+                table.setItem(i, j, QtGui.QTableWidgetItem(
+                    '{0:0.8e}'.format(probe_data[i][j])))
+
+        table.verticalHeader().setVisible(False)
+        table.resizeColumnsToContents()
+        table.resizeRowsToContents()
+
+        width = table.verticalHeader().width()
+        width += table.horizontalHeader().length()
+        width += table.frameWidth()*2
+        height = table.horizontalHeader().height()
+        height += table.verticalHeader().length()
+        table.resize(width + 3, height + 3)
+
+        dialog_table = QtGui.QDialog()
+        layout = QtGui.QHBoxLayout()
+        layout.addWidget(table)
+        dialog_table.setLayout(layout)
+        dialog_table.resize(table.width() + 20, table.height() + 40)
+        dialog_table.move(
+            QtGui.QDesktopWidget().availableGeometry().center().x() -
+            dialog_table.geometry().width()/2,
+            QtGui.QDesktopWidget().availableGeometry().center().y() -
+            dialog_table.geometry().height()/2)
+        dialog_table.setWindowTitle(
+            "Probe %s Calibration Curve" % probe.upper())
+        dialog_table.exec_()
+
     def configure_and_measure(self):
         """Configure and start measurements."""
         if (self.devices is None or
@@ -574,7 +661,8 @@ class HallBenchGUI(QtGui.QWidget):
                 self.cconfig, self.mconfig, self.dirpath)
             print(self.current_measurement)
         except measurement.MeasurementDataError:
-            question = 'Inconsistent configuration files. Overwrite files?'
+            question = ('Inconsistent configuration files. ' +
+                        'Overwrite existing files?')
             reply = QtGui.QMessageBox.question(
                 self, 'Question', question, 'Yes', button1Text='No')
             if reply == 0:

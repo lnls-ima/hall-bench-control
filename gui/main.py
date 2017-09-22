@@ -30,19 +30,18 @@ class HallBenchGUI(QtGui.QWidget):
         self.ui = Ui_HallBench()
         self.ui.setupUi(self)
 
-        self.ui.cb_select_axis.setCurrentIndex(-1)
-        for idx in range(1, self.ui.tab.count()):
-            self.ui.tab.setTabEnabled(idx, False)
-        self.ui.tb_motors_main.setItemEnabled(1, False)
+        for idx in range(1, self.ui.tab_main.count()):
+            self.ui.tab_main.setTabEnabled(idx, False)
+
+        for idx in range(0, self.ui.tb_move_axis.count()):
+            self.ui.tb_move_axis.setItemEnabled(idx, False)
 
         self._initialize_variables()
-        self._connect_signals_slots()
+        self._connect_signals()
         self._start_timer()
 
     def _initialize_variables(self):
         """Initialize variables with default values."""
-        self.selected_axis = -1
-
         self.cconfig = None
         self.mconfig = None
         self.calibration = None
@@ -70,112 +69,130 @@ class HallBenchGUI(QtGui.QWidget):
         self.end_measurements = False
         self.stop = False
 
-    def _connect_signals_slots(self):
-        """Make the connections between signals and slots."""
-        # load and save device parameters
+    def _connect_signals(self):
+        self._connect_signals_connection_tab()
+        self._connect_signals_motors_tab()
+        self._connect_signals_calibration_tab()
+        self._connect_signals_measurement_tab()
+
+    def _connect_signals_connection_tab(self):
         self.ui.pb_load_connection_config.clicked.connect(
             self.load_connection_configuration_file)
 
         self.ui.pb_save_connection_config.clicked.connect(
             self.save_connection_configuration_file)
 
-        # connect devices
         self.ui.pb_connect_devices.clicked.connect(self.connect_devices)
         self.ui.pb_disconnect_devices.clicked.connect(self.disconnect_devices)
 
-        # activate bench
+    def _connect_signals_motors_tab(self):
         self.ui.pb_activate_bench.clicked.connect(self.activate_bench)
-
-        # select axis
-        self.ui.cb_select_axis.currentIndexChanged.connect(self.axis_selection)
-
-        # start homming of selected axis
         self.ui.pb_start_homming.clicked.connect(self.start_homming)
-
-        # move to target
-        self.ui.pb_move_to_target.clicked.connect(self.move_to_target)
-
-        # stop motor
-        self.ui.pb_stop_motor.clicked.connect(self.stop_axis)
-
-        # stop all motors
         self.ui.pb_stop_all_motors.clicked.connect(self.stop_all_axis)
-
-        # kill all motors
         self.ui.pb_kill_all_motors.clicked.connect(self.kill_all_axis)
 
-        # load calibration data
+        for axis in [1, 2, 3, 5, 6, 7, 8]:
+            pb_move = getattr(self.ui, 'pb_move_to_target_axis' + str(axis))
+            pb_move.clicked.connect(self.move_to_target, axis)
+            pb_stop = getattr(self.ui, 'pb_stop_motor_axis' + str(axis))
+            pb_stop.clicked.connect(self.stop_axis, axis)
+
+        self.ui.tb_move_axis.currentChanged.connect(self.update_axis_speed)
+
+        self.ui.le_setvel1.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_setvel1, 0.1, 150))
+        self.ui.le_setvel2.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_setvel2, 0.1, 5))
+        self.ui.le_setvel3.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_setvel3, 0.1, 5))
+        self.ui.le_setvel5.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_setvel5, 0.1, 10))
+        self.ui.le_setvel6.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_setvel6, 0.1, 5))
+        self.ui.le_setvel7.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_setvel7, 0.1, 5))
+        self.ui.le_setvel8.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_setvel8, 0.1, 10))
+        self.ui.le_setvel9.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_setvel9, 0.1, 10))
+
+        self.ui.le_target1.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target1, -3500, 3500))
+        self.ui.le_target2.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target2, -150, 150))
+        self.ui.le_target3.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target3, -150, 150))
+        self.ui.le_target5.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target5, 0, 180))
+        self.ui.le_target6.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target6, -150, 150))
+        self.ui.le_target7.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target7, -150, 150))
+        self.ui.le_target8.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target8, 0, 180))
+        self.ui.le_target9.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_target9, 0, 180))
+
+    def _connect_signals_calibration_tab(self):
         self.ui.pb_load_calibration.clicked.connect(self.load_calibration_data)
 
-        self.ui.tb_probex.clicked.connect(lambda: self.screen_table('x'))
-        self.ui.tb_probey.clicked.connect(lambda: self.screen_table('y'))
-        self.ui.tb_probez.clicked.connect(lambda: self.screen_table('z'))
-
+    def _connect_signals_measurement_tab(self):
         # load and save measurements parameters
         self.ui.pb_load_measurement_config.clicked.connect(
             self.load_measurement_configuration_file)
-
         self.ui.pb_save_measurement_config.clicked.connect(
             self.save_measurement_configuration_file)
 
-        # check limits
-        self.ui.le_velocity.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_velocity, 0, 150))
-        self.ui.le_target_position.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_target_position, -3600, 3600))
-
         # check input values for measurement
-        self.ui.le_axis1_start.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis1_start, -3500, 3500))
-        self.ui.le_axis2_start.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis2_start, -150, 150))
-        self.ui.le_axis3_start.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis3_start, -150, 150))
-        self.ui.le_axis5_start.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis5_start, 0, 180))
+        self.ui.le_start1.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_start1, -3500, 3500))
+        self.ui.le_start2.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_start2, -150, 150))
+        self.ui.le_start3.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_start3, -150, 150))
+        self.ui.le_start5.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_start5, 0, 180))
 
-        self.ui.le_axis1_end.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis1_end, -3500, 3500))
-        self.ui.le_axis2_end.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis2_end, -150, 150))
-        self.ui.le_axis3_end.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis3_end, -150, 150))
-        self.ui.le_axis5_end.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis5_end, 0, 180))
+        self.ui.le_end1.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_end1, -3500, 3500))
+        self.ui.le_end2.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_end2, -150, 150))
+        self.ui.le_end3.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_end3, -150, 150))
+        self.ui.le_end5.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_end5, 0, 180))
 
-        self.ui.le_axis1_step.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis1_step, -10, 10))
-        self.ui.le_axis2_step.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis2_step, -10, 10))
-        self.ui.le_axis3_step.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis3_step, -10, 10))
-        self.ui.le_axis5_step.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis5_step, -10, 10))
+        self.ui.le_step1.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_step1, -10, 10))
+        self.ui.le_step2.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_step2, -10, 10))
+        self.ui.le_step3.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_step3, -10, 10))
+        self.ui.le_step5.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_step5, -10, 10))
 
-        self.ui.le_axis1_extra.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis1_extra, 0, 100))
-        self.ui.le_axis2_extra.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis2_extra, 0, 100))
-        self.ui.le_axis3_extra.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis3_extra, 0, 100))
-        self.ui.le_axis5_extra.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis5_extra, 0, 100))
+        self.ui.le_extra1.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_extra1, 0, 100))
+        self.ui.le_extra2.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_extra2, 0, 100))
+        self.ui.le_extra3.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_extra3, 0, 100))
+        self.ui.le_extra5.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_extra5, 0, 100))
 
-        self.ui.le_axis1_vel.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis1_vel, 0.1, 150))
-        self.ui.le_axis2_vel.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis2_vel, 0.1, 5))
-        self.ui.le_axis3_vel.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis3_vel, 0.1, 5))
-        self.ui.le_axis5_vel.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_axis5_vel, 0.1, 10))
+        self.ui.le_vel1.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_vel1, 0.1, 150))
+        self.ui.le_vel2.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_vel2, 0.1, 5))
+        self.ui.le_vel3.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_vel3, 0.1, 5))
+        self.ui.le_vel5.editingFinished.connect(
+            lambda: self._check_value(self.ui.le_vel5, 0.1, 10))
 
         # Configure and start measurements
         self.ui.pb_configure_and_measure.clicked.connect(
             self.configure_and_measure)
-
         self.ui.pb_stop_measurement.clicked.connect(self.stop_measurements)
-
         self.ui.pb_save_measurement.clicked.connect(
             self.open_save_measurement_dialog)
 
@@ -186,10 +203,8 @@ class HallBenchGUI(QtGui.QWidget):
                 obj.setText('{0:0.4f}'.format(val))
             else:
                 obj.setText('')
-                self.axis_selection()
         except Exception:
             obj.setText('')
-            self.axis_selection()
 
     def _start_timer(self):
         """Start timer for interface updates."""
@@ -204,8 +219,10 @@ class HallBenchGUI(QtGui.QWidget):
                 if self.devices.pmac_connected:
                     for axis in self.devices.pmac.commands.list_of_axis:
                         pos = self.devices.pmac.get_position(axis)
-                        pos_axis = getattr(self.ui, 'le_pos' + str(axis))
-                        pos_axis.setText('{0:0.4f}'.format(pos))
+                        le_mo = getattr(self.ui, 'le_mo_pos' + str(axis))
+                        le_mo.setText('{0:0.4f}'.format(pos))
+                        le_me = getattr(self.ui, 'le_me_pos' + str(axis))
+                        le_me.setText('{0:0.4f}'.format(pos))
                     QtGui.QApplication.processEvents()
         except Exception:
             pass
@@ -324,19 +341,19 @@ class HallBenchGUI(QtGui.QWidget):
 
             axis_measurement = [1, 2, 3, 5]
             for axis in axis_measurement:
-                tmp = getattr(self.ui, 'le_axis' + str(axis) + '_start')
+                tmp = getattr(self.ui, 'le_start' + str(axis))
                 value = getattr(self.mconfig, 'meas_startpos_ax' + str(axis))
                 tmp.setText(str(value))
 
-                tmp = getattr(self.ui, 'le_axis' + str(axis) + '_end')
+                tmp = getattr(self.ui, 'le_end' + str(axis))
                 value = getattr(self.mconfig, 'meas_endpos_ax' + str(axis))
                 tmp.setText(str(value))
 
-                tmp = getattr(self.ui, 'le_axis' + str(axis) + '_step')
+                tmp = getattr(self.ui, 'le_step' + str(axis))
                 value = getattr(self.mconfig, 'meas_incr_ax' + str(axis))
                 tmp.setText(str(value))
 
-                tmp = getattr(self.ui, 'le_axis' + str(axis) + '_vel')
+                tmp = getattr(self.ui, 'le_vel' + str(axis))
                 value = getattr(self.mconfig, 'meas_vel_ax' + str(axis))
                 tmp.setText(str(value))
 
@@ -372,20 +389,20 @@ class HallBenchGUI(QtGui.QWidget):
 
         axis_measurement = [1, 2, 3, 5]
         for axis in axis_measurement:
-            tmp = getattr(self.ui, 'le_axis' + str(axis) + '_start').text()
+            tmp = getattr(self.ui, 'le_start' + str(axis)).text()
             if bool(tmp and tmp.strip()):
                 setattr(
                     self.mconfig, 'meas_startpos_ax' + str(axis), float(tmp))
 
-            tmp = getattr(self.ui, 'le_axis' + str(axis) + '_end').text()
+            tmp = getattr(self.ui, 'le_end' + str(axis)).text()
             if bool(tmp and tmp.strip()):
                 setattr(self.mconfig, 'meas_endpos_ax' + str(axis), float(tmp))
 
-            tmp = getattr(self.ui, 'le_axis' + str(axis) + '_step').text()
+            tmp = getattr(self.ui, 'le_step' + str(axis)).text()
             if bool(tmp and tmp.strip()):
                 setattr(self.mconfig, 'meas_incr_ax' + str(axis), float(tmp))
 
-            tmp = getattr(self.ui, 'le_axis' + str(axis) + '_vel').text()
+            tmp = getattr(self.ui, 'le_vel' + str(axis)).text()
             if bool(tmp and tmp.strip()):
                 setattr(self.mconfig, 'meas_vel_ax' + str(axis), float(tmp))
 
@@ -409,19 +426,10 @@ class HallBenchGUI(QtGui.QWidget):
 
         if self.cconfig.control_pmac_enable:
             if self.devices.pmac_connected:
-                self.ui.tab.setTabEnabled(1, True)
-                self.ui.tab.setTabEnabled(2, True)
-
-                # check if all axis are hommed and release access to movement.
-                list_of_axis = self.devices.pmac.commands.list_of_axis
-                status = []
-                for axis in list_of_axis:
-                    status.append(
-                        (self.devices.pmac.axis_status(axis) & 1024) != 0)
-
-                if all(status):
-                    self.ui.tb_motors_main.setItemEnabled(1, True)
-                    self.ui.tb_motors_main.setCurrentIndex(1)
+                self.ui.tab_main.setTabEnabled(1, True)
+                self.ui.tab_main.setTabEnabled(2, True)
+                self.ui.tab_main.setTabEnabled(3, True)
+                self._release_access_to_movement()
 
         self.activate_bench()
 
@@ -469,22 +477,40 @@ class HallBenchGUI(QtGui.QWidget):
                 QtGui.QMessageBox.critical(
                     self, 'Failure', message, QtGui.QMessageBox.Ok)
 
-    def axis_selection(self):
-        """Update seleted axis and velocity values."""
-        # get axis selected
-        tmp = self.ui.cb_select_axis.currentText()
-        if tmp == '':
-            self.selected_axis = -1
-        else:
-            self.selected_axis = int(tmp[1])
+    def update_axis_speed(self):
+        """Update axis velocity values."""
+        if self.devices is not None:
+            list_of_axis = self.devices.pmac.commands.list_of_axis
+            for axis in list_of_axis:
+                obj = getattr(self.ui, 'le_setvel' + str(axis))
+                vel = self.devices.pmac.get_velocity(axis)
+                obj.setText('{0:0.4f}'.format(vel))
 
-            # set target to zero
-            self.ui.le_target_position.setText('{0:0.4f}'.format(0))
+    def _release_access_to_movement(self):
+        if self.devices is not None:
+            if (self.devices.pmac.axis_status(1) & 1024) != 0:
+                self.ui.tb_move_axis.setItemEnabled(0, 1)
 
-            if self.devices is not None:
-                # read selected axis velocity
-                vel = self.devices.pmac.get_velocity(self.selected_axis)
-                self.ui.le_velocity.setText('{0:0.4f}'.format(vel))
+            if (self.devices.pmac.axis_status(2) & 1024) != 0:
+                self.ui.tb_move_axis.setItemEnabled(1, 1)
+
+            if (self.devices.pmac.axis_status(3) & 1024) != 0:
+                self.ui.tb_move_axis.setItemEnabled(2, 1)
+
+            if (self.devices.pmac.axis_status(5) & 1024) != 0:
+                self.ui.tb_move_axis.setItemEnabled(3, 1)
+
+            if (self.devices.pmac.axis_status(6) & 1024) != 0:
+                self.ui.tb_move_axis.setItemEnabled(4, 1)
+
+            if (self.devices.pmac.axis_status(7) & 1024) != 0:
+                self.ui.tb_move_axis.setItemEnabled(5, 1)
+
+            if (self.devices.pmac.axis_status(8) & 1024) != 0:
+                self.ui.tb_move_axis.setItemEnabled(6, 1)
+
+            if (self.devices.pmac.axis_status(9) & 1024) != 0:
+                self.ui.tb_move_axis.setItemEnabled(7, 1)
 
     def start_homming(self):
         """Start hommming."""
@@ -505,40 +531,34 @@ class HallBenchGUI(QtGui.QWidget):
         while int(self.devices.pmac.read_response(
                   self.devices.pmac.commands.prog_running)) == 1:
             time.sleep(0.5)
-
         else:
-            # check if all axis are homed and release access to movement.
-            s = []
-            for axis in list_of_axis:
-                s.append((self.devices.pmac.axis_status(axis) & 1024) != 0)
+            self._release_access_to_movement()
 
-            if all(s):
-                self.ui.tb_motors_main.setItemEnabled(1, True)
-                self.ui.tb_motors_main.setCurrentIndex(1)
-
-    def move_to_target(self):
+    def move_to_target(self, axis):
         """Move Hall probe to target position."""
         if self.devices is None:
             return
 
-        # if any available axis is selected:
-        if not self.selected_axis == -1:
-            set_vel = float(self.ui.le_velocity.text())
-            target = float(self.ui.le_target_position.text())
-            vel = self.devices.pmac.get_velocity(self.selected_axis)
+        list_of_axis = self.devices.pmac.commands.list_of_axis
+
+        if axis in list_of_axis:
+            set_vel = float(getattr(self.ui, 'le_setvel'+str(axis)).text())
+            target = float(getattr(self.ui, 'le_target'+str(axis)).text())
+            vel = self.devices.pmac.get_velocity(axis)
 
             if vel != set_vel:
-                self.devices.pmac.set_axis_speed(self.selected_axis, set_vel)
+                self.devices.pmac.set_axis_speed(axis, set_vel)
 
-            self.devices.pmac.move_axis(self.selected_axis, target)
+            self.devices.pmac.move_axis(axis, target)
 
-    def stop_axis(self):
+    def stop_axis(self, axis):
         """Stop axis."""
         if self.devices is None:
             return
-        # if any available axis is selected:
-        if not self.selected_axis == -1:
-            self.devices.pmac.stop_axis(self.selected_axis)
+        list_of_axis = self.devices.pmac.commands.list_of_axis
+
+        if axis in list_of_axis:
+            self.devices.pmac.stop_axis(axis)
 
     def stop_all_axis(self):
         """Stop all axis."""
@@ -634,11 +654,6 @@ class HallBenchGUI(QtGui.QWidget):
         layout.addWidget(table)
         dialog_table.setLayout(layout)
         dialog_table.resize(table.width() + 20, table.height() + 40)
-        dialog_table.move(
-            QtGui.QDesktopWidget().availableGeometry().center().x() -
-            dialog_table.geometry().width()/2,
-            QtGui.QDesktopWidget().availableGeometry().center().y() -
-            dialog_table.geometry().height()/2)
         dialog_table.setWindowTitle(
             "Probe %s Calibration Curve" % probe.upper())
         dialog_table.exec_()
@@ -676,23 +691,25 @@ class HallBenchGUI(QtGui.QWidget):
         self._clear_graph()
         self._set_axes_speed()
 
-        if self.ui.rb_axis1_triggering.isChecked():
-            extra_mm = float(self.ui.le_axis1_extra.text())
+        if self.ui.rb_triggering_axis1.isChecked():
+            extra_mm = float(self.ui.le_extra1.text())
             scan_axis = 1
             axis_a = 2
             axis_b = 3
 
-        elif self.ui.rb_axis2_triggering.isChecked():
-            extra_mm = float(self.ui.le_axis2_extra.text())
+        elif self.ui.rb_triggering_axis2.isChecked():
+            extra_mm = float(self.ui.le_extra2.text())
             scan_axis = 2
             axis_a = 1
             axis_b = 3
 
-        elif self.ui.rb_axis3_triggering.isChecked():
-            extra_mm = float(self.ui.le_axis3_extra.text())
+        elif self.ui.rb_triggering_axis3.isChecked():
+            extra_mm = float(self.ui.le_extra3.text())
             scan_axis = 3
             axis_a = 1
             axis_b = 2
+        else:
+            return
 
         poslist_a = self._get_axis_parameters(axis_a)[-1]
         poslist_b = self._get_axis_parameters(axis_b)[-1]

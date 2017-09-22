@@ -4,7 +4,6 @@
 import os as _os
 import numpy as _np
 from scipy import interpolate as _interpolate
-from scipy.integrate import cumtrapz as _cumtrapz
 
 from . import utils as _utils
 from . import configuration as _configuration
@@ -221,8 +220,6 @@ class LineScan(object):
         self._voltage_std = None
         self._field_avg = None
         self._field_std = None
-        self._field_first_integral = None
-        self._field_second_integral = None
 
     def _save_calibration(self, overwrite_calibration):
         calibration_filename = 'calibration_data.txt'
@@ -271,18 +268,6 @@ class LineScan(object):
         else:
             linescan_copy._field_std = None
 
-        if linescan.field_first_integral is not None:
-            linescan_copy._field_first_integral = DataSet.copy(
-                linescan.field_first_integral)
-        else:
-            linescan_copy._field_first_integral = None
-
-        if linescan.field_second_integral is not None:
-            linescan_copy._field_second_integral = DataSet.copy(
-                linescan.field_second_integral)
-        else:
-            linescan_copy._field_second_integral = None
-
         return linescan_copy
 
     @staticmethod
@@ -300,8 +285,6 @@ class LineScan(object):
         voltage_std = None
         field_avg = None
         field_std = None
-        field_first_integral = None
-        field_second_integral = None
 
         for filename in files:
             dataset, ts = _read_scan_file(filename)
@@ -319,10 +302,6 @@ class LineScan(object):
                 field_avg = dataset
             elif 'field_std' in dataset.description:
                 field_std = dataset
-            elif 'field_first_integral' in dataset.description:
-                field_first_integral = dataset
-            elif 'field_second_integral' in dataset.description:
-                field_second_integral = dataset
 
         calibration_filename = 'calibration_data.txt'
         calibration_data = _calibration.CalibrationData(
@@ -339,8 +318,6 @@ class LineScan(object):
         linescan._voltage_std = voltage_std
         linescan._field_avg = field_avg
         linescan._field_std = field_std
-        linescan._field_first_integral = field_first_integral
-        linescan._field_second_integral = field_second_integral
 
         return linescan
 
@@ -421,16 +398,6 @@ class LineScan(object):
         """Standard deviation of magnetic field values."""
         return self._field_std
 
-    @property
-    def field_first_integral(self):
-        """Magnetic field first integral."""
-        return self._field_first_integral
-
-    @property
-    def field_second_integral(self):
-        """Magnetic field second integral."""
-        return self._field_second_integral
-
     def add_scan(self, scan):
         """Add a scan to the list."""
         if self._valid_scan(scan):
@@ -443,12 +410,17 @@ class LineScan(object):
         """Analyse the line scan data."""
         self._timestamp = _utils.get_timestamp()
 
+        if save_data:
+            for i in range(len(self._voltage_raw)):
+                self._save_data(self._voltage_raw[i], idx=(i+1))
+
+        if self._calibration_data is None:
+            raise MeasurementDataError('Calibration data not found.')
+
         if self.nr_scans != 0:
             self._data_interpolation(save_data)
             self._calculate_voltage_avg_std(save_data)
             self._calculate_field_avg_std(save_data)
-            self._calculate_field_first_integral(save_data)
-            self._calculate_field_second_integral(save_data)
 
     def clear(self):
         """Clear LineScan."""
@@ -459,8 +431,6 @@ class LineScan(object):
         self._voltage_std = None
         self._field_avg = None
         self._field_std = None
-        self._field_first_integral = None
-        self._field_second_integral = None
 
     def _valid_scan(self, scan):
         if self._valid_scan_positions(scan):
@@ -521,6 +491,13 @@ class LineScan(object):
         self._voltage_interpolated = []
         scan_pos = self.scan_positions
 
+        if self.scan_axis == self.calibration_data.tmp_axis_name:
+            dyx = self.calibration_data.dyx
+            dyz = self.calibration_data.dyz
+        else:
+            dyx = 0
+            dyz = 0
+
         idx = 1
         for raw in self._voltage_raw:
             interp = DataSet()
@@ -533,19 +510,18 @@ class LineScan(object):
 
             rawpos = _get_scan_positions(raw.posx, raw.posy, raw.posz)
 
-            fx = _interpolate.splrep(rawpos, raw.datax, s=0, k=1)
+            fx = _interpolate.splrep(rawpos + dyx, raw.datax, s=0, k=1)
             interp.datax = _interpolate.splev(scan_pos, fx, der=0)
 
             fy = _interpolate.splrep(rawpos, raw.datay, s=0, k=1)
             interp.datay = _interpolate.splev(scan_pos, fy, der=0)
 
-            fz = _interpolate.splrep(rawpos, raw.dataz, s=0, k=1)
+            fz = _interpolate.splrep(rawpos + dyz, raw.dataz, s=0, k=1)
             interp.dataz = _interpolate.splev(scan_pos, fz, der=0)
 
             self._voltage_interpolated.append(interp)
 
             if save_data:
-                self._save_data(raw, idx=idx)
                 self._save_data(interp, idx=idx)
 
             idx += 1
@@ -622,9 +598,6 @@ class LineScan(object):
 
     def _calculate_field_avg_std(self, save_data=True):
         """Calculate the average and std of magnetic field values."""
-        if self._calibration_data is None:
-            raise MeasurementDataError('Calibration data not found.')
-
         self._field_avg = DataSet()
         self._field_avg.description = 'field_avg'
         self._field_avg.unit = self._calibration_data.field_unit
@@ -632,13 +605,13 @@ class LineScan(object):
         self._field_avg.posy = self._posy
         self._field_avg.posz = self._posz
 
-        self._field_avg.datax = self._calibration_data.convert_probe_x(
+        self._field_avg.datax = self._calibration_data.convert_voltage_probex(
             self._voltage_avg.datax)
 
-        self._field_avg.datay = self._calibration_data.convert_probe_y(
+        self._field_avg.datay = self._calibration_data.convert_voltage_probey(
             self._voltage_avg.datay)
 
-        self._field_avg.dataz = self._calibration_data.convert_probe_z(
+        self._field_avg.dataz = self._calibration_data.convert_voltage_probez(
             self._voltage_avg.dataz)
 
         self._field_std = DataSet()
@@ -648,72 +621,18 @@ class LineScan(object):
         self._field_std.posy = self._posy
         self._field_std.posz = self._posz
 
-        self._field_std.datax = self._calibration_data.convert_probe_x(
+        self._field_std.datax = self._calibration_data.convert_voltage_probex(
             self._voltage_std.datax)
 
-        self._field_std.datay = self._calibration_data.convert_probe_y(
+        self._field_std.datay = self._calibration_data.convert_voltage_probey(
             self._voltage_std.datay)
 
-        self._field_std.dataz = self._calibration_data.convert_probe_z(
+        self._field_std.dataz = self._calibration_data.convert_voltage_probez(
             self._voltage_std.dataz)
 
         if save_data:
             self._save_data(self._field_avg)
             self._save_data(self._field_std)
-
-    def _calculate_field_first_integral(self, save_data=True):
-        """Calculate the magnetic field first integral."""
-        self._field_first_integral = DataSet()
-        self._field_first_integral.description = 'field_first_integral'
-        self._field_first_integral.unit = self._field_avg.unit + '.m'
-        self._field_first_integral.posx = self._posx
-        self._field_first_integral.posy = self._posy
-        self._field_first_integral.posz = self._posz
-
-        self._field_first_integral.datax = _cumtrapz(
-            x=self.scan_positions/1000,
-            y=self._field_avg.datax,
-            initial=0)
-
-        self._field_first_integral.datay = _cumtrapz(
-            x=self.scan_positions/1000,
-            y=self._field_avg.datay,
-            initial=0)
-
-        self._field_first_integral.dataz = _cumtrapz(
-            x=self.scan_positions/1000,
-            y=self._field_avg.dataz,
-            initial=0)
-
-        if save_data:
-            self._save_data(self._field_first_integral)
-
-    def _calculate_field_second_integral(self, save_data=True):
-        """Calculate the magnetic field second integral."""
-        self._field_second_integral = DataSet()
-        self._field_second_integral.description = 'field_second_integral'
-        self._field_second_integral.unit = self._field_avg.unit + '.m^2'
-        self._field_second_integral.posx = self._posx
-        self._field_second_integral.posy = self._posy
-        self._field_second_integral.posz = self._posz
-
-        self._field_second_integral.datax = _cumtrapz(
-            x=self.scan_positions/1000,
-            y=self._field_first_integral.datax,
-            initial=0)
-
-        self._field_second_integral.datay = _cumtrapz(
-            x=self.scan_positions/1000,
-            y=self._field_first_integral.datay,
-            initial=0)
-
-        self._field_second_integral.dataz = _cumtrapz(
-            x=self.scan_positions/1000,
-            y=self._field_first_integral.dataz,
-            initial=0)
-
-        if save_data:
-            self._save_data(self._field_second_integral)
 
     def _save_data(self, dataset, idx=None):
         if self._scan_axis == 'x':

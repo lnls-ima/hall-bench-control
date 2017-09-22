@@ -327,7 +327,7 @@ class TestCalibrationData(unittest.TestCase):
 
         voltage = np.linspace(-15, 15, 101)
         field = calibration._old_hall_probe_calibration_curve(voltage)
-        field_polynomial = c.convert_probe_x(voltage)
+        field_polynomial = c.convert_voltage_probex(voltage)
         np.testing.assert_array_equal(field, field_polynomial)
 
     def test_conversion_interpolation(self):
@@ -350,18 +350,18 @@ class TestCalibrationData(unittest.TestCase):
 
         voltage = np.linspace(-20, -11, 100)
         field = calibration._old_hall_probe_calibration_curve(voltage)
-        field_interpolation = c.convert_probe_x(voltage)
+        field_interpolation = c.convert_voltage_probex(voltage)
         np.testing.assert_array_almost_equal(
             field, field_interpolation, decimal=2)
 
         voltage = np.linspace(-9, 9, 100)
         field = calibration._old_hall_probe_calibration_curve(voltage)
-        field_interpolation = c.convert_probe_x(voltage)
+        field_interpolation = c.convert_voltage_probex(voltage)
         np.testing.assert_array_almost_equal(field, field_interpolation)
 
         voltage = np.linspace(11, 20, 100)
         field = calibration._old_hall_probe_calibration_curve(voltage)
-        field_interpolation = c.convert_probe_x(voltage)
+        field_interpolation = c.convert_voltage_probex(voltage)
         np.testing.assert_array_almost_equal(
             field, field_interpolation, decimal=2)
 

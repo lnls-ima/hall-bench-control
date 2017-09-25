@@ -814,7 +814,7 @@
                     </property>
                     <property name="minimumSize">
                      <size>
-                      <width>250</width>
+                      <width>230</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -838,7 +838,7 @@
                    <widget class="QPushButton" name="pb_save_connection_config">
                     <property name="minimumSize">
                      <size>
-                      <width>250</width>
+                      <width>230</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -898,7 +898,7 @@
                     </property>
                     <property name="minimumSize">
                      <size>
-                      <width>180</width>
+                      <width>200</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -930,7 +930,7 @@
                     </property>
                     <property name="minimumSize">
                      <size>
-                      <width>180</width>
+                      <width>200</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -1800,8 +1800,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>424</width>
-              <height>124</height>
+              <width>450</width>
+              <height>138</height>
              </rect>
             </property>
             <attribute name="label">

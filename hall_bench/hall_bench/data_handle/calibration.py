@@ -29,7 +29,7 @@ class CalibrationData(object):
             self._probez_function = None
             self.dyx = None
             self.dyz = None
-            self.tmp_axis_name = None
+            self.width_axis = None
 
     def __eq__(self, other):
         """Equality method."""
@@ -210,9 +210,9 @@ class CalibrationData(object):
         self.data_type = _utils.find_value(flines, 'data_type')
         self.field_unit = _utils.find_value(flines, 'field_unit')
         self.voltage_unit = _utils.find_value(flines, 'voltage_unit')
-        self.probex_dx = _utils.find_value(flines, 'dyx', vtype=float)
-        self.probex_dy = _utils.find_value(flines, 'dyz', vtype=float)
-        self.tmp_axis_name = _utils.find_value(flines, 'tmp_axis_name')
+        self.dyx = _utils.find_value(flines, 'dyx', vtype=float)
+        self.dyz = _utils.find_value(flines, 'dyz', vtype=float)
+        self.width_axis = _utils.find_value(flines, 'width_axis')
 
         probex_data = []
         probey_data = []
@@ -250,9 +250,9 @@ class CalibrationData(object):
         f.write('timestamp:     \t{0:1s}\n'.format(timestamp))
         f.write('field_unit:    \t{0:1s}\n'.format(self.field_unit))
         f.write('voltage_unit:  \t{0:1s}\n'.format(self.voltage_unit))
-        f.write('dyx[mm]:       \t{0:1s}\n'.format(str(self.probex_dx)))
-        f.write('dyz[mm]:       \t{0:1s}\n'.format(str(self.probex_dy)))
-        f.write('tmp_axis_name: \t{0:1s}\n'.format(self.tmp_axis_name))
+        f.write('dyx[mm]:       \t{0:1s}\n'.format(str(self.dyx)))
+        f.write('dyz[mm]:       \t{0:1s}\n'.format(str(self.dyz)))
+        f.write('width_axis:    \t{0:1s}\n'.format(self.width_axis))
         f.write('\n')
 
         if self.data_type == 'interpolation':
@@ -301,7 +301,7 @@ class CalibrationData(object):
         self._probez_function = None
         self.dyx = None
         self.dyz = None
-        self.tmp_axis_name = None
+        self.width_axis = None
 
     def convert_voltage_probex(self, voltage_array):
         """Convert voltage values to magnetic field values for probe x.

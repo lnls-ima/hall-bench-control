@@ -491,7 +491,7 @@ class LineScan(object):
         self._voltage_interpolated = []
         scan_pos = self.scan_positions
 
-        if self.scan_axis == self.calibration_data.tmp_axis_name:
+        if self.scan_axis == self.calibration_data.width_axis:
             dyx = self.calibration_data.dyx
             dyz = self.calibration_data.dyz
         else:

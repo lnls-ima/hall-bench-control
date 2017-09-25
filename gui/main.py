@@ -591,12 +591,41 @@ class HallBenchGUI(QtGui.QWidget):
 
             self.ui.le_calibration_filename.setText(filename)
 
+            for probe in ['x', 'y', 'z']:
+                probe_data = getattr(
+                    self.calibration, 'probe' + probe + '_data')
+                table = getattr(self.ui, 'tw_probe' + probe)
+                n_rows = len(probe_data)
+                n_columns = max([len(line) for line in probe_data])
+                table.setColumnCount(n_columns)
+                table.setRowCount(n_rows)
+
+                if self.calibration.data_type == 'polynomial':
+                    labels = ['V minimum', 'V maximum']
+                    for i in range(n_columns-2):
+                        labels.append('C%i' % i)
+                    table.setHorizontalHeaderLabels(labels)
+                elif self.calibration.data_type == 'interpolation':
+                    table.setHorizontalHeaderLabels(['V', 'B'])
+                else:
+                    msg = 'Invalid data type found in calibration data file.'
+                    QtGui.QMessageBox.critical(
+                        self, 'Failure', msg, QtGui.QMessageBox.Ignore)
+                    return
+
+                for i in range(n_rows):
+                    for j in range(n_columns):
+                        table.setItem(i, j, QtGui.QTableWidgetItem(
+                            '{0:0.8e}'.format(probe_data[i][j])))
+                table.resizeColumnsToContents()
+                table.resizeRowsToContents()
+
             voltage = np.linspace(-15, 15, 101)
 
             self.ui.gv_probex.clear()
             self.ui.gv_probex.plotItem.plot(
                 voltage,
-                self.calibration.convert_probe_x(voltage),
+                self.calibration.convert_voltage_probex(voltage),
                 pen={'color': 'b', 'width': 3})
             self.ui.gv_probex.setLabel('bottom', "Voltage")
             self.ui.gv_probex.setLabel('left', "Field")
@@ -605,7 +634,7 @@ class HallBenchGUI(QtGui.QWidget):
             self.ui.gv_probey.clear()
             self.ui.gv_probey.plotItem.plot(
                 voltage,
-                self.calibration.convert_probe_y(voltage),
+                self.calibration.convert_voltage_probey(voltage),
                 pen={'color': 'b', 'width': 3})
             self.ui.gv_probey.setLabel('bottom', "Voltage")
             self.ui.gv_probey.setLabel('left', "Field")
@@ -614,49 +643,18 @@ class HallBenchGUI(QtGui.QWidget):
             self.ui.gv_probez.clear()
             self.ui.gv_probez.plotItem.plot(
                 voltage,
-                self.calibration.convert_probe_z(voltage),
+                self.calibration.convert_voltage_probez(voltage),
                 pen={'color': 'b', 'width': 3})
             self.ui.gv_probez.setLabel('bottom', "Voltage")
             self.ui.gv_probez.setLabel('left', "Field")
             self.ui.gv_probez.showGrid(x=True, y=True)
 
-    def screen_table(self, probe):
-        """Create new screen with table."""
-        if self.calibration is None:
-            return
-
-        table = QtGui.QTableWidget()
-
-        probe_data = getattr(self.calibration, 'probe' + probe + '_data')
-
-        n_rows = len(probe_data)
-        n_columns = max([len(line) for line in probe_data])
-        table.setColumnCount(n_columns)
-        table.setRowCount(n_rows)
-        for i in range(n_rows):
-            for j in range(n_columns):
-                table.setItem(i, j, QtGui.QTableWidgetItem(
-                    '{0:0.8e}'.format(probe_data[i][j])))
-
-        table.verticalHeader().setVisible(False)
-        table.resizeColumnsToContents()
-        table.resizeRowsToContents()
-
-        width = table.verticalHeader().width()
-        width += table.horizontalHeader().length()
-        width += table.frameWidth()*2
-        height = table.horizontalHeader().height()
-        height += table.verticalHeader().length()
-        table.resize(width + 3, height + 3)
-
-        dialog_table = QtGui.QDialog()
-        layout = QtGui.QHBoxLayout()
-        layout.addWidget(table)
-        dialog_table.setLayout(layout)
-        dialog_table.resize(table.width() + 20, table.height() + 40)
-        dialog_table.setWindowTitle(
-            "Probe %s Calibration Curve" % probe.upper())
-        dialog_table.exec_()
+            self.ui.le_data_type.setText(self.calibration.data_type)
+            self.ui.le_field_unit.setText(self.calibration.field_unit)
+            self.ui.le_voltage_unit.setText(self.calibration.voltage_unit)
+            self.ui.le_dyx.setText(str(self.calibration.dyx))
+            self.ui.le_dyz.setText(str(self.calibration.dyz))
+            self.ui.le_width_axis.setText(self.calibration.width_axis)
 
     def configure_and_measure(self):
         """Configure and start measurements."""

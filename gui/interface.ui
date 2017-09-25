@@ -354,7 +354,7 @@
                   </layout>
                  </item>
                  <item>
-                  <widget class="QGroupBox" name="groupBox">
+                  <widget class="QFrame" name="frame">
                    <layout class="QGridLayout" name="gridLayout_10">
                     <item row="0" column="0">
                      <widget class="QCheckBox" name="cb_pmac_enable">
@@ -470,10 +470,7 @@
                   </layout>
                  </item>
                  <item>
-                  <widget class="QGroupBox" name="gb_multich">
-                   <property name="title">
-                    <string/>
-                   </property>
+                  <widget class="QFrame" name="gb_multich">
                    <layout class="QGridLayout" name="gridLayout_12">
                     <item row="0" column="0">
                      <widget class="QCheckBox" name="cb_multich_enable">
@@ -606,12 +603,9 @@
                   </layout>
                  </item>
                  <item>
-                  <widget class="QGroupBox" name="gb_colimator">
+                  <widget class="QFrame" name="gb_colimator">
                    <property name="enabled">
                     <bool>false</bool>
-                   </property>
-                   <property name="title">
-                    <string/>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_13">
                     <item row="0" column="0">
@@ -880,13 +874,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QGroupBox" name="gb_connect">
-                 <property name="title">
-                  <string/>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
+                <widget class="QFrame" name="gb_connect">
                  <layout class="QVBoxLayout" name="verticalLayout_5">
                   <item>
                    <widget class="QPushButton" name="pb_connect_devices">
@@ -1330,11 +1318,11 @@
           </layout>
          </item>
          <item>
-          <widget class="QGroupBox" name="gb_axis_readings">
-           <property name="title">
-            <string/>
-           </property>
+          <widget class="QFrame" name="gb_axis_readings">
            <layout class="QGridLayout" name="gridLayout_4">
+            <property name="leftMargin">
+             <number>20</number>
+            </property>
             <item row="7" column="2">
              <widget class="QLabel" name="la_mo_pos9_unit">
               <property name="font">
@@ -1787,7 +1775,7 @@
             <enum>QFrame::NoFrame</enum>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>8</number>
            </property>
            <property name="tabSpacing">
             <number>12</number>
@@ -1800,8 +1788,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>450</width>
-              <height>138</height>
+              <width>424</width>
+              <height>124</height>
              </rect>
             </property>
             <attribute name="label">
@@ -2452,8 +2440,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>100</width>
-              <height>30</height>
+              <width>450</width>
+              <height>138</height>
              </rect>
             </property>
             <attribute name="label">
@@ -2875,8 +2863,17 @@
           <property name="spacing">
            <number>20</number>
           </property>
-          <property name="margin">
+          <property name="leftMargin">
            <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
           </property>
           <item>
            <widget class="QFrame" name="fm_measurement_2">
@@ -3069,6 +3066,9 @@
                 <string>Digital Multimeter Parameters</string>
                </property>
                <layout class="QGridLayout" name="gridLayout_9">
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
                 <item row="0" column="0">
                  <widget class="QLabel" name="la_dmm_aper">
                   <property name="font">
@@ -3150,7 +3150,7 @@
               <number>0</number>
              </property>
              <property name="bottomMargin">
-              <number>9</number>
+              <number>0</number>
              </property>
              <item>
               <widget class="QGroupBox" name="gb_position_param">
@@ -3432,6 +3432,9 @@
                 <property name="rightMargin">
                  <number>30</number>
                 </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
                 <item row="1" column="0">
                  <widget class="QSpinBox" name="sb_nr_measurements">
                   <property name="font">
@@ -3520,8 +3523,17 @@
              <property name="spacing">
               <number>6</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
               <number>9</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
              </property>
              <item>
               <widget class="QFrame" name="gb_axis_readings_2">

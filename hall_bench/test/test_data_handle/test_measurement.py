@@ -237,34 +237,6 @@ class TestLineScan(unittest.TestCase):
             5.3848000,
         ]
 
-        self.field_first_integral = [
-            0,
-            0.0004,
-            0.0016,
-            0.0036,
-            0.0064,
-            0.01,
-            0.01438628,
-            0.01962814,
-            0.02593975,
-            0.03366696,
-            0.04332296,
-        ]
-
-        self.field_second_integral = [
-            0.00000000e+00,
-            4.00000000e-07,
-            2.40000000e-06,
-            7.60000000e-06,
-            1.76000000e-05,
-            3.40000000e-05,
-            5.83862752e-05,
-            9.24006944e-05,
-            1.37968590e-04,
-            1.97575306e-04,
-            2.74565229e-04,
-        ]
-
     def tearDown(self):
         """Tear down."""
         if os.path.isdir(self.dirpath):
@@ -460,12 +432,6 @@ class TestLineScan(unittest.TestCase):
             ls.field_avg.datax, self.field_avg)
         np.testing.assert_array_equal(
             ls.field_std.datax, np.zeros(11))
-        np.testing.assert_array_almost_equal(
-            ls.field_first_integral.datax,
-            self.field_first_integral, decimal=8)
-        np.testing.assert_array_almost_equal(
-            ls.field_second_integral.datax,
-            self.field_second_integral, decimal=10)
 
     def test_analyse_data_two_scans(self):
         vec1 = self.pos + 0.5
@@ -504,12 +470,6 @@ class TestLineScan(unittest.TestCase):
             ls.field_avg.datax, self.field_avg)
         np.testing.assert_array_equal(
             ls.field_std.datax, np.zeros(11))
-        np.testing.assert_array_almost_equal(
-            ls.field_first_integral.datax,
-            self.field_first_integral, decimal=8)
-        np.testing.assert_array_almost_equal(
-            ls.field_second_integral.datax,
-            self.field_second_integral, decimal=10)
 
     def test_save_and_read_measurement_files(self):
         vec1 = self.pos + 0.5
@@ -556,12 +516,6 @@ class TestLineScan(unittest.TestCase):
             ls2.field_avg.datax, self.field_avg)
         np.testing.assert_array_equal(
             ls2.field_std.datax, np.zeros(11))
-        np.testing.assert_array_almost_equal(
-            ls2.field_first_integral.datax,
-            self.field_first_integral, decimal=8)
-        np.testing.assert_array_almost_equal(
-            ls2.field_second_integral.datax,
-            self.field_second_integral, decimal=10)
 
     def test_clear(self):
         vec1 = self.pos + 0.5
@@ -594,8 +548,6 @@ class TestLineScan(unittest.TestCase):
         self.assertIsNone(ls.voltage_std)
         self.assertIsNone(ls.field_avg)
         self.assertIsNone(ls.field_std)
-        self.assertIsNone(ls.field_first_integral)
-        self.assertIsNone(ls.field_second_integral)
 
     def test_copy(self):
         vec1 = self.pos + 0.5
@@ -641,8 +593,6 @@ class TestLineScan(unittest.TestCase):
         self.assertIsNone(ls2.voltage_std)
         self.assertIsNone(ls2.field_avg)
         self.assertIsNone(ls2.field_std)
-        self.assertIsNone(ls2.field_first_integral)
-        self.assertIsNone(ls2.field_second_integral)
 
         self.assertEqual(ls3.nr_scans, 2)
         np.testing.assert_array_equal(
@@ -661,12 +611,6 @@ class TestLineScan(unittest.TestCase):
             ls3.field_avg.datax, self.field_avg)
         np.testing.assert_array_equal(
             ls3.field_std.datax, np.zeros(11))
-        np.testing.assert_array_almost_equal(
-            ls3.field_first_integral.datax,
-            self.field_first_integral, decimal=8)
-        np.testing.assert_array_almost_equal(
-            ls3.field_second_integral.datax,
-            self.field_second_integral, decimal=10)
 
 
 class TestMeasurement(unittest.TestCase):

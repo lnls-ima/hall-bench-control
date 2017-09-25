@@ -8,5 +8,7 @@
     <file>images/3458a.png</file>
     <file>images/led_green.png</file>
     <file>images/led_red.png</file>
+    <file>images/hall_probe.png</file>
+    <file>images/table.png</file>
   </qresource>
 </RCC>

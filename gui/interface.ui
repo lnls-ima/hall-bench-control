@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1081</width>
+    <width>1083</width>
     <height>969</height>
    </rect>
   </property>
@@ -16,8 +16,8 @@
   <property name="styleSheet">
    <string notr="true">background-color: rgb(255, 255, 255);</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
-   <item>
+  <layout class="QGridLayout" name="gridLayout_18">
+   <item row="0" column="0">
     <widget class="QTabWidget" name="tab">
      <property name="font">
       <font>
@@ -1038,842 +1038,1824 @@
       <attribute name="title">
        <string>Motors</string>
       </attribute>
-      <widget class="QLabel" name="la_axis_image">
+      <layout class="QGridLayout" name="gridLayout_20">
+       <item row="1" column="0" rowspan="2">
+        <layout class="QVBoxLayout" name="vl_homming">
+         <property name="margin">
+          <number>10</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="la_homming">
+           <property name="font">
+            <font>
+             <pointsize>14</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Homming</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="gb_homming">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="title">
+            <string>Select axis for homming:</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <property name="horizontalSpacing">
+             <number>10</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>20</number>
+            </property>
+            <property name="margin">
+             <number>10</number>
+            </property>
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="gl_motors_main">
+              <property name="horizontalSpacing">
+               <number>20</number>
+              </property>
+              <property name="verticalSpacing">
+               <number>40</number>
+              </property>
+              <property name="margin">
+               <number>10</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="cb_homming1">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                  <weight>50</weight>
+                  <italic>false</italic>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Axis #1 (+Z)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="cb_homming2">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Axis #2 (+Y)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="cb_homming3">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Axis #3 (+X)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QCheckBox" name="cb_homming8">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Axis #8 (+B)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+               <widget class="QCheckBox" name="cb_homming7">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Axis #7 (+V)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QCheckBox" name="cb_homming9">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Axis #9 (+C)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="cb_homming5">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Axis #5 (+A)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="cb_homming6">
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Axis #6 (+W)</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pb_start_homming">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Start Homming</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="1">
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="0" colspan="4">
+        <layout class="QHBoxLayout" name="hl_motors">
+         <property name="spacing">
+          <number>10</number>
+         </property>
+         <property name="margin">
+          <number>10</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="la_axis_image">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="resources.qrc">:/images/images/coordinate_system.png</pixmap>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="vl_motors">
+           <property name="margin">
+            <number>10</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="pb_activate_bench">
+             <property name="minimumSize">
+              <size>
+               <width>300</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Activate Bench</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pb_stop_all_motors">
+             <property name="minimumSize">
+              <size>
+               <width>300</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Stop All Motors</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pb_kill_all_motors">
+             <property name="minimumSize">
+              <size>
+               <width>300</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Kill All Motors</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="gb_axis_readings">
+           <property name="title">
+            <string/>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="7" column="2">
+             <widget class="QLabel" name="la_mo_pos9_unit">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>deg</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="la_mo_pos1">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>#1 (+Z):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="le_mo_pos1">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.00</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QLabel" name="la_mo_pos1_unit">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>mm</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QLineEdit" name="le_mo_pos9">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.00</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="la_mo_pos2">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>#2 (+Y):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="le_mo_pos2">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.00</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLabel" name="la_mo_pos2_unit">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>mm</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="la_mo_pos3">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>#3 (+X):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="le_mo_pos3">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.00</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QLabel" name="la_mo_pos3_unit">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>mm</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="la_mo_pos5">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>#5 (+A):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="le_mo_pos5">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.00</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QLabel" name="la_mo_pos5_unit">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>deg</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="la_mo_pos6">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>#6 (+W):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QLineEdit" name="le_mo_pos6">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.00</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="2">
+             <widget class="QLabel" name="la_mo_pos6_unit">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>mm</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="la_mo_pos7">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>#7 (+V):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QLineEdit" name="le_mo_pos7">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.00</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="2">
+             <widget class="QLabel" name="la_mo_pos7_unit">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>mm</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="la_mo_pos8">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>#8 (+B):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QLineEdit" name="le_mo_pos8">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>0.00</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="2">
+             <widget class="QLabel" name="la_mo_pos8_unit">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>deg</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0">
+             <widget class="QLabel" name="la_mo_pos9">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>#9 (+C):</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="4">
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>1</width>
+           <height>18</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="3">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="2" rowspan="2">
+        <layout class="QVBoxLayout" name="vl_move_axis">
+         <property name="spacing">
+          <number>20</number>
+         </property>
+         <property name="leftMargin">
+          <number>10</number>
+         </property>
+         <property name="topMargin">
+          <number>10</number>
+         </property>
+         <property name="rightMargin">
+          <number>10</number>
+         </property>
+         <property name="bottomMargin">
+          <number>20</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="la_move_axis">
+           <property name="font">
+            <font>
+             <pointsize>14</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Move Axis</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolBox" name="tb_move_axis">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>450</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
+             <underline>false</underline>
+             <strikeout>false</strikeout>
+             <kerning>false</kerning>
+            </font>
+           </property>
+           <property name="cursor">
+            <cursorShape>ArrowCursor</cursorShape>
+           </property>
+           <property name="mouseTracking">
+            <bool>false</bool>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="currentIndex">
+            <number>0</number>
+           </property>
+           <property name="tabSpacing">
+            <number>12</number>
+           </property>
+           <widget class="QWidget" name="pg_axis1">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>450</width>
+              <height>138</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string>Axis #1 (+Z +Z')</string>
+            </attribute>
+            <layout class="QFormLayout" name="formLayout_6">
+             <property name="fieldGrowthPolicy">
+              <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+             </property>
+             <item row="0" column="0">
+              <widget class="QLabel" name="la_setvel1">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                 <underline>false</underline>
+                 <kerning>false</kerning>
+                </font>
+               </property>
+               <property name="text">
+                <string>Velocity [mm/s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="la_target1">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                 <kerning>false</kerning>
+                </font>
+               </property>
+               <property name="text">
+                <string>Target Position [mm]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_move_to_target_axis1">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Move to Target</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pb_stop_motor_axis1">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Stop Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_setvel1"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_target1"/>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pg_axis2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>424</width>
+              <height>124</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string>Axis #2 (+Y)</string>
+            </attribute>
+            <layout class="QFormLayout" name="formLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="la_setvel2">
+               <property name="font">
+                <font>
+                 <kerning>false</kerning>
+                </font>
+               </property>
+               <property name="text">
+                <string>Velocity [mm/s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="la_target2">
+               <property name="font">
+                <font>
+                 <kerning>false</kerning>
+                </font>
+               </property>
+               <property name="text">
+                <string>Target Position [mm]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_move_to_target_axis2">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Move to Target</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pb_stop_motor_axis2">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Stop Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_setvel2"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_target2"/>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pg_axis3">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>424</width>
+              <height>124</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string>Axis #3 (+X)</string>
+            </attribute>
+            <layout class="QFormLayout" name="formLayout_5">
+             <item row="0" column="0">
+              <widget class="QLabel" name="la_setvel3">
+               <property name="text">
+                <string>Velocity [mm/s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="la_target3">
+               <property name="text">
+                <string>Target Position [mm]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_move_to_target_axis3">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Move to Target</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pb_stop_motor_axis3">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Stop Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_setvel3"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_target3"/>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pg_axis5">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>424</width>
+              <height>124</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string>Axis #5 (+A)</string>
+            </attribute>
+            <layout class="QFormLayout" name="formLayout_2">
+             <item row="0" column="0">
+              <widget class="QLabel" name="la_setvel5">
+               <property name="text">
+                <string>Velocity [deg/s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="la_target5">
+               <property name="text">
+                <string>Target Position [deg]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_move_to_target_axis5">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Move to Target</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pb_stop_motor_axis5">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Stop Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_setvel5"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_target5"/>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pg_axis6">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>424</width>
+              <height>124</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string>Axis #6 (+W)</string>
+            </attribute>
+            <layout class="QFormLayout" name="formLayout_3">
+             <item row="0" column="0">
+              <widget class="QLabel" name="la_setvel6">
+               <property name="text">
+                <string>Velocity [mm/s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="la_target6">
+               <property name="text">
+                <string>Target Position [mm]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_move_to_target_axis6">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Move to Target</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pb_stop_motor_axis6">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Stop Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_setvel6"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_target6"/>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pg_axis7">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>424</width>
+              <height>124</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string>Axis #7 (+V)</string>
+            </attribute>
+            <layout class="QFormLayout" name="formLayout_4">
+             <item row="0" column="0">
+              <widget class="QLabel" name="la_setvel7">
+               <property name="text">
+                <string>Velocity [mm/s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="la_target7">
+               <property name="text">
+                <string>Target Position [mm]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_move_to_target_axis7">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Move to Target</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pb_stop_motor_axis7">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Stop Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_setvel7"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_target7"/>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pg_axis8">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>424</width>
+              <height>124</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string>Axis #8 (+B)</string>
+            </attribute>
+            <layout class="QFormLayout" name="formLayout_7">
+             <item row="0" column="0">
+              <widget class="QLabel" name="la_setvel8">
+               <property name="text">
+                <string>Velocity [deg/s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="la_target8">
+               <property name="text">
+                <string>Target Position [deg]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_move_to_target_axis8">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Move to Target</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pb_stop_motor_axis8">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Stop Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_setvel8"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_target8"/>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pg_axis9">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>424</width>
+              <height>124</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string>Axis #9 (+C)</string>
+            </attribute>
+            <layout class="QFormLayout" name="formLayout_8">
+             <item row="0" column="0">
+              <widget class="QLabel" name="la_setvel9">
+               <property name="text">
+                <string>Velocity [deg/s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="la_target9">
+               <property name="text">
+                <string>Target Position [deg]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_move_to_target_axis9">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Move to Target</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pb_stop_motor_axis9">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Stop Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_setvel9"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_target9"/>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="pg_empty">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>100</width>
+              <height>30</height>
+             </rect>
+            </property>
+            <attribute name="label">
+             <string/>
+            </attribute>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+      <zorder>horizontalSpacer_2</zorder>
+      <zorder>horizontalSpacer_3</zorder>
+      <zorder></zorder>
+      <zorder>horizontalSpacer_4</zorder>
+     </widget>
+     <widget class="QWidget" name="tab_calibration">
+      <attribute name="title">
+       <string>Probe Calibration</string>
+      </attribute>
+      <widget class="QTabWidget" name="tab_probes">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>10</y>
-         <width>430</width>
-         <height>330</height>
+         <y>260</y>
+         <width>1041</width>
+         <height>641</height>
         </rect>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap resource="resources.qrc">:/images/images/coordinate_system.png</pixmap>
-       </property>
-      </widget>
-      <widget class="QGroupBox" name="gb_axis_readings">
-       <property name="geometry">
-        <rect>
-         <x>780</x>
-         <y>18</y>
-         <width>210</width>
-         <height>311</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string/>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QLabel" name="la_pos1">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>#1 (+Z):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="le_pos1">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>0.00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QLabel" name="la_pos1_unit">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="la_pos2">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>#2 (+Y):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="le_pos2">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>0.00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLabel" name="la_pos2_unit">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="la_pos3">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>#3 (+X):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="le_pos3">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>0.00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QLabel" name="la_pos3_unit">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="la_pos5">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>#5 (+A):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="le_pos5">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>0.00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QLabel" name="la_pos5_unit">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="la_pos6">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>#6 (+W):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="le_pos6">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>0.00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QLabel" name="la_pos6_unit">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="la_pos7">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>#7 (+V):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="le_pos7">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>0.00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="2">
-         <widget class="QLabel" name="la_pos7_unit">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="la_pos8">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>#8 (+B):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLineEdit" name="le_pos8">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>0.00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="2">
-         <widget class="QLabel" name="la_pos8_unit">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="la_pos9">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>#9 (+C):</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="le_pos9">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>0.00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="2">
-         <widget class="QLabel" name="la_pos9_unit">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>mm</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QToolBox" name="tb_motors_main">
-       <property name="geometry">
-        <rect>
-         <x>440</x>
-         <y>50</y>
-         <width>330</width>
-         <height>220</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
-       <widget class="QWidget" name="tb_motors_homming">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>100</width>
-          <height>30</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string/>
+       <widget class="QWidget" name="tab_probex">
+        <attribute name="title">
+         <string>Probe X</string>
         </attribute>
-        <widget class="QGroupBox" name="gb_motors_main">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>330</width>
-           <height>160</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="title">
-          <string>Select axis for homming:</string>
-         </property>
-         <widget class="QPushButton" name="pb_start_homming">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>120</y>
-            <width>290</width>
-            <height>30</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Start Homming</string>
-          </property>
-         </widget>
-         <widget class="QWidget" name="layoutWidget">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>20</y>
-            <width>290</width>
-            <height>100</height>
-           </rect>
-          </property>
-          <layout class="QGridLayout" name="gl_motors_main">
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="cb_homming1">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>#1 (+Z)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QCheckBox" name="cb_homming5">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>#5 (+A)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QCheckBox" name="cb_homming8">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>#8 (+B)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="cb_homming2">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>#2 (+Y)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QCheckBox" name="cb_homming6">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>#6 (+W)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QCheckBox" name="cb_homming9">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>#9 (+C)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QCheckBox" name="cb_homming3">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>#3 (+X)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QCheckBox" name="cb_homming7">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>#7 (+V)</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </widget>
+        <layout class="QGridLayout" name="gridLayout_15">
+         <item row="0" column="0">
+          <widget class="PlotWidget" name="gv_probex">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>600</width>
+             <height>250</height>
+            </size>
+           </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="backgroundBrush">
+            <brush brushstyle="NoBrush">
+             <color alpha="255">
+              <red>255</red>
+              <green>255</green>
+              <blue>255</blue>
+             </color>
+            </brush>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QTableWidget" name="tw_probex">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
+          </widget>
+         </item>
+        </layout>
        </widget>
-       <widget class="QWidget" name="tb_motors_movement">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>330</width>
-          <height>164</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string/>
+       <widget class="QWidget" name="tab_probey">
+        <attribute name="title">
+         <string>Probe Y</string>
         </attribute>
-        <widget class="QGroupBox" name="gb_axis_movement">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>330</width>
-           <height>120</height>
-          </rect>
-         </property>
-         <property name="title">
-          <string/>
-         </property>
-         <widget class="QWidget" name="layoutWidget">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>8</y>
-            <width>317</width>
-            <height>100</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="vl_axis_movement">
-           <item>
-            <layout class="QHBoxLayout" name="hl_velocity">
-             <item>
-              <widget class="QLabel" name="la_velocity">
-               <property name="font">
-                <font>
-                 <pointsize>10</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Velocity [unit/s]:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="le_velocity">
-               <property name="font">
-                <font>
-                 <pointsize>10</pointsize>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>0.00</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="hl_select_axis">
-             <item>
-              <widget class="QLabel" name="la_select_axis">
-               <property name="font">
-                <font>
-                 <pointsize>15</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Axis:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="cb_select_axis">
-               <property name="font">
-                <font>
-                 <pointsize>14</pointsize>
-                </font>
-               </property>
-               <item>
-                <property name="text">
-                 <string>#1 (+Z &amp; Z') [mm]</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>#2 (+Y) [mm]</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>#3 (+X) [mm]</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>#5 (+A) [deg]</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>#6 (+W) [mm]</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>#7 (+V) [mm]</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>#8 (+B) [deg]</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>#9 (+C) [deg]</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="hl_target_position">
-             <item>
-              <widget class="QLabel" name="la_taget_position">
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Target Position [unit]:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="le_target_position">
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>0.0000</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-        <widget class="QGroupBox" name="gb_motors_movements">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>118</y>
-           <width>330</width>
-           <height>43</height>
-          </rect>
-         </property>
-         <property name="title">
-          <string/>
-         </property>
-         <widget class="QPushButton" name="pb_stop_motor">
-          <property name="geometry">
-           <rect>
-            <x>168</x>
-            <y>7</y>
-            <width>152</width>
-            <height>30</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Stop Motor</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pb_move_to_target">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>7</y>
-            <width>152</width>
-            <height>30</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Move to Target</string>
-          </property>
-         </widget>
-        </widget>
+        <layout class="QGridLayout" name="gridLayout_16">
+         <item row="0" column="0">
+          <widget class="PlotWidget" name="gv_probey">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>600</width>
+             <height>250</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="backgroundBrush">
+            <brush brushstyle="NoBrush">
+             <color alpha="255">
+              <red>255</red>
+              <green>255</green>
+              <blue>255</blue>
+             </color>
+            </brush>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QTableWidget" name="tw_probey">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_probez">
+        <attribute name="title">
+         <string>Probe Z</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="PlotWidget" name="gv_probez">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>600</width>
+             <height>250</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="backgroundBrush">
+            <brush brushstyle="NoBrush">
+             <color alpha="255">
+              <red>255</red>
+              <green>255</green>
+              <blue>255</blue>
+             </color>
+            </brush>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QTableWidget" name="tw_probez">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
-      <widget class="QGroupBox" name="gb_all_motors">
+      <widget class="QGroupBox" name="gb_load_calibration">
        <property name="geometry">
         <rect>
-         <x>440</x>
-         <y>266</y>
-         <width>331</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string/>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="1">
-         <widget class="QPushButton" name="pb_kill_all_motors">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Kill All Motors</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QPushButton" name="pb_stop_all_motors">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Stop All Motors</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QPushButton" name="pb_activate_bench">
-       <property name="geometry">
-        <rect>
-         <x>440</x>
-         <y>20</y>
-         <width>330</width>
-         <height>27</height>
+         <x>350</x>
+         <y>10</y>
+         <width>321</width>
+         <height>230</height>
         </rect>
        </property>
        <property name="font">
         <font>
          <pointsize>12</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
+         <weight>50</weight>
+         <bold>false</bold>
         </font>
        </property>
-       <property name="text">
-        <string>Activate Bench</string>
+       <property name="title">
+        <string>Load Calibration Data</string>
        </property>
+       <layout class="QGridLayout" name="gridLayout_14">
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="topMargin">
+         <number>30</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>20</number>
+        </property>
+        <item row="1" column="2">
+         <widget class="QLabel" name="la_calibration_filename">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Filename: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLineEdit" name="le_calibration_filename">
+          <property name="styleSheet">
+           <string notr="true">font: 8pt &quot;MS Shell Dlg 2&quot;;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3" alignment="Qt::AlignRight">
+         <widget class="QPushButton" name="pb_load_calibration">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>110</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>110</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Load File</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <spacer name="vs_load_calibration">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>80</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QLabel" name="la_probe_image">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>340</width>
+         <height>230</height>
+        </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>340</width>
+         <height>230</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>340</width>
+         <height>230</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>:/images/images/hall_probe.png</pixmap>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>720</x>
+         <y>30</y>
+         <width>301</width>
+         <height>231</height>
+        </rect>
+       </property>
+       <layout class="QFormLayout" name="fm_calibration">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="verticalSpacing">
+         <number>10</number>
+        </property>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="le_field_unit"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="la_voltage_unit">
+          <property name="text">
+           <string>Voltage Unit</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="le_voltage_unit"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="la_dyx">
+          <property name="text">
+           <string>dyx [mm]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="le_dyx"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="la_dyz">
+          <property name="text">
+           <string>dyz [mm]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="le_dyz"/>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="la_width_axis">
+          <property name="text">
+           <string>Width Axis</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="le_width_axis"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="la_field_unit">
+          <property name="text">
+           <string>Magnetic Field Unit</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="le_data_type"/>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Data Type</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_measurement">
@@ -2099,18 +3081,6 @@
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="le_dmm_aper">
-                  <property name="font">
-                   <font>
-                    <pointsize>12</pointsize>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string>0.003</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="1" column="0">
                  <widget class="QLabel" name="la_dmm_precision">
                   <property name="font">
@@ -2142,6 +3112,13 @@
                   </item>
                  </widget>
                 </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="le_dmm_aper">
+                  <property name="text">
+                   <string>0.003</string>
+                  </property>
+                 </widget>
+                </item>
                </layout>
               </widget>
              </item>
@@ -2163,11 +3140,14 @@
              <enum>QFrame::Raised</enum>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
              <property name="topMargin">
               <number>9</number>
              </property>
              <property name="rightMargin">
-              <number>9</number>
+              <number>0</number>
              </property>
              <property name="bottomMargin">
               <number>9</number>
@@ -2188,32 +3168,6 @@
                <layout class="QGridLayout" name="gridLayout_7">
                 <item row="0" column="0">
                  <layout class="QGridLayout" name="gl_position_param">
-                  <item row="4" column="3">
-                   <widget class="QLineEdit" name="le_axis5_end">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="0">
-                   <widget class="QRadioButton" name="rb_axis2_triggering">
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="1">
-                   <widget class="QLabel" name="la_pos2_param">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>#2 (+Y) [mm]:</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item row="0" column="2">
                    <widget class="QLabel" name="la_start">
                     <property name="font">
@@ -2223,33 +3177,6 @@
                     </property>
                     <property name="text">
                      <string>Start</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="1">
-                   <widget class="QLabel" name="la_pos1_param">
-                    <property name="font">
-                     <font>
-                      <pointsize>10</pointsize>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>#1 (+Z) [mm]:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="3">
-                   <widget class="QLabel" name="la_end">
-                    <property name="font">
-                     <font>
-                      <pointsize>12</pointsize>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>End</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -2268,6 +3195,13 @@
                     </property>
                    </widget>
                   </item>
+                  <item row="2" column="0">
+                   <widget class="QRadioButton" name="rb_triggering_axis2">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="3" column="1">
                    <widget class="QLabel" name="la_pos3_param">
                     <property name="font">
@@ -2280,92 +3214,8 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="3">
-                   <widget class="QLineEdit" name="le_axis1_end">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="2">
-                   <widget class="QLineEdit" name="le_axis5_start">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="2">
-                   <widget class="QLineEdit" name="le_axis3_start">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="4">
-                   <widget class="QLineEdit" name="le_axis5_step">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="3">
-                   <widget class="QLineEdit" name="le_axis3_end">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="4">
-                   <widget class="QLineEdit" name="le_axis1_step">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="0">
-                   <widget class="QRadioButton" name="rb_axis3_triggering">
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="2">
-                   <widget class="QLineEdit" name="le_axis1_start">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="3">
-                   <widget class="QLineEdit" name="le_axis2_end">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="4">
-                   <widget class="QLineEdit" name="le_axis3_step">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="4">
-                   <widget class="QLineEdit" name="le_axis2_step">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="2">
-                   <widget class="QLineEdit" name="le_axis2_start">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item row="1" column="0">
-                   <widget class="QRadioButton" name="rb_axis1_triggering">
+                   <widget class="QRadioButton" name="rb_triggering_axis1">
                     <property name="enabled">
                      <bool>true</bool>
                     </property>
@@ -2376,80 +3226,6 @@
                      <bool>true</bool>
                     </property>
                    </widget>
-                  </item>
-                  <item row="1" column="6">
-                   <widget class="QLineEdit" name="le_axis1_vel">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="6">
-                   <widget class="QLabel" name="la_velocity_table">
-                    <property name="font">
-                     <font>
-                      <pointsize>11</pointsize>
-                      <weight>50</weight>
-                      <italic>false</italic>
-                      <bold>false</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Velocity
-[unit/s]</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="6">
-                   <widget class="QLineEdit" name="le_axis3_vel">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="6">
-                   <widget class="QLineEdit" name="le_axis5_vel">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="6">
-                   <widget class="QLineEdit" name="le_axis2_vel">
-                    <property name="styleSheet">
-                     <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="0" colspan="2">
-                   <widget class="QLabel" name="la_axis">
-                    <property name="font">
-                     <font>
-                      <pointsize>12</pointsize>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Axis</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="5">
-                   <widget class="QLineEdit" name="le_axis5_extra"/>
-                  </item>
-                  <item row="3" column="5">
-                   <widget class="QLineEdit" name="le_axis3_extra"/>
-                  </item>
-                  <item row="2" column="5">
-                   <widget class="QLineEdit" name="le_axis2_extra"/>
-                  </item>
-                  <item row="1" column="5">
-                   <widget class="QLineEdit" name="le_axis1_extra"/>
                   </item>
                   <item row="0" column="5">
                    <widget class="QLabel" name="la_extra">
@@ -2480,6 +3256,159 @@
                      <set>Qt::AlignCenter</set>
                     </property>
                    </widget>
+                  </item>
+                  <item row="0" column="3">
+                   <widget class="QLabel" name="la_end">
+                    <property name="font">
+                     <font>
+                      <pointsize>12</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>End</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLabel" name="la_pos1_param">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>#1 (+Z) [mm]:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QRadioButton" name="rb_triggering_axis3">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QLabel" name="la_pos2_param">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>#2 (+Y) [mm]:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0" colspan="2">
+                   <widget class="QLabel" name="la_axis">
+                    <property name="font">
+                     <font>
+                      <pointsize>12</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Axis</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="6">
+                   <widget class="QLabel" name="la_velocity_table">
+                    <property name="font">
+                     <font>
+                      <pointsize>11</pointsize>
+                      <weight>50</weight>
+                      <italic>false</italic>
+                      <bold>false</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Velocity
+[unit/s]</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="2">
+                   <widget class="QLineEdit" name="le_start1">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>75</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="2">
+                   <widget class="QLineEdit" name="le_start2"/>
+                  </item>
+                  <item row="3" column="2">
+                   <widget class="QLineEdit" name="le_start3"/>
+                  </item>
+                  <item row="4" column="2">
+                   <widget class="QLineEdit" name="le_start5"/>
+                  </item>
+                  <item row="1" column="3">
+                   <widget class="QLineEdit" name="le_end1"/>
+                  </item>
+                  <item row="2" column="3">
+                   <widget class="QLineEdit" name="le_end2"/>
+                  </item>
+                  <item row="3" column="3">
+                   <widget class="QLineEdit" name="le_end3"/>
+                  </item>
+                  <item row="4" column="3">
+                   <widget class="QLineEdit" name="le_end5"/>
+                  </item>
+                  <item row="1" column="4">
+                   <widget class="QLineEdit" name="le_step1"/>
+                  </item>
+                  <item row="2" column="4">
+                   <widget class="QLineEdit" name="le_step2"/>
+                  </item>
+                  <item row="3" column="4">
+                   <widget class="QLineEdit" name="le_step3"/>
+                  </item>
+                  <item row="4" column="4">
+                   <widget class="QLineEdit" name="le_step5"/>
+                  </item>
+                  <item row="1" column="5">
+                   <widget class="QLineEdit" name="le_extra1"/>
+                  </item>
+                  <item row="2" column="5">
+                   <widget class="QLineEdit" name="le_extra2"/>
+                  </item>
+                  <item row="3" column="5">
+                   <widget class="QLineEdit" name="le_extra3"/>
+                  </item>
+                  <item row="4" column="5">
+                   <widget class="QLineEdit" name="le_extra5"/>
+                  </item>
+                  <item row="1" column="6">
+                   <widget class="QLineEdit" name="le_vel1"/>
+                  </item>
+                  <item row="2" column="6">
+                   <widget class="QLineEdit" name="le_vel2"/>
+                  </item>
+                  <item row="3" column="6">
+                   <widget class="QLineEdit" name="le_vel3"/>
+                  </item>
+                  <item row="4" column="6">
+                   <widget class="QLineEdit" name="le_vel5"/>
                   </item>
                  </layout>
                 </item>
@@ -2604,7 +3533,7 @@
                  <number>0</number>
                 </property>
                 <item row="0" column="2">
-                 <widget class="QLabel" name="la_pos1_unit_2">
+                 <widget class="QLabel" name="la_me_pos1_unit">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2616,7 +3545,7 @@
                  </widget>
                 </item>
                 <item row="1" column="0">
-                 <widget class="QLabel" name="la_pos2_2">
+                 <widget class="QLabel" name="la_me_pos2">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2628,7 +3557,7 @@
                  </widget>
                 </item>
                 <item row="1" column="1">
-                 <widget class="QLineEdit" name="le_pos2_2">
+                 <widget class="QLineEdit" name="le_me_pos2">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -2648,7 +3577,7 @@
                  </widget>
                 </item>
                 <item row="1" column="2">
-                 <widget class="QLabel" name="la_pos2_unit_2">
+                 <widget class="QLabel" name="la_me_pos2_unit">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2660,7 +3589,7 @@
                  </widget>
                 </item>
                 <item row="2" column="0">
-                 <widget class="QLabel" name="la_pos3_2">
+                 <widget class="QLabel" name="la_me_pos3">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2672,7 +3601,7 @@
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <widget class="QLineEdit" name="le_pos3_2">
+                 <widget class="QLineEdit" name="le_me_pos3">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -2692,7 +3621,7 @@
                  </widget>
                 </item>
                 <item row="2" column="2">
-                 <widget class="QLabel" name="la_pos3_unit_2">
+                 <widget class="QLabel" name="la_me_pos3_unit">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2704,7 +3633,7 @@
                  </widget>
                 </item>
                 <item row="3" column="0">
-                 <widget class="QLabel" name="la_pos5_2">
+                 <widget class="QLabel" name="la_me_pos5">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2716,7 +3645,7 @@
                  </widget>
                 </item>
                 <item row="3" column="1">
-                 <widget class="QLineEdit" name="le_pos5_2">
+                 <widget class="QLineEdit" name="le_me_pos5">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -2736,19 +3665,19 @@
                  </widget>
                 </item>
                 <item row="3" column="2">
-                 <widget class="QLabel" name="la_pos5_unit_2">
+                 <widget class="QLabel" name="la_me_pos5_unit">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
                    </font>
                   </property>
                   <property name="text">
-                   <string>mm</string>
+                   <string>deg</string>
                   </property>
                  </widget>
                 </item>
                 <item row="4" column="0">
-                 <widget class="QLabel" name="la_pos6_2">
+                 <widget class="QLabel" name="la_me_pos6">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2760,7 +3689,7 @@
                  </widget>
                 </item>
                 <item row="4" column="1">
-                 <widget class="QLineEdit" name="le_pos6_2">
+                 <widget class="QLineEdit" name="le_me_pos6">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -2780,7 +3709,7 @@
                  </widget>
                 </item>
                 <item row="4" column="2">
-                 <widget class="QLabel" name="la_pos6_unit_2">
+                 <widget class="QLabel" name="la_me_pos6_unit">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2792,7 +3721,7 @@
                  </widget>
                 </item>
                 <item row="5" column="0">
-                 <widget class="QLabel" name="la_pos7_2">
+                 <widget class="QLabel" name="la_me_pos7">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2804,7 +3733,7 @@
                  </widget>
                 </item>
                 <item row="5" column="1">
-                 <widget class="QLineEdit" name="le_pos7_2">
+                 <widget class="QLineEdit" name="le_me_pos7">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -2824,7 +3753,7 @@
                  </widget>
                 </item>
                 <item row="5" column="2">
-                 <widget class="QLabel" name="la_pos7_unit_2">
+                 <widget class="QLabel" name="la_me_pos7_unit">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2836,7 +3765,7 @@
                  </widget>
                 </item>
                 <item row="6" column="0">
-                 <widget class="QLabel" name="la_pos8_2">
+                 <widget class="QLabel" name="la_me_pos8">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2848,7 +3777,7 @@
                  </widget>
                 </item>
                 <item row="6" column="1">
-                 <widget class="QLineEdit" name="le_pos8_2">
+                 <widget class="QLineEdit" name="le_me_pos8">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -2868,19 +3797,19 @@
                  </widget>
                 </item>
                 <item row="6" column="2">
-                 <widget class="QLabel" name="la_pos8_unit_2">
+                 <widget class="QLabel" name="la_me_pos8_unit">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
                    </font>
                   </property>
                   <property name="text">
-                   <string>mm</string>
+                   <string>deg</string>
                   </property>
                  </widget>
                 </item>
                 <item row="7" column="0">
-                 <widget class="QLabel" name="la_pos9_2">
+                 <widget class="QLabel" name="la_me_pos9">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -2892,7 +3821,7 @@
                  </widget>
                 </item>
                 <item row="7" column="1">
-                 <widget class="QLineEdit" name="le_pos9_2">
+                 <widget class="QLineEdit" name="le_me_pos9">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -2912,19 +3841,19 @@
                  </widget>
                 </item>
                 <item row="7" column="2">
-                 <widget class="QLabel" name="la_pos9_unit_2">
+                 <widget class="QLabel" name="la_me_pos9_unit">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
                    </font>
                   </property>
                   <property name="text">
-                   <string>mm</string>
+                   <string>deg</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QLineEdit" name="le_pos1_2">
+                 <widget class="QLineEdit" name="le_me_pos1">
                   <property name="font">
                    <font>
                     <pointsize>12</pointsize>
@@ -2944,7 +3873,7 @@
                  </widget>
                 </item>
                 <item row="0" column="0">
-                 <widget class="QLabel" name="la_pos1_2">
+                 <widget class="QLabel" name="la_me_pos1">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -3043,54 +3972,29 @@
   <tabstop>cb_homming1</tabstop>
   <tabstop>cb_homming2</tabstop>
   <tabstop>cb_homming3</tabstop>
-  <tabstop>pb_start_homming</tabstop>
   <tabstop>cb_homming5</tabstop>
   <tabstop>cb_homming6</tabstop>
   <tabstop>cb_homming7</tabstop>
   <tabstop>cb_homming8</tabstop>
   <tabstop>cb_homming9</tabstop>
-  <tabstop>le_velocity</tabstop>
-  <tabstop>cb_select_axis</tabstop>
-  <tabstop>le_target_position</tabstop>
-  <tabstop>pb_move_to_target</tabstop>
-  <tabstop>pb_stop_motor</tabstop>
-  <tabstop>pb_stop_all_motors</tabstop>
-  <tabstop>pb_kill_all_motors</tabstop>
-  <tabstop>le_pos1</tabstop>
-  <tabstop>le_pos2</tabstop>
-  <tabstop>le_pos3</tabstop>
-  <tabstop>le_pos5</tabstop>
-  <tabstop>le_pos6</tabstop>
-  <tabstop>le_pos7</tabstop>
-  <tabstop>le_pos8</tabstop>
-  <tabstop>le_pos9</tabstop>
+  <tabstop>le_mo_pos1</tabstop>
+  <tabstop>le_mo_pos2</tabstop>
+  <tabstop>le_mo_pos3</tabstop>
+  <tabstop>le_mo_pos5</tabstop>
+  <tabstop>le_mo_pos6</tabstop>
+  <tabstop>le_mo_pos7</tabstop>
+  <tabstop>le_mo_pos8</tabstop>
+  <tabstop>le_mo_pos9</tabstop>
   <tabstop>cb_hall_x_enable</tabstop>
   <tabstop>cb_hall_y_enable</tabstop>
   <tabstop>cb_hall_z_enable</tabstop>
-  <tabstop>le_dmm_aper</tabstop>
   <tabstop>cb_dmm_precision</tabstop>
   <tabstop>le_measurement_config_filename</tabstop>
   <tabstop>pb_load_measurement_config</tabstop>
   <tabstop>pb_save_measurement_config</tabstop>
-  <tabstop>rb_axis1_triggering</tabstop>
-  <tabstop>le_axis1_start</tabstop>
-  <tabstop>le_axis1_end</tabstop>
-  <tabstop>le_axis1_step</tabstop>
-  <tabstop>le_axis1_vel</tabstop>
-  <tabstop>rb_axis2_triggering</tabstop>
-  <tabstop>le_axis2_start</tabstop>
-  <tabstop>le_axis2_end</tabstop>
-  <tabstop>le_axis2_step</tabstop>
-  <tabstop>le_axis2_vel</tabstop>
-  <tabstop>rb_axis3_triggering</tabstop>
-  <tabstop>le_axis3_start</tabstop>
-  <tabstop>le_axis3_end</tabstop>
-  <tabstop>le_axis3_step</tabstop>
-  <tabstop>le_axis3_vel</tabstop>
-  <tabstop>le_axis5_start</tabstop>
-  <tabstop>le_axis5_end</tabstop>
-  <tabstop>le_axis5_step</tabstop>
-  <tabstop>le_axis5_vel</tabstop>
+  <tabstop>rb_triggering_axis1</tabstop>
+  <tabstop>rb_triggering_axis2</tabstop>
+  <tabstop>rb_triggering_axis3</tabstop>
  </tabstops>
  <resources>
   <include location="resources.qrc"/>

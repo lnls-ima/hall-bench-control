@@ -11,7 +11,6 @@ def _get_magnets_info():
     _d['gap[mm]'] = 39
     _d['magnet_length[mm]'] = 808.4
     _d['nr_turns_main'] = 24
-    _d['outro'] = 7
     magnets_info.append(_d)
 
     # Storage Ring Dipole B2

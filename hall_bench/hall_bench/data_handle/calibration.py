@@ -24,18 +24,12 @@ class CalibrationData(object):
             self._probex_data = []
             self._probey_data = []
             self._probez_data = []
-            self.probex_dx = None
-            self.probex_dy = None
-            self.probex_dz = None
-            self.probez_dx = None
-            self.probez_dy = None
-            self.probez_dz = None
-            self.angle_xy = None
-            self.angle_yz = None
-            self.angle_xz = None
             self._probex_function = None
             self._probey_function = None
             self._probez_function = None
+            self.dyx = None
+            self.dyz = None
+            self.width_axis = None
 
     def __eq__(self, other):
         """Equality method."""
@@ -216,15 +210,9 @@ class CalibrationData(object):
         self.data_type = _utils.find_value(flines, 'data_type')
         self.field_unit = _utils.find_value(flines, 'field_unit')
         self.voltage_unit = _utils.find_value(flines, 'voltage_unit')
-        self.probex_dx = _utils.find_value(flines, 'probex_dx', vtype=float)
-        self.probex_dy = _utils.find_value(flines, 'probex_dy', vtype=float)
-        self.probex_dz = _utils.find_value(flines, 'probex_dz', vtype=float)
-        self.probez_dx = _utils.find_value(flines, 'probez_dx', vtype=float)
-        self.probez_dy = _utils.find_value(flines, 'probez_dy', vtype=float)
-        self.probez_dz = _utils.find_value(flines, 'probez_dz', vtype=float)
-        self.angle_xy = _utils.find_value(flines, 'angle_xy', vtype=float)
-        self.angle_yz = _utils.find_value(flines, 'angle_yz', vtype=float)
-        self.angle_xz = _utils.find_value(flines, 'angle_xz', vtype=float)
+        self.dyx = _utils.find_value(flines, 'dyx', vtype=float)
+        self.dyz = _utils.find_value(flines, 'dyz', vtype=float)
+        self.width_axis = _utils.find_value(flines, 'width_axis')
 
         probex_data = []
         probey_data = []
@@ -262,15 +250,9 @@ class CalibrationData(object):
         f.write('timestamp:     \t{0:1s}\n'.format(timestamp))
         f.write('field_unit:    \t{0:1s}\n'.format(self.field_unit))
         f.write('voltage_unit:  \t{0:1s}\n'.format(self.voltage_unit))
-        f.write('probex_dx[mm]: \t{0:1s}\n'.format(str(self.probex_dx)))
-        f.write('probex_dy[mm]: \t{0:1s}\n'.format(str(self.probex_dy)))
-        f.write('probex_dz[mm]: \t{0:1s}\n'.format(str(self.probex_dz)))
-        f.write('probez_dx[mm]: \t{0:1s}\n'.format(str(self.probez_dx)))
-        f.write('probez_dy[mm]: \t{0:1s}\n'.format(str(self.probez_dy)))
-        f.write('probez_dz[mm]: \t{0:1s}\n'.format(str(self.probez_dz)))
-        f.write('angle_xy[rad]: \t{0:1s}\n'.format(str(self.angle_xy)))
-        f.write('angle_yz[rad]: \t{0:1s}\n'.format(str(self.angle_yz)))
-        f.write('angle_xz[rad]: \t{0:1s}\n'.format(str(self.angle_xz)))
+        f.write('dyx[mm]:       \t{0:1s}\n'.format(str(self.dyx)))
+        f.write('dyz[mm]:       \t{0:1s}\n'.format(str(self.dyz)))
+        f.write('width_axis:    \t{0:1s}\n'.format(self.width_axis))
         f.write('\n')
 
         if self.data_type == 'interpolation':
@@ -314,20 +296,14 @@ class CalibrationData(object):
         self._probex_data = []
         self._probey_data = []
         self._probez_data = []
-        self.probex_dx = None
-        self.probex_dy = None
-        self.probex_dz = None
-        self.probez_dx = None
-        self.probez_dy = None
-        self.probez_dz = None
-        self.angle_xy = None
-        self.angle_yz = None
-        self.angle_xz = None
         self._probex_function = None
         self._probey_function = None
         self._probez_function = None
+        self.dyx = None
+        self.dyz = None
+        self.width_axis = None
 
-    def convert_probe_x(self, voltage_array):
+    def convert_voltage_probex(self, voltage_array):
         """Convert voltage values to magnetic field values for probe x.
 
         Args:
@@ -341,7 +317,7 @@ class CalibrationData(object):
         else:
             return _np.ones(len(voltage_array))*_np.nan
 
-    def convert_probe_y(self, voltage_array):
+    def convert_voltage_probey(self, voltage_array):
         """Convert voltage values to magnetic field values for probe y.
 
         Args:
@@ -355,7 +331,7 @@ class CalibrationData(object):
         else:
             return _np.ones(len(voltage_array))*_np.nan
 
-    def convert_probe_z(self, voltage_array):
+    def convert_voltage_probez(self, voltage_array):
         """Convert voltage values to magnetic field values for probe z.
 
         Args:

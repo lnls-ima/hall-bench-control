@@ -2441,7 +2441,7 @@
               <x>0</x>
               <y>0</y>
               <width>450</width>
-              <height>138</height>
+              <height>176</height>
              </rect>
             </property>
             <attribute name="label">
@@ -3067,7 +3067,7 @@
                </property>
                <layout class="QGridLayout" name="gridLayout_9">
                 <property name="bottomMargin">
-                 <number>0</number>
+                 <number>5</number>
                 </property>
                 <item row="0" column="0">
                  <widget class="QLabel" name="la_dmm_aper">
@@ -3433,7 +3433,7 @@
                  <number>30</number>
                 </property>
                 <property name="bottomMargin">
-                 <number>0</number>
+                 <number>5</number>
                 </property>
                 <item row="1" column="0">
                  <widget class="QSpinBox" name="sb_nr_measurements">
@@ -3533,7 +3533,7 @@
               <number>9</number>
              </property>
              <property name="bottomMargin">
-              <number>3</number>
+              <number>8</number>
              </property>
              <item>
               <widget class="QFrame" name="gb_axis_readings_2">

@@ -2441,7 +2441,7 @@
               <x>0</x>
               <y>0</y>
               <width>450</width>
-              <height>176</height>
+              <height>138</height>
              </rect>
             </property>
             <attribute name="label">
@@ -2462,389 +2462,360 @@
       <attribute name="title">
        <string>Probe Calibration</string>
       </attribute>
-      <widget class="QTabWidget" name="tab_probes">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>260</y>
-         <width>1041</width>
-         <height>641</height>
-        </rect>
-       </property>
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="QWidget" name="tab_probex">
-        <attribute name="title">
-         <string>Probe X</string>
-        </attribute>
-        <layout class="QGridLayout" name="gridLayout_15">
+      <layout class="QGridLayout" name="gridLayout_17">
+       <item row="0" column="0">
+        <widget class="QLabel" name="la_probe_image">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>340</width>
+           <height>230</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>340</width>
+           <height>230</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="resources.qrc">:/images/images/hall_probe.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QGroupBox" name="gb_load_calibration">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>Load Calibration Data</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_14">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>30</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>20</number>
+          </property>
+          <item row="1" column="2">
+           <widget class="QLabel" name="la_calibration_filename">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Filename: </string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLineEdit" name="le_calibration_filename">
+            <property name="styleSheet">
+             <string notr="true">font: 8pt &quot;MS Shell Dlg 2&quot;;</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3" alignment="Qt::AlignRight">
+           <widget class="QPushButton" name="pb_load_calibration">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>110</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Load File</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <spacer name="vs_load_calibration">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>80</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <layout class="QFormLayout" name="fm_calibration">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         </property>
+         <property name="verticalSpacing">
+          <number>10</number>
+         </property>
+         <property name="margin">
+          <number>10</number>
+         </property>
          <item row="0" column="0">
-          <widget class="PlotWidget" name="gv_probex">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>600</width>
-             <height>250</height>
-            </size>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="backgroundBrush">
-            <brush brushstyle="NoBrush">
-             <color alpha="255">
-              <red>255</red>
-              <green>255</green>
-              <blue>255</blue>
-             </color>
-            </brush>
+          <widget class="QLabel" name="la_data_type">
+           <property name="text">
+            <string>Data Type</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QTableWidget" name="tw_probex">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+          <widget class="QLineEdit" name="le_data_type"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="la_dyx">
+           <property name="text">
+            <string>Relative Position Probe U [mm]</string>
            </property>
-           <attribute name="verticalHeaderVisible">
-            <bool>false</bool>
-           </attribute>
           </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="le_rel_pos_probeu"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="la_dyz">
+           <property name="text">
+            <string>Relative Position Probe W [mm]</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="le_rel_pos_probew"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="la_u_axis">
+           <property name="text">
+            <string>U-Axis</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="le_u_axis"/>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="la_w_axis">
+           <property name="text">
+            <string>W-Axis</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="le_w_axis"/>
          </item>
         </layout>
-       </widget>
-       <widget class="QWidget" name="tab_probey">
-        <attribute name="title">
-         <string>Probe Y</string>
-        </attribute>
-        <layout class="QGridLayout" name="gridLayout_16">
-         <item row="0" column="0">
-          <widget class="PlotWidget" name="gv_probey">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>600</width>
-             <height>250</height>
-            </size>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="backgroundBrush">
-            <brush brushstyle="NoBrush">
-             <color alpha="255">
-              <red>255</red>
-              <green>255</green>
-              <blue>255</blue>
-             </color>
-            </brush>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QTableWidget" name="tw_probey">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <attribute name="verticalHeaderVisible">
-            <bool>false</bool>
-           </attribute>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="tab_probez">
-        <attribute name="title">
-         <string>Probe Z</string>
-        </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_7">
-         <item>
-          <widget class="PlotWidget" name="gv_probez">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>600</width>
-             <height>250</height>
-            </size>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Sunken</enum>
-           </property>
-           <property name="backgroundBrush">
-            <brush brushstyle="NoBrush">
-             <color alpha="255">
-              <red>255</red>
-              <green>255</green>
-              <blue>255</blue>
-             </color>
-            </brush>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTableWidget" name="tw_probez">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <attribute name="verticalHeaderVisible">
-            <bool>false</bool>
-           </attribute>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-      <widget class="QGroupBox" name="gb_load_calibration">
-       <property name="geometry">
-        <rect>
-         <x>350</x>
-         <y>10</y>
-         <width>321</width>
-         <height>230</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="title">
-        <string>Load Calibration Data</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_14">
-        <property name="leftMargin">
-         <number>10</number>
-        </property>
-        <property name="topMargin">
-         <number>30</number>
-        </property>
-        <property name="rightMargin">
-         <number>10</number>
-        </property>
-        <property name="bottomMargin">
-         <number>10</number>
-        </property>
-        <property name="verticalSpacing">
-         <number>20</number>
-        </property>
-        <item row="1" column="2">
-         <widget class="QLabel" name="la_calibration_filename">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Filename: </string>
-          </property>
+       </item>
+       <item row="1" column="0" colspan="3">
+        <widget class="QTabWidget" name="tab_probes">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab_probeu">
+          <attribute name="title">
+           <string>Probe U</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_15">
+           <item row="0" column="0">
+            <widget class="PlotWidget" name="gv_probeu">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>600</width>
+               <height>250</height>
+              </size>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="backgroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QTableWidget" name="tw_probeu">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <attribute name="verticalHeaderVisible">
+              <bool>false</bool>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QLineEdit" name="le_calibration_filename">
-          <property name="styleSheet">
-           <string notr="true">font: 8pt &quot;MS Shell Dlg 2&quot;;</string>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
+         <widget class="QWidget" name="tab_probev">
+          <attribute name="title">
+           <string>Probe V</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_16">
+           <item row="0" column="0">
+            <widget class="PlotWidget" name="gv_probev">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>600</width>
+               <height>250</height>
+              </size>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="backgroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QTableWidget" name="tw_probev">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <attribute name="verticalHeaderVisible">
+              <bool>false</bool>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item row="2" column="3" alignment="Qt::AlignRight">
-         <widget class="QPushButton" name="pb_load_calibration">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>110</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>110</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Load File</string>
-          </property>
+         <widget class="QWidget" name="tab_probew">
+          <attribute name="title">
+           <string>Probe W</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="PlotWidget" name="gv_probew">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>600</width>
+               <height>250</height>
+              </size>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Sunken</enum>
+             </property>
+             <property name="backgroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tw_probew">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <attribute name="verticalHeaderVisible">
+              <bool>false</bool>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item row="3" column="3">
-         <spacer name="vs_load_calibration">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>80</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QLabel" name="la_probe_image">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>340</width>
-         <height>230</height>
-        </rect>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>340</width>
-         <height>230</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>340</width>
-         <height>230</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap>:/images/images/hall_probe.png</pixmap>
-       </property>
-       <property name="scaledContents">
-        <bool>true</bool>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>720</x>
-         <y>30</y>
-         <width>301</width>
-         <height>231</height>
-        </rect>
-       </property>
-       <layout class="QFormLayout" name="fm_calibration">
-        <property name="fieldGrowthPolicy">
-         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-        </property>
-        <property name="verticalSpacing">
-         <number>10</number>
-        </property>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="le_field_unit"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="la_voltage_unit">
-          <property name="text">
-           <string>Voltage Unit</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="le_voltage_unit"/>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="la_dyx">
-          <property name="text">
-           <string>dyx [mm]</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="le_dyx"/>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="la_dyz">
-          <property name="text">
-           <string>dyz [mm]</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="le_dyz"/>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="la_width_axis">
-          <property name="text">
-           <string>Width Axis</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="le_width_axis"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="la_field_unit">
-          <property name="text">
-           <string>Magnetic Field Unit</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="le_data_type"/>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Data Type</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="tab_measurement">
       <attribute name="title">

@@ -491,12 +491,12 @@ class LineScan(object):
         self._voltage_interpolated = []
         scan_pos = self.scan_positions
 
-        if self.scan_axis == self.calibration_data.width_axis:
-            dyx = self.calibration_data.dyx
-            dyz = self.calibration_data.dyz
+        if self.scan_axis == self._calibration_data.w_axis:
+            rel_pos_probeu = self._calibration_data.relative_position_probeu
+            rel_pos_probew = self._calibration_data.relative_position_probew
         else:
-            dyx = 0
-            dyz = 0
+            rel_pos_probeu = 0
+            rel_pos_probew = 0
 
         idx = 1
         for raw in self._voltage_raw:
@@ -510,13 +510,15 @@ class LineScan(object):
 
             rawpos = _get_scan_positions(raw.posx, raw.posy, raw.posz)
 
-            fx = _interpolate.splrep(rawpos + dyx, raw.datax, s=0, k=1)
+            fx = _interpolate.splrep(
+                rawpos + rel_pos_probeu, raw.datax, s=0, k=1)
             interp.datax = _interpolate.splev(scan_pos, fx, der=0)
 
             fy = _interpolate.splrep(rawpos, raw.datay, s=0, k=1)
             interp.datay = _interpolate.splev(scan_pos, fy, der=0)
 
-            fz = _interpolate.splrep(rawpos + dyz, raw.dataz, s=0, k=1)
+            fz = _interpolate.splrep(
+                rawpos + rel_pos_probew, raw.dataz, s=0, k=1)
             interp.dataz = _interpolate.splev(scan_pos, fz, der=0)
 
             self._voltage_interpolated.append(interp)
@@ -605,13 +607,13 @@ class LineScan(object):
         self._field_avg.posy = self._posy
         self._field_avg.posz = self._posz
 
-        self._field_avg.datax = self._calibration_data.convert_voltage_probex(
+        self._field_avg.datax = self._calibration_data.convert_voltage_probeu(
             self._voltage_avg.datax)
 
-        self._field_avg.datay = self._calibration_data.convert_voltage_probey(
+        self._field_avg.datay = self._calibration_data.convert_voltage_probev(
             self._voltage_avg.datay)
 
-        self._field_avg.dataz = self._calibration_data.convert_voltage_probez(
+        self._field_avg.dataz = self._calibration_data.convert_voltage_probew(
             self._voltage_avg.dataz)
 
         self._field_std = DataSet()
@@ -621,13 +623,13 @@ class LineScan(object):
         self._field_std.posy = self._posy
         self._field_std.posz = self._posz
 
-        self._field_std.datax = self._calibration_data.convert_voltage_probex(
+        self._field_std.datax = self._calibration_data.convert_voltage_probeu(
             self._voltage_std.datax)
 
-        self._field_std.datay = self._calibration_data.convert_voltage_probey(
+        self._field_std.datay = self._calibration_data.convert_voltage_probev(
             self._voltage_std.datay)
 
-        self._field_std.dataz = self._calibration_data.convert_voltage_probez(
+        self._field_std.dataz = self._calibration_data.convert_voltage_probew(
             self._voltage_std.dataz)
 
         if save_data:

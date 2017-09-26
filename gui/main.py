@@ -30,8 +30,8 @@ class HallBenchGUI(QtGui.QWidget):
         self.ui = Ui_HallBench()
         self.ui.setupUi(self)
 
-        for idx in range(1, self.ui.tab_main.count()):
-            self.ui.tab_main.setTabEnabled(idx, False)
+        # for idx in range(1, self.ui.tab_main.count()):
+        #     self.ui.tab_main.setTabEnabled(idx, False)
 
         for idx in range(0, self.ui.tb_move_axis.count()):
             self.ui.tb_move_axis.setItemEnabled(idx, False)
@@ -591,7 +591,7 @@ class HallBenchGUI(QtGui.QWidget):
 
             self.ui.le_calibration_filename.setText(filename)
 
-            for probe in ['x', 'y', 'z']:
+            for probe in ['u', 'v', 'w']:
                 probe_data = getattr(
                     self.calibration, 'probe' + probe + '_data')
                 table = getattr(self.ui, 'tw_probe' + probe)
@@ -622,39 +622,46 @@ class HallBenchGUI(QtGui.QWidget):
 
             voltage = np.linspace(-15, 15, 101)
 
-            self.ui.gv_probex.clear()
-            self.ui.gv_probex.plotItem.plot(
+            self.ui.gv_probeu.clear()
+            self.ui.gv_probeu.plotItem.plot(
                 voltage,
-                self.calibration.convert_voltage_probex(voltage),
+                self.calibration.convert_voltage_probeu(voltage),
                 pen={'color': 'b', 'width': 3})
-            self.ui.gv_probex.setLabel('bottom', "Voltage")
-            self.ui.gv_probex.setLabel('left', "Field")
-            self.ui.gv_probex.showGrid(x=True, y=True)
+            self.ui.gv_probeu.setLabel(
+                'bottom', "Voltage [" + self.calibration.voltage_unit + "]")
+            self.ui.gv_probeu.setLabel(
+                'left', "Field [" + self.calibration.field_unit + "]")
+            self.ui.gv_probeu.showGrid(x=True, y=True)
 
-            self.ui.gv_probey.clear()
-            self.ui.gv_probey.plotItem.plot(
+            self.ui.gv_probev.clear()
+            self.ui.gv_probev.plotItem.plot(
                 voltage,
-                self.calibration.convert_voltage_probey(voltage),
+                self.calibration.convert_voltage_probev(voltage),
                 pen={'color': 'b', 'width': 3})
-            self.ui.gv_probey.setLabel('bottom', "Voltage")
-            self.ui.gv_probey.setLabel('left', "Field")
-            self.ui.gv_probey.showGrid(x=True, y=True)
+            self.ui.gv_probev.setLabel(
+                'bottom', "Voltage [" + self.calibration.voltage_unit + "]")
+            self.ui.gv_probev.setLabel(
+                'left', "Field [" + self.calibration.field_unit + "]")
+            self.ui.gv_probev.showGrid(x=True, y=True)
 
-            self.ui.gv_probez.clear()
-            self.ui.gv_probez.plotItem.plot(
+            self.ui.gv_probew.clear()
+            self.ui.gv_probew.plotItem.plot(
                 voltage,
-                self.calibration.convert_voltage_probez(voltage),
+                self.calibration.convert_voltage_probew(voltage),
                 pen={'color': 'b', 'width': 3})
-            self.ui.gv_probez.setLabel('bottom', "Voltage")
-            self.ui.gv_probez.setLabel('left', "Field")
-            self.ui.gv_probez.showGrid(x=True, y=True)
+            self.ui.gv_probew.setLabel(
+                'bottom', "Voltage [" + self.calibration.voltage_unit + "]")
+            self.ui.gv_probew.setLabel(
+                'left', "Field [" + self.calibration.field_unit + "]")
+            self.ui.gv_probew.showGrid(x=True, y=True)
 
             self.ui.le_data_type.setText(self.calibration.data_type)
-            self.ui.le_field_unit.setText(self.calibration.field_unit)
-            self.ui.le_voltage_unit.setText(self.calibration.voltage_unit)
-            self.ui.le_dyx.setText(str(self.calibration.dyx))
-            self.ui.le_dyz.setText(str(self.calibration.dyz))
-            self.ui.le_width_axis.setText(self.calibration.width_axis)
+            self.ui.le_rel_pos_probeu.setText(str(
+                self.calibration.relative_position_probeu))
+            self.ui.le_rel_pos_probew.setText(str(
+                self.calibration.relative_position_probew))
+            self.ui.le_u_axis.setText(self.calibration.u_axis.upper())
+            self.ui.le_w_axis.setText(self.calibration.w_axis.upper())
 
     def configure_and_measure(self):
         """Configure and start measurements."""
@@ -1098,7 +1105,7 @@ class SaveMeasurementDialog(QtGui.QDialog):
 
     def open(self):
         """Open dialog."""
-        if self.measurement is not None:
+        if self.measurement is None:  # not None:
             self.exec_()
 
     def enabled_coil(self, checkbox, frame, line_edit_1, line_edit_2):

@@ -1,10 +1,11 @@
-data_type:     	polynomial
-timestamp:     	2017-08-17_15-20-08
-field_unit:    	T
-voltage_unit:  	V
-dyx[mm]:        0.0
-dyz[mm]:        0.0
-width_axis:     z
+data_type:                    polynomial
+timestamp:                    2017-08-17_15-20-08
+field_unit:                   T
+voltage_unit:                 V
+relative_position_probeu[mm]: 0.0
+relative_position_probew[mm]: 0.0
+u_axis:                       +x
+w_axis:                       +z
 
 probe   	v_min[V]       	v_max[V]       	polynomial_coefficients
 ------------------------------------------------------------------------------------------------------

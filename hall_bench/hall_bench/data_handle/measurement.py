@@ -3,11 +3,14 @@
 
 import os as _os
 import numpy as _np
+import pandas as _pd
 from scipy import interpolate as _interpolate
 
 from . import utils as _utils
-from . import configuration as _configuration
 from . import calibration as _calibration
+
+
+_position_precision = 4
 
 
 class MeasurementDataError(Exception):
@@ -18,193 +21,315 @@ class MeasurementDataError(Exception):
         self.message = message
 
 
-class DataSet(object):
-    """Position and data values."""
+class VoltageData(object):
+    """Position and voltage values."""
 
-    def __init__(self, description='', unit=''):
-        """Initialize variables.
+    _axis_list = [1, 2, 3, 5, 6, 7, 8, 9]
+    _pos1_unit = 'mm'
+    _pos2_unit = 'mm'
+    _pos3_unit = 'mm'
+    _pos5_unit = 'deg'
+    _pos6_unit = 'mm'
+    _pos7_unit = 'mm'
+    _pos8_unit = 'deg'
+    _pos9_unit = 'deg'
 
-        Args:
-            description (str): data description.
-            unit (str): data unit.
-        """
-        self.description = description
-        self.unit = unit
-        self._posx = _np.array([])
-        self._posy = _np.array([])
-        self._posz = _np.array([])
-        self._datax = _np.array([])
-        self._datay = _np.array([])
-        self._dataz = _np.array([])
+    def __init__(self, filename=None):
+        """Initialize variables."""
+        self._pos1 = _np.array([])
+        self._pos2 = _np.array([])
+        self._pos3 = _np.array([])
+        self._pos5 = _np.array([])
+        self._pos6 = _np.array([])
+        self._pos7 = _np.array([])
+        self._pos8 = _np.array([])
+        self._pos9 = _np.array([])
+        self._probei = _np.array([])
+        self._probej = _np.array([])
+        self._probek = _np.array([])
+        if filename is not None:
+            self.read_file(filename)
+
+    def __str__(self):
+        """Printable string representation of VoltageData."""
+        fmtstr = '{0:<18s} : {1}\n'
+        r = ''
+        r += fmtstr.format('scan_axis', str(self.scan_axis))
+        r += fmtstr.format('pos1[mm]', str(self.pos1))
+        r += fmtstr.format('pos2[mm]', str(self.pos2))
+        r += fmtstr.format('pos3[mm]', str(self.pos3))
+        r += fmtstr.format('pos5[deg]', str(self.pos5))
+        r += fmtstr.format('pos6[mm]', str(self.pos6))
+        r += fmtstr.format('pos7[mm]', str(self.pos7))
+        r += fmtstr.format('pos8[deg]', str(self.pos8))
+        r += fmtstr.format('pos9[deg]', str(self.pos9))
+        r += fmtstr.format('probei[V]', str(self.probei))
+        r += fmtstr.format('probej[V]', str(self.probej))
+        r += fmtstr.format('probek[V]', str(self.probek))
+        return r
 
     @property
-    def posx(self):
-        """X position."""
-        return self._posx
+    def pos1(self):
+        """Position 1 (Axis +Z) [mm]."""
+        return self._pos1
 
-    @posx.setter
-    def posx(self, value):
-        if not isinstance(value, _np.ndarray):
-            value = _np.array(value)
-        self._posx = value
+    @pos1.setter
+    def pos1(self, value):
+        self._pos1 = _np.around(_to_array(value), decimals=_position_precision)
 
     @property
-    def posy(self):
-        """Y position."""
-        return self._posy
+    def pos2(self):
+        """Position 2 (Axis +Y) [mm]."""
+        return self._pos2
 
-    @posy.setter
-    def posy(self, value):
-        if value is not None:
-            if not isinstance(value, _np.ndarray):
-                value = _np.array(value)
+    @pos2.setter
+    def pos2(self, value):
+        self._pos2 = _np.around(_to_array(value), decimals=_position_precision)
+
+    @property
+    def pos3(self):
+        """Position 3 (Axis +X) [mm]."""
+        return self._pos3
+
+    @pos3.setter
+    def pos3(self, value):
+        self._pos3 = _np.around(_to_array(value), decimals=_position_precision)
+
+    @property
+    def pos5(self):
+        """Position 5 (Axis +A) [deg]."""
+        return self._pos5
+
+    @pos5.setter
+    def pos5(self, value):
+        self._pos5 = _np.around(_to_array(value), decimals=_position_precision)
+
+    @property
+    def pos6(self):
+        """Position 6 (Axis +W) [mm]."""
+        return self._pos6
+
+    @pos6.setter
+    def pos6(self, value):
+        self._pos6 = _np.around(_to_array(value), decimals=_position_precision)
+
+    @property
+    def pos7(self):
+        """Position 7 (Axis +V) [mm]."""
+        return self._pos7
+
+    @pos7.setter
+    def pos7(self, value):
+        self._pos7 = _np.around(_to_array(value), decimals=_position_precision)
+
+    @property
+    def pos8(self):
+        """Position 8 (Axis +B) [deg]."""
+        return self._pos8
+
+    @pos8.setter
+    def pos8(self, value):
+        self._pos8 = _np.around(_to_array(value), decimals=_position_precision)
+
+    @property
+    def pos9(self):
+        """Position 9 (Axis +C) [deg]."""
+        return self._pos9
+
+    @pos9.setter
+    def pos9(self, value):
+        self._pos9 = _np.around(_to_array(value), decimals=_position_precision)
+
+    @property
+    def probei(self):
+        """Probe I Voltage [V]."""
+        return self._probei
+
+    @probei.setter
+    def probei(self, value):
+        self._probei = _to_array(value)
+
+    @property
+    def probej(self):
+        """Probe J Voltage [V]."""
+        return self._probej
+
+    @probej.setter
+    def probej(self, value):
+        self._probej = _to_array(value)
+
+    @property
+    def probek(self):
+        """Probe K Voltage [V]."""
+        return self._probek
+
+    @probek.setter
+    def probek(self, value):
+        self._probek = _to_array(value)
+
+    @property
+    def axis_list(self):
+        """List of all bench axes."""
+        return self._axis_list
+
+    @property
+    def scan_axis(self):
+        """Scan Axis."""
+        pos = []
+        for axis in self._axis_list:
+            pos.append(getattr(self, 'pos'+str(axis)))
+        if _np.count_nonzero([p.size > 1 for p in pos]) != 1:
+            return None
         else:
-            value = _np.array([])
-        self._posy = value
+            idx = _np.where([p.size > 1 for p in pos])[0][0]
+            return self._axis_list[idx]
 
     @property
-    def posz(self):
-        """Z position."""
-        return self._posz
+    def scan_pos(self):
+        """Scan positions."""
+        return getattr(self, 'pos' + str(self.scan_axis))
 
-    @posz.setter
-    def posz(self, value):
-        if value is not None:
-            if not isinstance(value, _np.ndarray):
-                value = _np.array(value)
-        else:
-            value = _np.array([])
-        self._posz = value
+    @scan_pos.setter
+    def scan_pos(self, value):
+        setattr(self, 'pos' + str(self.scan_axis), value)
 
     @property
-    def datax(self):
-        """X data."""
-        return self._datax
-
-    @datax.setter
-    def datax(self, value):
-        if value is not None:
-            if not isinstance(value, _np.ndarray):
-                value = _np.array(value)
+    def npts(self):
+        """Number of data points."""
+        if self.scan_axis is None:
+            return 0
         else:
-            value = _np.array([])
-        self._datax = value
-
-    @property
-    def datay(self):
-        """Y data."""
-        return self._datay
-
-    @datay.setter
-    def datay(self, value):
-        if value is not None:
-            if not isinstance(value, _np.ndarray):
-                value = _np.array(value)
-        else:
-            value = _np.array([])
-        self._datay = value
-
-    @property
-    def dataz(self):
-        """Z data."""
-        return self._dataz
-
-    @dataz.setter
-    def dataz(self, value):
-        if value is not None:
-            if not isinstance(value, _np.ndarray):
-                value = _np.array(value)
-        else:
-            value = _np.array([])
-        self._dataz = value
-
-    @staticmethod
-    def copy(dataset):
-        """Return a copy of a DataSet."""
-        dataset_copy = DataSet()
-        dataset_copy.unit = dataset.unit
-        dataset_copy.description = dataset.description
-        dataset_copy.posx = _np.copy(dataset.posx)
-        dataset_copy.posy = _np.copy(dataset.posy)
-        dataset_copy.posz = _np.copy(dataset.posz)
-        dataset_copy.datax = _np.copy(dataset.datax)
-        dataset_copy.datay = _np.copy(dataset.datay)
-        dataset_copy.dataz = _np.copy(dataset.dataz)
-        return dataset_copy
-
-    def reverse(self):
-        """Reverse DataSet."""
-        if self.posx.size > 1:
-            self.posx = self.posx[::-1]
-
-        if self.posy.size > 1:
-            self.posy = self.posy[::-1]
-
-        if self.posz.size > 1:
-            self.posz = self.posz[::-1]
-
-        if self.datax.size > 1:
-            self.datax = self.datax[::-1]
-
-        if self.datay.size > 1:
-            self.datay = self.datay[::-1]
-
-        if self.dataz.size > 1:
-            self.dataz = self.dataz[::-1]
+            npts = len(getattr(self, 'pos' + str(self.scan_axis)))
+            v = [self.probei, self.probej, self.probek]
+            if all([vi.size == 0 for vi in v]):
+                return 0
+            for vi in v:
+                if vi.size not in [npts, 0]:
+                    return 0
+            return npts
 
     def clear(self):
-        """Clear DataSet."""
-        self.posx = _np.array([])
-        self.posy = _np.array([])
-        self.posz = _np.array([])
-        self.datax = _np.array([])
-        self.datay = _np.array([])
-        self.dataz = _np.array([])
+        """Clear VoltageData."""
+        for key in self.__dict__:
+            if isinstance(self.__dict__[key], _np.ndarray):
+                self.__dict__[key] = _np.array([])
+
+    def copy(self):
+        """Return a copy of the object."""
+        _copy = VoltageData()
+        for key in self.__dict__:
+            if isinstance(self.__dict__[key], _np.ndarray):
+                _copy.__dict__[key] = _np.copy(self.__dict__[key])
+        return _copy
+
+    def reverse(self):
+        """Reverse VoltageData."""
+        for key in self.__dict__:
+            value = self.__dict__[key]
+            if isinstance(value, _np.ndarray) and value.size > 1:
+                self.__dict__[key] = value[::-1]
+
+    def read_file(self, filename):
+        """Read voltage data from file."""
+        flines = _utils.read_file(filename)
+
+        scan_axis = _utils.find_value(flines, 'scan_axis', int)
+        for axis in self._axis_list:
+            if axis != scan_axis:
+                pos_str = 'pos' + str(axis)
+                try:
+                    pos = _utils.find_value(flines, pos_str, float)
+                except ValueError:
+                    pos = None
+                setattr(self, pos_str, pos)
+
+        idx = next((i for i in range(len(flines))
+                    if flines[i].find("----------") != -1), None)
+        data = []
+        for line in flines[idx+1:]:
+            data_line = [float(d) for d in line.split('\t')]
+            data.append(data_line)
+        data = _np.array(data)
+
+        if data.shape[1] == 4:
+            scan_positions = data[:, 0]
+            setattr(self, 'pos' + str(scan_axis), scan_positions)
+            self.probei = data[:, 1]
+            self.probej = data[:, 2]
+            self.probek = data[:, 3]
+        else:
+            message = 'Inconsistent number of columns in file: %s' % filename
+            raise MeasurementDataError(message)
+
+    def save_file(self, filename):
+        """Save voltage data to file."""
+        if self.scan_axis is None or self.npts == 0:
+            raise MeasurementDataError('Invalid scan axis.')
+
+        scan_axis = self.scan_axis
+        timestamp = _utils.get_timestamp()
+        pos1_str = '%f' % self.pos1[0] if self.pos1.size == 1 else '--'
+        pos2_str = '%f' % self.pos2[0] if self.pos2.size == 1 else '--'
+        pos3_str = '%f' % self.pos3[0] if self.pos3.size == 1 else '--'
+        pos5_str = '%f' % self.pos5[0] if self.pos5.size == 1 else '--'
+        pos6_str = '%f' % self.pos6[0] if self.pos6.size == 1 else '--'
+        pos7_str = '%f' % self.pos7[0] if self.pos7.size == 1 else '--'
+        pos8_str = '%f' % self.pos8[0] if self.pos8.size == 1 else '--'
+        pos9_str = '%f' % self.pos9[0] if self.pos9.size == 1 else '--'
+
+        scan_axis_unit = getattr(self, '_pos' + str(scan_axis) + '_unit')
+        scan_axis_pos = getattr(self, 'pos' + str(scan_axis))
+
+        columns_names = (
+            'pos%i[%s]\t' % (scan_axis, scan_axis_unit) +
+            'probei[V]\tprobej[V]\tprobek[V]')
+
+        if len(self.probei) != self.npts:
+            self.probei = _np.zeros(self.npts)
+
+        if len(self.probej) != self.npts:
+            self.probej = _np.zeros(self.npts)
+
+        if len(self.probek) != self.npts:
+            self.probek = _np.zeros(self.npts)
+
+        columns = _np.column_stack((scan_axis_pos, self.probei,
+                                    self.probej, self.probek))
+
+        f = open(filename, mode='w')
+        f.write('timestamp:         \t%s\n' % timestamp)
+        f.write('scan_axis:         \t%s\n' % scan_axis)
+        f.write('pos1[mm]:          \t%s\n' % pos1_str)
+        f.write('pos2[mm]:          \t%s\n' % pos2_str)
+        f.write('pos3[mm]:          \t%s\n' % pos3_str)
+        f.write('pos5[deg]:         \t%s\n' % pos5_str)
+        f.write('pos6[mm]:          \t%s\n' % pos6_str)
+        f.write('pos7[mm]:          \t%s\n' % pos7_str)
+        f.write('pos8[deg]:         \t%s\n' % pos8_str)
+        f.write('pos9[deg]:         \t%s\n' % pos9_str)
+        f.write('\n')
+        f.write('%s\n' % columns_names)
+        f.write('---------------------------------------------------' +
+                '---------------------------------------------------\n')
+        for i in range(columns.shape[0]):
+            line = '{0:+0.4f}'.format(columns[i, 0])
+            for j in range(1, columns.shape[1]):
+                line = line + '\t' + '{0:+0.10e}'.format(columns[i, j])
+            f.write(line + '\n')
+        f.close()
 
 
-class LineScan(object):
-    """Line scan data."""
+class FieldData(object):
+    """Position and magnetic field values."""
 
-    def __init__(self, posx, posy, posz, calibration_data, dirpath,
-                 overwrite_calibration=False):
+    def __init__(self, voltage_list, calibration_data):
         """Initialize variables.
 
         Args:
-            posx (float or array): x position of the scan line.
-            posy (float or array): y position of the scan line.
-            posz (float or array): z position of the scan line.
-            calibration_data (CalibrationData): probe calibration data.
-            dirpath (str): directory path to save files.
-            overwrite_calibration (bool): if True overwrite calibration file.
+            voltage_list (list): list of VoltageData objects or
+                                 VoltageData filenames.
+            calibration_data (CalibrationData): Hall probe calibration data.
         """
-        if not isinstance(posx, _np.ndarray):
-            posx = _np.array(posx)
-
-        if not isinstance(posy, _np.ndarray):
-            posy = _np.array(posy)
-
-        if not isinstance(posz, _np.ndarray):
-            posz = _np.array(posz)
-
-        self._scan_axis = _get_scan_axis(posx, posy, posz)
-        if self._scan_axis is None:
-            raise ValueError('Invalid position arguments for LineScan.')
-
-        self._posx = _np.around(posx, decimals=4)
-        self._posy = _np.around(posy, decimals=4)
-        self._posz = _np.around(posz, decimals=4)
-
-        if isinstance(dirpath, str):
-            self.dirpath = dirpath
-            if not _os.path.isdir(self.dirpath):
-                try:
-                    _os.mkdir(self.dirpath)
-                except Exception:
-                    raise ValueError('Invalid value for dirpath.')
-        else:
-            self.dirpath = None
-            raise TypeError('dirpath must be a string.')
-
         if isinstance(calibration_data, _calibration.CalibrationData):
             self._calibration_data = calibration_data
         else:
@@ -212,916 +337,554 @@ class LineScan(object):
             raise TypeError(
                 'calibration_data must be a CalibrationData object.')
 
-        self._save_calibration(overwrite_calibration)
-        self._timestamp = ''
-        self._voltage_raw = []
-        self._voltage_interpolated = []
-        self._voltage_avg = None
-        self._voltage_std = None
-        self._field_avg = None
-        self._field_std = None
-
-    def _save_calibration(self, overwrite_calibration):
-        calibration_filename = 'calibration_data.txt'
-        calibration_fullpath = _os.path.join(
-            self.dirpath, calibration_filename)
-
-        if not overwrite_calibration and _os.path.isfile(calibration_fullpath):
-            tmp_calib_data = _calibration.CalibrationData(calibration_fullpath)
-            if not self._calibration_data == tmp_calib_data:
-                raise MeasurementDataError('Inconsistent calibration files.')
-
-        self._calibration_data.save_file(calibration_fullpath)
-
-    @staticmethod
-    def copy(linescan):
-        """Return a copy of a LineScan."""
-        linescan_copy = LineScan(
-            linescan.posx, linescan.posy, linescan.posz,
-            linescan.calibration_data, linescan.dirpath)
-
-        linescan_copy._timestamp = linescan.timestamp
-
-        linescan_copy._voltage_raw = [
-            DataSet.copy(s) for s in linescan.voltage_raw]
-
-        linescan_copy._voltage_interpolated = [
-            DataSet.copy(s) for s in linescan.voltage_interpolated]
-
-        if linescan.voltage_avg is not None:
-            linescan_copy._voltage_avg = DataSet.copy(linescan.voltage_avg)
-        else:
-            linescan_copy._voltage_avg = None
-
-        if linescan.voltage_std is not None:
-            linescan_copy._voltage_std = DataSet.copy(linescan.voltage_std)
-        else:
-            linescan_copy._voltage_std = None
-
-        if linescan.field_avg is not None:
-            linescan_copy._field_avg = DataSet.copy(linescan.field_avg)
-        else:
-            linescan_copy._field_avg = None
-
-        if linescan.field_std is not None:
-            linescan_copy._field_std = DataSet.copy(linescan.field_std)
-        else:
-            linescan_copy._field_std = None
-
-        return linescan_copy
-
-    @staticmethod
-    def read_from_files(
-            dirpath, posx=None, posy=None, posz=None, pos_str=None):
-        """Read LineScan data from files."""
-        datadir = _os.path.join(dirpath, 'data')
-        files = _get_scan_files_list(
-            datadir, posx=posx, posy=posy, posz=posz, pos_str=pos_str)
-
-        timestamp = set()
-        voltage_raw = []
-        voltage_interpolated = []
-        voltage_avg = None
-        voltage_std = None
-        field_avg = None
-        field_std = None
-
-        for filename in files:
-            dataset, ts = _read_scan_file(filename)
-            timestamp.add(ts)
-
-            if 'voltage_raw' in dataset.description:
-                voltage_raw.append(dataset)
-            elif 'voltage_interpolated' in dataset.description:
-                voltage_interpolated.append(dataset)
-            elif 'voltage_avg' in dataset.description:
-                voltage_avg = dataset
-            elif 'voltage_std' in dataset.description:
-                voltage_std = dataset
-            elif 'field_avg' in dataset.description:
-                field_avg = dataset
-            elif 'field_std' in dataset.description:
-                field_std = dataset
-
-        calibration_filename = 'calibration_data.txt'
-        calibration_data = _calibration.CalibrationData(
-            _os.path.join(dirpath, calibration_filename))
-
-        linescan = LineScan(
-            field_avg.posx, field_avg.posy, field_avg.posz,
-            calibration_data, dirpath)
-
-        linescan._timestamp = sorted(list(timestamp))[-1]
-        linescan._voltage_raw = voltage_raw
-        linescan._voltage_interpolated = voltage_interpolated
-        linescan._voltage_avg = voltage_avg
-        linescan._voltage_std = voltage_std
-        linescan._field_avg = field_avg
-        linescan._field_std = field_std
-
-        return linescan
-
-    @property
-    def scan_positions(self):
-        """Scan axis position values."""
-        if self._scan_axis == 'x':
-            return self._posx
-        elif self._scan_axis == 'y':
-            return self._posy
-        elif self._scan_axis == 'z':
-            return self._posz
-        else:
-            return _np.array([])
-
-    @property
-    def scan_axis(self):
-        """Scan axis label."""
-        return self._scan_axis
-
-    @property
-    def posx(self):
-        """X position."""
-        return self._posx
-
-    @property
-    def posy(self):
-        """Y position."""
-        return self._posy
-
-    @property
-    def posz(self):
-        """Z position."""
-        return self._posz
-
-    @property
-    def calibration_data(self):
-        """Calibration data."""
-        return self._calibration_data
-
-    @property
-    def nr_scans(self):
-        """Number of scans."""
-        return len(self._voltage_raw)
-
-    @property
-    def timestamp(self):
-        """Scan timestamp."""
-        return self._timestamp
-
-    @property
-    def voltage_raw(self):
-        """List with raw scan data."""
-        return self._voltage_raw
-
-    @property
-    def voltage_interpolated(self):
-        """List with the interpolated scan data."""
-        return self._voltage_interpolated
-
-    @property
-    def voltage_avg(self):
-        """Average voltage values."""
-        return self._voltage_avg
-
-    @property
-    def voltage_std(self):
-        """Standard deviation of voltage values."""
-        return self._voltage_std
-
-    @property
-    def field_avg(self):
-        """Average magnetic field values."""
-        return self._field_avg
-
-    @property
-    def field_std(self):
-        """Standard deviation of magnetic field values."""
-        return self._field_std
-
-    def add_scan(self, scan):
-        """Add a scan to the list."""
-        if self._valid_scan(scan):
-            scan.description = 'voltage_raw'
-            self._voltage_raw.append(scan)
-        else:
-            raise MeasurementDataError('Invalid scan.')
-
-    def analyse_data(self, save_data=True):
-        """Analyse the line scan data."""
-        self._timestamp = _utils.get_timestamp()
-
-        if save_data:
-            for i in range(len(self._voltage_raw)):
-                self._save_data(self._voltage_raw[i], idx=(i+1))
-
-        if self._calibration_data is None:
-            raise MeasurementDataError('Calibration data not found.')
-
-        if self.nr_scans != 0:
-            self._data_interpolation(save_data)
-            self._calculate_voltage_avg_std(save_data)
-            self._calculate_field_avg_std(save_data)
-
-    def clear(self):
-        """Clear LineScan."""
-        self._timestamp = ''
-        self._voltage_raw = []
-        self._voltage_interpolated = []
-        self._voltage_avg = None
-        self._voltage_std = None
-        self._field_avg = None
-        self._field_std = None
-
-    def _valid_scan(self, scan):
-        if self._valid_scan_positions(scan):
-            if self._valid_scan_data(scan):
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def _valid_scan_positions(self, scan):
-        scan_axis = _get_scan_axis(scan.posx, scan.posy, scan.posz)
-        if scan_axis is not None and scan_axis == self._scan_axis:
-            if (scan_axis == 'x' and
-               _np.around(scan.posy, decimals=4) == self._posy and
-               _np.around(scan.posz, decimals=4) == self._posz):
-                return True
-            elif (scan_axis == 'y' and
-                  _np.around(scan.posx, decimals=4) == self._posx and
-                  _np.around(scan.posz, decimals=4) == self._posz):
-                return True
-            elif (scan_axis == 'z' and
-                  _np.around(scan.posx, decimals=4) == self._posx and
-                  _np.around(scan.posy, decimals=4) == self._posy):
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def _valid_scan_data(self, scan):
-        if len(scan.unit) == 0:
-            scan.unit = 'V'
-
-        if (scan.datax.size == 0 and
-           scan.datay.size == 0 and scan.dataz.size == 0):
-            return False
-
-        scan_size = len(_get_scan_positions(scan.posx, scan.posy, scan.posz))
-        if scan.datax.size == 0:
-            scan.datax = _np.ones(scan_size)*_np.nan
-        if scan.datay.size == 0:
-            scan.datay = _np.ones(scan_size)*_np.nan
-        if scan.dataz.size == 0:
-            scan.dataz = _np.ones(scan_size)*_np.nan
-
-        if (scan.datax.size == scan_size and
-           scan.datay.size == scan_size and
-           scan.dataz.size == scan_size):
-            return True
-        else:
-            return False
-
-    def _data_interpolation(self, save_data=True):
-        """Interpolate each scan."""
-        # correct curves displacement due to trigger and
-        # integration time (half integration time)
-        self._voltage_interpolated = []
-        scan_pos = self.scan_positions
-
-        if self.scan_axis == self._calibration_data.w_axis:
-            rel_pos_probeu = self._calibration_data.relative_position_probeu
-            rel_pos_probew = self._calibration_data.relative_position_probew
-        else:
-            rel_pos_probeu = 0
-            rel_pos_probew = 0
-
-        idx = 1
-        for raw in self._voltage_raw:
-            interp = DataSet()
-            interp.description = 'voltage_interpolated'
-            interp.unit = raw.unit
-
-            interp.posx = self._posx
-            interp.posy = self._posy
-            interp.posz = self._posz
-
-            rawpos = _get_scan_positions(raw.posx, raw.posy, raw.posz)
-
-            fx = _interpolate.splrep(
-                rawpos + rel_pos_probeu, raw.datax, s=0, k=1)
-            interp.datax = _interpolate.splev(scan_pos, fx, der=0)
-
-            fy = _interpolate.splrep(rawpos, raw.datay, s=0, k=1)
-            interp.datay = _interpolate.splev(scan_pos, fy, der=0)
-
-            fz = _interpolate.splrep(
-                rawpos + rel_pos_probew, raw.dataz, s=0, k=1)
-            interp.dataz = _interpolate.splev(scan_pos, fz, der=0)
-
-            self._voltage_interpolated.append(interp)
-
-            if save_data:
-                self._save_data(interp, idx=idx)
-
-            idx += 1
-
-    def _calculate_voltage_avg_std(self, save_data=True):
-        """Calculate the average and std of voltage values."""
-        n = self.nr_scans
-
-        interpolation_npts = len(self.scan_positions)
-
-        unit = self._voltage_raw[0].unit
-        if not all([raw.unit == unit for raw in self._voltage_raw]):
-            message = 'Inconsistent unit found in raw voltage list.'
-            raise MeasurementDataError(message)
-
-        # average calculation
-        self._voltage_avg = DataSet()
-        self._voltage_avg.description = 'voltage_avg'
-        self._voltage_avg.unit = unit
-        self._voltage_avg.posx = self._posx
-        self._voltage_avg.posy = self._posy
-        self._voltage_avg.posz = self._posz
-        self._voltage_avg.datax = _np.zeros(interpolation_npts)
-        self._voltage_avg.datay = _np.zeros(interpolation_npts)
-        self._voltage_avg.dataz = _np.zeros(interpolation_npts)
-
-        if n > 1:
-            for i in range(n):
-                self._voltage_avg.datax += self._voltage_interpolated[i].datax
-                self._voltage_avg.datay += self._voltage_interpolated[i].datay
-                self._voltage_avg.dataz += self._voltage_interpolated[i].dataz
-
-            self._voltage_avg.datax /= n
-            self._voltage_avg.datay /= n
-            self._voltage_avg.dataz /= n
-
-        elif n == 1:
-            self._voltage_avg.datax = self._voltage_interpolated[0].datax
-            self._voltage_avg.datay = self._voltage_interpolated[0].datay
-            self._voltage_avg.dataz = self._voltage_interpolated[0].dataz
-
-        # standard std calculation
-        self._voltage_std = DataSet()
-        self._voltage_std.description = 'voltage_std'
-        self._voltage_std.unit = unit
-        self._voltage_std.posx = self._posx
-        self._voltage_std.posy = self._posy
-        self._voltage_std.posz = self._posz
-        self._voltage_std.datax = _np.zeros(interpolation_npts)
-        self._voltage_std.datay = _np.zeros(interpolation_npts)
-        self._voltage_std.dataz = _np.zeros(interpolation_npts)
-
-        if n > 1:
-            for i in range(n):
-                self._voltage_std.datax += pow((
-                    self._voltage_interpolated[i].datax -
-                    self._voltage_avg.datax), 2)
-
-                self._voltage_std.datay += pow((
-                    self._voltage_interpolated[i].datay -
-                    self._voltage_avg.datay), 2)
-
-                self._voltage_std.dataz += pow((
-                    self._voltage_interpolated[i].dataz -
-                    self._voltage_avg.dataz), 2)
-
-            self._voltage_std.datax /= n
-            self._voltage_std.datay /= n
-            self._voltage_std.dataz /= n
-
-        if save_data:
-            self._save_data(self._voltage_avg)
-            self._save_data(self._voltage_std)
-
-    def _calculate_field_avg_std(self, save_data=True):
-        """Calculate the average and std of magnetic field values."""
-        self._field_avg = DataSet()
-        self._field_avg.description = 'field_avg'
-        self._field_avg.unit = self._calibration_data.field_unit
-        self._field_avg.posx = self._posx
-        self._field_avg.posy = self._posy
-        self._field_avg.posz = self._posz
-
-        self._field_avg.datax = self._calibration_data.convert_voltage_probeu(
-            self._voltage_avg.datax)
-
-        self._field_avg.datay = self._calibration_data.convert_voltage_probev(
-            self._voltage_avg.datay)
-
-        self._field_avg.dataz = self._calibration_data.convert_voltage_probew(
-            self._voltage_avg.dataz)
-
-        self._field_std = DataSet()
-        self._field_std.description = 'field_std'
-        self._field_std.unit = self._calibration_data.field_unit
-        self._field_std.posx = self._posx
-        self._field_std.posy = self._posy
-        self._field_std.posz = self._posz
-
-        self._field_std.datax = self._calibration_data.convert_voltage_probeu(
-            self._voltage_std.datax)
-
-        self._field_std.datay = self._calibration_data.convert_voltage_probev(
-            self._voltage_std.datay)
-
-        self._field_std.dataz = self._calibration_data.convert_voltage_probew(
-            self._voltage_std.dataz)
-
-        if save_data:
-            self._save_data(self._field_avg)
-            self._save_data(self._field_std)
-
-    def _save_data(self, dataset, idx=None):
-        if self._scan_axis == 'x':
-            pos_str = ('Z=' + '{0:0.3f}'.format(self._posz) + 'mm_' +
-                       'Y=' + '{0:0.3f}'.format(self._posy) + 'mm')
-        elif self._scan_axis == 'y':
-            pos_str = ('Z=' + '{0:0.3f}'.format(self._posz) + 'mm_' +
-                       'X=' + '{0:0.3f}'.format(self._posx) + 'mm')
-        elif self._scan_axis == 'z':
-            pos_str = ('Y=' + '{0:0.3f}'.format(self._posy) + 'mm_' +
-                       'X=' + '{0:0.3f}'.format(self._posx) + 'mm')
-
-        if idx is not None:
-            filename = (pos_str + '_' + dataset.description + '_' +
-                        str(idx) + '.dat')
-        else:
-            filename = pos_str + '_' + dataset.description + '.dat'
-
-        datadir = _os.path.join(self.dirpath, 'data')
-        if not _os.path.isdir(datadir):
-            _os.mkdir(datadir)
-
-        filename = _os.path.join(datadir, filename)
-
-        _write_scan_file(filename, dataset, self._timestamp)
-
-    def __str__(self):
-        """Printable string representation of LineScan."""
-        fmtstr = '{0:<25s} : {1}\n'
-        r = ''
-        r += fmtstr.format('scan_axis', '"%s"' % self._scan_axis)
-        r += fmtstr.format('number_of_scans', self.nr_scans)
-        if self._scan_axis == 'x':
-            r += fmtstr.format('position y [mm]', self._posy)
-            r += fmtstr.format('position z [mm]', self._posz)
-        elif self._scan_axis == 'y':
-            r += fmtstr.format('position x [mm]', self._posx)
-            r += fmtstr.format('position z [mm]', self._posz)
-        elif self._scan_axis == 'z':
-            r += fmtstr.format('position x [mm]', self._posx)
-            r += fmtstr.format('position y [mm]', self._posy)
-        if len(self._timestamp) != 0:
-            r += fmtstr.format('timestamp', self._timestamp)
-        r += fmtstr.format('save directory', self.dirpath)
-        return r
-
-
-class Measurement(object):
-    """Measurement data."""
-
-    def __init__(self, connection_config, measurement_config, dirpath,
-                 overwrite_config=False):
-        """Initialize variables.
-
-        Args:
-            connection_config (ConnectionConfig): connection configuration.
-            measurement_config (MeasurementConfig): measurement configuration.
-            dirpath (str): directory path to save files.
-            overwrite_config (bool): if True overwrite configuration files.
-        """
-        if isinstance(dirpath, str):
-            self.dirpath = dirpath
-            if not _os.path.isdir(self.dirpath):
-                try:
-                    _os.mkdir(self.dirpath)
-                except Exception:
-                    raise ValueError('Invalid value for dirpath.')
-        else:
-            self.dirpath = None
-            raise TypeError('dirpath must be a string.')
-
-        if isinstance(connection_config, _configuration.ConnectionConfig):
-            self._connection_config = connection_config
-        else:
-            message = 'connection_config must be a ConnectionConfig object.'
-            raise TypeError(message)
-
-        if isinstance(measurement_config, _configuration.MeasurementConfig):
-            self._measurement_config = measurement_config
+        if all([isinstance(v, VoltageData) for v in voltage_list]):
+            self._voltage = _get_average_voltage_list(voltage_list)
+        elif all([isinstance(v, str) for v in voltage_list]):
+            voltage_list = [VoltageData(filename=fn) for fn in voltage_list]
+            self._voltage = _get_average_voltage_list(voltage_list)
         else:
             raise TypeError(
-                'measurement_config must be a MeasurementConfig object.')
+                'voltage_list must be a list of VoltageData object.')
 
-        self._save_configuration(overwrite_config)
-        self._scan_axis = None
-        self._data = {}
+        self._pos1 = _np.array([])
+        self._pos2 = _np.array([])
+        self._pos3 = _np.array([])
+        self._field1 = None
+        self._field2 = None
+        self._field3 = None
+        self._index_axis = None
+        self._columns_axis = None
+        self._convert_voltage_list_to_field_data()
 
-    def _save_configuration(self, overwrite_config):
-        dc_filename = 'connection_configuration.txt'
-        mc_filename = 'measurement_configuration.txt'
+    def _convert_voltage_list_to_field_data(self):
+        # check positions
+        _dict = _get_axis_position_dict(self._voltage)
+        for i in [5, 6, 7, 8, 9]:
+            if len(_dict[i]) > 0 and _dict[i][0] != 0:
+                raise NotImplemented
 
-        dc_fullpath = _os.path.join(self.dirpath, dc_filename)
-        mc_fullpath = _os.path.join(self.dirpath, mc_filename)
-
-        if not overwrite_config and _os.path.isfile(dc_fullpath):
-            tmp_conn_config = _configuration.ConnectionConfig(dc_fullpath)
-            if not self._connection_config == tmp_conn_config:
-                raise MeasurementDataError('Inconsistent configuration files.')
-
-        if not overwrite_config and _os.path.isfile(mc_fullpath):
-            tmp_meas_config = _configuration.MeasurementConfig(mc_fullpath)
-            if not self._measurement_config == tmp_meas_config:
-                raise MeasurementDataError('Inconsistent configuration files.')
-
-        self._connection_config.save_file(dc_fullpath)
-        self._measurement_config.save_file(mc_fullpath)
-
-    @property
-    def scan_axis(self):
-        """Scan axis label."""
-        return self._scan_axis
-
-    @property
-    def scan_positions(self):
-        """Scan axis positin values."""
-        if self._scan_axis == 'x':
-            return self.posx
-        elif self._scan_axis == 'y':
-            return self.posy
-        elif self._scan_axis == 'z':
-            return self.posz
+        axes = _get_measurement_axes(self._voltage)
+        if len(axes) == 2:
+            self._index_axis = axes[0]
+            self._columns_axis = axes[1]
+        elif len(axes) == 1:
+            self._index_axis = axes[0]
         else:
-            return _np.array([])
+            raise MeasurementDataError('Invalid number of measurement axes.')
 
-    @property
-    def posx(self):
-        """X position."""
-        return self._get_position_list('x')
-
-    @property
-    def posy(self):
-        """Y position."""
-        return self._get_position_list('y')
-
-    @property
-    def posz(self):
-        """Z position."""
-        return self._get_position_list('z')
-
-    @property
-    def data(self):
-        """Measurement data."""
-        return self._data
-
-    @property
-    def connection_config(self):
-        """Connection configuration."""
-        return self._connection_config
-
-    @property
-    def measurement_config(self):
-        """Measurement configuration."""
-        return self._measurement_config
-
-    def clear(self):
-        """Clear Measurement."""
-        self._scan_axis = None
-        self._data = {}
-
-    def add_line_scan(self, ls):
-        """Add a line scan to measurement data."""
-        if ls.nr_scans == 0:
-            raise MeasurementDataError('Empty LineScan.')
-
-        if self._scan_axis is None:
-            self._scan_axis = ls.scan_axis
-
-        if ls.scan_axis == self._scan_axis:
-            if self._scan_axis == 'x':
-                if ls.posz not in self._data.keys():
-                    self._data[ls.posz] = {}
-                self._data[ls.posz][ls.posy] = ls
-
-            elif self._scan_axis == 'y':
-                if ls.posz not in self._data.keys():
-                    self._data[ls.posz] = {}
-                self._data[ls.posz][ls.posx] = ls
-
-            elif self._scan_axis == 'z':
-                if ls.posy not in self._data.keys():
-                    self._data[ls.posy] = {}
-                self._data[ls.posy][ls.posx] = ls
-
+        dfi = []
+        dfj = []
+        dfk = []
+        for vd in self._voltage:
+            index = getattr(vd, 'pos' + str(self._index_axis))
+            if self._columns_axis is not None:
+                columns = getattr(vd, 'pos' + str(self._columns_axis))
             else:
-                raise MeasurementDataError('Invalid LineScan.')
+                columns = [0]
+
+            # Convert voltage to magnetic field
+            bi = self._calibration_data.convert_voltage_probei(vd.probei)
+            bj = self._calibration_data.convert_voltage_probej(vd.probej)
+            bk = self._calibration_data.convert_voltage_probek(vd.probek)
+
+            index = _pd.Index(index, float)
+            columns = _pd.Index(columns, float)
+            dfi.append(_pd.DataFrame(bi, index=index, columns=columns))
+            dfj.append(_pd.DataFrame(bj, index=index, columns=columns))
+            dfk.append(_pd.DataFrame(bk, index=index, columns=columns))
+
+        fieldi = _pd.concat(dfi, axis=1)
+        fieldj = _pd.concat(dfj, axis=1)
+        fieldk = _pd.concat(dfk, axis=1)
+
+        index = fieldi.index
+        columns = fieldi.columns
+        if (len(columns) != len(columns.drop_duplicates())):
+            msg = 'Duplicate position found in voltage list.'
+            raise MeasurementDataError(msg)
+
+        fieldi, fieldj, fieldk = _correct_probe_displacement(
+            fieldi, fieldj, fieldk, self._index_axis,
+            self._columns_axis, self._calibration_data)
+
+        # update position values
+        index = fieldj.index
+        columns = fieldj.columns
+        pos_sorted = [_dict[1], _dict[2], _dict[3]]
+        pos_sorted[self._index_axis - 1] = index.values
+        if self._columns_axis is not None:
+            pos_sorted[self._columns_axis - 1] = columns.values
+
+        self._pos3 = _np.array(pos_sorted[2])
+        self._pos2 = _np.array(pos_sorted[1])
+        self._pos1 = _np.array(pos_sorted[0])
+
+        if self._calibration_data.stem_shape.capitalize() == 'L-shape':
+            self._field1 = -fieldi
+            self._field2 = fieldj
+            self._field3 = fieldk
         else:
-            raise MeasurementDataError('Invalid LineScan.')
+            self._field1 = fieldk
+            self._field2 = fieldj
+            self._field3 = fieldi
 
-    def recover_saved_data(self):
-        """Recover measurement data saved in files."""
-        datapath = _os.path.join(self.dirpath, 'data')
-        files = [f for f in _os.listdir(datapath) if f.endswith('.dat')]
+    @property
+    def pos1(self):
+        """Position 1 (Axis +Z) [mm]."""
+        return self._pos1
 
-        for filename in files:
-            pos_str = '_'.join(filename.split('_')[:2])
-            ls = LineScan.read_from_files(self.dirpath, pos_str=pos_str)
-            self.add_line_scan(ls)
+    @property
+    def pos2(self):
+        """Position 2 (Axis +Y) [mm]."""
+        return self._pos2
 
-    def save(self, fieldmap_info=[], reference_position=[0, 0, 0]):
+    @property
+    def pos3(self):
+        """Position 3 (Axis +X) [mm]."""
+        return self._pos3
+
+    @property
+    def field1(self):
+        """Data frame with magnetic field values (Axis #1 Component) [T]."""
+        return self._field1
+
+    @property
+    def field2(self):
+        """Data frame with magnetic field values (Axis #2 Component) [T]."""
+        return self._field2
+
+    @property
+    def field3(self):
+        """Data frame with magnetic field values (Axis #3 Component) [T]."""
+        return self._field3
+
+    @property
+    def index_axis(self):
+        """Index axis."""
+        return self._index_axis
+
+    @property
+    def columns_axis(self):
+        """Column axis."""
+        return self._columns_axis
+
+    def get_field_at_point(self, pos):
+        """Get the magnetic field value at the given point.
+
+        Args:
+            pos (list or array): position list [pos3, pos2, pos1].
+
+        Returns:
+            the magnetic field components [b3, b2, b1].
+        """
+        pos = _np.around(pos, decimals=_position_precision)
+        p1 = pos[2]
+        p2 = pos[1]
+        p3 = pos[0]
+        if (p1 not in self._pos1 or p2 not in self._pos2 or
+           p3 not in self._pos3):
+            return [_np.nan, _np.nan, _np.nan]
+
+        psorted = [p1, p2, p3]
+        loc_idx = psorted[self._index_axis-1]
+        if self._columns_axis is not None:
+            loc_col = psorted[self._columns_axis-1]
+        else:
+            loc_col = 0
+        b3 = self._field3.loc[loc_idx, loc_col]
+        b2 = self._field2.loc[loc_idx, loc_col]
+        b1 = self._field1.loc[loc_idx, loc_col]
+        return [b3, b2, b1]
+
+    def save_file(self, filename, header_info=[], magnet_center=[0, 0, 0],
+                  magnet_x_axis='3', magnet_y_axis='2'):
         """Save measurement data.
 
         Args:
-            fieldmap_info (list): list with variables and values to include in
-                                  the field map header lines.
-            reference_position (list): reference position of the magnet.
+            filename (str): fieldmap file path.
+            header_info (list): list of tuples of variables and values to
+                                include in the fieldmap header lines.
+            magnet_center (list): center position of the magnet.
+            magnet_x_axis (str): magnet x-axis direction.
+                                 ['3', '-3', '2', '-2', '1' or '-1']
+            magnet_y_axis (str): magnet y-axis direction.
+                                 ['3', '-3', '2', '-2', '1' or '-1']
         """
-        if len(self._data) == 0:
-            message = "Empty measurement."
+        atts = [self._pos1, self._pos2, self._pos3,
+                self._field1, self._field2, self._field3]
+        if any([att is None for att in atts]):
+            message = "Invalid field data."
             raise MeasurementDataError(message)
 
-        if len(fieldmap_info) != 0:
-            if any(len(line) != 2 for line in fieldmap_info):
-                raise ValueError('Invalid value for fieldmap_info.')
+        if len(header_info) != 0:
+            if any(len(line) != 2 for line in header_info):
+                raise ValueError('Invalid value for header_info.')
 
-        filename = next((
-            line[1] for line in fieldmap_info if 'filename' in line[0]), None)
-        if filename is None:
-            date = _utils.get_timestamp().split('_')[0]
-            filename = '{0:1s}_hall_probe_measurement.dat'.format(date)
+        f = open(filename, 'w')
 
-        f = open(_os.path.join(self.dirpath, filename), 'w')
-
-        for line in fieldmap_info:
+        for line in header_info:
             variable = (str(line[0]) + ':').ljust(20)
             value = str(line[1])
             f.write('{0:1s}\t{1:1s}\n'.format(variable, value))
 
-        if len(fieldmap_info) != 0:
+        if len(header_info) != 0:
             f.write('\n')
 
-        f.write('X[mm]\tY[mm]\tZ[mm]\tBx\tBy\tBz [T]\n')
+        f.write('X[mm]\tY[mm]\tZ[mm]\tBx[T]\tBy[T]\tBz[T]\n')
         f.write('-----------------------------------------------' +
                 '----------------------------------------------\n')
 
-        field_data = self._get_field_avg_data()
-        for i in range(field_data.shape[0]):
-            x = field_data[i, 0] - reference_position[0]
-            y = field_data[i, 1] - reference_position[1]
-            z = field_data[i, 2] - reference_position[2]
-            f.write('{0:0.3f}\t{0:0.3f}\t{0:0.3f}\t'.format(x, y, z))
+        fieldmap = self._get_transformed_fieldmap(
+            magnet_center, magnet_x_axis, magnet_y_axis)
+        for i in range(fieldmap.shape[0]):
+            f.write('{0:0.4f}\t{1:0.4f}\t{2:0.4f}\t'.format(
+                fieldmap[i, 0], fieldmap[i, 1], fieldmap[i, 2]))
             f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
-                field_data[i, 3], field_data[i, 4], field_data[i, 5]))
+                fieldmap[i, 3], fieldmap[i, 4], fieldmap[i, 5]))
         f.close()
+
+        fn_aux = _os.path.join(
+            _os.path.split(filename)[0], 'magnet_coordinate_system.txt')
+        f_aux = open(fn_aux, 'w')
+        f_aux.write('magnet_center_axis3: {0:0.4f}\n'.format(magnet_center[0]))
+        f_aux.write('magnet_center_axis2: {0:0.4f}\n'.format(magnet_center[1]))
+        f_aux.write('magnet_center_axis1: {0:0.4f}\n'.format(magnet_center[2]))
+        f_aux.write('magnet_x_axis:       {0:1s}\n'.format(
+            magnet_x_axis.replace(' ', '')))
+        f_aux.write('magnet_y_axis:       {0:1s}\n'.format(
+            magnet_y_axis.replace(' ', '')))
+        f_aux.close()
 
         return filename
 
-    def _get_field_avg_data(self):
-        size = len(self.posx)*len(self.posy)*len(self.posz)
-        field_data = _np.zeros([size, 6])
+    def _get_transformed_fieldmap(self, magnet_center=[0, 0, 0],
+                                  magnet_x_axis='3', magnet_y_axis='2'):
+        tm = _get_transformation_matrix(magnet_x_axis, magnet_y_axis)
 
-        count = 0
-        for z in self.posz:
-            for y in self.posy:
-                for x in self.posx:
-                    bx, by, bz = self._get_field_avg_at_point(x, y, z)
-                    field_data[count, 0] = x
-                    field_data[count, 1] = y
-                    field_data[count, 2] = z
-                    field_data[count, 3] = bx
-                    field_data[count, 4] = by
-                    field_data[count, 5] = bz
-                    count += 1
+        fieldmap = []
+        for p1 in self._pos1:
+            for p2 in self._pos2:
+                for p3 in self._pos3:
+                    p = [p3, p2, p1]
+                    b = self.get_field_at_point(p)
+                    tp = _change_coordinate_system(p, tm, magnet_center)
+                    tb = _change_coordinate_system(b, tm)
+                    fieldmap.append(_np.append(tp, tb))
+        fieldmap = _np.array(fieldmap)
 
-        return field_data
+        fieldmap = _np.array(sorted(
+            fieldmap, key=lambda x: (x[2], x[1], x[0])))
 
-    def _get_position_list(self, axis):
+        return fieldmap
+
+    def _get_fieldmap(self):
+        fieldmap = []
+        for p1 in self._pos1:
+            for p2 in self._pos2:
+                for p3 in self._pos3:
+                    p = [p3, p2, p1]
+                    b = self.get_field_at_point(p)
+                    fieldmap.append(_np.append(p, b))
+        fieldmap = _np.array(fieldmap)
+        return fieldmap
+
+
+def _to_array(value):
+    if value is not None:
+        if not isinstance(value, _np.ndarray):
+            value = _np.array(value)
+        if len(value.shape) == 0:
+            value = _np.array([value])
+    else:
+        value = _np.array([])
+    return value
+
+
+def _get_axis_position_dict(voltage_list):
+    if len(voltage_list) == 0:
+        raise MeasurementDataError('Empty voltage list.')
+
+    if any([vd.scan_axis is None or vd.npts == 0 for vd in voltage_list]):
+        raise MeasurementDataError('Invalid voltage list.')
+
+    if not all([vd.scan_axis == voltage_list[0].scan_axis
+               for vd in voltage_list]):
+        raise MeasurementDataError('Inconsistent scan axis.')
+
+    _dict = {}
+    for axis in voltage_list[0].axis_list:
         pos = set()
-        for data_value in self._data.values():
-            for ls in data_value.values():
-                ls_pos = getattr(ls, 'pos' + axis.lower())
-                if ls_pos.size > 1:
-                    pos.update(ls_pos)
-                else:
-                    pos.add(ls_pos)
-        pos = _np.array(sorted(list(pos)))
+        for voltage_data in voltage_list:
+            pos.update(getattr(voltage_data, 'pos' + str(axis)))
+        _dict[axis] = sorted(list(pos))
+
+    return _dict
+
+
+def _get_measurement_axes(voltage_list):
+    _dict = _get_axis_position_dict(voltage_list)
+    scan_axis = voltage_list[0].scan_axis
+    axes = [scan_axis]
+    for key, value in _dict.items():
+        if key != scan_axis and len(value) > 1:
+            axes.append(key)
+    return axes
+
+
+def _get_average_voltage_list(voltage_list):
+    if len(voltage_list) == 0:
+        raise MeasurementDataError('Empty voltage list.')
+
+    if any([vd.scan_axis is None or vd.npts == 0 for vd in voltage_list]):
+        raise MeasurementDataError('Invalid voltage list.')
+
+    if not all([vd.scan_axis == voltage_list[0].scan_axis
+               for vd in voltage_list]):
+        raise MeasurementDataError('Inconsistent scan axis.')
+
+    def _sorted_key(x):
+        pos = []
+        for axis in x.axis_list:
+            if axis != x.scan_axis:
+                pos.append(getattr(x, 'pos' + str(axis)))
         return pos
 
-    def _get_field_avg_at_point(self, posx, posy, posz):
-        try:
-            if self._scan_axis == 'x':
-                ls = self._data[posz][posy]
-                idx = _np.where(ls.posx == posx)[0][0]
-            elif self._scan_axis == 'y':
-                ls = self._data[posz][posx]
-                idx = _np.where(ls.posy == posy)[0][0]
-            elif self._scan_axis == 'z':
-                ls = self._data[posy][posx]
-                idx = _np.where(ls.posz == posz)[0][0]
+    voltage_list = sorted(voltage_list, key=_sorted_key)
 
-            bx = ls.field_avg.datax[idx]
-            by = ls.field_avg.datay[idx]
-            bz = ls.field_avg.dataz[idx]
-        except Exception:
-            bx, by, bz = _np.nan, _np.nan, _np.nan
+    fixed_axes = [
+        a for a in voltage_list[0].axis_list if a != voltage_list[0].scan_axis]
 
-        return (bx, by, bz)
-
-
-def _get_scan_axis(posx, posy, posz):
-    if posx is not None:
-        if not isinstance(posx, _np.ndarray):
-            posx = _np.array(posx)
-    else:
-        posx = _np.array([])
-
-    if posy is not None:
-        if not isinstance(posy, _np.ndarray):
-            posy = _np.array(posy)
-    else:
-        posy = _np.array([])
-
-    if posz is not None:
-        if not isinstance(posz, _np.ndarray):
-            posz = _np.array(posz)
-    else:
-        posz = _np.array([])
-
-    if posx.size > 1 and posy.size == 1 and posz.size == 1:
-        return 'x'
-    elif posy.size > 1 and posx.size == 1 and posz.size == 1:
-        return 'y'
-    elif posz.size > 1 and posx.size == 1 and posy.size == 1:
-        return 'z'
-    else:
-        return None
-
-
-def _get_scan_positions(posx, posy, posz):
-    if posx is not None:
-        if not isinstance(posx, _np.ndarray):
-            posx = _np.array(posx)
-    else:
-        posx = _np.array([])
-
-    if posy is not None:
-        if not isinstance(posy, _np.ndarray):
-            posy = _np.array(posy)
-    else:
-        posy = _np.array([])
-
-    if posz is not None:
-        if not isinstance(posz, _np.ndarray):
-            posz = _np.array(posz)
-    else:
-        posz = _np.array([])
-
-    if posx.size > 1 and posy.size == 1 and posz.size == 1:
-        return posx
-    elif posy.size > 1 and posx.size == 1 and posz.size == 1:
-        return posy
-    elif posz.size > 1 and posx.size == 1 and posy.size == 1:
-        return posz
-    else:
-        return _np.array([])
-
-
-def _get_scan_files_list(
-        datadir, posx=None, posy=None, posz=None, pos_str=None):
-    if pos_str is None:
-        if posx is None and posy is not None and posz is not None:
-            pos_str = ('Z=' + '{0:0.3f}'.format(posz) + 'mm_' +
-                       'Y=' + '{0:0.3f}'.format(posy) + 'mm')
-        elif posy is None and posx is not None and posz is not None:
-            pos_str = ('Z=' + '{0:0.3f}'.format(posz) + 'mm_' +
-                       'X=' + '{0:0.3f}'.format(posx) + 'mm')
-        elif posz is None and posx is not None and posy is not None:
-            pos_str = ('Y=' + '{0:0.3f}'.format(posy) + 'mm_' +
-                       'X=' + '{0:0.3f}'.format(posx) + 'mm')
+    avg_voltage_list = []
+    tmp_voltage_list = []
+    prev_pos = None
+    for vd in voltage_list:
+        pos = []
+        for axis in fixed_axes:
+            pos.append(getattr(vd, 'pos' + str(axis)))
+        if (prev_pos is None or all([
+            pos[i] == prev_pos[i] for i in range(len(pos)) if not (
+                len(pos[i]) == 0 and len(prev_pos[i]) == 0)])):
+            tmp_voltage_list.append(vd)
         else:
-            message = 'Invalid position arguments for LineScan.'
-            raise ValueError(message)
+            avg, std = _get_avg_std(tmp_voltage_list)
+            avg_voltage_list.append(avg)
+            tmp_voltage_list = [vd]
+        prev_pos = pos
 
-    pos_str_reverse = '_'.join(pos_str.split('_')[::-1])
+    avg, std = _get_avg_std(tmp_voltage_list)
+    avg_voltage_list.append(avg)
 
-    tmpfiles = [f for f in _os.listdir(datadir) if f.endswith('.dat')]
-
-    files = [_os.path.join(datadir, f) for f in tmpfiles
-             if (pos_str in f or pos_str_reverse in f)]
-
-    if len(files) == 0:
-        message = 'No files found for the specified position.'
-        raise MeasurementDataError(message)
-
-    return files
+    return avg_voltage_list
 
 
-def _read_scan_file(filename):
-    flines = _utils.read_file(filename)
+def _get_avg_std(voltage_list):
+    axes = _get_measurement_axes(voltage_list)
+    if len(axes) != 1:
+        raise MeasurementDataError('Invalid number of measurement axes.')
 
-    data_type = _utils.find_value(flines, 'data_type')
-    data_unit = _utils.find_value(flines, 'data_unit')
-    timestamp = _utils.find_value(flines, 'timestamp')
-    scan_axis = _utils.find_value(flines, 'scan_axis')
-    posx = _utils.find_value(flines, 'position_x')
-    posy = _utils.find_value(flines, 'position_y')
-    posz = _utils.find_value(flines, 'position_z')
+    if not all([vd.npts == voltage_list[0].npts for vd in voltage_list]):
+        raise MeasurementDataError('Inconsistent number of points.')
 
-    idx = next((i for i in range(len(flines))
-                if flines[i].find("----------") != -1), None)
-    data = []
-    for line in flines[idx+1:]:
-        data_line = [float(d) for d in line.split('\t')]
-        data.append(data_line)
-    data = _np.array(data)
+    scan_axis = axes[0]
+    interpolation_pos = _np.mean([vd.scan_pos for vd in voltage_list], axis=0)
 
-    dataset = DataSet(data_type, data_unit)
+    interp_list = []
+    for vd in voltage_list:
+        interpolated = vd.copy()
+        n = len(interpolation_pos)
+        interpolated.probei = _np.zeros(n)
+        interpolated.probej = _np.zeros(n)
+        interpolated.probek = _np.zeros(n)
+        setattr(interpolated, 'pos' + str(scan_axis), interpolation_pos)
 
-    if data.shape[1] == 4:
-        scan_positions = data[:, 0]
-        dataset.datax = data[:, 1]
-        dataset.datay = data[:, 2]
-        dataset.dataz = data[:, 3]
+        if len(vd.probei) == vd.npts:
+            fr = _interpolate.splrep(vd.scan_pos, vd.probei, s=0, k=1)
+            interpolated.probei = _interpolate.splev(
+                interpolation_pos, fr, der=0)
+
+        if len(vd.probej) == vd.npts:
+            fs = _interpolate.splrep(vd.scan_pos, vd.probej, s=0, k=1)
+            interpolated.probej = _interpolate.splev(
+                interpolation_pos, fs, der=0)
+
+        if len(vd.probek) == vd.npts:
+            ft = _interpolate.splrep(vd.scan_pos, vd.probek, s=0, k=1)
+            interpolated.probek = _interpolate.splev(
+                interpolation_pos, ft, der=0)
+
+        interp_list.append(interpolated)
+
+    count = len(interp_list)
+    npts = interp_list[0].npts
+
+    avg = interp_list[0].copy()
+    avg.probei = _np.zeros(npts)
+    avg.probej = _np.zeros(npts)
+    avg.probek = _np.zeros(npts)
+    for i in range(count):
+        avg.probei += interp_list[i].probei
+        avg.probej += interp_list[i].probej
+        avg.probek += interp_list[i].probek
+    avg.probei /= count
+    avg.probej /= count
+    avg.probek /= count
+
+    std = interp_list[0].copy()
+    std.probei = _np.zeros(npts)
+    std.probej = _np.zeros(npts)
+    std.probek = _np.zeros(npts)
+    for i in range(count):
+        std.probei += pow((
+            interp_list[i].probei - avg.probei), 2)
+        std.probej += pow((
+            interp_list[i].probej - avg.probej), 2)
+        std.probek += pow((
+            interp_list[i].probek - avg.probek), 2)
+    std.probei /= count
+    std.probej /= count
+    std.probek /= count
+
+    return avg, std
+
+
+def _correct_probe_displacement(fieldi, fieldj, fieldk, index_axis,
+                                columns_axis, calibration_data):
+    if calibration_data.stem_shape.capitalize() == 'L-shape':
+        axis_corr = 3
     else:
-        message = 'Inconsistent number of columns in file: %s' % filename
-        raise MeasurementDataError(message)
+        axis_corr = 1
 
-    if scan_axis.lower() == 'x':
-        dataset.posx = scan_positions
-        dataset.posy = float(posy)
-        dataset.posz = float(posz)
-    elif scan_axis.lower() == 'y':
-        dataset.posx = float(posx)
-        dataset.posy = scan_positions
-        dataset.posz = float(posz)
-    elif scan_axis.lower() == 'z':
-        dataset.posx = float(posx)
-        dataset.posy = float(posy)
-        dataset.posz = scan_positions
+    index = fieldi.index
+    columns = fieldi.columns
+
+    if axis_corr == index_axis:
+        # shift field data
+        fieldi.index = index - calibration_data.distance_probei
+        fieldk.index = index + calibration_data.distance_probek
+
+        # interpolate field data
+        fieldi, fieldj, fieldk = _interpolate_data_frames(
+            fieldi, fieldj, fieldk, axis=0)
+
+        # cut field data
+        nbeg, nend = _get_number_of_cuts(
+            index,
+            calibration_data.distance_probei,
+            calibration_data.distance_probek)
+        fieldi, fieldj, fieldk = _cut_data_frames(
+            fieldi, fieldj, fieldk, nbeg, nend)
+
+    elif axis_corr == columns_axis:
+        # shift field data
+        fieldi.columns = columns - calibration_data.distance_probei
+        fieldk.columns = columns + calibration_data.distance_probek
+
+        # interpolate field data
+        fieldi, fieldj, fieldk = _interpolate_data_frames(
+            fieldi, fieldj, fieldk, axis=1)
+
+        # cut field data
+        nbeg, nend = _get_number_of_cuts(
+            columns,
+            calibration_data.distance_probei,
+            calibration_data.distance_probek)
+        fieldi, fieldj, fieldk = _cut_data_frames(
+            fieldi, fieldj, fieldk,
+            nbeg, nend, axis=1)
     else:
-        message = 'Invalid scan axis found in file: %s' % filename
-        raise MeasurementDataError(message)
+        raise NotImplemented
 
-    return (dataset, timestamp)
+    return fieldi, fieldj, fieldk
 
 
-def _write_scan_file(filename, dataset, timestamp):
-    scan_axis = _get_scan_axis(dataset.posx, dataset.posy, dataset.posz)
+def _interpolate_data_frames(dfi, dfj, dfk, axis=0):
 
-    if scan_axis == 'x':
-        pos_str = 'z[mm]'
-        pos_values = dataset.posx
-    elif scan_axis == 'y':
-        pos_str = 'y[mm]'
-        pos_values = dataset.posy
-    elif scan_axis == 'z':
-        pos_str = 'z[mm]'
-        pos_values = dataset.posz
+    def _interpolate_vec(x, pos):
+        f = _interpolate.splrep(x.index, x.values, s=0, k=1)
+        return _interpolate.splev(pos, f, der=0)
+
+    if axis == 1:
+        pos = dfj.columns
+        interp_dfi = dfi.apply(_interpolate_vec, axis=axis, args=[pos])
+        interp_dfk = dfk.apply(_interpolate_vec, axis=axis, args=[pos])
+        interp_dfi.columns = pos
+        interp_dfk.columns = pos
     else:
-        message = 'Invalid scan axis.'
-        raise MeasurementDataError(message)
+        pos = dfj.index
+        interp_dfi = dfi.apply(_interpolate_vec, args=[pos])
+        interp_dfk = dfk.apply(_interpolate_vec, args=[pos])
+        interp_dfi.index = pos
+        interp_dfk.index = pos
 
-    columns_names = (
-        '%s\t' % pos_str +
-        '%s_x[%s]\t' % (dataset.description, dataset.unit) +
-        '%s_y[%s]\t' % (dataset.description, dataset.unit) +
-        '%s_z[%s]' % (dataset.description, dataset.unit))
-    columns = _np.column_stack((
-        pos_values, dataset.datax, dataset.datay, dataset.dataz))
+    return interp_dfi, dfj, interp_dfk
 
-    f = open(filename, mode='w')
 
-    f.write('data_type:               \t%s\n' % dataset.description)
-    f.write('data_unit:               \t%s\n' % dataset.unit)
-    f.write('timestamp:               \t%s\n' % timestamp)
-    f.write('scan_axis:               \t%s\n' % scan_axis)
+def _get_number_of_cuts(vec, dist_beg, dist_end):
+    diff_beg = _np.append(0, _np.abs(_np.cumsum(_np.diff(vec))))
+    diff_end = _np.append(0, _np.abs(_np.cumsum(_np.diff(vec)[::-1])))
+    n_beg = len(diff_beg[diff_beg < dist_beg])
+    n_end = len(diff_end[diff_end < dist_end])
+    return n_beg, n_end
 
-    if scan_axis == 'x':
-        f.write('position_x[mm]:          \t--\n')
-        f.write('position_y[mm]:          \t%f\n' % dataset.posy)
-        f.write('position_z[mm]:          \t%f\n' % dataset.posz)
-    elif scan_axis == 'y':
-        f.write('position_x[mm]:          \t%f\n' % dataset.posx)
-        f.write('position_y[mm]:          \t--\n')
-        f.write('position_z[mm]:          \t%f\n' % dataset.posz)
-    elif scan_axis == 'z':
-        f.write('position_x[mm]:          \t%f\n' % dataset.posx)
-        f.write('position_y[mm]:          \t%f\n' % dataset.posy)
-        f.write('position_z[mm]:          \t--\n')
 
-    f.write('\n')
-    f.write('%s\n' % columns_names)
-    f.write('---------------------------------------------------' +
-            '---------------------------------------------------\n')
+def _cut_data_frames(dfi, dfj, dfk, nbeg, nend, axis=0):
+    if axis == 1:
+        if nbeg > 0:
+            dfi = dfi.drop(dfi.columns[:nbeg], axis=axis)
+            dfj = dfj.drop(dfj.columns[:nbeg], axis=axis)
+            dfk = dfk.drop(dfk.columns[:nbeg], axis=axis)
+        if nend > 0:
+            dfi = dfi.drop(dfi.columns[-nend:], axis=axis)
+            dfj = dfj.drop(dfj.columns[-nend:], axis=axis)
+            dfk = dfk.drop(dfk.columns[-nend:], axis=axis)
+    else:
+        if nbeg > 0:
+            dfi = dfi.drop(dfi.index[:nbeg])
+            dfj = dfj.drop(dfj.index[:nbeg])
+            dfk = dfk.drop(dfk.index[:nbeg])
+        if nend > 0:
+            dfi = dfi.drop(dfi.index[-nend:])
+            dfj = dfj.drop(dfj.index[-nend:])
+            dfk = dfk.drop(dfk.index[-nend:])
+    return dfi, dfj, dfk
 
-    for i in range(columns.shape[0]):
-        line = '{0:0.3f}'.format(columns[i, 0])
-        for j in range(1, columns.shape[1]):
-            line = line + '\t' + '{0:0.10e}'.format(columns[i, j])
-        f.write(line + '\n')
-    f.close()
+
+def _get_axis_vector(axis_str):
+    if '3' in axis_str:
+        if axis_str.startswith('-'):
+            axis_vec = [-1, 0, 0]
+        else:
+            axis_vec = [1, 0, 0]
+    elif '2' in axis_str:
+        if axis_str.startswith('-'):
+            axis_vec = [0, -1, 0]
+        else:
+            axis_vec = [0, 1, 0]
+    elif '1' in axis_str:
+        if axis_str.startswith('-'):
+            axis_vec = [0, 0, -1]
+        else:
+            axis_vec = [0, 0, 1]
+    else:
+        axis_vec = None
+    return axis_vec
+
+
+def _get_transformation_matrix(x_str, y_str):
+    x = _get_axis_vector(x_str)
+    y = _get_axis_vector(y_str)
+    if x is None or y is None:
+        raise MeasurementDataError('Invalid magnet axes.')
+    z = _np.cross(x, y)
+    v3 = [1, 0, 0]
+    v2 = [0, 1, 0]
+    v1 = [0, 0, 1]
+    m = _np.outer(v3, x) + _np.outer(v2, y) + _np.outer(v1, z)
+    return m
+
+
+def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
+    vector = _np.array(vector)
+    center = _np.array(center)
+    transf_vector = _np.dot(transf_matrix, vector - center)
+    return transf_vector

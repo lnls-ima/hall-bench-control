@@ -21,16 +21,15 @@ class CalibrationData(object):
             self._field_unit = ''
             self._voltage_unit = ''
             self._data_type = None
-            self._probeu_data = []
-            self._probev_data = []
-            self._probew_data = []
-            self._probeu_function = None
-            self._probev_function = None
-            self._probew_function = None
-            self.relative_position_probeu = None
-            self.relative_position_probew = None
-            self.u_axis = None
-            self.w_axis = None
+            self._probei_data = []
+            self._probej_data = []
+            self._probek_data = []
+            self._probei_function = None
+            self._probej_function = None
+            self._probek_function = None
+            self._stem_shape = None
+            self._distance_probei = None
+            self._distance_probek = None
 
     def __eq__(self, other):
         """Equality method."""
@@ -100,106 +99,148 @@ class CalibrationData(object):
 
     @data_type.setter
     def data_type(self, value):
-        if value in ('interpolation', 'polynomial'):
-            self._data_type = value
+        if isinstance(value, str):
+            if value in ('interpolation', 'polynomial'):
+                self._data_type = value
+            else:
+                raise ValueError('Invalid value for data_type.')
         else:
-            raise ValueError('Invalid value for data_type.')
+            raise TypeError('data_type must be a string.')
 
     @property
-    def probeu_data(self):
-        """Probe X calibration data."""
-        return self._probeu_data
+    def distance_probei(self):
+        """Distance between Probe I and Probe J (Reference Probe)."""
+        return self._distance_probei
 
-    @probeu_data.setter
-    def probeu_data(self, value):
+    @distance_probei.setter
+    def distance_probei(self, value):
+        if value >= 0:
+            self._distance_probei = value
+        else:
+            raise ValueError('The probe distance must be a positive number.')
+
+    @property
+    def distance_probek(self):
+        """Distance between Probe K and Probe J (Reference Probe)."""
+        return self._distance_probek
+
+    @distance_probek.setter
+    def distance_probek(self, value):
+        if value >= 0:
+            self._distance_probek = value
+        else:
+            raise ValueError('The probe distance must be a positive number.')
+
+    @property
+    def stem_shape(self):
+        """Stem Shape."""
+        return self._stem_shape
+
+    @stem_shape.setter
+    def stem_shape(self, value):
+        if isinstance(value, str):
+            if value.capitalize() in ('L-shape', 'Straight'):
+                self._stem_shape = value
+            else:
+                raise ValueError('Invalid value for stem_shape.')
+        else:
+            raise TypeError('stem_shape must be a string.')
+
+    @property
+    def probei_data(self):
+        """Probe I calibration data."""
+        return self._probei_data
+
+    @probei_data.setter
+    def probei_data(self, value):
         if isinstance(value, _np.ndarray):
             value = value.tolist()
 
         if isinstance(value, (list, tuple)):
             if len(value) == 1 and not isinstance(value[0], (list, tuple)):
-                self._probeu_data = [value]
-                self._set_conversion_function_x()
+                self._probei_data = [value]
+                self._set_conversion_function_i()
             elif all(isinstance(item, list) for item in value):
-                self._probeu_data = value
-                self._set_conversion_function_x()
+                self._probei_data = value
+                self._set_conversion_function_i()
             else:
-                raise ValueError('Invalid value for probeu_data.')
+                raise ValueError('Invalid value for probei_data.')
         else:
-            raise TypeError('probeu_data must be a list.')
+            raise TypeError('probei_data must be a list.')
 
     @property
-    def probev_data(self):
-        """Probe Y calibration data."""
-        return self._probev_data
+    def probej_data(self):
+        """Probe J calibration data."""
+        return self._probej_data
 
-    @probev_data.setter
-    def probev_data(self, value):
+    @probej_data.setter
+    def probej_data(self, value):
         if isinstance(value, _np.ndarray):
             value = value.tolist()
 
         if isinstance(value, (list, tuple)):
             if len(value) == 1 and not isinstance(value[0], (list, tuple)):
-                self._probev_data = [value]
-                self._set_conversion_function_y()
+                self._probej_data = [value]
+                self._set_conversion_function_j()
             elif all(isinstance(item, list) for item in value):
-                self._probev_data = value
-                self._set_conversion_function_y()
+                self._probej_data = value
+                self._set_conversion_function_j()
             else:
-                raise ValueError('Invalid value for probev_data.')
+                raise ValueError('Invalid value for probej_data.')
         else:
-            raise TypeError('probev_data must be a list.')
+            raise TypeError('probej_data must be a list.')
 
     @property
-    def probew_data(self):
-        """Probe Z calibration data."""
-        return self._probew_data
+    def probek_data(self):
+        """Probe K calibration data."""
+        return self._probek_data
 
-    @probew_data.setter
-    def probew_data(self, value):
+    @probek_data.setter
+    def probek_data(self, value):
         if isinstance(value, _np.ndarray):
             value = value.tolist()
 
         if isinstance(value, (list, tuple)):
             if len(value) == 1 and not isinstance(value[0], (list, tuple)):
-                self._probew_data = [value]
-                self._set_conversion_function_z()
+                self._probek_data = [value]
+                self._set_conversion_function_k()
             elif all(isinstance(item, list) for item in value):
-                self._probew_data = value
-                self._set_conversion_function_z()
+                self._probek_data = value
+                self._set_conversion_function_k()
             else:
-                raise ValueError('Invalid value for probew_data.')
+                raise ValueError('Invalid value for probek_data.')
         else:
-            raise TypeError('probew_data must be a list.')
+            raise TypeError('probek_data must be a list.')
 
-    def _set_conversion_function_x(self):
-        if len(self.probeu_data) != 0 and self.data_type == 'interpolation':
-            self._probeu_function = lambda v: _interpolation_conversion(
-                self.probeu_data, v)
-        elif len(self.probeu_data) != 0 and self.data_type == 'polynomial':
-            self._probeu_function = lambda v: _polynomial_conversion(
-                self.probeu_data, v)
+    def _set_conversion_function_i(self):
+        if len(self.probei_data) != 0 and self.data_type == 'interpolation':
+            self._probei_function = lambda v: _interpolation_conversion(
+                self.probei_data, v)
+        elif len(self.probei_data) != 0 and self.data_type == 'polynomial':
+            self._probei_function = lambda v: _polynomial_conversion(
+                self.probei_data, v)
         else:
-            self._probeu_function = None
+            self._probei_function = None
 
-    def _set_conversion_function_y(self):
-        if len(self.probev_data) != 0 and self.data_type == 'interpolation':
-            self._probev_function = lambda v: _interpolation_conversion(
-                self.probev_data, v)
-        elif len(self.probev_data) != 0 and self.data_type == 'polynomial':
-            self._probev_function = lambda v: _polynomial_conversion(
-                self.probev_data, v)
+    def _set_conversion_function_j(self):
+        if len(self.probej_data) != 0 and self.data_type == 'interpolation':
+            self._probej_function = lambda v: _interpolation_conversion(
+                self.probej_data, v)
+        elif len(self.probej_data) != 0 and self.data_type == 'polynomial':
+            self._probej_function = lambda v: _polynomial_conversion(
+                self.probej_data, v)
         else:
-            self._probev_function = None
+            self._probej_function = None
 
-    def _set_conversion_function_z(self):
-        if len(self.probew_data) != 0 and self.data_type == 'interpolation':
-            self._probew_function = lambda v: _interpolation_conversion(
-                self.probew_data, v)
-        elif len(self.probew_data) != 0 and self.data_type == 'polynomial':
-            self._probew_function = lambda v: _polynomial_conversion(
-                self.probew_data, v)
+    def _set_conversion_function_k(self):
+        if len(self.probek_data) != 0 and self.data_type == 'interpolation':
+            self._probek_function = lambda v: _interpolation_conversion(
+                self.probek_data, v)
+        elif len(self.probek_data) != 0 and self.data_type == 'polynomial':
+            self._probek_function = lambda v: _polynomial_conversion(
+                self.probek_data, v)
         else:
-            self._probew_function = None
+            self._probek_function = None
 
     def read_file(self, filename):
         """Read calibration parameters from file.
@@ -211,32 +252,31 @@ class CalibrationData(object):
         self.data_type = _utils.find_value(flines, 'data_type')
         self.field_unit = _utils.find_value(flines, 'field_unit')
         self.voltage_unit = _utils.find_value(flines, 'voltage_unit')
-        self.relative_position_probeu = _utils.find_value(
-            flines, 'relative_position_probeu', vtype=float)
-        self.relative_position_probew = _utils.find_value(
-            flines, 'relative_position_probew', vtype=float)
-        self.u_axis = _utils.find_value(flines, 'u_axis')
-        self.w_axis = _utils.find_value(flines, 'w_axis')
+        self.distance_probei = _utils.find_value(
+            flines, 'distance_probei', vtype=float)
+        self.distance_probek = _utils.find_value(
+            flines, 'distance_probek', vtype=float)
+        self.stem_shape = _utils.find_value(flines, 'stem_shape')
 
-        probeu_data = []
-        probev_data = []
-        probew_data = []
+        probei_data = []
+        probej_data = []
+        probek_data = []
 
         idx = _utils.find_index(flines, '----------')
         for line in flines[idx+1:]:
             probe = line.split()[0].lower()
-            if probe == 'x':
-                probeu_data.append([float(v) for v in line.split()[1:]])
-            elif probe == 'y':
-                probev_data.append([float(v) for v in line.split()[1:]])
-            elif probe == 'z':
-                probew_data.append([float(v) for v in line.split()[1:]])
+            if probe == 'i':
+                probei_data.append([float(v) for v in line.split()[1:]])
+            elif probe == 'j':
+                probej_data.append([float(v) for v in line.split()[1:]])
+            elif probe == 'k':
+                probek_data.append([float(v) for v in line.split()[1:]])
             else:
                 raise ValueError('Invalid probe value.')
 
-        self.probeu_data = probeu_data
-        self.probev_data = probev_data
-        self.probew_data = probew_data
+        self.probei_data = probei_data
+        self.probej_data = probej_data
+        self.probek_data = probek_data
 
     def save_file(self, filename):
         """Save calibration data to file.
@@ -258,14 +298,12 @@ class CalibrationData(object):
             self.field_unit))
         f.write('voltage_unit:                  \t{0:1s}\n'.format(
             self.voltage_unit))
-        f.write('relative_position_probeu[mm]:  \t{0:1s}\n'.format(
-            str(self.relative_position_probeu)))
-        f.write('relative_position_probew[mm]:  \t{0:1s}\n'.format(
-            str(self.relative_position_probew)))
-        f.write('u_axis:                        \t{0:1s}\n'.format(
-            self.u_axis))
-        f.write('w_axis:                        \t{0:1s}\n'.format(
-            self.w_axis))
+        f.write('distance_probei[mm]:           \t{0:1s}\n'.format(
+            str(self.distance_probei)))
+        f.write('distance_probek[mm]:           \t{0:1s}\n'.format(
+            str(self.distance_probek)))
+        f.write('stem_shape:                    \t{0:1s}\n'.format(
+            self.stem_shape))
         f.write('\n')
 
         if self.data_type == 'interpolation':
@@ -281,20 +319,20 @@ class CalibrationData(object):
         f.write('---------------------------------------------------' +
                 '---------------------------------------------------\n')
 
-        for d in self.probeu_data:
-            f.write('x'.ljust(8)+'\t')
+        for d in self.probei_data:
+            f.write('i'.ljust(8)+'\t')
             for value in d:
                 f.write('{0:+14.7e}\t'.format(value))
             f.write('\n')
 
-        for d in self.probev_data:
-            f.write('y'.ljust(8)+'\t')
+        for d in self.probej_data:
+            f.write('j'.ljust(8)+'\t')
             for value in d:
                 f.write('{0:+14.7e}\t'.format(value))
             f.write('\n')
 
-        for d in self.probew_data:
-            f.write('z'.ljust(8)+'\t')
+        for d in self.probek_data:
+            f.write('k'.ljust(8)+'\t')
             for value in d:
                 f.write('{0:+14.7e}\t'.format(value))
             f.write('\n')
@@ -306,19 +344,18 @@ class CalibrationData(object):
         self._field_unit = ''
         self._voltage_unit = ''
         self._data_type = None
-        self._probeu_data = []
-        self._probev_data = []
-        self._probew_data = []
-        self._probeu_function = None
-        self._probev_function = None
-        self._probew_function = None
-        self.relative_position_probeu = None
-        self.relative_position_probew = None
-        self.u_axis = None
-        self.w_axis = None
+        self._probei_data = []
+        self._probej_data = []
+        self._probek_data = []
+        self._probei_function = None
+        self._probej_function = None
+        self._probek_function = None
+        self._stem_shape = None
+        self._distance_probei = None
+        self._distance_probek = None
 
-    def convert_voltage_probeu(self, voltage_array):
-        """Convert voltage values to magnetic field values for probe x.
+    def convert_voltage_probei(self, voltage_array):
+        """Convert voltage values to magnetic field values for Probe I.
 
         Args:
             voltage_array (array): array with voltage values.
@@ -326,13 +363,13 @@ class CalibrationData(object):
         Returns:
             array with magnetic field values.
         """
-        if self._probeu_function is not None:
-            return self._probeu_function(voltage_array)
+        if self._probei_function is not None:
+            return self._probei_function(voltage_array)
         else:
             return _np.ones(len(voltage_array))*_np.nan
 
-    def convert_voltage_probev(self, voltage_array):
-        """Convert voltage values to magnetic field values for probe y.
+    def convert_voltage_probej(self, voltage_array):
+        """Convert voltage values to magnetic field values for Probe J.
 
         Args:
             voltage_array (array): array with voltage values.
@@ -340,13 +377,13 @@ class CalibrationData(object):
         Returns:
             array with magnetic field values.
         """
-        if self._probev_function is not None:
-            return self._probev_function(voltage_array)
+        if self._probej_function is not None:
+            return self._probej_function(voltage_array)
         else:
             return _np.ones(len(voltage_array))*_np.nan
 
-    def convert_voltage_probew(self, voltage_array):
-        """Convert voltage values to magnetic field values for probe z.
+    def convert_voltage_probek(self, voltage_array):
+        """Convert voltage values to magnetic field values for Probe K.
 
         Args:
             voltage_array (array): array with voltage values.
@@ -354,8 +391,8 @@ class CalibrationData(object):
         Returns:
             array with magnetic field values.
         """
-        if self._probew_function is not None:
-            return self._probew_function(voltage_array)
+        if self._probek_function is not None:
+            return self._probek_function(voltage_array)
         else:
             return _np.ones(len(voltage_array))*_np.nan
 

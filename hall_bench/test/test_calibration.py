@@ -156,29 +156,27 @@ class TestCalibrationData(unittest.TestCase):
         self.assertEqual(c.field_unit, '')
         self.assertEqual(c.voltage_unit, '')
         self.assertIsNone(c.data_type)
-        self.assertIsNone(c.relative_position_probeu)
-        self.assertIsNone(c.relative_position_probew)
-        self.assertIsNone(c.u_axis)
-        self.assertIsNone(c.w_axis)
-        self.assertEqual(c.probeu_data, [])
-        self.assertEqual(c.probev_data, [])
-        self.assertEqual(c.probew_data, [])
-        self.assertIsNone(c._probeu_function)
-        self.assertIsNone(c._probev_function)
-        self.assertIsNone(c._probew_function)
+        self.assertIsNone(c.distance_probei)
+        self.assertIsNone(c.distance_probek)
+        self.assertIsNone(c.stem_shape)
+        self.assertEqual(c.probei_data, [])
+        self.assertEqual(c.probej_data, [])
+        self.assertEqual(c.probek_data, [])
+        self.assertIsNone(c._probei_function)
+        self.assertIsNone(c._probej_function)
+        self.assertIsNone(c._probek_function)
 
     def test_initialization_with_filename(self):
         c = calibration.CalibrationData(self.filename)
         self.assertEqual(c.field_unit, 'T')
         self.assertEqual(c.voltage_unit, 'V')
         self.assertEqual(c.data_type, 'polynomial')
-        self.assertEqual(c.relative_position_probeu, 0)
-        self.assertEqual(c.relative_position_probew, 0)
-        self.assertEqual(c.u_axis, '+x')
-        self.assertEqual(c.w_axis, '+z')
-        self.assertEqual(c.probeu_data, self.probe_data_polynomial)
-        self.assertEqual(c.probev_data, self.probe_data_polynomial)
-        self.assertEqual(c.probew_data, self.probe_data_polynomial)
+        self.assertEqual(c.distance_probei, 0)
+        self.assertEqual(c.distance_probek, 0)
+        self.assertEqual(c.stem_shape, 'Straight')
+        self.assertEqual(c.probei_data, self.probe_data_polynomial)
+        self.assertEqual(c.probej_data, self.probe_data_polynomial)
+        self.assertEqual(c.probek_data, self.probe_data_polynomial)
 
     def test_read_file(self):
         c = calibration.CalibrationData()
@@ -186,13 +184,12 @@ class TestCalibrationData(unittest.TestCase):
         self.assertEqual(c.field_unit, 'T')
         self.assertEqual(c.voltage_unit, 'V')
         self.assertEqual(c.data_type, 'polynomial')
-        self.assertEqual(c.relative_position_probeu, 0)
-        self.assertEqual(c.relative_position_probew, 0)
-        self.assertEqual(c.u_axis, '+x')
-        self.assertEqual(c.w_axis, '+z')
-        self.assertEqual(c.probeu_data, self.probe_data_polynomial)
-        self.assertEqual(c.probev_data, self.probe_data_polynomial)
-        self.assertEqual(c.probew_data, self.probe_data_polynomial)
+        self.assertEqual(c.distance_probei, 0)
+        self.assertEqual(c.distance_probek, 0)
+        self.assertEqual(c.stem_shape, 'Straight')
+        self.assertEqual(c.probei_data, self.probe_data_polynomial)
+        self.assertEqual(c.probej_data, self.probe_data_polynomial)
+        self.assertEqual(c.probek_data, self.probe_data_polynomial)
 
     def test_clear(self):
         c = calibration.CalibrationData(self.filename)
@@ -200,16 +197,15 @@ class TestCalibrationData(unittest.TestCase):
         self.assertEqual(c.field_unit, '')
         self.assertEqual(c.voltage_unit, '')
         self.assertIsNone(c.data_type)
-        self.assertIsNone(c.relative_position_probeu)
-        self.assertIsNone(c.relative_position_probew)
-        self.assertIsNone(c.u_axis)
-        self.assertIsNone(c.w_axis)
-        self.assertEqual(c.probeu_data, [])
-        self.assertEqual(c.probev_data, [])
-        self.assertEqual(c.probew_data, [])
-        self.assertIsNone(c._probeu_function)
-        self.assertIsNone(c._probev_function)
-        self.assertIsNone(c._probew_function)
+        self.assertIsNone(c.distance_probei)
+        self.assertIsNone(c.distance_probek)
+        self.assertIsNone(c.stem_shape)
+        self.assertEqual(c.probei_data, [])
+        self.assertEqual(c.probej_data, [])
+        self.assertEqual(c.probek_data, [])
+        self.assertIsNone(c._probei_function)
+        self.assertIsNone(c._probej_function)
+        self.assertIsNone(c._probek_function)
 
     def test_save_file_interpolation(self):
         filename = 'calibration_data_tmp_file.txt'
@@ -217,13 +213,12 @@ class TestCalibrationData(unittest.TestCase):
         cw.field_unit = 'mT'
         cw.voltage_unit = 'mV'
         cw.data_type = 'interpolation'
-        cw.relative_position_probeu = 1
-        cw.relative_position_probew = 2
-        cw.u_axis = '-y'
-        cw.w_axis = '+x'
-        cw.probeu_data = self.probe_data_interpolation
-        cw.probev_data = self.probe_data_interpolation
-        cw.probew_data = self.probe_data_interpolation
+        cw.distance_probei = 1
+        cw.distance_probek = 2
+        cw.stem_shape = 'L-shape'
+        cw.probei_data = self.probe_data_interpolation
+        cw.probej_data = self.probe_data_interpolation
+        cw.probek_data = self.probe_data_interpolation
         cw.save_file(filename)
 
         cr = calibration.CalibrationData(filename)
@@ -231,14 +226,13 @@ class TestCalibrationData(unittest.TestCase):
         self.assertEqual(cr.voltage_unit, cw.voltage_unit)
         self.assertEqual(cr.data_type, cw.data_type)
         self.assertEqual(
-            cr.relative_position_probeu, cw.relative_position_probeu)
+            cr.distance_probei, cw.distance_probei)
         self.assertEqual(
-            cr.relative_position_probew, cw.relative_position_probew)
-        self.assertEqual(cr.u_axis, cw.u_axis)
-        self.assertEqual(cr.w_axis, cw.w_axis)
-        self.assertEqual(cr.probeu_data, cw.probeu_data)
-        self.assertEqual(cr.probev_data, cw.probev_data)
-        self.assertEqual(cr.probew_data, cw.probew_data)
+            cr.distance_probek, cw.distance_probek)
+        self.assertEqual(cr.stem_shape, cw.stem_shape)
+        self.assertEqual(cr.probei_data, cw.probei_data)
+        self.assertEqual(cr.probej_data, cw.probej_data)
+        self.assertEqual(cr.probek_data, cw.probek_data)
         os.remove(filename)
 
     def test_save_file_polynomial(self):
@@ -247,13 +241,12 @@ class TestCalibrationData(unittest.TestCase):
         cw.field_unit = 'mT'
         cw.voltage_unit = 'mV'
         cw.data_type = 'polynomial'
-        cw.relative_position_probeu = 1
-        cw.relative_position_probew = 2
-        cw.u_axis = '-y'
-        cw.w_axis = '+x'
-        cw.probeu_data = self.probe_data_polynomial
-        cw.probev_data = self.probe_data_polynomial
-        cw.probew_data = self.probe_data_polynomial
+        cw.distance_probei = 1
+        cw.distance_probek = 2
+        cw.stem_shape = 'Straight'
+        cw.probei_data = self.probe_data_polynomial
+        cw.probej_data = self.probe_data_polynomial
+        cw.probek_data = self.probe_data_polynomial
         cw.save_file(filename)
 
         cr = calibration.CalibrationData(filename)
@@ -261,14 +254,13 @@ class TestCalibrationData(unittest.TestCase):
         self.assertEqual(cr.voltage_unit, cw.voltage_unit)
         self.assertEqual(cr.data_type, cw.data_type)
         self.assertEqual(
-            cr.relative_position_probeu, cw.relative_position_probeu)
+            cr.distance_probei, cw.distance_probei)
         self.assertEqual(
-            cr.relative_position_probew, cw.relative_position_probew)
-        self.assertEqual(cr.u_axis, cw.u_axis)
-        self.assertEqual(cr.w_axis, cw.w_axis)
-        self.assertEqual(cr.probeu_data, cw.probeu_data)
-        self.assertEqual(cr.probev_data, cw.probev_data)
-        self.assertEqual(cr.probew_data, cw.probew_data)
+            cr.distance_probek, cw.distance_probek)
+        self.assertEqual(cr.stem_shape, cw.stem_shape)
+        self.assertEqual(cr.probei_data, cw.probei_data)
+        self.assertEqual(cr.probej_data, cw.probej_data)
+        self.assertEqual(cr.probek_data, cw.probek_data)
         os.remove(filename)
 
     def test_conversion_polynomial(self):
@@ -276,17 +268,16 @@ class TestCalibrationData(unittest.TestCase):
         c.field_unit = 'T'
         c.voltage_unit = 'V'
         c.data_type = 'polynomial'
-        c.relative_position_probeu = 0
-        c.relative_position_probew = 0
-        c.u_axis = '+x'
-        c.w_axis = '+z'
-        c.probeu_data = self.probe_data_polynomial
-        c.probev_data = self.probe_data_polynomial
-        c.probew_data = self.probe_data_polynomial
+        c.distance_probei = 0
+        c.distance_probek = 0
+        c.stem_shape = 'Straight'
+        c.probei_data = self.probe_data_polynomial
+        c.probej_data = self.probe_data_polynomial
+        c.probek_data = self.probe_data_polynomial
 
         voltage = np.linspace(-15, 15, 101)
         field = calibration._old_hall_probe_calibration_curve(voltage)
-        field_polynomial = c.convert_voltage_probeu(voltage)
+        field_polynomial = c.convert_voltage_probei(voltage)
         np.testing.assert_array_equal(field, field_polynomial)
 
     def test_conversion_interpolation(self):
@@ -294,28 +285,27 @@ class TestCalibrationData(unittest.TestCase):
         c.field_unit = 'T'
         c.voltage_unit = 'V'
         c.data_type = 'interpolation'
-        c.relative_position_probeu = 0
-        c.relative_position_probew = 0
-        c.u_axis = '+x'
-        c.w_axis = '+z'
-        c.probeu_data = self.probe_data_interpolation
-        c.probev_data = self.probe_data_interpolation
-        c.probew_data = self.probe_data_interpolation
+        c.distance_probei = 0
+        c.distance_probek = 0
+        c.stem_shape = 'Straight'
+        c.probei_data = self.probe_data_interpolation
+        c.probej_data = self.probe_data_interpolation
+        c.probek_data = self.probe_data_interpolation
 
         voltage = np.linspace(-20, -11, 100)
         field = calibration._old_hall_probe_calibration_curve(voltage)
-        field_interpolation = c.convert_voltage_probeu(voltage)
+        field_interpolation = c.convert_voltage_probei(voltage)
         np.testing.assert_array_almost_equal(
             field, field_interpolation, decimal=2)
 
         voltage = np.linspace(-9, 9, 100)
         field = calibration._old_hall_probe_calibration_curve(voltage)
-        field_interpolation = c.convert_voltage_probeu(voltage)
+        field_interpolation = c.convert_voltage_probei(voltage)
         np.testing.assert_array_almost_equal(field, field_interpolation)
 
         voltage = np.linspace(11, 20, 100)
         field = calibration._old_hall_probe_calibration_curve(voltage)
-        field_interpolation = c.convert_voltage_probeu(voltage)
+        field_interpolation = c.convert_voltage_probei(voltage)
         np.testing.assert_array_almost_equal(
             field, field_interpolation, decimal=2)
 

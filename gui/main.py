@@ -11,7 +11,6 @@ from PyQt4 import QtCore
 from PyQt4 import QtGui
 
 from interface import Ui_HallBench
-from save_dialog import Ui_SaveMeasurement
 from hall_bench.data_handle import calibration
 from hall_bench.data_handle import configuration
 from hall_bench.data_handle import measurement
@@ -29,51 +28,82 @@ class HallBenchGUI(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.ui = Ui_HallBench()
         self.ui.setupUi(self)
-
-        # for idx in range(1, self.ui.tab_main.count()):
-        #     self.ui.tab_main.setTabEnabled(idx, False)
-
-        for idx in range(0, self.ui.tb_move_axis.count()):
-            self.ui.tb_move_axis.setItemEnabled(idx, False)
-
         self._initialize_variables()
+        self._set_interface_initial_state()
         self._connect_signals()
         self._start_timer()
 
     def _initialize_variables(self):
-        """Initialize variables with default values."""
+        self.led_on = ":/images/images/led_green.png"
+        self.led_off = ":/images/images/led_red.png"
+
         self.cconfig = None
         self.mconfig = None
-        self.calibration = None
+        self.calibration_data = None
         self.devices = None
-
-        self.tx = None
-        self.ty = None
-        self.tz = None
 
         self.graph_curve_x = np.array([])
         self.graph_curve_y = np.array([])
         self.graph_curve_z = np.array([])
 
+        self.ti = None
+        self.tj = None
+        self.tk = None
+
+        self.current_voltage_data = measurement.VoltageData()
         self.current_postion_list = []
-        self.current_line_scan = None
+        self.current_voltage_list = []
         self.current_measurement = None
 
-        self.nr_measurements = 1
+        self.nr_measurements = 2
         self.dirpath = None
-
-        self.led_on = ":/images/images/led_green.png"
-        self.led_off = ":/images/images/led_red.png"
-
-        self.save_measurement_dialog = SaveMeasurementDialog()
         self.end_measurements = False
         self.stop = False
 
+        self.measurement_to_save = None
+        self.calibration_data_to_save = None
+        self.directory_to_save = None
+        self.voltage_data_files = []
+
+    def _set_interface_initial_state(self):
+        for idx in range(1, self.ui.tab_main.count()):
+            self.ui.tab_main.setTabEnabled(idx, False)
+
+        for idx in range(0, self.ui.tb_move_axis.count()):
+            self.ui.tb_move_axis.setItemEnabled(idx, False)
+
+        self.ui.sb_nr_measurements.setValue(self.nr_measurements)
+        self.ui.ta_additional_parameter.horizontalHeader().setVisible(True)
+        self.main_tab_changed()
+
     def _connect_signals(self):
+        self.ui.tab_main.currentChanged.connect(self.main_tab_changed)
         self._connect_signals_connection_tab()
         self._connect_signals_motors_tab()
         self._connect_signals_calibration_tab()
         self._connect_signals_measurement_tab()
+        self._connect_signals_save_tab()
+
+    def main_tab_changed(self):
+        """Update interface when the main tab index change."""
+        # update motors tab_main
+        if self.devices is not None and self.devices.pmac_connected:
+            self.ui.fm_homming.setEnabled(True)
+            self.ui.fm_limits.setEnabled(True)
+            self.ui.fm_move_axis.setEnabled(True)
+        else:
+            self.ui.fm_homming.setEnabled(False)
+            self.ui.fm_limits.setEnabled(False)
+            self.ui.fm_move_axis.setEnabled(False)
+
+        # update save tab
+        if self.current_measurement is None:
+            self.ui.rb_recover_measurement.setChecked(True)
+            self.ui.rb_current_measurement.setEnabled(False)
+        else:
+            self.ui.rb_current_measurement.setEnabled(True)
+        self.select_measurement_to_save()
+        self.disable_invalid_magnet_axes()
 
     def _connect_signals_connection_tab(self):
         self.ui.pb_load_connection_config.clicked.connect(
@@ -102,11 +132,11 @@ class HallBenchGUI(QtGui.QWidget):
         self.ui.le_setvel1.editingFinished.connect(
             lambda: self._check_value(self.ui.le_setvel1, 0.1, 150))
         self.ui.le_setvel2.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_setvel2, 0.1, 5))
+            lambda: self._check_value(self.ui.le_setvel2, 0.1, 10))
         self.ui.le_setvel3.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_setvel3, 0.1, 5))
+            lambda: self._check_value(self.ui.le_setvel3, 0.1, 10))
         self.ui.le_setvel5.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_setvel5, 0.1, 10))
+            lambda: self._check_value(self.ui.le_setvel5, 0.1, 20))
         self.ui.le_setvel6.editingFinished.connect(
             lambda: self._check_value(self.ui.le_setvel6, 0.1, 5))
         self.ui.le_setvel7.editingFinished.connect(
@@ -123,15 +153,15 @@ class HallBenchGUI(QtGui.QWidget):
         self.ui.le_target3.editingFinished.connect(
             lambda: self._check_value(self.ui.le_target3, -150, 150))
         self.ui.le_target5.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_target5, 0, 180))
+            lambda: self._check_value(self.ui.le_target5, -180, 180))
         self.ui.le_target6.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_target6, -150, 150))
+            lambda: self._check_value(self.ui.le_target6, -12, 12))
         self.ui.le_target7.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_target7, -150, 150))
+            lambda: self._check_value(self.ui.le_target7, -12, 12))
         self.ui.le_target8.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_target8, 0, 180))
+            lambda: self._check_value(self.ui.le_target8, -10, 10))
         self.ui.le_target9.editingFinished.connect(
-            lambda: self._check_value(self.ui.le_target9, 0, 180))
+            lambda: self._check_value(self.ui.le_target9, -10, 10))
 
     def _connect_signals_calibration_tab(self):
         self.ui.pb_load_calibration.clicked.connect(self.load_calibration_data)
@@ -193,8 +223,72 @@ class HallBenchGUI(QtGui.QWidget):
         self.ui.pb_configure_and_measure.clicked.connect(
             self.configure_and_measure)
         self.ui.pb_stop_measurement.clicked.connect(self.stop_measurements)
-        self.ui.pb_save_measurement.clicked.connect(
-            self.open_save_measurement_dialog)
+
+    def _connect_signals_save_tab(self):
+        self.ui.rb_current_measurement.toggled.connect(
+            self.select_measurement_to_save)
+        self.ui.rb_recover_measurement.toggled.connect(
+            self.select_measurement_to_save)
+
+        self.ui.ps_load_voltage_data.clicked.connect(
+            self.load_voltage_data_files)
+
+        self.ui.pb_load_recover_calibration_file.clicked.connect(
+            self.load_recover_calibration_data)
+
+        self.ui.rb_current_calibration.toggled.connect(
+            self.select_calibration_data)
+        self.ui.rb_load_calibration.toggled.connect(
+            self.select_calibration_data)
+
+        self.ui.pb_recover_data.clicked.connect(
+            self.recover_from_voltage_data_files)
+
+        self.ui.cb_magnet_axisx.currentIndexChanged.connect(
+            self.disable_invalid_magnet_axes)
+
+        names = magnets_info.get_magnets_name()
+        for name in names:
+            self.ui.cb_predefined.addItem(name)
+
+        self.ui.cb_predefined.currentIndexChanged.connect(
+            self.load_magnet_info)
+
+        self.ui.cb_main.stateChanged.connect(
+            lambda: self.enabled_coil(
+                self.ui.cb_main, self.ui.fm_main,
+                self.ui.le_main_current, self.ui.le_main_turns))
+
+        self.ui.cb_trim.stateChanged.connect(
+            lambda: self.enabled_coil(
+                self.ui.cb_trim, self.ui.fm_trim,
+                self.ui.le_trim_current, self.ui.le_trim_turns))
+
+        self.ui.cb_ch.stateChanged.connect(
+            lambda: self.enabled_coil(
+                self.ui.cb_ch, self.ui.fm_ch,
+                self.ui.le_ch_current, self.ui.le_ch_turns))
+
+        self.ui.cb_cv.stateChanged.connect(
+            lambda: self.enabled_coil(
+                self.ui.cb_cv, self.ui.fm_cv,
+                self.ui.le_cv_current, self.ui.le_cv_turns))
+
+        self.ui.cb_qs.stateChanged.connect(
+            lambda: self.enabled_coil(
+                self.ui.cb_qs, self.ui.fm_qs,
+                self.ui.le_qs_current, self.ui.le_qs_turns))
+
+        self.ui.pb_add_row.clicked.connect(
+            lambda: self.ui.ta_additional_parameter.setRowCount(
+                self.ui.ta_additional_parameter.rowCount() + 1))
+
+        self.ui.pb_remove_row.clicked.connect(
+            lambda: self.ui.ta_additional_parameter.setRowCount(
+                self.ui.ta_additional_parameter.rowCount() - 1))
+
+        self.ui.pb_change_directory.clicked.connect(self.change_directory)
+        self.ui.pb_save_measurement.clicked.connect(self.save_measurement)
 
     def _check_value(self, obj, limit_min, limit_max):
         try:
@@ -472,7 +566,11 @@ class HallBenchGUI(QtGui.QWidget):
             return
 
         if self.cconfig.control_pmac_enable and self.devices.pmac_connected:
-            if not self.devices.pmac.activate_bench():
+            if self.devices.pmac.activate_bench():
+                self.ui.fm_homming.setEnabled(True)
+                self.ui.fm_limits.setEnabled(True)
+                self.ui.fm_move_axis.setEnabled(True)
+            else:
                 message = 'Failed to active bench.'
                 QtGui.QMessageBox.critical(
                     self, 'Failure', message, QtGui.QMessageBox.Ok)
@@ -576,6 +674,78 @@ class HallBenchGUI(QtGui.QWidget):
         """Stop measurements."""
         self.stop = True
 
+    def set_softlimits(self):
+        """Set Hall bench limits."""
+        if self.devices is None:
+            return
+
+        cts_mm_axis = self.devices.pmac.commands.CTS_MM_AXIS
+
+        p1_min = self.ui.sb_axis1_min.value()
+        p1_max = self.ui.sb_axis1_max.value()
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_neg_list[0],
+            p1_min*cts_mm_axis[0])
+        self.devices.pmac.get_response(cmd)
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_pos_list[0],
+            p1_max*cts_mm_axis)
+        self.devices.pmac.get_response(cmd)
+
+        p2_min = self.ui.sb_axis2_min.value()
+        p2_max = self.ui.sb_axis2_max.value()
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_neg_list[1],
+            p2_min*cts_mm_axis[1])
+        self.devices.pmac.get_response(cmd)
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_pos_list[1],
+            p2_max*cts_mm_axis[1])
+        self.devices.pmac.get_response(cmd)
+
+        p3_min = self.ui.sb_axis3_min.value()
+        p3_max = self.ui.sb_axis3_max.value()
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_neg_list[2],
+            p3_min*cts_mm_axis)
+        self.devices.pmac.get_response(cmd)
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_pos_list[2],
+            p3_max*cts_mm_axis)
+        self.devices.pmac.get_response(cmd)
+
+    def reset_softlimits(self):
+        """Reset Hall bench limits."""
+        if self.devices is None:
+            return
+
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_neg_list[0], 0)
+        self.devices.pmac.get_response(cmd)
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_pos_list[0], 0)
+        self.devices.pmac.get_response(cmd)
+        self.ui.sb_axis1_min.setValue(0)
+        self.ui.sb_axis1_max.setValue(0)
+
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_neg_list[1], 0)
+        self.devices.pmac.get_response(cmd)
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_pos_list[1], 0)
+        self.devices.pmac.get_response(cmd)
+        self.ui.sb_axis2_min.setValue(0)
+        self.ui.sb_axis2_max.setValue(0)
+
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_neg_list[2], 0)
+        self.devices.pmac.get_response(cmd)
+        cmd = self.devices.pmac.set_par(
+            self.devices.pmac.commands.i_softlimit_pos_list[2], 0)
+        self.devices.pmac.get_response(cmd)
+        self.ui.sb_axis3_min.setValue(0)
+        self.ui.sb_axis3_max.setValue(0)
+
     def load_calibration_data(self):
         """Load calibration data."""
         filename = QtGui.QFileDialog.getOpenFileName(
@@ -583,7 +753,7 @@ class HallBenchGUI(QtGui.QWidget):
 
         if len(filename) != 0:
             try:
-                self.calibration = calibration.CalibrationData(filename)
+                self.calibration_data = calibration.CalibrationData(filename)
             except Exception as e:
                 QtGui.QMessageBox.critical(
                     self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
@@ -591,77 +761,97 @@ class HallBenchGUI(QtGui.QWidget):
 
             self.ui.le_calibration_filename.setText(filename)
 
-            for probe in ['u', 'v', 'w']:
+            for probe in ['i', 'j', 'k']:
                 probe_data = getattr(
-                    self.calibration, 'probe' + probe + '_data')
+                    self.calibration_data, 'probe' + probe + '_data')
                 table = getattr(self.ui, 'tw_probe' + probe)
+                label = getattr(self.ui, 'la_probe' + probe)
                 n_rows = len(probe_data)
                 n_columns = max([len(line) for line in probe_data])
-                table.setColumnCount(n_columns)
-                table.setRowCount(n_rows)
 
-                if self.calibration.data_type == 'polynomial':
+                if self.calibration_data.data_type == 'polynomial':
+                    label.setText(
+                        'Polynomial coefficients: B = C0 + C1*V + C2*V² + ...')
+                    table.setColumnCount(n_rows)
+                    table.setRowCount(n_columns)
                     labels = ['V minimum', 'V maximum']
                     for i in range(n_columns-2):
                         labels.append('C%i' % i)
-                    table.setHorizontalHeaderLabels(labels)
-                elif self.calibration.data_type == 'interpolation':
+                    table.verticalHeader().setVisible(True)
+                    table.horizontalHeader().setVisible(False)
+                    table.setVerticalHeaderLabels(labels)
+
+                    for i in range(n_rows):
+                        for j in range(n_columns):
+                            table.setItem(j, i, QtGui.QTableWidgetItem(
+                                str(probe_data[i][j])))
+
+                elif self.calibration_data.data_type == 'interpolation':
+                    table.setColumnCount(n_columns)
+                    table.setRowCount(n_rows)
                     table.setHorizontalHeaderLabels(['V', 'B'])
+                    table.verticalHeader().setVisible(False)
+                    table.horizontalHeader().setVisible(True)
+
+                    for i in range(n_rows):
+                        for j in range(n_columns):
+                            table.setItem(i, j, QtGui.QTableWidgetItem(
+                                str(probe_data[i][j])))
                 else:
                     msg = 'Invalid data type found in calibration data file.'
                     QtGui.QMessageBox.critical(
                         self, 'Failure', msg, QtGui.QMessageBox.Ignore)
                     return
 
-                for i in range(n_rows):
-                    for j in range(n_columns):
-                        table.setItem(i, j, QtGui.QTableWidgetItem(
-                            '{0:0.8e}'.format(probe_data[i][j])))
+                table.horizontalHeader().setStretchLastSection(True)
                 table.resizeColumnsToContents()
                 table.resizeRowsToContents()
 
             voltage = np.linspace(-15, 15, 101)
 
-            self.ui.gv_probeu.clear()
-            self.ui.gv_probeu.plotItem.plot(
+            self.ui.gv_probei.clear()
+            self.ui.gv_probei.plotItem.plot(
                 voltage,
-                self.calibration.convert_voltage_probeu(voltage),
+                self.calibration_data.convert_voltage_probei(voltage),
                 pen={'color': 'b', 'width': 3})
-            self.ui.gv_probeu.setLabel(
-                'bottom', "Voltage [" + self.calibration.voltage_unit + "]")
-            self.ui.gv_probeu.setLabel(
-                'left', "Field [" + self.calibration.field_unit + "]")
-            self.ui.gv_probeu.showGrid(x=True, y=True)
+            self.ui.gv_probei.setLabel(
+                'bottom', "Voltage ["+self.calibration_data.voltage_unit+"]")
+            self.ui.gv_probei.setLabel(
+                'left', "Field [" + self.calibration_data.field_unit + "]")
+            self.ui.gv_probei.showGrid(x=True, y=True)
 
-            self.ui.gv_probev.clear()
-            self.ui.gv_probev.plotItem.plot(
+            self.ui.gv_probej.clear()
+            self.ui.gv_probej.plotItem.plot(
                 voltage,
-                self.calibration.convert_voltage_probev(voltage),
+                self.calibration_data.convert_voltage_probej(voltage),
                 pen={'color': 'b', 'width': 3})
-            self.ui.gv_probev.setLabel(
-                'bottom', "Voltage [" + self.calibration.voltage_unit + "]")
-            self.ui.gv_probev.setLabel(
-                'left', "Field [" + self.calibration.field_unit + "]")
-            self.ui.gv_probev.showGrid(x=True, y=True)
+            self.ui.gv_probej.setLabel(
+                'bottom', "Voltage ["+self.calibration_data.voltage_unit+"]")
+            self.ui.gv_probej.setLabel(
+                'left', "Field [" + self.calibration_data.field_unit + "]")
+            self.ui.gv_probej.showGrid(x=True, y=True)
 
-            self.ui.gv_probew.clear()
-            self.ui.gv_probew.plotItem.plot(
+            self.ui.gv_probek.clear()
+            self.ui.gv_probek.plotItem.plot(
                 voltage,
-                self.calibration.convert_voltage_probew(voltage),
+                self.calibration_data.convert_voltage_probek(voltage),
                 pen={'color': 'b', 'width': 3})
-            self.ui.gv_probew.setLabel(
-                'bottom', "Voltage [" + self.calibration.voltage_unit + "]")
-            self.ui.gv_probew.setLabel(
-                'left', "Field [" + self.calibration.field_unit + "]")
-            self.ui.gv_probew.showGrid(x=True, y=True)
+            self.ui.gv_probek.setLabel(
+                'bottom', "Voltage ["+self.calibration_data.voltage_unit+"]")
+            self.ui.gv_probek.setLabel(
+                'left', "Field [" + self.calibration_data.field_unit + "]")
+            self.ui.gv_probek.showGrid(x=True, y=True)
 
-            self.ui.le_data_type.setText(self.calibration.data_type)
-            self.ui.le_rel_pos_probeu.setText(str(
-                self.calibration.relative_position_probeu))
-            self.ui.le_rel_pos_probew.setText(str(
-                self.calibration.relative_position_probew))
-            self.ui.le_u_axis.setText(self.calibration.u_axis.upper())
-            self.ui.le_w_axis.setText(self.calibration.w_axis.upper())
+            self.ui.le_data_type.setText(
+                self.calibration_data.data_type.capitalize())
+            self.ui.le_distance_probei.setText(str(
+                self.calibration_data.distance_probei))
+            self.ui.le_distance_probek.setText(str(
+                self.calibration_data.distance_probek))
+            self.ui.le_stem_shape.setText(
+                self.calibration_data.stem_shape.capitalize())
+
+            self.ui.rb_current_calibration.setEnabled(True)
 
     def configure_and_measure(self):
         """Configure and start measurements."""
@@ -676,48 +866,35 @@ class HallBenchGUI(QtGui.QWidget):
         if len(self.dirpath) == 0:
             return
 
-        try:
-            self.current_measurement = measurement.Measurement(
-                self.cconfig, self.mconfig, self.dirpath)
-            print(self.current_measurement)
-        except measurement.MeasurementDataError:
-            question = ('Inconsistent configuration files. ' +
-                        'Overwrite existing files?')
-            reply = QtGui.QMessageBox.question(
-                self, 'Question', question, 'Yes', button1Text='No')
-            if reply == 0:
-                self.current_measurement = measurement.Measurement(
-                    self.cconfig, self.mconfig, self.dirpath,
-                    overwrite_config=True)
-            else:
-                return
+        if not self._save_configuration_files(self.dirpath):
+            return
 
         self.stop = False
+        self.current_position_list = []
+        self.current_voltage_list = []
+        self.current_measurement = None
         self._clear_graph()
         self._set_axes_speed()
 
         if self.ui.rb_triggering_axis1.isChecked():
-            extra_mm = float(self.ui.le_extra1.text())
             scan_axis = 1
             axis_a = 2
             axis_b = 3
 
         elif self.ui.rb_triggering_axis2.isChecked():
-            extra_mm = float(self.ui.le_extra2.text())
             scan_axis = 2
             axis_a = 1
             axis_b = 3
 
         elif self.ui.rb_triggering_axis3.isChecked():
-            extra_mm = float(self.ui.le_extra3.text())
             scan_axis = 3
             axis_a = 1
             axis_b = 2
         else:
             return
 
-        poslist_a = self._get_axis_parameters(axis_a)[-1]
-        poslist_b = self._get_axis_parameters(axis_b)[-1]
+        poslist_a = self._get_measurement_parameters(axis_a)[-1]
+        poslist_b = self._get_measurement_parameters(axis_b)[-1]
 
         for pos_a in poslist_a:
             if self.stop is True:
@@ -733,20 +910,21 @@ class HallBenchGUI(QtGui.QWidget):
 
                 self._move_axis(axis_b, pos_b)
 
-                self._measure_line(axis_a, pos_a, axis_b, pos_b,
-                                   scan_axis, extra_mm)
-
-                line_scan = measurement.LineScan.copy(self.current_line_scan)
-                self.current_measurement.add_line_scan(line_scan)
+                self._measure_line(scan_axis)
 
         if self.stop is False:
             self._move_to_start_position()
+            self.current_measurement = measurement.FieldData(
+                self.current_voltage_list, self.calibration_data)
             self._plot_all()
-            self.current_measurement.save()
 
             message = 'End of measurements.'
             QtGui.QMessageBox.information(
                 self, 'Measurements', message, QtGui.QMessageBox.Ok)
+
+            self.ui.rb_current_measurement.setChecked(True)
+            self.directory_to_save = self.dirpath
+            self.measurement_to_save = self.current_measurement
 
         else:
             self.devices.pmac.stop_all_axis()
@@ -754,23 +932,63 @@ class HallBenchGUI(QtGui.QWidget):
             QtGui.QMessageBox.information(
                 self, 'Abort', message, QtGui.QMessageBox.Ok)
 
-    def _measure_line(self, axis_a, pos_a, axis_b, pos_b, scan_axis, extra_mm):
+    def _save_configuration_files(self):
+        cc_filename = 'connection_configuration.txt'
+        mc_filename = 'measurement_configuration.txt'
+        ca_filename = 'calibration_data.txt'
+        cc_fullpath = os.path.join(self.dirpath, cc_filename)
+        mc_fullpath = os.path.join(self.dirpath, mc_filename)
+        ca_fullpath = os.path.join(self.dirpath, ca_filename)
 
+        def _check_files(self, cc_fullpath, mc_fullpath, ca_fullpath):
+            if os.path.isfile(cc_fullpath):
+                tmp = configuration.ConnectionConfig(cc_fullpath)
+                if not self.cconfig == tmp:
+                    return False
+            if os.path.isfile(mc_fullpath):
+                tmp = configuration.MeasurementConfig(mc_fullpath)
+                if not self.mconfig == tmp:
+                    return False
+            if os.path.isfile(ca_fullpath):
+                tmp = calibration.CalibrationData(ca_fullpath)
+                if not self.calibration_data == tmp:
+                    return False
+            return True
+
+        try:
+            if _check_files(cc_fullpath, mc_fullpath, ca_fullpath):
+                self.cconfig.save_file(cc_fullpath)
+                self.mconfig.save_file(mc_fullpath)
+                self.calibration_data.save_file(ca_fullpath)
+                return True
+            else:
+                question = ('Inconsistent configuration files. ' +
+                            'Overwrite existing files?')
+                reply = QtGui.QMessageBox.question(
+                    self, 'Question', question, 'Yes', button1Text='No')
+                if reply == 0:
+                    self.cconfig.save_file(cc_fullpath)
+                    self.mconfig.save_file(mc_fullpath)
+                    self.calibration_data.save_file(ca_fullpath)
+                    return True
+                else:
+                    return False
+        except Exception as e:
+            QtGui.QMessageBox.critical(
+                self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
+            return False
+
+    def _measure_line(self, scan_axis):
         (startpos, endpos, incr, velocity, npts,
-            scan_list) = self._get_axis_parameters(scan_axis)
+            scan_list) = self._get_measurement_parameters(scan_axis)
 
         aper_displacement = (self.mconfig.meas_aper_ms * velocity)
 
-        posx, posy, posz = self._get_position_xyz(
-            axis_a, pos_a, axis_b, pos_b, scan_axis, scan_list)
-
-        self.current_line_scan = measurement.LineScan(
-            posx, posy, posz, self.calibration_data, self.dirpath)
+        extra_mm = float(getattr(self.ui, 'le_extra' + str(scan_axis)).text())
 
         for idx in range(self.nr_measurements):
-
+            self.current_voltage_data.clear()
             self.end_measurements = False
-
             self._clear_measurement()
             self._configure_graph()
             self._update_measurement_number(idx+1)
@@ -789,6 +1007,14 @@ class HallBenchGUI(QtGui.QWidget):
                     scan_list - aper_displacement/2)[::-1]
                 self._move_axis(scan_axis, endpos + extra_mm)
 
+            for axis in self.current_voltage_data.axis_list:
+                if axis != scan_axis:
+                    pos = self.devices.pmac.get_position(axis)
+                    setattr(self.current_voltage_data, 'pos' + str(axis), pos)
+                else:
+                    setattr(self.current_voltage_data, 'pos' + str(scan_axis),
+                            self.current_position_list)
+
             if self.stop is True:
                 break
 
@@ -806,21 +1032,12 @@ class HallBenchGUI(QtGui.QWidget):
                         scan_axis, startpos - extra_mm, idx)
 
             self.end_measurements = True
-
             self._stop_trigger()
             self._wait_reading_threads()
 
-            posx, posy, posz = self._get_position_xyz(
-                axis_a, pos_a, axis_b, pos_b,
-                scan_axis, self.current_position_list)
-
-            scan = measurement.DataSet(unit='V')  # Fix!!
-            scan.posx = posx
-            scan.posy = posy
-            scan.posz = posz
-            scan.datax = self.devices.voltx.voltage
-            scan.datay = self.devices.volty.voltage
-            scan.dataz = self.devices.voltz.voltage
+            self.current_voltage_data.probei = self.devices.voltx.voltage
+            self.current_voltage_data.probej = self.devices.volty.voltage
+            self.current_voltage_data.probek = self.devices.voltz.voltage
 
             self._kill_reading_threads()
 
@@ -828,16 +1045,46 @@ class HallBenchGUI(QtGui.QWidget):
                 break
 
             if to_pos is True:
-                self.current_line_scan.add_scan(scan)
+                voltage_data = self.current_voltage_data.copy()
             else:
-                self.current_line_scan.add_scan(scan.reverse())
+                voltage_data = self.current_voltage_data.reverse().copy()
 
-        self.current_line_scan.analyse_data()
+            self.current_voltage_list.append(voltage_data)
+            self._save_voltage_data(voltage_data)
 
-    def open_save_measurement_dialog(self):
-        """Open save measurement dialog."""
-        self.save_measurement_dialog.measurement = self.current_measurement
-        self.save_measurement_dialog.open()
+    def _save_voltage_data(self, voltage_data):
+        if voltage_data.scan_axis == 3:
+            pos_str = ('Z=' + '{0:0.4f}'.format(voltage_data.pos1) + 'mm_' +
+                       'Y=' + '{0:0.4f}'.format(voltage_data.pos2) + 'mm')
+        elif voltage_data.scan_axis == 2:
+            pos_str = ('Z=' + '{0:0.4f}'.format(voltage_data.pos1) + 'mm_' +
+                       'X=' + '{0:0.4f}'.format(voltage_data.pos3) + 'mm')
+        elif voltage_data.scan_axis == 1:
+            pos_str = ('Y=' + '{0:0.4f}'.format(voltage_data.pos2) + 'mm_' +
+                       'X=' + '{0:0.4f}'.format(voltage_data.pos3) + 'mm')
+        else:
+            pos_str = None
+
+        if pos_str is not None:
+            name = 'raw_voltage_data_' + pos_str
+        else:
+            name = 'raw_voltage_data'
+
+        extension = '.dat'
+        filename = name + extension
+        uniq = 1
+        while os.path.exists(filename):
+            filename = name + '_' + '%i' % uniq + extension
+            uniq += 1
+
+        filename = os.path.join(self.dirpath, filename)
+
+        try:
+            voltage_data.save_file(filename)
+        except Exception as e:
+            QtGui.QMessageBox.critical(
+                self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
+            return False
 
     def _set_axes_speed(self):
         self.devices.pmac.set_axis_speed(1, self.mconfig.meas_vel_ax1)
@@ -845,44 +1092,14 @@ class HallBenchGUI(QtGui.QWidget):
         self.devices.pmac.set_axis_speed(3, self.mconfig.meas_vel_ax3)
         self.devices.pmac.set_axis_speed(5, self.mconfig.meas_vel_ax5)
 
-    def _get_axis_parameters(self, axis):
+    def _get_measurement_parameters(self, axis):
         startpos = getattr(self.mconfig, 'meas_startpos_ax' + str(axis))
         endpos = getattr(self.mconfig, 'meas_endpos_ax' + str(axis))
         incr = getattr(self.mconfig, 'meas_incr_ax' + str(axis))
         vel = getattr(self.mconfig, 'meas_vel_ax' + str(axis))
-        npts = int(round((endpos - startpos) / incr, 4) + 1)
-        poslist = np.linspace(startpos, endpos, npts)
+        npts = np.ceil(round((endpos - startpos) / incr, 4) + 1)
+        poslist = np.linspace(startpos, startpos + (npts-1)*incr, npts)
         return (startpos, endpos, incr, vel, npts, poslist)
-
-    def _get_position_xyz(self, axis_a, pos_a, axis_b, pos_b, axis_c, pos_c):
-        if axis_a == 3:
-            posx = pos_a
-        elif axis_b == 3:
-            posx == pos_b
-        elif axis_c == 3:
-            posx = pos_c
-        else:
-            posx = None
-
-        if axis_a == 2:
-            posy = pos_a
-        elif axis_b == 2:
-            posy == pos_b
-        elif axis_c == 2:
-            posy = pos_c
-        else:
-            posy = None
-
-        if axis_a == 1:
-            posz = pos_a
-        elif axis_b == 1:
-            posz == pos_b
-        elif axis_c == 1:
-            posz = pos_c
-        else:
-            posz = None
-
-        return (posx, posy, posz)
 
     def _clear_measurement(self):
         self.current_position_list = []
@@ -965,20 +1182,32 @@ class HallBenchGUI(QtGui.QWidget):
             self.current_position_list[:len(self.devices.voltz.voltage)],
             self.devices.voltz.voltage)
 
-    def _plot_all(self, data='avg_field'):
+    def _plot_all(self):
         self._clear_graph()
 
         n = 0
-        for _dict in self.current_measurement.data.values():
-            for ls in _dict.values():
-                self._configure_graph()
-                curve = getattr(ls, data)
-                position = ls.scan_positions
+        field1 = self.current_measurement.field1
+        positions = field1.index.values
+        for col in field1.columns.values:
+            self._configure_graph()
+            self.graph_curve_z[n].setData(positions, field1.loc[:, col])
+            n += 1
 
-                self.graph_curve_x[n].setData(position, curve.datax)
-                self.graph_curve_y[n].setData(position, curve.datay)
-                self.graph_curve_z[n].setData(position, curve.dataz)
-                n += 1
+        n = 0
+        field2 = self.current_measurement.field2
+        positions = field2.index.values
+        for col in field2.columns.values:
+            self._configure_graph()
+            self.graph_curve_y[n].setData(positions, field2.loc[:, col])
+            n += 1
+
+        n = 0
+        field3 = self.current_measurement.field3
+        positions = field3.index.values
+        for col in field3.columns.values:
+            self._configure_graph()
+            self.graph_curve_x[n].setData(positions, field3.loc[:, col])
+            n += 1
 
     def _configure_multimeters(self):
         if self.mconfig.meas_probeX:
@@ -1007,106 +1236,184 @@ class HallBenchGUI(QtGui.QWidget):
 
     def _start_reading_threads(self):
         if self.mconfig.meas_probeZ:
-            self.tz = threading.Thread(
+            self.tk = threading.Thread(
                 target=self.devices.voltz.read,
                 args=(self.stop, self.end_measurements,
                       self.mconfig.meas_precision,))
-            self.tz.start()
+            self.tk.start()
 
         if self.mconfig.meas_probeY:
-            self.ty = threading.Thread(
+            self.tj = threading.Thread(
                 target=self.devices.volty.read,
                 args=(self.stop, self.end_measurements,
                       self.mconfig.meas_precision,))
-            self.ty.start()
+            self.tj.start()
 
         if self.mconfig.meas_probeX:
-            self.tx = threading.Thread(
+            self.ti = threading.Thread(
                 target=self.devices.voltx.read,
                 args=(self.stop, self.end_measurements,
                       self.mconfig.meas_precision,))
-            self.tx.start()
+            self.ti.start()
 
     def _wait_reading_threads(self):
-        if self.tz is not None:
-            while self.tz.is_alive() and self.stop is False:
+        if self.tk is not None:
+            while self.tk.is_alive() and self.stop is False:
                 QtGui.QApplication.processEvents()
 
-        if self.ty is not None:
-            while self.ty.is_alive() and self.stop is False:
+        if self.tj is not None:
+            while self.tj.is_alive() and self.stop is False:
                 QtGui.QApplication.processEvents()
 
-        if self.tx is not None:
-            while self.tx.is_alive() and self.stop is False:
+        if self.ti is not None:
+            while self.ti.is_alive() and self.stop is False:
                 QtGui.QApplication.processEvents()
 
     def _kill_reading_threads(self):
         try:
-            del self.tz
-            del self.ty
-            del self.tx
+            del self.tk
+            del self.tj
+            del self.ti
         except Exception:
             pass
 
+    def select_measurement_to_save(self):
+        """Select measurement to save."""
+        self.ui.le_directory.setText(self.directory_to_save)
+        self.ui.pb_recover_data.setEnabled(False)
 
-class SaveMeasurementDialog(QtGui.QDialog):
-    """Save measurement dialog."""
+        if self.ui.rb_current_measurement.isChecked():
+            self.ui.gb_voltage_data.setEnabled(False)
+            self.ui.gb_select_calibration.setEnabled(False)
+            self.ui.lw_voltage_data.clear()
+            self.ui.le_recover_calibration_filename.setText('')
+            self.measurement_to_save = self.current_measurement
+        elif self.ui.rb_recover_measurement.isChecked():
+            self.ui.gb_voltage_data.setEnabled(True)
+            self.ui.gb_select_calibration.setEnabled(True)
+            if self.ui.rb_load_calibration.isChecked():
+                self.ui.pb_load_recover_calibration_file.setEnabled(True)
+            else:
+                if self.calibration_data is None:
+                    self.ui.rb_current_calibration.setEnabled(False)
+                    self.ui.rb_load_calibration.setChecked(True)
+                    self.ui.pb_load_recover_calibration_file.setEnabled(True)
+                else:
+                    self.ui.pb_load_recover_calibration_file.setEnabled(False)
+                    self.ui.rb_current_calibration.setEnabled(True)
 
-    def __init__(self):
-        """Initialize widget."""
-        QtGui.QWidget.__init__(self)
-        self.ui = Ui_SaveMeasurement()
-        self.ui.setupUi(self)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        if self.measurement_to_save is not None:
+            self.ui.pb_save_measurement.setEnabled(True)
+        else:
+            self.ui.pb_save_measurement.setEnabled(False)
 
-        self.measurement = None
+    def change_directory(self):
+        """Change directory."""
+        directory = QtGui.QFileDialog.getExistingDirectory(
+            self, 'Select directory to save measurement',
+            os.path.expanduser("~"), QtGui.QFileDialog.ShowDirsOnly)
+        if len(directory) != 0:
+            self.directory_to_save = directory
+        self.ui.le_directory.setText(self.directory_to_save)
 
-        names = magnets_info.get_magnets_name()
-        for name in names:
-            self.ui.cb_predefined.addItem(name)
+    def load_voltage_data_files(self):
+        """Load voltage data files."""
+        default_dir = os.path.expanduser('~')
+        filepaths = QtGui.QFileDialog.getOpenFileNames(directory=default_dir)
+        if len(filepaths) == 0:
+            return
 
-        self.ui.cb_predefined.currentIndexChanged.connect(
-            self.load_magnet_info)
+        if any([x == -1 for x in [f.find('.dat') for f in filepaths]]):
+            QtGui.QMessageBox.warning(
+                self, 'Warning', 'Cannot open files. Select valid files.',
+                QtGui.QMessageBox.Ok)
+            return
 
-        self.ui.cb_main.stateChanged.connect(
-            lambda: self.enabled_coil(
-                self.ui.cb_main, self.ui.fm_main,
-                self.ui.le_main_current, self.ui.le_main_turns))
+        filenames = [os.path.split(f)[1] for f in filepaths]
 
-        self.ui.cb_trim.stateChanged.connect(
-            lambda: self.enabled_coil(
-                self.ui.cb_trim, self.ui.fm_trim,
-                self.ui.le_trim_current, self.ui.le_trim_turns))
+        self.ui.lw_voltage_data.clear()
+        self.ui.lw_voltage_data.insertItems(0, filenames)
+        self.voltage_data_files = filepaths
+        self.measurement_to_save = None
+        self.ui.pb_save_measurement.setEnabled(False)
+        if self.calibration_data_to_save is not None:
+            self.ui.pb_recover_data.setEnabled(True)
+        else:
+            self.ui.pb_recover_data.setEnabled(False)
 
-        self.ui.cb_ch.stateChanged.connect(
-            lambda: self.enabled_coil(
-                self.ui.cb_ch, self.ui.fm_ch,
-                self.ui.le_ch_current, self.ui.le_ch_turns))
+    def select_calibration_data(self):
+        """Select calibration data."""
+        self.ui.le_recover_calibration_filename.setText('')
+        self.measurement_to_save = None
+        self.ui.pb_save_measurement.setEnabled(False)
+        self.ui.pb_recover_data.setEnabled(False)
 
-        self.ui.cb_cv.stateChanged.connect(
-            lambda: self.enabled_coil(
-                self.ui.cb_cv, self.ui.fm_cv,
-                self.ui.le_cv_current, self.ui.le_cv_turns))
+        if self.ui.rb_load_calibration.isChecked():
+            self.ui.pb_load_recover_calibration_file.setEnabled(True)
+            self.calibration_data_to_save = None
+        else:
+            self.ui.pb_load_recover_calibration_file.setEnabled(False)
+            self.calibration_data_to_save = self.calibration_data
+            if len(self.voltage_data_files) != 0:
+                self.ui.pb_recover_data.setEnabled(True)
 
-        self.ui.cb_qs.stateChanged.connect(
-            lambda: self.enabled_coil(
-                self.ui.cb_qs, self.ui.fm_qs,
-                self.ui.le_qs_current, self.ui.le_qs_turns))
+    def load_recover_calibration_data(self):
+        """Load calibration file to use in data recover."""
+        filename = QtGui.QFileDialog.getOpenFileName(
+            self, 'Open calibration data file')
 
-        self.ui.pb_add_row.clicked.connect(
-            lambda: self.ui.ta_additional.setRowCount(
-                self.ui.ta_additional.rowCount() + 1))
+        if len(filename) != 0:
+            try:
+                self.calibration_data_to_save = calibration.CalibrationData(
+                    filename)
+                self.ui.le_recover_calibration_filename.setText(filename)
+                if len(self.voltage_data_files) != 0:
+                    self.ui.pb_recover_data.setEnabled(True)
+                else:
+                    self.ui.pb_recover_data.setEnabled(False)
+            except Exception as e:
+                QtGui.QMessageBox.critical(
+                    self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
+                return
 
-        self.ui.pb_remove_row.clicked.connect(
-            lambda: self.ui.ta_additional.setRowCount(
-                self.ui.ta_additional.rowCount() - 1))
+    def recover_from_voltage_data_files(self):
+        """Recover measurement from voltage data files."""
+        if (len(self.voltage_data_files) != 0 and
+           self.calibration_data_to_save is not None):
+            try:
+                self.measurement_to_save = measurement.FieldData(
+                    self.voltage_data_files, self.calibration_data_to_save)
+                self.ui.pb_save_measurement.setEnabled(True)
+                message = 'Measurement data successfully recovered.'
+                QtGui.QMessageBox.information(
+                    self, 'Information', message, QtGui.QMessageBox.Ok)
 
-        self.ui.pb_save.clicked.connect(self.save_measurement)
+            except Exception as e:
+                QtGui.QMessageBox.critical(
+                    self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
 
-    def open(self):
-        """Open dialog."""
-        if self.measurement is None:  # not None:
-            self.exec_()
+    def disable_invalid_magnet_axes(self):
+        """Disable invalid magnet axes."""
+        for i in range(6):
+            self.ui.cb_magnet_axisy.model().item(i).setEnabled(True)
+
+        idx_axisx = self.ui.cb_magnet_axisx.currentIndex()
+        idx_axisy = self.ui.cb_magnet_axisy.currentIndex()
+        if idx_axisx in [0, 1]:
+            if idx_axisy in [0, 1]:
+                self.ui.cb_magnet_axisy.setCurrentIndex(-1)
+            self.ui.cb_magnet_axisy.model().item(0).setEnabled(False)
+            self.ui.cb_magnet_axisy.model().item(1).setEnabled(False)
+        elif idx_axisx in [2, 3]:
+            if idx_axisy in [2, 3]:
+                self.ui.cb_magnet_axisy.setCurrentIndex(-1)
+            self.ui.cb_magnet_axisy.model().item(2).setEnabled(False)
+            self.ui.cb_magnet_axisy.model().item(3).setEnabled(False)
+        elif idx_axisx in [4, 5]:
+            if idx_axisy in [4, 5]:
+                self.ui.cb_magnet_axisy.setCurrentIndex(-1)
+            self.ui.cb_magnet_axisy.model().item(4).setEnabled(False)
+            self.ui.cb_magnet_axisy.model().item(5).setEnabled(False)
 
     def enabled_coil(self, checkbox, frame, line_edit_1, line_edit_2):
         """Enabled or disabled coil frame."""
@@ -1121,13 +1428,22 @@ class SaveMeasurementDialog(QtGui.QDialog):
         """Load pre-defined magnet info."""
         if self.ui.cb_predefined.currentIndex() < 1:
             self.ui.la_predefined_description.setText('')
+            self.ui.le_gap.setText('')
+            self.ui.le_control_gap.setText('')
+            self.ui.le_magnet_length.setText('')
+            self.ui.cb_main.setChecked(False)
+            self.ui.cb_trim.setChecked(False)
+            self.ui.cb_ch.setChecked(False)
+            self.ui.cb_cv.setChecked(False)
+            self.ui.cb_qs.setChecked(False)
+            self.ui.ta_additional_parameter.setRowCount(0)
             return
 
         m = magnets_info.get_magnet_info(self.ui.cb_predefined.currentText())
 
         if m is not None:
             m.pop('name')
-            self.ui.ta_additional.setRowCount(0)
+            self.ui.ta_additional_parameter.setRowCount(0)
             self.ui.la_predefined_description.setText(m.pop('description'))
             self.ui.le_gap.setText(str(m.pop('gap[mm]')))
             self.ui.le_control_gap.setText(str(m.pop('control_gap[mm]')))
@@ -1137,7 +1453,6 @@ class SaveMeasurementDialog(QtGui.QDialog):
                 self.ui.le_main_turns.setText(str(m.pop('nr_turns_main')))
                 self.ui.cb_main.setChecked(True)
             else:
-                self.ui.le_main_turns.setText('')
                 self.ui.cb_main.setChecked(False)
 
             if 'nr_turns_trim' in m.keys():
@@ -1145,8 +1460,6 @@ class SaveMeasurementDialog(QtGui.QDialog):
                 self.ui.le_trim_turns.setText(str(m.pop('nr_turns_trim')))
                 self.ui.cb_trim.setChecked(True)
             else:
-                self.ui.le_trim_current.setText('')
-                self.ui.le_trim_turns.setText('')
                 self.ui.cb_trim.setChecked(False)
 
             if 'nr_turns_ch' in m.keys():
@@ -1154,8 +1467,6 @@ class SaveMeasurementDialog(QtGui.QDialog):
                 self.ui.le_ch_turns.setText(str(m.pop('nr_turns_ch')))
                 self.ui.cb_ch.setChecked(True)
             else:
-                self.ui.le_ch_current.setText('')
-                self.ui.le_ch_turns.setText('')
                 self.ui.cb_ch.setChecked(False)
 
             if 'nr_turns_cv' in m.keys():
@@ -1163,8 +1474,6 @@ class SaveMeasurementDialog(QtGui.QDialog):
                 self.ui.le_cv_turns.setText(str(m.pop('nr_turns_cv')))
                 self.ui.cb_cv.setChecked(True)
             else:
-                self.ui.le_cv_current.setText('')
-                self.ui.le_cv_turns.setText('')
                 self.ui.cb_cv.setChecked(False)
 
             if 'nr_turns_qs' in m.keys():
@@ -1172,25 +1481,21 @@ class SaveMeasurementDialog(QtGui.QDialog):
                 self.ui.le_qs_turns.setText(str(m.pop('nr_turns_qs')))
                 self.ui.cb_qs.setChecked(True)
             else:
-                self.ui.le_qs_current.setText('')
-                self.ui.le_qs_turns.setText('')
                 self.ui.cb_qs.setChecked(False)
 
             if len(m) != 0:
                 count = 0
                 for parameter, value in m.items():
-                    self.ui.ta_additional.setRowCount(count+1)
-                    self.ui.ta_additional.setItem(
+                    self.ui.ta_additional_parameter.setRowCount(count+1)
+                    self.ui.ta_additional_parameter.setItem(
                         count, 0, QtGui.QTableWidgetItem(str(parameter)))
-                    self.ui.ta_additional.setItem(
+                    self.ui.ta_additional_parameter.setItem(
                         count, 1, QtGui.QTableWidgetItem(str(value)))
                     count = count + 1
 
     def save_measurement(self):
         """Save measurement."""
-        if self.measurement is not None:
-            info = []
-
+        if self.measurement_to_save is not None:
             datetime = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
             date = datetime.split('_')[0]
             magnet_name = self.ui.le_magnet_name.text()
@@ -1198,6 +1503,7 @@ class SaveMeasurementDialog(QtGui.QDialog):
             gap = self.ui.le_gap.text()
             control_gap = self.ui.le_control_gap.text()
 
+            info = []
             info.append(['fieldmap_name', magnet_name])
             info.append(['timestamp', datetime])
             info.append(['nr_magnets', 1])
@@ -1245,9 +1551,9 @@ class SaveMeasurementDialog(QtGui.QDialog):
             filename = '{0:1s}_{1:1s}.dat'.format(date, filename)
             info.insert(2, ['filename', filename])
 
-            for i in range(self.ui.ta_additional.rowCount()):
-                parameter = self.ui.ta_additional.item(i, 0).text()
-                value = self.ui.ta_additional.item(i, 1).text()
+            for i in range(self.ui.ta_additional_parameter.rowCount()):
+                parameter = self.ui.ta_additional_parameter.item(i, 0).text()
+                value = self.ui.ta_additional_parameter.item(i, 1).text()
                 if len(value) != 0:
                     info.append([parameter.replace(" ", ""), value])
 
@@ -1255,14 +1561,32 @@ class SaveMeasurementDialog(QtGui.QDialog):
             info.append(['center_pos_x[mm]', '0'])
             info.append(['rotation[deg]', '0'])
 
-            ref_pos_x = self.ui.sb_ref_pos_x.value()
-            ref_pos_y = self.ui.sb_ref_pos_y.value()
-            ref_pos_z = self.ui.sb_ref_pos_z.value()
-            ref_pos = [ref_pos_x, ref_pos_y, ref_pos_z]
+            center_pos3 = self.ui.sb_magnet_center_pos3.value()
+            center_pos2 = self.ui.sb_magnet_center_pos2.value()
+            center_pos1 = self.ui.sb_magnet_center_pos1.value()
+            magnet_center = [center_pos3, center_pos2, center_pos1]
 
-            self.measurement.save(
-                fieldmap_info=info,
-                reference_position=ref_pos)
+            magnet_x_axis = self.ui.cb_magnet_axisx.currentText()
+            magnet_y_axis = self.ui.cb_magnet_axisy.currentText()
+
+            if self.directory_to_save is not None:
+                filename = os.path.join(self.directory_to_save, filename)
+
+            try:
+                self.measurement_to_save.save_file(
+                    filename,
+                    header_info=info,
+                    magnet_center=magnet_center,
+                    magnet_x_axis=magnet_x_axis,
+                    magnet_y_axis=magnet_y_axis,
+                )
+                message = 'Measurement data saved in file: \n%s' % filename
+                QtGui.QMessageBox.information(
+                    self, 'Information', message, QtGui.QMessageBox.Ok)
+
+            except Exception as e:
+                QtGui.QMessageBox.critical(
+                    self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
 
 
 class HallBenchDevices(object):
@@ -1289,13 +1613,13 @@ class HallBenchDevices(object):
             self.pmac = Pmac()
 
             self.voltx = DigitalMultimeter(
-                'volt_x.log', self.config.control_voltx_addr)
+                'volt_i.log', self.config.control_voltx_addr)
 
             self.volty = DigitalMultimeter(
-                'volt_y.log', self.config.control_volty_addr)
+                'volt_j.log', self.config.control_volty_addr)
 
             self.voltz = DigitalMultimeter(
-                'volt_z.log', self.config.control_voltz_addr)
+                'volt_k.log', self.config.control_voltz_addr)
 
             self.multich = Multichannel(
                 'multi.log', self.config.control_multich_addr)

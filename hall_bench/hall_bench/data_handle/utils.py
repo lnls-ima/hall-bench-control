@@ -62,6 +62,6 @@ def find_index(data, variable):
 
 
 def get_timestamp():
-    """Get timestamp (format: Year-month-day_hour:min:sec)."""
+    """Get timestamp (format: Year-month-day_hour-min-sec)."""
     timestamp = _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime())
     return timestamp

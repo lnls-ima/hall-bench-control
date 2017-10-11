@@ -523,7 +523,7 @@ class HallBenchGUI(QtGui.QWidget):
                 self.ui.tab_main.setTabEnabled(1, True)
                 self.ui.tab_main.setTabEnabled(2, True)
                 self.ui.tab_main.setTabEnabled(3, True)
-                self._release_access_to_movement()
+                self.ui.tab_main.setTabEnabled(4, True)
 
         self.activate_bench()
 
@@ -570,6 +570,7 @@ class HallBenchGUI(QtGui.QWidget):
                 self.ui.fm_homming.setEnabled(True)
                 self.ui.fm_limits.setEnabled(True)
                 self.ui.fm_move_axis.setEnabled(True)
+                self._release_access_to_movement()
             else:
                 message = 'Failed to active bench.'
                 QtGui.QMessageBox.critical(
@@ -585,7 +586,7 @@ class HallBenchGUI(QtGui.QWidget):
                 obj.setText('{0:0.4f}'.format(vel))
 
     def _release_access_to_movement(self):
-        if self.devices is not None:
+        if self.devices is not None and self.devices.pmac_connected:
             if (self.devices.pmac.axis_status(1) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(0, 1)
 
@@ -631,6 +632,9 @@ class HallBenchGUI(QtGui.QWidget):
             time.sleep(0.5)
         else:
             self._release_access_to_movement()
+            message = 'Finished homming of the selected axes.'
+            QtGui.QMessageBox.information(
+                self, 'Hommming', message, QtGui.QMessageBox.Ok)
 
     def move_to_target(self, axis):
         """Move Hall probe to target position."""

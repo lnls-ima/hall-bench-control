@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1067</width>
-    <height>969</height>
+    <height>975</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2768,7 +2768,7 @@ selection-color: rgb(0, 0, 0);</string>
                <x>0</x>
                <y>0</y>
                <width>450</width>
-               <height>138</height>
+               <height>144</height>
               </rect>
              </property>
              <attribute name="label">

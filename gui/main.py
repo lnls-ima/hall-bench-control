@@ -42,6 +42,15 @@ class HallBenchGUI(QtGui.QWidget):
         self.calibration_data = None
         self.devices = None
 
+        self.nr_measurements = 2
+        self.dirpath = None
+        self.stop = False
+
+        self.current_voltage_data = None
+        self.current_postion_list = []
+        self.current_voltage_list = []
+        self.current_measurement = None
+
         self.graph_curve_x = np.array([])
         self.graph_curve_y = np.array([])
         self.graph_curve_z = np.array([])
@@ -50,24 +59,15 @@ class HallBenchGUI(QtGui.QWidget):
         self.tj = None
         self.tk = None
 
-        self.current_voltage_data = measurement.VoltageData()
-        self.current_postion_list = []
-        self.current_voltage_list = []
-        self.current_measurement = None
-
-        self.nr_measurements = 2
-        self.dirpath = None
-        self.end_measurements = False
-        self.stop = False
-
         self.measurement_to_save = None
         self.calibration_data_to_save = None
         self.directory_to_save = None
         self.voltage_data_files = []
 
     def _set_interface_initial_state(self):
-        for idx in range(1, self.ui.tab_main.count()):
-            self.ui.tab_main.setTabEnabled(idx, False)
+        self.ui.tab_main.setTabEnabled(1, False)
+        self.ui.tab_main.setTabEnabled(2, False)
+        self.ui.tab_main.setTabEnabled(3, False)
 
         for idx in range(0, self.ui.tb_move_axis.count()):
             self.ui.tb_move_axis.setItemEnabled(idx, False)
@@ -90,11 +90,12 @@ class HallBenchGUI(QtGui.QWidget):
         if self.devices is not None and self.devices.pmac_connected:
             self.ui.fm_homming.setEnabled(True)
             self.ui.fm_limits.setEnabled(True)
-            self.ui.fm_move_axis.setEnabled(True)
+            self.ui.la_move_axis.setEnabled(True)
+            self._release_access_to_movement()
         else:
             self.ui.fm_homming.setEnabled(False)
             self.ui.fm_limits.setEnabled(False)
-            self.ui.fm_move_axis.setEnabled(False)
+            self.ui.la_move_axis.setEnabled(False)
 
         # update save tab
         if self.current_measurement is None:
@@ -432,6 +433,14 @@ class HallBenchGUI(QtGui.QWidget):
             self.ui.le_dmm_aper.setText(str(self.mconfig.meas_aper_ms))
             self.ui.cb_dmm_precision.setCurrentIndex(
                 self.mconfig.meas_precision)
+            trig_axis = self.mconfig.meas_trig_axis
+
+            if trig_axis == 1:
+                self.ui.rb_triggering_axis1.setChecked()
+            elif trig_axis == 2:
+                self.ui.rb_triggering_axis2.setChecked()
+            elif trig_axis == 3:
+                self.ui.rb_triggering_axis3.setChecked()
 
             axis_measurement = [1, 2, 3, 5]
             for axis in axis_measurement:
@@ -450,6 +459,9 @@ class HallBenchGUI(QtGui.QWidget):
                 tmp = getattr(self.ui, 'le_vel' + str(axis))
                 value = getattr(self.mconfig, 'meas_vel_ax' + str(axis))
                 tmp.setText(str(value))
+
+                tmp = getattr(self.ui, 'le_extra' + str(axis))
+                tmp.setText(str(0))
 
     def save_measurement_configuration_file(self):
         """Save measurement parameters to file."""
@@ -473,7 +485,13 @@ class HallBenchGUI(QtGui.QWidget):
         self.mconfig.meas_probeZ = self.ui.cb_hall_z_enable.isChecked()
 
         self.mconfig.meas_precision = self.ui.cb_dmm_precision.currentIndex()
-        self.mconfig.meas_trig_axis = 1
+
+        if self.ui.rb_triggering_axis1.isChecked():
+            self.mconfig.meas_trig_axis = 1
+        elif self.ui.rb_triggering_axis2.isChecked():
+            self.mconfig.meas_trig_axis = 2
+        elif self.ui.rb_triggering_axis3.isChecked():
+            self.mconfig.meas_trig_axis = 3
 
         self.nr_measurements = self.ui.sb_nr_measurements.value()
 
@@ -521,9 +539,6 @@ class HallBenchGUI(QtGui.QWidget):
         if self.cconfig.control_pmac_enable:
             if self.devices.pmac_connected:
                 self.ui.tab_main.setTabEnabled(1, True)
-                self.ui.tab_main.setTabEnabled(2, True)
-                self.ui.tab_main.setTabEnabled(3, True)
-                self.ui.tab_main.setTabEnabled(4, True)
 
         self.activate_bench()
 
@@ -569,7 +584,7 @@ class HallBenchGUI(QtGui.QWidget):
             if self.devices.pmac.activate_bench():
                 self.ui.fm_homming.setEnabled(True)
                 self.ui.fm_limits.setEnabled(True)
-                self.ui.fm_move_axis.setEnabled(True)
+                self.ui.la_move_axis.setEnabled(True)
                 self._release_access_to_movement()
             else:
                 message = 'Failed to active bench.'
@@ -587,29 +602,58 @@ class HallBenchGUI(QtGui.QWidget):
 
     def _release_access_to_movement(self):
         if self.devices is not None and self.devices.pmac_connected:
+            status = []
             if (self.devices.pmac.axis_status(1) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(0, 1)
+                status.append(True)
+            else:
+                status.append(False)
 
             if (self.devices.pmac.axis_status(2) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(1, 1)
+                status.append(True)
+            else:
+                status.append(False)
 
             if (self.devices.pmac.axis_status(3) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(2, 1)
+                status.append(True)
+            else:
+                status.append(False)
 
             if (self.devices.pmac.axis_status(5) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(3, 1)
+                status.append(True)
+            else:
+                status.append(False)
 
             if (self.devices.pmac.axis_status(6) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(4, 1)
+                status.append(True)
+            else:
+                status.append(False)
 
             if (self.devices.pmac.axis_status(7) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(5, 1)
+                status.append(True)
+            else:
+                status.append(False)
 
             if (self.devices.pmac.axis_status(8) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(6, 1)
+                status.append(True)
+            else:
+                status.append(False)
 
             if (self.devices.pmac.axis_status(9) & 1024) != 0:
                 self.ui.tb_move_axis.setItemEnabled(7, 1)
+                status.append(True)
+            else:
+                status.append(False)
+
+            if all(status):
+                self.ui.tab_main.setTabEnabled(3, True)
+                self.ui.tab_main.setTabEnabled(2, True)
 
     def start_homming(self):
         """Start hommming."""
@@ -870,9 +914,10 @@ class HallBenchGUI(QtGui.QWidget):
         if len(self.dirpath) == 0:
             return
 
-        if not self._save_configuration_files(self.dirpath):
+        if not self._save_configuration_files():
             return
 
+        self.directory_to_save = self.dirpath
         self.stop = False
         self.current_position_list = []
         self.current_voltage_list = []
@@ -944,23 +989,8 @@ class HallBenchGUI(QtGui.QWidget):
         mc_fullpath = os.path.join(self.dirpath, mc_filename)
         ca_fullpath = os.path.join(self.dirpath, ca_filename)
 
-        def _check_files(self, cc_fullpath, mc_fullpath, ca_fullpath):
-            if os.path.isfile(cc_fullpath):
-                tmp = configuration.ConnectionConfig(cc_fullpath)
-                if not self.cconfig == tmp:
-                    return False
-            if os.path.isfile(mc_fullpath):
-                tmp = configuration.MeasurementConfig(mc_fullpath)
-                if not self.mconfig == tmp:
-                    return False
-            if os.path.isfile(ca_fullpath):
-                tmp = calibration.CalibrationData(ca_fullpath)
-                if not self.calibration_data == tmp:
-                    return False
-            return True
-
         try:
-            if _check_files(cc_fullpath, mc_fullpath, ca_fullpath):
+            if self._check_config_files(cc_fullpath, mc_fullpath, ca_fullpath):
                 self.cconfig.save_file(cc_fullpath)
                 self.mconfig.save_file(mc_fullpath)
                 self.calibration_data.save_file(ca_fullpath)
@@ -982,6 +1012,21 @@ class HallBenchGUI(QtGui.QWidget):
                 self, 'Failure', str(e), QtGui.QMessageBox.Ignore)
             return False
 
+    def _check_config_files(self, cc_fullpath, mc_fullpath, ca_fullpath):
+        if os.path.isfile(cc_fullpath):
+            tmp = configuration.ConnectionConfig(cc_fullpath)
+            if not self.cconfig == tmp:
+                return False
+        if os.path.isfile(mc_fullpath):
+            tmp = configuration.MeasurementConfig(mc_fullpath)
+            if not self.mconfig == tmp:
+                return False
+        if os.path.isfile(ca_fullpath):
+            tmp = calibration.CalibrationData(ca_fullpath)
+            if not self.calibration_data == tmp:
+                return False
+        return True
+
     def _measure_line(self, scan_axis):
         (startpos, endpos, incr, velocity, npts,
             scan_list) = self._get_measurement_parameters(scan_axis)
@@ -992,7 +1037,9 @@ class HallBenchGUI(QtGui.QWidget):
 
         for idx in range(self.nr_measurements):
             self.current_voltage_data.clear()
-            self.end_measurements = False
+            self.devices.voltx.end_measurement = False
+            self.devices.volty.end_measurement = False
+            self.devices.voltz.end_measurement = False
             self._clear_measurement()
             self._configure_graph()
             self._update_measurement_number(idx+1)
@@ -1035,7 +1082,9 @@ class HallBenchGUI(QtGui.QWidget):
                     self._move_axis_and_update_graph(
                         scan_axis, startpos - extra_mm, idx)
 
-            self.end_measurements = True
+            self.devices.voltx.end_measurement = True
+            self.devices.volty.end_measurement = True
+            self.devices.voltz.end_measurement = True
             self._stop_trigger()
             self._wait_reading_threads()
 
@@ -1051,21 +1100,22 @@ class HallBenchGUI(QtGui.QWidget):
             if to_pos is True:
                 voltage_data = self.current_voltage_data.copy()
             else:
-                voltage_data = self.current_voltage_data.reverse().copy()
+                self.current_voltage_data.reverse()
+                voltage_data = self.current_voltage_data.copy()
 
             self.current_voltage_list.append(voltage_data)
             self._save_voltage_data(voltage_data)
 
     def _save_voltage_data(self, voltage_data):
         if voltage_data.scan_axis == 3:
-            pos_str = ('Z=' + '{0:0.4f}'.format(voltage_data.pos1) + 'mm_' +
-                       'Y=' + '{0:0.4f}'.format(voltage_data.pos2) + 'mm')
+            pos_str = ('Z=' + '{0:0.4f}'.format(voltage_data.pos1[0]) + 'mm_' +
+                       'Y=' + '{0:0.4f}'.format(voltage_data.pos2[0]) + 'mm')
         elif voltage_data.scan_axis == 2:
-            pos_str = ('Z=' + '{0:0.4f}'.format(voltage_data.pos1) + 'mm_' +
-                       'X=' + '{0:0.4f}'.format(voltage_data.pos3) + 'mm')
+            pos_str = ('Z=' + '{0:0.4f}'.format(voltage_data.pos1[0]) + 'mm_' +
+                       'X=' + '{0:0.4f}'.format(voltage_data.pos3[0]) + 'mm')
         elif voltage_data.scan_axis == 1:
-            pos_str = ('Y=' + '{0:0.4f}'.format(voltage_data.pos2) + 'mm_' +
-                       'X=' + '{0:0.4f}'.format(voltage_data.pos3) + 'mm')
+            pos_str = ('Y=' + '{0:0.4f}'.format(voltage_data.pos2[0]) + 'mm_' +
+                       'X=' + '{0:0.4f}'.format(voltage_data.pos3[0]) + 'mm')
         else:
             pos_str = None
 
@@ -1076,8 +1126,8 @@ class HallBenchGUI(QtGui.QWidget):
 
         extension = '.dat'
         filename = name + extension
-        uniq = 1
-        while os.path.exists(filename):
+        uniq = 2
+        while os.path.exists(os.path.join(self.dirpath, filename)):
             filename = name + '_' + '%i' % uniq + extension
             uniq += 1
 
@@ -1102,14 +1152,15 @@ class HallBenchGUI(QtGui.QWidget):
         incr = getattr(self.mconfig, 'meas_incr_ax' + str(axis))
         vel = getattr(self.mconfig, 'meas_vel_ax' + str(axis))
         npts = np.ceil(round((endpos - startpos) / incr, 4) + 1)
-        poslist = np.linspace(startpos, startpos + (npts-1)*incr, npts)
-        return (startpos, endpos, incr, vel, npts, poslist)
+        corr_endpos = startpos + (npts-1)*incr
+        poslist = np.linspace(startpos, corr_endpos, npts)
+        return (startpos, corr_endpos, incr, vel, npts, poslist)
 
     def _clear_measurement(self):
         self.current_position_list = []
-        self.devices.voltx.voltage = np.array([])
-        self.devices.volty.voltage = np.array([])
-        self.devices.voltz.voltage = np.array([])
+        self.devices.voltx.clear()
+        self.devices.volty.clear()
+        self.devices.voltz.clear()
 
     def _update_measurement_number(self, number):
         self.ui.la_nr_measurements_status.setText('{0:1d}'.format(number))
@@ -1242,22 +1293,19 @@ class HallBenchGUI(QtGui.QWidget):
         if self.mconfig.meas_probeZ:
             self.tk = threading.Thread(
                 target=self.devices.voltz.read,
-                args=(self.stop, self.end_measurements,
-                      self.mconfig.meas_precision,))
+                args=(self.mconfig.meas_precision,))
             self.tk.start()
 
         if self.mconfig.meas_probeY:
             self.tj = threading.Thread(
                 target=self.devices.volty.read,
-                args=(self.stop, self.end_measurements,
-                      self.mconfig.meas_precision,))
+                args=(self.mconfig.meas_precision,))
             self.tj.start()
 
         if self.mconfig.meas_probeX:
             self.ti = threading.Thread(
                 target=self.devices.voltx.read,
-                args=(self.stop, self.end_measurements,
-                      self.mconfig.meas_precision,))
+                args=(self.mconfig.meas_precision,))
             self.ti.start()
 
     def _wait_reading_threads(self):
@@ -1690,4 +1738,4 @@ class GUIThread(threading.Thread):
         self.myapp.timer.stop()
 
 
-thread = GUIThread()
+gui_thread = GUIThread()

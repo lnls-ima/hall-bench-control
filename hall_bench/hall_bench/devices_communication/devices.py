@@ -24,6 +24,7 @@ class DigitalMultimeter(_GPIBLib.GPIB_A3458A):
 
         self.logfile = logfile
         self.address = address
+        self.end_measurement = False
         self._voltage = _np.array([])
         super().__init__(self.logfile)
 
@@ -32,19 +33,21 @@ class DigitalMultimeter(_GPIBLib.GPIB_A3458A):
         """Voltage values read from the device."""
         return self._voltage
 
+    def clear(self):
+        """Clear voltage data."""
+        self._voltage = _np.array([])
+
     def connect(self):
         """Connect device."""
         return super(DigitalMultimeter, self).connect(self.address)
 
-    def read(self, stop_flag, end_meas_flag, formtype=0):
+    def read(self, formtype=0):
         """Read voltage from the device.
 
         Args:
-            stop_flag (bool): stop measurement flag.
-            end_meas_flag (bool): end measurement flag.
             formtype (int): format type [single=0 or double=1].
         """
-        while (stop_flag is False) and (end_meas_flag is False):
+        while (self.end_measurement is False):
             if self.inst.stb & 128:
                 r = self.read_raw_from_device()
                 if formtype == 0:

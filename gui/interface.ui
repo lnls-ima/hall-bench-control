@@ -2038,7 +2038,7 @@ selection-color: rgb(0, 0, 0);</string>
        <item row="1" column="2" rowspan="2">
         <widget class="QFrame" name="fm_move_axis">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <layout class="QVBoxLayout" name="vl_move_axis">
           <property name="spacing">
@@ -2073,7 +2073,7 @@ selection-color: rgb(0, 0, 0);</string>
           <item>
            <widget class="QToolBox" name="tb_move_axis">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="minimumSize">
              <size>
@@ -2109,7 +2109,7 @@ selection-color: rgb(0, 0, 0);</string>
             </property>
             <widget class="QWidget" name="pg_axis1">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -2128,6 +2128,9 @@ selection-color: rgb(0, 0, 0);</string>
               </property>
               <item row="0" column="0">
                <widget class="QLabel" name="la_setvel1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
                 <property name="font">
                  <font>
                   <weight>50</weight>
@@ -2198,7 +2201,11 @@ selection-color: rgb(0, 0, 0);</string>
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="le_setvel1"/>
+               <widget class="QLineEdit" name="le_setvel1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item row="1" column="1">
                <widget class="QLineEdit" name="le_target1"/>
@@ -2207,7 +2214,7 @@ selection-color: rgb(0, 0, 0);</string>
             </widget>
             <widget class="QWidget" name="pg_axis2">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -2295,7 +2302,7 @@ selection-color: rgb(0, 0, 0);</string>
             </widget>
             <widget class="QWidget" name="pg_axis3">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -2373,7 +2380,7 @@ selection-color: rgb(0, 0, 0);</string>
             </widget>
             <widget class="QWidget" name="pg_axis5">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -2451,7 +2458,7 @@ selection-color: rgb(0, 0, 0);</string>
             </widget>
             <widget class="QWidget" name="pg_axis6">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -2530,7 +2537,7 @@ selection-color: rgb(0, 0, 0);</string>
             </widget>
             <widget class="QWidget" name="pg_axis7">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -2608,7 +2615,7 @@ selection-color: rgb(0, 0, 0);</string>
             </widget>
             <widget class="QWidget" name="pg_axis8">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -2686,7 +2693,7 @@ selection-color: rgb(0, 0, 0);</string>
             </widget>
             <widget class="QWidget" name="pg_axis9">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -2763,6 +2770,9 @@ selection-color: rgb(0, 0, 0);</string>
              </layout>
             </widget>
             <widget class="QWidget" name="pg_empty">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
              <property name="geometry">
               <rect>
                <x>0</x>

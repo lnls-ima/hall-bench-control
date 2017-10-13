@@ -11,6 +11,7 @@ from . import calibration as _calibration
 
 
 _position_precision = 4
+_check_position_precision = 3
 
 
 class MeasurementDataError(Exception):
@@ -344,7 +345,7 @@ class FieldData(object):
             self._voltage = _get_average_voltage_list(voltage_list)
         else:
             raise TypeError(
-                'voltage_list must be a list of VoltageData object.')
+                'voltage_list must be a list of VoltageData objects.')
 
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
@@ -359,10 +360,6 @@ class FieldData(object):
     def _convert_voltage_list_to_field_data(self):
         # check positions
         _dict = _get_axis_position_dict(self._voltage)
-        for i in [5, 6, 7, 8, 9]:
-            if len(_dict[i]) > 0 and _dict[i][0] != 0:
-                raise NotImplemented
-
         axes = _get_measurement_axes(self._voltage)
         if len(axes) == 2:
             self._index_axis = axes[0]
@@ -537,7 +534,7 @@ class FieldData(object):
         fieldmap = self._get_transformed_fieldmap(
             magnet_center, magnet_x_axis, magnet_y_axis)
         for i in range(fieldmap.shape[0]):
-            f.write('{0:0.4f}\t{1:0.4f}\t{2:0.4f}\t'.format(
+            f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
                 fieldmap[i, 0], fieldmap[i, 1], fieldmap[i, 2]))
             f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
                 fieldmap[i, 3], fieldmap[i, 4], fieldmap[i, 5]))
@@ -615,7 +612,9 @@ def _get_axis_position_dict(voltage_list):
     for axis in voltage_list[0].axis_list:
         pos = set()
         for voltage_data in voltage_list:
-            pos.update(getattr(voltage_data, 'pos' + str(axis)))
+            p = _np.around(getattr(voltage_data, 'pos' + str(axis)),
+                           decimals=_check_position_precision)
+            pos.update(p)
         _dict[axis] = sorted(list(pos))
 
     return _dict
@@ -660,7 +659,9 @@ def _get_average_voltage_list(voltage_list):
     for vd in voltage_list:
         pos = []
         for axis in fixed_axes:
-            pos.append(getattr(vd, 'pos' + str(axis)))
+            p = _np.around(getattr(vd, 'pos' + str(axis)),
+                           decimals=_check_position_precision)
+            pos.append(p)
         if (prev_pos is None or all([
             pos[i] == prev_pos[i] for i in range(len(pos)) if not (
                 len(pos[i]) == 0 and len(prev_pos[i]) == 0)])):
@@ -791,8 +792,6 @@ def _correct_probe_displacement(fieldi, fieldj, fieldk, index_axis,
         fieldi, fieldj, fieldk = _cut_data_frames(
             fieldi, fieldj, fieldk,
             nbeg, nend, axis=1)
-    else:
-        raise NotImplemented
 
     return fieldi, fieldj, fieldk
 

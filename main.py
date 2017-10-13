@@ -436,11 +436,11 @@ class HallBenchGUI(QtGui.QWidget):
             trig_axis = self.mconfig.meas_trig_axis
 
             if trig_axis == 1:
-                self.ui.rb_triggering_axis1.setChecked()
+                self.ui.rb_triggering_axis1.setChecked(True)
             elif trig_axis == 2:
-                self.ui.rb_triggering_axis2.setChecked()
+                self.ui.rb_triggering_axis2.setChecked(True)
             elif trig_axis == 3:
-                self.ui.rb_triggering_axis3.setChecked()
+                self.ui.rb_triggering_axis3.setChecked(True)
 
             axis_measurement = [1, 2, 3, 5]
             for axis in axis_measurement:

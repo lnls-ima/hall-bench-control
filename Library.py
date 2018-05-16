@@ -56,7 +56,7 @@ class Main_Lib(object):
         except:
             return False
 
-    def dmm_read(self, volt, axis, formtype='s'):
+    def dmm_read(self, volt, axis, formtype=0):
         _idx = 0
 
 #         self.tmp_data = Main_Lib.Measure_Data()        
@@ -64,7 +64,7 @@ class Main_Lib(object):
         while (self.stop == False) and (self.Vars.end_measurements == False):
             if volt.inst.stb & 128:
                 _tmp = volt.read_raw_from_device()
-                if formtype == 's':
+                if formtype == 0:
                     _dataset = [struct.unpack('>f',_tmp[_idx:_idx+4])[0] for _idx in range(0,len(_tmp),4)]
                 else:
                     _dataset = [struct.unpack('>d',_tmp[_idx:_idx+8])[0] for _idx in range(0,len(_tmp),8)]
@@ -83,30 +83,35 @@ class Main_Lib(object):
         else:
             # check memory
             volt.send_command(volt.commands.mcount)
-            _npoints = int(volt.read_from_device())
-            if _npoints > 0: 
-                # ask data from memory
-                volt.send_command(volt.commands.rmem + str(_npoints))
-       
-                # read data from memory
-                for _idx in range(_npoints):
-                    _tmp = volt.read_raw_from_device()
-                    if formtype == 0:#'s':
-                        _dataset = [struct.unpack('>f',_tmp[_idx:_idx+4])[0] for _idx in range(0,len(_tmp),4)]
-                    else:
-                        _dataset = [struct.unpack('>d',_tmp[_idx:_idx+8])[0] for _idx in range(0,len(_tmp),8)]
+            try:
+                _npoints = int(volt.read_from_device())
+                
+                if (_npoints > 0): 
+                    # ask data from memory
+                    volt.send_command(volt.commands.rmem + str(_npoints))
            
-                    for _val in _dataset:
-                        if axis == 'x':
-                            #self.pos_x =  np.append(self.pos_x, self.start_pos + _idx * self.increments)
-                            self.Vars.tmp_data.hallx = np.append(self.Vars.tmp_data.hallx, _val)
-                        elif axis == 'y':
-                            #self.pos_y =  np.append(self.pos_y, self.start_pos + _idx * self.increments)
-                            self.Vars.tmp_data.hally = np.append(self.Vars.tmp_data.hally, _val)
+                    # read data from memory
+                    for _idx in range(_npoints):
+                        _tmp = volt.read_raw_from_device()
+                        if formtype == 0:
+                            _dataset = [struct.unpack('>f',_tmp[_idx:_idx+4])[0] for _idx in range(0,len(_tmp),4)]
                         else:
-                            #self.pos_z =  np.append(self.pos_z, self.start_pos + _idx * self.increments)
-                            self.Vars.tmp_data.hallz = np.append(self.Vars.tmp_data.hallz, _val)
-                        _idx += 1
+                            _dataset = [struct.unpack('>d',_tmp[_idx:_idx+8])[0] for _idx in range(0,len(_tmp),8)]
+               
+                        for _val in _dataset:
+                            if axis == 'x':
+                                #self.pos_x =  np.append(self.pos_x, self.start_pos + _idx * self.increments)
+                                self.Vars.tmp_data.hallx = np.append(self.Vars.tmp_data.hallx, _val)
+                            elif axis == 'y':
+                                #self.pos_y =  np.append(self.pos_y, self.start_pos + _idx * self.increments)
+                                self.Vars.tmp_data.hally = np.append(self.Vars.tmp_data.hally, _val)
+                            else:
+                                #self.pos_z =  np.append(self.pos_z, self.start_pos + _idx * self.increments)
+                                self.Vars.tmp_data.hallz = np.append(self.Vars.tmp_data.hallz, _val)
+                            _idx += 1
+            except:
+                pass
+                    
                     
     def dmm_config(self, volt, aper, precision):
         volt.send_command(volt.commands.reset)
@@ -121,8 +126,9 @@ class Main_Lib(object):
         volt.send_command(volt.commands.nrdgs_ext)
 
         volt.send_command(volt.commands.arange_off)
-        volt.send_command(volt.commands.range + '15')
-#         volt.send_command(volt.commands.range + '10') # BC
+#         volt.send_command(volt.commands.range + '15') # BC
+        volt.send_command(volt.commands.range + '10') # Regular
+#        volt.send_command(volt.commands.range + '0.1') # baixa tensão
         volt.send_command(volt.commands.math_off)
         volt.send_command(volt.commands.azero_once)
 #         volt.send_command(volt.commands.extout_aper_pos)
@@ -205,8 +211,8 @@ class Main_Lib(object):
             self.graph_curve_y = np.array([])
             self.graph_curve_z = np.array([])
             
-            self.axis1_shift_x_to_y = -10
-            self.axis1_shift_z_to_y = 10
+            self.axis1_shift_x_to_y = 0
+            self.axis1_shift_z_to_y = 0
 
             self.axis2_shift_x_to_y = 0
             self.axis2_shift_z_to_y = 0

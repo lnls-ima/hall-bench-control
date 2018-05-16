@@ -15,22 +15,22 @@ Triggering Axis
 #meas_trig_axis	1
 
 Axis Parameters (StartPos, EndPos, Incr, Velocity) - Ax1, Ax2, Ax3, Ax5
-#meas_startpos_ax1	-2335.25
-#meas_endpos_ax1	-335.25
+#meas_startpos_ax1	-2335.45
+#meas_endpos_ax1	-335.45
 #meas_incr_ax1	1.000000
 #meas_vel_ax1	20.000000
 
-#meas_startpos_ax2	-99.000000
-#meas_endpos_ax2	-99.000000
+#meas_startpos_ax2	-97.650000
+#meas_endpos_ax2	-97.650000
 #meas_incr_ax2	1.000000
 #meas_vel_ax2	5.000000
 
-#meas_startpos_ax3	17.500000
-#meas_endpos_ax3	117.500000
-#meas_incr_ax3	1.000000
-#meas_vel_ax3	2.000000
+#meas_startpos_ax3	67.500000
+#meas_endpos_ax3	67.500000
+#meas_incr_ax3	2.000000
+#meas_vel_ax3	5.000000
 
-#meas_startpos_ax5	0.08
-#meas_endpos_ax5	0.08
+#meas_startpos_ax5	0.00
+#meas_endpos_ax5	0.00
 #meas_incr_ax5	1.000000
 #meas_vel_ax5	2.000000

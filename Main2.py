@@ -582,7 +582,8 @@ class MyForm(QtGui.QWidget):
         
         # Measure in ax1 (Z-axis)
         if self.ui.rb_triggering_axis1.isChecked():
-            _extra_mm = 1
+#             _extra_mm = 1
+            _extra_mm = Lib.Vars.meas_incr_ax1
             
             # update # of measurements
             _graph_idx = 0
@@ -755,7 +756,7 @@ class MyForm(QtGui.QWidget):
                                 self.measurements[dictname].raw_list[_map].hallz = Lib.Vars.tmp_data.hallz[::-1]                        
                             
                             # Save raw data
-                            self.save_raw_data(dictname,_map)
+#                             self.save_raw_data(dictname,_map)
                         else:
                             break
                         
@@ -768,7 +769,8 @@ class MyForm(QtGui.QWidget):
                     
         # Measure in ax2 (Y-axis)
         elif self.ui.rb_triggering_axis2.isChecked():
-            _extra_mm = 0.1
+#             _extra_mm = 0.1
+            _extra_mm = Lib.Vars.meas_incr_ax2
             
             # update # of measurements
             _graph_idx = 0
@@ -875,10 +877,10 @@ class MyForm(QtGui.QWidget):
 
                         if Lib.stop == False:
                             if to_pos:
-                                # place axis 1(Z) in position
+                                # place axis 1(Y) in position
                                 Lib.pmac.move_axis(2,Lib.Vars.meas_endpos_ax2 + _extra_mm)
                             else:
-                                # place axis 1(Z) in position
+                                # place axis 1(Y) in position
                                 Lib.pmac.move_axis(2,Lib.Vars.meas_startpos_ax2 - _extra_mm)
 
                             while (Lib.pmac.axis_status(2) & 1) == 0 and (Lib.stop == False):
@@ -935,7 +937,7 @@ class MyForm(QtGui.QWidget):
                                 self.measurements[dictname].raw_list[_map].hallz = Lib.Vars.tmp_data.hallz[::-1]                        
                             
                             # Save raw data
-                            self.save_raw_data(dictname,_map)
+#                             self.save_raw_data(dictname,_map)
                         else:
                             break
                        
@@ -946,7 +948,8 @@ class MyForm(QtGui.QWidget):
 
         # Measure in ax3 (X-axis)
         elif self.ui.rb_triggering_axis3.isChecked():     
-            _extra_mm = 0.1
+#             _extra_mm = 0.1
+            _extra_mm = Lib.Vars.meas_incr_ax3
                
             # update # of measurements
             _graph_idx = 0
@@ -1004,10 +1007,10 @@ class MyForm(QtGui.QWidget):
                             break
                         else:
                             if to_pos:
-                                # place axis 1(Z) in position
+                                # place axis 3(X) in position
                                 Lib.pmac.move_axis(3,Lib.Vars.meas_startpos_ax3 - _extra_mm)
                             else:
-                                # place axis 1(Z) in position
+                                # place axis 3(X) in position
                                 Lib.pmac.move_axis(3,Lib.Vars.meas_endpos_ax3 + _extra_mm)
 
                             while (Lib.pmac.axis_status(3) & 1) == 0 and Lib.stop == False:
@@ -1113,7 +1116,7 @@ class MyForm(QtGui.QWidget):
                                 self.measurements[dictname].raw_list[_map].hallz = Lib.Vars.tmp_data.hallz[::-1]                        
                             
                             # Save raw data
-                            self.save_raw_data(dictname,_map)
+#                             self.save_raw_data(dictname,_map)
                         else:
                             break
                        
@@ -1123,7 +1126,6 @@ class MyForm(QtGui.QWidget):
                         self.data_analysis(dictname)
         
         if Lib.stop == False:
-            
             # Move motor do start position
             Lib.pmac.move_axis(1,Lib.Vars.meas_startpos_ax1)
             while (Lib.pmac.axis_status(1) & 1) == 0 and Lib.stop == False:
@@ -1171,6 +1173,9 @@ class MyForm(QtGui.QWidget):
         # convert voltage to B field
         self.convert_voltage_field(dictname)
         
+        # subtract offset
+#         self.offset_subtraction(dictname)
+        
         # calculate first integral
         self.calculate_first_integral(dictname)
         
@@ -1212,21 +1217,24 @@ class MyForm(QtGui.QWidget):
                 # eliminate extra shifted points from both sides
                 Lib.Vars.n_cuts = math.ceil(np.array([abs(Lib.Vars.axis3_shift_x_to_y),abs(Lib.Vars.axis3_shift_z_to_y)]).max())
 
-            fx = interpolate.splrep(self.measurements[dictname].raw_list[_map].position + _shift_x_to_y, self.measurements[dictname].raw_list[_map].hallx, s=0, k=1)
-            self.measurements[dictname].interpolated_list[_map].hallx = interpolate.splev(self.measurements[dictname].interpolated_list[_map].position, fx, der=0)
+            if Lib.Vars.meas_probeX:
+                fx = interpolate.splrep(self.measurements[dictname].raw_list[_map].position + _shift_x_to_y, self.measurements[dictname].raw_list[_map].hallx, s=0, k=1)
+                self.measurements[dictname].interpolated_list[_map].hallx = interpolate.splev(self.measurements[dictname].interpolated_list[_map].position, fx, der=0)
             
-            fy = interpolate.splrep(self.measurements[dictname].raw_list[_map].position, self.measurements[dictname].raw_list[_map].hally, s=0, k=1)
-            self.measurements[dictname].interpolated_list[_map].hally = interpolate.splev(self.measurements[dictname].interpolated_list[_map].position, fy, der=0)
+            if Lib.Vars.meas_probeY:
+                fy = interpolate.splrep(self.measurements[dictname].raw_list[_map].position, self.measurements[dictname].raw_list[_map].hally, s=0, k=1)
+                self.measurements[dictname].interpolated_list[_map].hally = interpolate.splev(self.measurements[dictname].interpolated_list[_map].position, fy, der=0)
             
-            fz = interpolate.splrep(self.measurements[dictname].raw_list[_map].position + _shift_z_to_y, self.measurements[dictname].raw_list[_map].hallz, s=0, k=1)
-            self.measurements[dictname].interpolated_list[_map].hallz = interpolate.splev(self.measurements[dictname].interpolated_list[_map].position, fz, der=0)
+            if Lib.Vars.meas_probeZ:
+                fz = interpolate.splrep(self.measurements[dictname].raw_list[_map].position + _shift_z_to_y, self.measurements[dictname].raw_list[_map].hallz, s=0, k=1)
+                self.measurements[dictname].interpolated_list[_map].hallz = interpolate.splev(self.measurements[dictname].interpolated_list[_map].position, fz, der=0)
     
             # save interpolated data
-            self.save_interpolated_data(dictname, _map)
+#             self.save_interpolated_data(dictname, _map)
 
     def calculate_average_std(self, dictname):
         
-        # average calculation
+        # average calculations
         self.measurements[dictname].average_voltage.hallx = np.zeros(len(self.measurements[dictname].interpolated_list[0].position))
         self.measurements[dictname].average_voltage.hally = np.zeros(len(self.measurements[dictname].interpolated_list[0].position))
         self.measurements[dictname].average_voltage.hallz = np.zeros(len(self.measurements[dictname].interpolated_list[0].position))  
@@ -1265,11 +1273,11 @@ class MyForm(QtGui.QWidget):
             self.measurements[dictname].deviation_voltage.hally /= Lib.Vars.n_measurements
             self.measurements[dictname].deviation_voltage.hallz /= Lib.Vars.n_measurements
 
-        if Lib.Vars.n_cuts != 0:
+#         if Lib.Vars.n_cuts != 0:
             # cut extra points due to shift sensors
-            self.eliminate_extra_points(dictname)
+#             self.eliminate_extra_points(dictname)
 
-        self.save_avg_std_data(dictname)
+#         self.save_avg_std_data(dictname)
 
     def eliminate_extra_points(self,dictname):
         # eliminate extra shifted points from both sides
@@ -1285,6 +1293,22 @@ class MyForm(QtGui.QWidget):
         self.measurements[dictname].deviation_voltage.hally = self.measurements[dictname].deviation_voltage.hally[n_cuts:-n_cuts]
         self.measurements[dictname].deviation_voltage.hallz = self.measurements[dictname].deviation_voltage.hallz[n_cuts:-n_cuts]
     
+    def offset_subtraction(self,dictname):
+        # offset subtraction
+        if self.ui.rb_triggering_axis1.isChecked():
+            offsetx = 0 #self.measurements[dictname].average_voltage.hallx[0:10].mean()
+            offsety = 0 #self.measurements[dictname].average_voltage.hally[0:10].mean()
+            offsetz = 0 #self.measurements[dictname].average_voltage.hallz[0:10].mean()
+        else:
+            offsetx = 0
+            offsety = 0
+            offsetz = 0
+            
+        for _map in range(Lib.Vars.n_measurements):
+            self.measurements[dictname].average_voltage.hallx -= offsetx
+            self.measurements[dictname].average_voltage.hally -= offsety
+            self.measurements[dictname].average_voltage.hallz -= offsetz
+     
     def convert_voltage_field(self, dictname):
         self.measurements[dictname].average_Bfield.position = self.measurements[dictname].average_voltage.position
         
@@ -1308,18 +1332,35 @@ class MyForm(QtGui.QWidget):
     
         self.save_b_field_data(dictname)
 
+#     def hall_probe_calibration_curve(self, voltage_array):
+#         field_array = np.zeros(len(voltage_array))
+#         
+#         for i in range(len(voltage_array)):
+#             voltage = voltage_array[i] 
+#         
+#             if (voltage > -10) and (voltage < 10):
+# #                 field = float(voltage)*0.2
+#                 field = (0.00088748 + (-0.19651*voltage))*-1
+#             elif voltage <= -10:
+#                 field = (-1.8216 + (-0.70592*voltage) + (-0.047964*voltage**2) + (-0.0015304*voltage**3)) *-1
+#             else:
+#                 field = (2.3614 + (-0.82643*voltage) + (0.056814*voltage**2) + (-0.0017429*voltage**3)) *-1 
+#         
+#             field_array[i] = field
+#         
+#         return field_array
+
     def hall_probe_calibration_curve(self, voltage_array):
         field_array = np.zeros(len(voltage_array))
         
         for i in range(len(voltage_array)):
             voltage = voltage_array[i] 
         
-            if (voltage > -10) and (voltage < 10):
-                field = float(voltage)*0.2
-            elif voltage <= -10:
-                field = (-1.8216 + (-0.70592*voltage) + (-0.047964*voltage**2) + (-0.0015304*voltage**3)) *-1
-            else:
-                field = (2.3614 + (-0.82643*voltage) + (0.056814*voltage**2) + (-0.0017429*voltage**3)) *-1 
+#             field = (0.00059439 + (-0.19699*voltage) + (1.2825e-005*voltage**2) + (1.7478e-005*voltage**3) + \
+#                      (-2.4556e-008*voltage**4) + (-2.6877e-008*voltage**5) + (2.9855e-011*voltage**6) + (-1.2946e-009*voltage**7)) *-1
+
+            field = ((-0.19699*voltage) + (1.2825e-005*voltage**2) + (1.7478e-005*voltage**3) + \
+                     (-2.4556e-008*voltage**4) + (-2.6877e-008*voltage**5) + (2.9855e-011*voltage**6) + (-1.2946e-009*voltage**7)) *-1
         
             field_array[i] = field
         
@@ -1333,7 +1374,7 @@ class MyForm(QtGui.QWidget):
         self.measurements[dictname].first_integral.hally = cumtrapz(x=self.measurements[dictname].average_Bfield.position, y=self.measurements[dictname].average_Bfield.hally, initial=0)
         self.measurements[dictname].first_integral.hallz = cumtrapz(x=self.measurements[dictname].average_Bfield.position, y=self.measurements[dictname].average_Bfield.hallz, initial=0)
     
-        self.save_first_integral(dictname)
+#         self.save_first_integral(dictname)
         
     def calculate_second_integral(self, dictname):
         self.measurements[dictname].second_integral.position = self.measurements[dictname].first_integral.position
@@ -1342,16 +1383,15 @@ class MyForm(QtGui.QWidget):
         self.measurements[dictname].second_integral.hally = cumtrapz(x=self.measurements[dictname].first_integral.position, y=self.measurements[dictname].first_integral.hally, initial=0)
         self.measurements[dictname].second_integral.hallz = cumtrapz(x=self.measurements[dictname].first_integral.position, y=self.measurements[dictname].first_integral.hallz, initial=0)
         
-        self.save_second_integral(dictname)    
+#         self.save_second_integral(dictname)    
     
     def save_raw_data(self,dictname,_map):
-        pass
-#         data_out = np.column_stack((self.measurements[dictname].raw_list[_map].position,\
-#                                     self.measurements[dictname].raw_list[_map].hallx,\
-#                                     self.measurements[dictname].raw_list[_map].hally,\
-#                                     self.measurements[dictname].raw_list[_map].hallz))
-#         
-#         np.savetxt(Lib.Vars.save_dir + 'Raw_Data_' + dictname + '_' + str(_map + 1) + '.dat', data_out, delimiter='\t', newline ='\r\n')
+        data_out = np.column_stack((self.measurements[dictname].raw_list[_map].position,\
+                                    self.measurements[dictname].raw_list[_map].hallx,
+                                    self.measurements[dictname].raw_list[_map].hally,
+                                    self.measurements[dictname].raw_list[_map].hallz))
+         
+        np.savetxt(Lib.Vars.save_dir + 'Raw_Data_' + dictname + '_' + str(_map + 1) + '.dat', data_out, delimiter='\t', newline ='\r\n')
 
     def save_interpolated_data(self,dictname,_map):
         data_out = np.column_stack((self.measurements[dictname].interpolated_list[_map].position,\
@@ -1455,17 +1495,62 @@ class MyForm(QtGui.QWidget):
         file.close()
         #export_magnet_format(71.25,-144.1,99.196)
         
+    def export_magnet_format_inverted(self, shiftx = 0, shifty = 0, shiftz = 0):
+        file = open(Lib.Vars.save_dir + 'Magnet_out.dat','w')
+        
+        file.write('X[mm]\tY[mm]\tZ[mm]\tBx\tBy\tBz [T]\n')
+        file.write('---------------------------------------------------------------------------------------------\n')
+
+        list_meas_ax3_inv = self.list_meas_ax3[::-1]
+
+        dictname = 'Y=' + str(self.list_meas_ax2[0]) + '_X=' + str(list_meas_ax3_inv[0])
+        n_points_ax1 = len(self.measurements[dictname].average_Bfield.position)
+         
+        for _idx1 in range(n_points_ax1):
+            for _idx2 in self.list_meas_ax2:
+                for _idx3 in list_meas_ax3_inv:
+                    dictname = 'Y=' + str(_idx2) + '_X=' + str(_idx3)
+                    #dictname = 'Y={0:g}_X={1:0.1f}'.format(_idx2,_idx3)
+                    file.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t{3:0.10e}, {4:0.10e}, {5:0.10e}\n'.format((_idx3-shiftx)*-1
+                                                                                                        ,_idx2-shifty,
+                                                                                                        self.measurements[dictname].average_Bfield.position[_idx1]-shiftz,
+                                                                                                        Lib.App.myapp.measurements[dictname].average_Bfield.hallx[-_idx1],
+                                                                                                        Lib.App.myapp.measurements[dictname].average_Bfield.hally[-_idx1],
+                                                                                                        Lib.App.myapp.measurements[dictname].average_Bfield.hallz[-_idx1]))
+        file.close()
+
+    def export_magnet_format_inverted_only_by(self, shiftx = 0, shifty = 0, shiftz = 0):
+        file = open(Lib.Vars.save_dir + 'Magnet_out.dat','w')
+        
+        file.write('X[mm]\tY[mm]\tZ[mm]\tBx\tBy\tBz [T]\n')
+        file.write('---------------------------------------------------------------------------------------------\n')
+
+        list_meas_ax3_inv = self.list_meas_ax3[::-1]
+
+        dictname = 'Y=' + str(self.list_meas_ax2[0]) + '_X=' + str(list_meas_ax3_inv[0])
+        n_points_ax1 = len(self.measurements[dictname].average_Bfield.position)
+         
+        for _idx1 in range(n_points_ax1):
+            for _idx2 in self.list_meas_ax2:
+                for _idx3 in list_meas_ax3_inv:
+                    dictname = 'Y=' + str(_idx2) + '_X=' + str(_idx3)
+                    #dictname = 'Y={0:g}_X={1:0.1f}'.format(_idx2,_idx3)
+                    file.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t{3:0.10e}, {4:0.10e}, {5:0.10e}\n'.format((_idx3-shiftx)*-1
+                                                                                                        ,_idx2-shifty,
+                                                                                                        self.measurements[dictname].average_Bfield.position[_idx1]-shiftz,
+                                                                                                        0,
+                                                                                                        Lib.App.myapp.measurements[dictname].average_Bfield.hally[-_idx1],
+                                                                                                        0))
+        file.close()
+
     def read_volt_manual(self,volt):
         volt.send_command(volt.commands.end_gpib_always)
         voltage = float(volt.read_from_device()[:-2])
-        if (voltage > -10) and (voltage < 10):
-            leitura = float(voltage)*0.2
-        elif voltage <= -10:
-            leitura = (-1.8216 + (-0.70592*voltage) + (-0.047964*voltage**2) + (-0.0015304*voltage**3)) *-1
-        else:
-            leitura = (2.3614 + (-0.82643*voltage) + (0.056814*voltage**2) + (-0.0017429*voltage**3)) *-1 
-            
-        return leitura
+        
+        leitura = ((-0.19699*voltage) + (1.2825e-005*voltage**2) + (1.7478e-005*voltage**3) + \
+                 (-2.4556e-008*voltage**4) + (-2.6877e-008*voltage**5) + (2.9855e-011*voltage**6) + (-1.2946e-009*voltage**7)) *-1
+        
+        return voltage, leitura
         #-1.11674867085258*1059.6/Lib.App.myapp.conf_read_volt_manual(Lib.volt_y)
         
     def read_temperature(self):

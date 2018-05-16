@@ -6,7 +6,7 @@ Configuration File
 #control_volty_enable	1
 #control_voltz_enable	1
 
-#control_multich_enable	1
+#control_multich_enable	0
 #control_colimator_enable	0
 
 #control_voltx_addr	20

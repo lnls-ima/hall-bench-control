@@ -571,6 +571,26 @@ def _interpolation_conversion(data, voltage_offset, voltage_array):
     return field_array
 
 
+def _updated_hall_sensor_calibration_curve(voltage_array):
+    field_array = _np.zeros(len(voltage_array))
+
+    for i in range(len(voltage_array)):
+        voltage = voltage_array[i]
+
+        field = (
+            (-0.19699*voltage) +
+            (1.2825e-005*voltage**2) +
+            (1.7478e-005*voltage**3) +
+            (-2.4556e-008*voltage**4) +
+            (-2.6877e-008*voltage**5) +
+            (2.9855e-011*voltage**6) +
+            (-1.2946e-009*voltage**7))
+
+        field_array[i] = field
+
+    return field_array
+
+
 def _old_hall_sensor_calibration_curve(voltage_array):
     field_array = _np.zeros(len(voltage_array))
 

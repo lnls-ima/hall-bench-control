@@ -1,6 +1,10 @@
 *~
 
 Data/
+measurements/
+hallbench/tests/*.txt
+
+
 *interface.py
 *save_dialog.py
 *resources_rc.py

@@ -65,19 +65,19 @@ class TestConnectionConfig(TestCase):
         self.assertEqual(c.control_multich_addr, 18)
         self.assertEqual(c.control_colimator_addr, 3)
 
-    def test_valid_configuration(self):
+    def test_valid_data(self):
         cnf = configuration.ConnectionConfig()
-        self.assertFalse(cnf.valid_configuration())
+        self.assertFalse(cnf.valid_data())
 
         cwf = configuration.ConnectionConfig(self.filename)
-        self.assertTrue(cwf.valid_configuration())
+        self.assertTrue(cwf.valid_data())
 
         cwf._control_pmac_enable = None
-        self.assertFalse(cwf.valid_configuration())
+        self.assertFalse(cwf.valid_data())
 
     def test_clear(self):
         c = configuration.ConnectionConfig(self.filename)
-        self.assertTrue(c.valid_configuration())
+        self.assertTrue(c.valid_data())
 
         c.clear()
         self.assertIsNone(c.control_pmac_enable)
@@ -315,19 +315,19 @@ class TestMeasurementConfig(TestCase):
         self.assertEqual(m.meas_vel_ax5, 10.000000)
         self.assertEqual(m.filename, self.filename)
 
-    def test_valid_configuration(self):
+    def test_valid_data(self):
         mnf = configuration.MeasurementConfig()
-        self.assertFalse(mnf.valid_configuration())
+        self.assertFalse(mnf.valid_data())
 
         mwf = configuration.MeasurementConfig(self.filename)
-        self.assertTrue(mwf.valid_configuration())
+        self.assertTrue(mwf.valid_data())
 
         mwf._meas_probeX = None
-        self.assertFalse(mwf.valid_configuration())
+        self.assertFalse(mwf.valid_data())
 
     def test_clear(self):
         m = configuration.MeasurementConfig(self.filename)
-        self.assertTrue(m.valid_configuration())
+        self.assertTrue(m.valid_data())
 
         m.clear()
         self.assertIsNone(m.meas_probeX)

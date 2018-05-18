@@ -3,14 +3,17 @@
 """Motors widget for the Hall Bench Control application."""
 
 import time as _time
-import PyQt4.uic as _uic
-from PyQt4 import QtGui as _QtGui
+from PyQt5.QtWidgets import (
+    QWidget as _QWidget,
+    QMessageBox as _QMessageBox,
+    )
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.positionwidget import PositionWidget as _PositionWidget
 
 
-class MotorsWidget(_QtGui.QWidget):
+class MotorsWidget(_QWidget):
     """Motors Widget class for the Hall Bench Control application."""
 
     _align_bench_time_interval = 0.5  # [s]
@@ -90,8 +93,8 @@ class MotorsWidget(_QtGui.QWidget):
             self.setAxisLimitsEnabled(False)
             self.setMovementEnabled(False)
             message = 'Failed to activate bench.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
 
     def killAllAxis(self):
         """Kill all axis."""
@@ -263,8 +266,8 @@ class MotorsWidget(_QtGui.QWidget):
         else:
             self.releaseAccessToMovement()
             message = 'Finished homming of the selected axes.'
-            _QtGui.QMessageBox.information(
-                self, 'Hommming', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.information(
+                self, 'Hommming', message, _QMessageBox.Ok)
 
     def stopAllAxis(self):
         """Stop all axis."""

@@ -57,7 +57,7 @@ class Configuration(object):
         """Get attribute type."""
         return None
 
-    def valid_configuration(self):
+    def valid_data(self):
         """Check if parameters are valid."""
         al = [getattr(self, a) for a in self.__dict__ if a != '_filename']
         if all([a is not None for a in al]):
@@ -128,7 +128,7 @@ class ConnectionConfig(Configuration):
         Raises:
             ConfigurationError: if the configuration was not saved.
         """
-        if not self.valid_configuration():
+        if not self.valid_data():
             message = 'Invalid Configuration.'
             raise ConfigurationError(message)
 
@@ -285,7 +285,7 @@ class MeasurementConfig(Configuration):
         Raises:
             ConfigurationError: if the configuration was not saved.
         """
-        if not self.valid_configuration():
+        if not self.valid_data():
             message = 'Invalid Configuration.'
             raise ConfigurationError(message)
 

@@ -3,9 +3,12 @@
 """Main window for the Hall Bench Control application."""
 
 import os as _os
-from PyQt4 import QtGui as _QtGui
-from PyQt4 import QtCore as _QtCore
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QMainWindow as _QMainWindow,
+    QApplication as _QApplication,
+    )
+from PyQt5.QtCore import QTimer as _QTimer
+import PyQt5.uic as _uic
 
 from hallbench.gui.connectionwidget import ConnectionWidget \
     as _ConnectionWidget
@@ -24,7 +27,7 @@ from hallbench.devices.GPIBLib import Agilent34970A as _Agilent34970A
 from hallbench.devices.PmacLib import Pmac as _Pmac
 
 
-class HallBenchWindow(_QtGui.QMainWindow):
+class HallBenchWindow(_QMainWindow):
     """Main Window class for the Hall Bench Control application."""
 
     _timer_interval = 250  # [ms]
@@ -73,7 +76,7 @@ class HallBenchWindow(_QtGui.QMainWindow):
         self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')
 
         # create timer
-        self.timer = _QtCore.QTimer()
+        self.timer = _QTimer()
 
         # create connections
         self.ui.setdir_act.triggered.connect(self.showDirectoryDialog)
@@ -113,7 +116,7 @@ class HallBenchWindow(_QtGui.QMainWindow):
         try:
             self.motors_tab.updatePositions()
             self.measurement_tab.updatePositions()
-            _QtGui.QApplication.processEvents()
+            _QApplication.processEvents()
         except Exception:
             pass
 

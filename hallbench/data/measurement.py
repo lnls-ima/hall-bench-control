@@ -1195,6 +1195,7 @@ class FieldMapData(object):
 
         field_map = self.get_transformed_field_map(
             magnet_center, magnet_x_axis, magnet_y_axis)
+
         for i in range(field_map.shape[0]):
             f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
                 field_map[i, 0], field_map[i, 1], field_map[i, 2]))

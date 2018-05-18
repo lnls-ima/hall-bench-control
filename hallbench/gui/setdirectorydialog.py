@@ -2,17 +2,20 @@
 
 """Directory dialog for the Hall Bench Control application."""
 
-from PyQt4 import QtGui as _QtGui
-from PyQt4 import QtCore as _QtCore
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QDialog as _QDialog,
+    QFileDialog as _QFileDialog,
+    )
+from PyQt5.QtCore import pyqtSignal as _pyqtSignal
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
 
-class SetDirectoryDialog(_QtGui.QDialog):
+class SetDirectoryDialog(_QDialog):
     """Directory dialog class for the Hall Bench Control application."""
 
-    directoryChanged = _QtCore.pyqtSignal(str)
+    directoryChanged = _pyqtSignal(str)
 
     def __init__(self, parent=None):
         """Setup the ui and create connections."""
@@ -31,9 +34,12 @@ class SetDirectoryDialog(_QtGui.QDialog):
 
     def changeLineEditDirectory(self):
         """Change the directory line edit text."""
-        directory = _QtGui.QFileDialog.getExistingDirectory(
+        directory = _QFileDialog.getExistingDirectory(
             self, caption='Set Directory', directory=self.directory,
-            options=_QtGui.QFileDialog.ShowDirsOnly)
+            options=_QFileDialog.ShowDirsOnly)
+
+        if isinstance(directory, tuple):
+            directory = directory[0]
 
         if len(directory) != 0:
             self.ui.dir_le.setText(directory)

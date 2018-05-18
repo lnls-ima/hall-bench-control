@@ -353,6 +353,10 @@ class ProbeCalibration(object):
         """Name of the probe calibration file."""
         return self._filename
 
+    def valid_data(self):
+        """Check if parameters are valid."""
+        return True
+
     def clear(self):
         """Clear calibration data."""
         self._sensorx = SensorCalibration()

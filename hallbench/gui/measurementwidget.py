@@ -7,8 +7,13 @@ import time as _time
 import numpy as _np
 import threading as _threading
 import warnings as _warnings
-from PyQt4 import QtGui as _QtGui
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QWidget as _QWidget,
+    QApplication as _QApplication,
+    QFileDialog as _QFileDialog,
+    QMessageBox as _QMessageBox,
+    )
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.positionwidget import PositionWidget as _PositionWidget
@@ -22,7 +27,7 @@ from hallbench.data.measurement import FieldData as _FieldData
 from hallbench.data.measurement import FieldMapData as _FieldMapData
 
 
-class MeasurementWidget(_QtGui.QWidget):
+class MeasurementWidget(_QWidget):
     """Measurement widget class for the Hall Bench Control application."""
 
     _update_graph_time_interval = 0.05  # [s]
@@ -205,8 +210,8 @@ class MeasurementWidget(_QtGui.QWidget):
                        'probe displacements.\n\nThe minimum position ' +
                        'range required for axis %i ' % probe_axis +
                        'is: \n\n%0.4f mm' % (distance_xy + distance_zy))
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return False
         else:
             return True
@@ -293,8 +298,8 @@ class MeasurementWidget(_QtGui.QWidget):
         self.ui.savefieldmap_btn.setEnabled(True)
 
         message = 'End of measurements.'
-        _QtGui.QMessageBox.information(
-            self, 'Measurements', message, _QtGui.QMessageBox.Ok)
+        _QMessageBox.information(
+            self, 'Measurements', message, _QMessageBox.Ok)
 
     def configureGraph(self, nr_curves, label):
         """Configure graph.
@@ -457,8 +462,8 @@ class MeasurementWidget(_QtGui.QWidget):
             return True
         else:
             message = 'Devices not loaded.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return False
 
     def killReadingThreads(self):
@@ -473,9 +478,12 @@ class MeasurementWidget(_QtGui.QWidget):
     def loadConfiguration(self):
         """Load configuration file to set measurement parameters."""
         default_filename = self.ui.filename_le.text()
-        filename = _QtGui.QFileDialog.getOpenFileName(
+        filename = _QFileDialog.getOpenFileName(
             self, caption='Open measurement configuration file',
             directory=default_filename, filter="Text files (*.txt)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
 
         if len(filename) == 0:
             return
@@ -483,8 +491,8 @@ class MeasurementWidget(_QtGui.QWidget):
         try:
             self.configuration = _MeasurementConfig(filename)
         except Exception as e:
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
         self.ui.filename_le.setText(filename)
@@ -541,7 +549,7 @@ class MeasurementWidget(_QtGui.QWidget):
             self.devices.pmac.move_axis(axis, position)
             while ((self.devices.pmac.axis_status(axis) & 1) == 0 and
                    self.stop is False):
-                _QtGui.QApplication.processEvents()
+                _QApplication.processEvents()
 
     def moveAxisAndUpdateGraph(self, axis, position, idx):
         """Move bench axis and update plot with the measure data.
@@ -556,7 +564,7 @@ class MeasurementWidget(_QtGui.QWidget):
             while ((self.devices.pmac.axis_status(axis) & 1) == 0 and
                    self.stop is False):
                 self.updateGraph(idx)
-                _QtGui.QApplication.processEvents()
+                _QApplication.processEvents()
                 _time.sleep(self._update_graph_time_interval)
 
     def plotFieldMapData(self):
@@ -586,9 +594,12 @@ class MeasurementWidget(_QtGui.QWidget):
     def saveConfiguration(self):
         """Save measurement parameters to file."""
         default_filename = self.ui.filename_le.text()
-        filename = _QtGui.QFileDialog.getSaveFileName(
+        filename = _QFileDialog.getSaveFileName(
             self, caption='Save measurement configuration file',
             directory=default_filename, filter="Text files (*.txt)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
 
         if len(filename) == 0:
             return
@@ -599,8 +610,8 @@ class MeasurementWidget(_QtGui.QWidget):
                     filename = filename + '.txt'
                 self.configuration.save_file(filename)
             except Exception as e:
-                _QtGui.QMessageBox.critical(
-                    self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+                _QMessageBox.critical(
+                    self, 'Failure', str(e), _QMessageBox.Ok)
 
     def saveConfigurationInMeasurementsDir(self):
         """Save configuration file in the measurements directory."""
@@ -625,14 +636,14 @@ class MeasurementWidget(_QtGui.QWidget):
 
         if self.field_data is None:
             message = 'Invalid field data.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         if self.measurement_directory is None:
             message = 'Invalid directory.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         timestamp = _get_timestamp()
@@ -653,14 +664,14 @@ class MeasurementWidget(_QtGui.QWidget):
         """Save probe calibration to file."""
         if self.measurement_probe_calibration is None:
             message = 'Invalid probe calibration data.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         if self.measurement_directory is None:
             message = 'Invalid directory.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         timestamp = _get_timestamp()
@@ -675,14 +686,14 @@ class MeasurementWidget(_QtGui.QWidget):
 
         if self.voltage_data is None:
             message = 'Invalid voltage data.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         if self.measurement_directory is None:
             message = 'Invalid directory.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         timestamp = _get_timestamp()
@@ -800,8 +811,8 @@ class MeasurementWidget(_QtGui.QWidget):
         """Open save fieldmap dialog."""
         if self.fieldmap_data is None:
             message = 'Invalid field map data.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         if self.measurement_directory is None:
@@ -836,8 +847,8 @@ class MeasurementWidget(_QtGui.QWidget):
         self.devices.pmac.stop_all_axis()
         self.ui.stop_btn.setEnabled(False)
         message = 'The user stopped the measurements.'
-        _QtGui.QMessageBox.information(
-            self, 'Abort', message, _QtGui.QMessageBox.Ok)
+        _QMessageBox.information(
+            self, 'Abort', message, _QMessageBox.Ok)
 
     def stopTrigger(self):
         """Stop trigger."""
@@ -871,12 +882,12 @@ class MeasurementWidget(_QtGui.QWidget):
 
         self.updateParametersFromTable()
 
-        if self.configuration.valid_configuration():
+        if self.configuration.valid_data():
             return True
         else:
             message = 'Invalid measurement configuration.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return False
 
     def updateFieldData(self, voltage_data_list):
@@ -888,8 +899,8 @@ class MeasurementWidget(_QtGui.QWidget):
             self.field_data.voltage_data_list = voltage_data_list
             self.saveFieldData()
         except Exception as e:
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def updateFieldMapData(self, field_data_list):
         """Update field map data."""
@@ -902,8 +913,8 @@ class MeasurementWidget(_QtGui.QWidget):
             self.fieldmap_data.field_data_list = field_data_list
             self.fieldmapDataBackup()
         except Exception as e:
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def updateGraph(self, idx):
         """Update plot.
@@ -981,8 +992,8 @@ class MeasurementWidget(_QtGui.QWidget):
             return True
         else:
             message = 'Invalid directory.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return False
 
     def validProbeCalibration(self):
@@ -994,20 +1005,20 @@ class MeasurementWidget(_QtGui.QWidget):
             return True
         else:
             message = 'Invalid probe calibration data.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return False
 
     def waitReadingThreads(self):
         """Wait threads."""
         if self.threadx is not None:
             while self.threadx.is_alive() and self.stop is False:
-                _QtGui.QApplication.processEvents()
+                _QApplication.processEvents()
 
         if self.thready is not None:
             while self.thready.is_alive() and self.stop is False:
-                _QtGui.QApplication.processEvents()
+                _QApplication.processEvents()
 
         if self.threadz is not None:
             while self.threadz.is_alive() and self.stop is False:
-                _QtGui.QApplication.processEvents()
+                _QApplication.processEvents()

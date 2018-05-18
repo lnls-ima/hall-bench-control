@@ -2,13 +2,17 @@
 
 """Interpolation table dialog for the Hall Bench Control application."""
 
-from PyQt4 import QtGui as _QtGui
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QDialog as _QDialog,
+    QApplication as _QApplication,
+    QTableWidgetItem as _QTableWidgetItem,
+    )
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
 
-class InterpolationTableDialog(_QtGui.QDialog):
+class InterpolationTableDialog(_QDialog):
     """Interpolation table class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
@@ -20,7 +24,7 @@ class InterpolationTableDialog(_QtGui.QDialog):
         self.ui = _uic.loadUi(uifile, self)
 
         self.calibration_data = None
-        self.clip = _QtGui.QApplication.clipboard()
+        self.clip = _QApplication.clipboard()
 
         # create connections
         self.ui.copysensorx_btn.clicked.connect(
@@ -70,7 +74,7 @@ class InterpolationTableDialog(_QtGui.QDialog):
             table.setRowCount(i+1)
             row = data[i]
             for j in range(len(row)):
-                table.setItem(i, j, _QtGui.QTableWidgetItem(
+                table.setItem(i, j, _QTableWidgetItem(
                     formatstr.format(row[j])))
 
     def updateTablesensorY(self):
@@ -85,7 +89,7 @@ class InterpolationTableDialog(_QtGui.QDialog):
             table.setRowCount(i+1)
             row = data[i]
             for j in range(len(row)):
-                table.setItem(i, j, _QtGui.QTableWidgetItem(
+                table.setItem(i, j, _QTableWidgetItem(
                     formatstr.format(row[j])))
 
     def updateTablesensorZ(self):
@@ -100,5 +104,5 @@ class InterpolationTableDialog(_QtGui.QDialog):
             table.setRowCount(i+1)
             row = data[i]
             for j in range(len(row)):
-                table.setItem(i, j, _QtGui.QTableWidgetItem(
+                table.setItem(i, j, _QTableWidgetItem(
                     formatstr.format(row[j])))

@@ -2,13 +2,16 @@
 
 """Position widget for the Hall Bench Control application."""
 
-from PyQt4 import QtGui as _QtGui
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QWidget as _QWidget,
+    QApplication as _QApplication,
+    )
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
 
-class PositionWidget(_QtGui.QWidget):
+class PositionWidget(_QWidget):
     """Position Widget class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
@@ -34,6 +37,6 @@ class PositionWidget(_QtGui.QWidget):
                 pos = self.pmac.get_position(axis)
                 le = getattr(self.ui, 'posax' + str(axis) + '_le')
                 le.setText('{0:0.4f}'.format(pos))
-            _QtGui.QApplication.processEvents()
+            _QApplication.processEvents()
         except Exception:
             pass

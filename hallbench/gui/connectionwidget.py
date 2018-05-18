@@ -3,15 +3,19 @@
 """Connection widget for the Hall Bench Control application."""
 
 import os.path as _path
-from PyQt4 import QtGui as _QtGui
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QWidget as _QWidget,
+    QFileDialog as _QFileDialog,
+    QMessageBox as _QMessageBox,
+    )
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.data.configuration import ConnectionConfig as _ConnectionConfig
 from hallbench.data.utils import get_timestamp as _get_timestamp
 
 
-class ConnectionWidget(_QtGui.QWidget):
+class ConnectionWidget(_QWidget):
     """Connection widget class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
@@ -48,8 +52,8 @@ class ConnectionWidget(_QtGui.QWidget):
 
         if self.devices is None:
             message = 'Invalid value for devices.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         connect_status = self.devices.connect(self.configuration)
@@ -57,8 +61,8 @@ class ConnectionWidget(_QtGui.QWidget):
 
         if not any(connect_status):
             message = 'Fail to connect devices.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             self.window().updateMainTabStatus(1, False)
             self.window().updateMainTabStatus(2, False)
             self.window().updateMainTabStatus(3, False)
@@ -79,9 +83,12 @@ class ConnectionWidget(_QtGui.QWidget):
     def loadConfiguration(self):
         """Load configuration file to set connection parameters."""
         default_filename = self.ui.filename_le.text()
-        filename = _QtGui.QFileDialog.getOpenFileName(
+        filename = _QFileDialog.getOpenFileName(
             self, caption='Open connection configuration file',
             directory=default_filename, filter="Text files (*.txt)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
 
         if len(filename) == 0:
             return
@@ -89,8 +96,8 @@ class ConnectionWidget(_QtGui.QWidget):
         try:
             self.configuration = _ConnectionConfig(filename)
         except Exception as e:
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
         self.ui.filename_le.setText(filename)
@@ -121,9 +128,12 @@ class ConnectionWidget(_QtGui.QWidget):
     def saveConfiguration(self):
         """Save connection parameters to file."""
         default_filename = self.ui.filename_le.text()
-        filename = _QtGui.QFileDialog.getSaveFileName(
+        filename = _QFileDialog.getSaveFileName(
             self, caption='Save connection configuration file',
             directory=default_filename, filter="Text files (*.txt)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
 
         if len(filename) == 0:
             return
@@ -134,8 +144,8 @@ class ConnectionWidget(_QtGui.QWidget):
                     filename = filename + '.txt'
                 self.configuration.save_file(filename)
             except Exception as e:
-                _QtGui.QMessageBox.critical(
-                    self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+                _QMessageBox.critical(
+                    self, 'Failure', str(e), _QMessageBox.Ok)
 
     def saveConfigurationInMeasurementsDir(self):
         """Save configuration file in the measurements directory."""
@@ -184,12 +194,12 @@ class ConnectionWidget(_QtGui.QWidget):
         self.configuration.control_colimator_enable = colimator_enable
         self.configuration.control_colimator_addr = colimator_addr
 
-        if self.configuration.valid_configuration():
+        if self.configuration.valid_data():
             return True
         else:
             message = 'Invalid connection configuration.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return False
 
     def updateLedStatus(self, status):

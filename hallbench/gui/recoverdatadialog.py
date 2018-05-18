@@ -3,8 +3,13 @@
 """Recover data dialog for the Hall Bench Control application."""
 
 import os.path as _path
-from PyQt4 import QtGui as _QtGui
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QDialog as _QDialog,
+    QTableWidgetItem as _QTableWidgetItem,
+    QFileDialog as _QFileDialog,
+    QMessageBox as _QMessageBox,
+    )
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.savefieldmapdialog import SaveFieldMapDialog \
@@ -15,7 +20,7 @@ from hallbench.data.measurement import FieldMapData as _FieldMapData
 from hallbench.data.calibration import ProbeCalibration
 
 
-class RecoverDataDialog(_QtGui.QDialog):
+class RecoverDataDialog(_QDialog):
     """Recover data dialog class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
@@ -44,8 +49,12 @@ class RecoverDataDialog(_QtGui.QDialog):
 
     def addFileToList(self):
         """Add file to data file list."""
-        filenames = _QtGui.QFileDialog.getOpenFileNames(
+        filenames = _QFileDialog.getOpenFileNames(
             directory=self.directory, filter="Text files (*.txt)")
+
+        if isinstance(filenames, tuple):
+            filenames = filenames[0]
+
         if len(filenames) == 0:
             return
 
@@ -59,7 +68,7 @@ class RecoverDataDialog(_QtGui.QDialog):
         self.ui.filecount_sb.setValue(len(self.filenames))
 
         for i in range(len(self.filenames)):
-            item = _QtGui.QTableWidgetItem()
+            item = _QTableWidgetItem()
             item.setText(self.filenames[i])
             self.ui.filenames_table.setItem(i, 0, item)
 
@@ -92,9 +101,12 @@ class RecoverDataDialog(_QtGui.QDialog):
         if default_filename == '':
             default_filename = self.directory
 
-        filename = _QtGui.QFileDialog.getOpenFileName(
+        filename = _QFileDialog.getOpenFileName(
             self, caption='Open probe calibration file',
             directory=default_filename, filter="Text files (*.txt)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
 
         if len(filename) == 0:
             return
@@ -103,22 +115,22 @@ class RecoverDataDialog(_QtGui.QDialog):
             self.probe_calibration = ProbeCalibration(filename)
             self.ui.calibration_le.setText(filename)
         except Exception as e:
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
     def loadDataAndSaveFieldMap(self):
         """Load data from files and open save fieldmap dialog."""
         if len(self.filenames) == 0:
             message = 'Empty filename list.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         if self.probe_calibration is None:
             message = 'Invalid calibration data.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         self.fieldmap_data = _FieldMapData()
@@ -131,8 +143,8 @@ class RecoverDataDialog(_QtGui.QDialog):
                     voltage_data_list.append(_VoltageData(filename))
                 except Exception:
                     message = 'Invalid voltage data file: %s' % filename
-                    _QtGui.QMessageBox.critical(
-                        self, 'Failure', message, _QtGui.QMessageBox.Ok)
+                    _QMessageBox.critical(
+                        self, 'Failure', message, _QMessageBox.Ok)
                     return
             self.fieldmap_data.voltage_data_list = voltage_data_list
         else:
@@ -142,8 +154,8 @@ class RecoverDataDialog(_QtGui.QDialog):
                     field_data_list.append(_FieldData(filename))
                 except Exception:
                     message = 'Invalid field data file: %s' % filename
-                    _QtGui.QMessageBox.critical(
-                        self, 'Failure', message, _QtGui.QMessageBox.Ok)
+                    _QMessageBox.critical(
+                        self, 'Failure', message, _QMessageBox.Ok)
                     return
             self.fieldmap_data.field_data_list = field_data_list
 
@@ -158,8 +170,8 @@ class RecoverDataDialog(_QtGui.QDialog):
         """Open save fieldmap dialog."""
         if self.fieldmap_data is None:
             message = 'Invalid field map data.'
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         self.save_dialog.show(self.fieldmap_data, self.directory)

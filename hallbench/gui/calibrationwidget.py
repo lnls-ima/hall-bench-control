@@ -4,8 +4,12 @@
 
 import numpy as _np
 import warnings as _warnings
-from PyQt4 import QtGui as _QtGui
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QWidget as _QWidget,
+    QFileDialog as _QFileDialog,
+    QMessageBox as _QMessageBox,
+    )
+import PyQt5.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.interpolationtabledialog import InterpolationTableDialog \
@@ -16,7 +20,7 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 
 
-class CalibrationWidget(_QtGui.QWidget):
+class CalibrationWidget(_QWidget):
     """Calibration widget class for the Hall Bench Control application."""
 
     _axis_str_dict = {
@@ -108,9 +112,12 @@ class CalibrationWidget(_QtGui.QWidget):
     def loadFile(self):
         """Load probe calibration file."""
         default_filename = self.ui.filename_le.text()
-        filename = _QtGui.QFileDialog.getOpenFileName(
+        filename = _QFileDialog.getOpenFileName(
             self, caption='Load probe calibration file',
             directory=default_filename, filter="Text files (*.txt)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
 
         if len(filename) == 0:
             return
@@ -118,8 +125,8 @@ class CalibrationWidget(_QtGui.QWidget):
         try:
             self.probe_calibration = _ProbeCalibration(filename)
         except Exception as e:
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
             self.probe_calibration = None
             self.setEnabled(False)
             self.updateGraph()

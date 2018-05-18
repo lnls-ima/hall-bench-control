@@ -4,7 +4,7 @@
 
 import sys as _sys
 import threading as _threading
-from PyQt4 import QtGui as _QtGui
+from PyQt5.QtWidgets import QApplication as _QApplication
 
 
 _style = 'windows'
@@ -23,8 +23,8 @@ class GUIThread(_threading.Thread):
     def run(self):
         """Thread target function."""
         self.app = None
-        if (not _QtGui.QApplication.instance()):
-            self.app = _QtGui.QApplication([])
+        if (not _QApplication.instance()):
+            self.app = _QApplication([])
             self.app.setStyle(_style)
 
             from hallbench.gui.hallbenchwindow import HallBenchWindow
@@ -38,8 +38,8 @@ class GUIThread(_threading.Thread):
 def run():
     """Run hallbench application."""
     app = None
-    if (not _QtGui.QApplication.instance()):
-        app = _QtGui.QApplication([])
+    if (not _QApplication.instance()):
+        app = _QApplication([])
         app.setStyle(_style)
 
         from hallbench.gui.hallbenchwindow import HallBenchWindow

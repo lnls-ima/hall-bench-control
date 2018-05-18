@@ -3,6 +3,7 @@
 Data/
 measurements/
 hallbench/tests/*.txt
+hallbench/tests/*.dat
 
 
 *interface.py

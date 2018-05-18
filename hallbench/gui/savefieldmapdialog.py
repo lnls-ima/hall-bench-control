@@ -3,15 +3,20 @@
 """Save field map dialog for the Hall Bench Control application."""
 
 import os.path as _path
-from PyQt4 import QtGui as _QtGui
-import PyQt4.uic as _uic
+from PyQt5.QtWidgets import (
+    QDialog as _QDialog,
+    QTableWidgetItem as _QTableWidgetItem,
+    QLineEdit as _QLineEdit,
+    QMessageBox as _QMessageBox,
+    )
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 import hallbench.data.magnets_info as _magnets_info
 from hallbench.data.utils import get_timestamp as _get_timestamp
 
 
-class SaveFieldMapDialog(_QtGui.QDialog):
+class SaveFieldMapDialog(_QDialog):
     """Save field map dialog class for the Hall Bench Control application."""
 
     _coil_list = ['main', 'trim', 'ch', 'cv', 'qs']
@@ -150,9 +155,9 @@ class SaveFieldMapDialog(_QtGui.QDialog):
             for parameter, value in m.items():
                 self.ui.additionalparam_ta.setRowCount(count+1)
                 self.ui.additionalparam_ta.setItem(
-                    count, 0, _QtGui.QTableWidgetItem(str(parameter)))
+                    count, 0, _QTableWidgetItem(str(parameter)))
                 self.ui.additionalparam_ta.setItem(
-                    count, 1, _QtGui.QTableWidgetItem(str(value)))
+                    count, 1, _QTableWidgetItem(str(value)))
                 count = count + 1
 
     def magnetXAxis(self):
@@ -189,8 +194,8 @@ class SaveFieldMapDialog(_QtGui.QDialog):
             center_pos2 = self.ui.centerpos2_sb.value()
             center_pos1 = self.ui.centerpos1_sb.value()
 
-            magnet_x_axis = self.getMagnetXAxis()
-            magnet_y_axis = self.getMagnetYAxis()
+            magnet_x_axis = self.magnetXAxis()
+            magnet_y_axis = self.magnetYAxis()
 
             f.write('fielmap_file:        {0:s}\n'.format(fieldmap_filename))
             f.write('magnet_center_axis3: {0:0.4f}\n'.format(center_pos3))
@@ -253,18 +258,19 @@ class SaveFieldMapDialog(_QtGui.QDialog):
         header_info.append(['center_pos_x[mm]', '0'])
         header_info.append(['rotation[deg]', '0'])
 
+        self.fieldmap.header_info = header_info
+
         center_pos3 = self.ui.centerpos3_sb.value()
         center_pos2 = self.ui.centerpos2_sb.value()
         center_pos1 = self.ui.centerpos1_sb.value()
         magnet_center = [center_pos3, center_pos2, center_pos1]
 
-        magnet_x_axis = self.getMagnetXAxis()
-        magnet_y_axis = self.getMagnetYAxis()
+        magnet_x_axis = self.magnetXAxis()
+        magnet_y_axis = self.magnetYAxis()
 
         try:
             self.fieldmap.save_file(
                 filename,
-                header_info=header_info,
                 magnet_center=magnet_center,
                 magnet_x_axis=magnet_x_axis,
                 magnet_y_axis=magnet_y_axis,
@@ -273,12 +279,12 @@ class SaveFieldMapDialog(_QtGui.QDialog):
             self.saveCoordinateSystemFile(filename)
 
             message = 'Field map data saved in file: \n%s' % filename
-            _QtGui.QMessageBox.information(
-                self, 'Information', message, _QtGui.QMessageBox.Ok)
+            _QMessageBox.information(
+                self, 'Information', message, _QMessageBox.Ok)
 
         except Exception as e:
-            _QtGui.QMessageBox.critical(
-                self, 'Failure', str(e), _QtGui.QMessageBox.Ok)
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def setCoilFrameEnabled(self, checkbox, frame):
         """Enabled or disabled coil frame."""
@@ -286,7 +292,7 @@ class SaveFieldMapDialog(_QtGui.QDialog):
             frame.setEnabled(True)
         else:
             frame.setEnabled(False)
-            lineedits = frame.findChildren(_QtGui.QLineEdit)
+            lineedits = frame.findChildren(_QLineEdit)
             for le in lineedits:
                 le.clear()
 

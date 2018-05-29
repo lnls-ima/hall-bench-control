@@ -6,8 +6,8 @@ from unittest import TestCase
 from hallbench.data import calibration
 
 
-class TestSensorCalibration(TestCase):
-    """Test sensor calibration data."""
+class TestCalibrationCurve(TestCase):
+    """Test calibration curve data."""
 
     def setUp(self):
         """Set up."""
@@ -132,50 +132,43 @@ class TestSensorCalibration(TestCase):
         pass
 
     def test_initialization_without_filename(self):
-        c = calibration.SensorCalibration()
+        c = calibration.CalibrationCurve()
         self.assertIsNone(c.function_type)
-        self.assertIsNone(c.voltage_offset)
         self.assertEqual(len(c.data), 0)
         self.assertIsNone(c.filename)
         self.assertIsNone(c._function)
 
     def test_initialization_with_filename(self):
-        c = calibration.SensorCalibration(self.filename_polynomial)
+        c = calibration.CalibrationCurve(self.filename_polynomial)
         self.assertEqual(c.function_type, 'polynomial')
-        self.assertEqual(c.voltage_offset, 0)
         self.assertEqual(c.data, self.sensor_data_polynomial)
         self.assertEqual(c.filename, self.filename_polynomial)
 
-        c = calibration.SensorCalibration(self.filename_interpolation)
+        c = calibration.CalibrationCurve(self.filename_interpolation)
         self.assertEqual(c.function_type, 'interpolation')
-        self.assertEqual(c.voltage_offset, 0)
         self.assertEqual(c.data, self.sensor_data_interpolation)
         self.assertEqual(c.filename, self.filename_interpolation)
 
     def test_read_file(self):
-        c = calibration.SensorCalibration()
+        c = calibration.CalibrationCurve()
         c.read_file(self.filename_polynomial)
         self.assertEqual(c.function_type, 'polynomial')
-        self.assertEqual(c.voltage_offset, 0)
         self.assertEqual(c.data, self.sensor_data_polynomial)
         self.assertEqual(c.filename, self.filename_polynomial)
 
-        c = calibration.SensorCalibration()
+        c = calibration.CalibrationCurve()
         c.read_file(self.filename_interpolation)
         self.assertEqual(c.function_type, 'interpolation')
-        self.assertEqual(c.voltage_offset, 0)
         self.assertEqual(c.data, self.sensor_data_interpolation)
         self.assertEqual(c.filename, self.filename_interpolation)
 
     def test_clear(self):
-        c = calibration.SensorCalibration(self.filename_polynomial)
+        c = calibration.CalibrationCurve(self.filename_polynomial)
         self.assertEqual(c.function_type, 'polynomial')
-        self.assertEqual(c.voltage_offset, 0)
         self.assertEqual(c.data, self.sensor_data_polynomial)
         self.assertEqual(c.filename, self.filename_polynomial)
         c.clear()
         self.assertIsNone(c.function_type)
-        self.assertIsNone(c.voltage_offset)
         self.assertEqual(len(c.data), 0)
         self.assertIsNone(c.filename)
         self.assertIsNone(c._function)
@@ -183,37 +176,32 @@ class TestSensorCalibration(TestCase):
     def test_save_file_interpolation(self):
         filename = 'tf_sensor_calibration_interpolation_tmp.txt'
         filename = os.path.join(self.base_directory, filename)
-        cw = calibration.SensorCalibration()
+        cw = calibration.CalibrationCurve()
         cw.function_type = 'interpolation'
-        cw.voltage_offset = 0
         cw.data = self.sensor_data_interpolation
         cw.save_file(filename)
 
-        cr = calibration.SensorCalibration(filename)
+        cr = calibration.CalibrationCurve(filename)
         self.assertEqual(cr.function_type, cw.function_type)
-        self.assertEqual(cr.voltage_offset, cw.voltage_offset)
         self.assertEqual(cr.data, cw.data)
         os.remove(filename)
 
     def test_save_file_polynomial(self):
         filename = 'tf_sensor_calibration_polynomial_tmp.txt'
         filename = os.path.join(self.base_directory, filename)
-        cw = calibration.SensorCalibration()
+        cw = calibration.CalibrationCurve()
         cw.function_type = 'polynomial'
-        cw.voltage_offset = 0
         cw.data = self.sensor_data_polynomial
         cw.save_file(filename)
 
-        cr = calibration.SensorCalibration(filename)
+        cr = calibration.CalibrationCurve(filename)
         self.assertEqual(cr.function_type, cw.function_type)
-        self.assertEqual(cr.voltage_offset, cw.voltage_offset)
         self.assertEqual(cr.data, cw.data)
         os.remove(filename)
 
     def test_conversion_polynomial(self):
-        c = calibration.SensorCalibration()
+        c = calibration.CalibrationCurve()
         c.function_type = 'polynomial'
-        c.voltage_offset = 0
         c.data = self.sensor_data_polynomial
 
         voltage = np.linspace(-15, 15, 101)
@@ -222,9 +210,8 @@ class TestSensorCalibration(TestCase):
         np.testing.assert_array_equal(field, field_polynomial)
 
     def test_conversion_interpolation(self):
-        c = calibration.SensorCalibration()
+        c = calibration.CalibrationCurve()
         c.function_type = 'interpolation'
-        c.voltage_offset = 0
         c.data = self.sensor_data_interpolation
 
         voltage = np.linspace(-20, -11, 100)
@@ -234,18 +221,18 @@ class TestSensorCalibration(TestCase):
             field, field_interpolation, decimal=2)
 
     def test_equality(self):
-        c1 = calibration.SensorCalibration()
-        c2 = calibration.SensorCalibration()
+        c1 = calibration.CalibrationCurve()
+        c2 = calibration.CalibrationCurve()
         self.assertTrue(c1 == c2)
         self.assertFalse(c1 != c2)
 
-        c1 = calibration.SensorCalibration()
-        c2 = calibration.SensorCalibration(self.filename_polynomial)
+        c1 = calibration.CalibrationCurve()
+        c2 = calibration.CalibrationCurve(self.filename_polynomial)
         self.assertFalse(c1 == c2)
         self.assertTrue(c1 != c2)
 
-        c1 = calibration.SensorCalibration(self.filename_polynomial)
-        c2 = calibration.SensorCalibration(self.filename_polynomial)
+        c1 = calibration.CalibrationCurve(self.filename_polynomial)
+        c2 = calibration.CalibrationCurve(self.filename_polynomial)
         self.assertTrue(c1 == c2)
         self.assertFalse(c1 != c2)
 
@@ -474,13 +461,10 @@ class TestProbeCalibration(TestCase):
         cw.probe_axis = 3
         cw.sensorx.function_type = 'interpolation'
         cw.sensorx.data = self.sensor_data_interpolation
-        cw.sensorx.voltage_offset = 0
         cw.sensory.function_type = 'interpolation'
         cw.sensory.data = self.sensor_data_interpolation
-        cw.sensory.voltage_offset = 0
         cw.sensorz.function_type = 'interpolation'
         cw.sensorz.data = self.sensor_data_interpolation
-        cw.sensorz.voltage_offset = 0
         cw.save_file(filename)
 
         cr = calibration.ProbeCalibration(filename)
@@ -503,13 +487,10 @@ class TestProbeCalibration(TestCase):
         cw.probe_axis = 3
         cw.sensorx.function_type = 'polynomial'
         cw.sensorx.data = self.sensor_data_polynomial
-        cw.sensorx.voltage_offset = 0
         cw.sensory.function_type = 'polynomial'
         cw.sensory.data = self.sensor_data_polynomial
-        cw.sensory.voltage_offset = 0
         cw.sensorz.function_type = 'polynomial'
         cw.sensorz.data = self.sensor_data_polynomial
-        cw.sensorz.voltage_offset = 0
         cw.save_file(filename)
 
         cr = calibration.ProbeCalibration(filename)

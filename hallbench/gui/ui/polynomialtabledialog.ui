@@ -72,7 +72,7 @@
        </layout>
       </item>
       <item row="1" column="0">
-       <widget class="QTableWidget" name="sensorx_table">
+       <widget class="QTableWidget" name="sensorx_ta">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -244,7 +244,7 @@
        </layout>
       </item>
       <item row="1" column="0">
-       <widget class="QTableWidget" name="sensory_table">
+       <widget class="QTableWidget" name="sensory_ta">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -416,7 +416,7 @@
        </layout>
       </item>
       <item row="1" column="0">
-       <widget class="QTableWidget" name="sensorz_table">
+       <widget class="QTableWidget" name="sensorz_ta">
         <property name="font">
          <font>
           <weight>50</weight>

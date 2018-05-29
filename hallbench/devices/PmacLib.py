@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """Pmac Lib."""
 
 import time as _time

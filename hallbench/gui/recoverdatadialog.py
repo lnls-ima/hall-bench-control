@@ -25,7 +25,7 @@ class RecoverDataDialog(_QDialog):
 
     def __init__(self, parent=None):
         """Setup the ui and create connections."""
-        super(RecoverDataDialog, self).__init__(parent)
+        super().__init__(parent)
 
         # setup the ui
         uifile = _getUiFile(__file__, self)
@@ -63,35 +63,35 @@ class RecoverDataDialog(_QDialog):
 
         self.directory = _path.split(self.filenames[0])[0]
 
-        self.ui.filenames_table.clear()
-        self.ui.filenames_table.setRowCount(len(self.filenames))
+        self.ui.filenames_ta.clear()
+        self.ui.filenames_ta.setRowCount(len(self.filenames))
         self.ui.filecount_sb.setValue(len(self.filenames))
 
         for i in range(len(self.filenames)):
             item = _QTableWidgetItem()
             item.setText(self.filenames[i])
-            self.ui.filenames_table.setItem(i, 0, item)
+            self.ui.filenames_ta.setItem(i, 0, item)
 
     def clearFileList(self):
         """Clear filename list."""
-        self.filenames_table.clear()
+        self.filenames_ta.clear()
         self.filenames = []
-        self.filenames_table.setRowCount(len(self.filenames))
+        self.filenames_ta.setRowCount(len(self.filenames))
         self.ui.filecount_sb.setValue(len(self.filenames))
 
     def removeFileFromList(self):
         """Remove file from filename list."""
-        items_to_remove = self.ui.filenames_table.selectedItems()
+        items_to_remove = self.ui.filenames_ta.selectedItems()
 
         if len(items_to_remove) != 0:
             for idx in items_to_remove:
-                self.ui.filenames_table.removeRow(idx.row())
+                self.ui.filenames_ta.removeRow(idx.row())
 
         self.filenames = []
-        for idx in range(self.ui.filenames_table.rowCount()):
-            if self.ui.filenames_table.item(idx, 0):
+        for idx in range(self.ui.filenames_ta.rowCount()):
+            if self.ui.filenames_ta.item(idx, 0):
                 self.filenames.append(
-                    self.ui.filenames_table.item(idx, 0).text())
+                    self.ui.filenames_ta.item(idx, 0).text())
 
         self.ui.filecount_sb.setValue(len(self.filenames))
 

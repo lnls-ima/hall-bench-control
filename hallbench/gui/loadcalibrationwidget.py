@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Calibration widget for the Hall Bench Control application."""
+"""Load Calibration widget for the Hall Bench Control application."""
 
 import numpy as _np
 import warnings as _warnings
@@ -20,15 +20,15 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 
 
-class CalibrationWidget(_QWidget):
-    """Calibration widget class for the Hall Bench Control application."""
+class LoadCalibrationWidget(_QWidget):
+    """Load Calibration widget class for the Hall Bench Control application."""
 
     _axis_str_dict = {
         1: '+ Axis #1 (+Z)', 2: '+ Axis #2 (+Y)', 3: '+ Axis #3 (+X)'}
 
     def __init__(self, parent=None):
         """Setup the ui and create connections."""
-        super(CalibrationWidget, self).__init__(parent)
+        super().__init__(parent)
 
         # setup the ui
         uifile = _getUiFile(__file__, self)
@@ -161,16 +161,6 @@ class CalibrationWidget(_QWidget):
         else:
             self.ui.distancezy_le.setText('')
             self.ui.distancezy_le.setEnabled(False)
-
-        for comp in ['x', 'y', 'z']:
-            sensor = getattr(self.probe_calibration, 'sensor' + comp)
-            le = getattr(self.ui, 'offset' + comp + '_le')
-            if sensor.voltage_offset is not None:
-                le.setText('{0:0.4f}'.format(sensor.voltage_offset))
-                le.setEnabled(True)
-            else:
-                le.setText('')
-                le.setEnabled(False)
 
         self.ui.fieldx_le.setText('')
         self.ui.fieldy_le.setText('')

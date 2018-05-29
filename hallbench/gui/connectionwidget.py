@@ -20,7 +20,7 @@ class ConnectionWidget(_QWidget):
 
     def __init__(self, parent=None):
         """Setup the ui."""
-        super(ConnectionWidget, self).__init__(parent)
+        super().__init__(parent)
 
         # setup the ui
         uifile = _getUiFile(__file__, self)

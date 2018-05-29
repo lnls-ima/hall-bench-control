@@ -2,7 +2,7 @@
 
 import os
 import numpy as np
-from hallbench.data.calibration import SensorCalibration, ProbeCalibration
+from hallbench.data.calibration import CalibrationCurve, ProbeCalibration
 from hallbench.data.configuration import ConnectionConfig, MeasurementConfig
 from hallbench.data.measurement import Data, VoltageData
 from hallbench.data.measurement import FieldData, FieldMapData
@@ -14,9 +14,8 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 
 def _make_sensor_calibration_files(fn_sc_polynomial, fn_sc_interpolation):
-    sc = SensorCalibration()
+    sc = CalibrationCurve()
     sc.function_type = 'polynomial'
-    sc.voltage_offset = 0
     sc.data = [
         [-1000, -10, 1.8216, 7.0592e-01, 4.7964e-02, 1.5304e-03],
         [-10, 10, 0, 0.2, 0, 0],
@@ -26,7 +25,6 @@ def _make_sensor_calibration_files(fn_sc_polynomial, fn_sc_interpolation):
 
     sc.clear()
     sc.function_type = 'interpolation'
-    sc.voltage_offset = 0
     sc.data = [
         [-20.0, -5.3544],
         [-19.6, -5.1117837],

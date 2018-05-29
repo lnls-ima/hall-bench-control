@@ -35,7 +35,7 @@ class MeasurementWidget(_QWidget):
 
     def __init__(self, parent=None):
         """Setup the ui, add widgets and create connections."""
-        super(MeasurementWidget, self).__init__(parent)
+        super().__init__(parent)
 
         # setup the ui
         uifile = _getUiFile(__file__, self)
@@ -65,6 +65,68 @@ class MeasurementWidget(_QWidget):
         self.stop = False
 
         # create connections
+        self.connectSignalSlots()
+
+    @property
+    def probe_calibration(self):
+        """Probe calibration data object."""
+        return self.window().probe_calibration
+
+    @property
+    def devices(self):
+        """Hall Bench Devices."""
+        return self.window().devices
+
+    @property
+    def directory(self):
+        """Directory to save files."""
+        return self.window().directory
+
+    @property
+    def save_field(self):
+        """Save field flag."""
+        return self.window().save_field
+
+    @property
+    def save_voltage(self):
+        """Save voltage flag."""
+        return self.window().save_voltage
+
+    def checkPositionRange(self):
+        """Check position range."""
+        if not self.ui.correctdisp_chb.isChecked():
+            return True
+
+        probe_axis = self.measurement_probe_calibration.probe_axis
+        distance_xy = self.measurement_probe_calibration.distance_xy
+        distance_zy = self.measurement_probe_calibration.distance_zy
+        start = self.configuration.get_start(probe_axis)
+        end = self.configuration.get_end(probe_axis)
+        if (end - start) < (distance_xy + distance_zy):
+            message = ('The position range is insufficient to correct ' +
+                       'probe displacements.\n\nThe minimum position ' +
+                       'range required for axis %i ' % probe_axis +
+                       'is: \n\n%0.4f mm' % (distance_xy + distance_zy))
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return False
+        else:
+            return True
+
+    def clearGraph(self):
+        """Clear plots."""
+        self.ui.graph_pw.plotItem.curves.clear()
+        self.ui.graph_pw.clear()
+        self.graphx = []
+        self.graphy = []
+        self.graphz = []
+
+    def closeDialogs(self):
+        """Close dialogs."""
+        self.save_dialog.close()
+
+    def connectSignalSlots(self):
+        """Create signal/slot connections."""
         self.ui.startax1_le.editingFinished.connect(
             lambda: self.setStrFormat(self.ui.startax1_le))
         self.ui.startax2_le.editingFinished.connect(
@@ -169,64 +231,6 @@ class MeasurementWidget(_QWidget):
         self.ui.measure_btn.clicked.connect(self.configureAndMeasure)
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
         self.ui.savefieldmap_btn.clicked.connect(self.showSaveFieldMapDialog)
-
-    @property
-    def probe_calibration(self):
-        """Probe calibration data object."""
-        return self.window().probe_calibration
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return self.window().devices
-
-    @property
-    def directory(self):
-        """Directory to save files."""
-        return self.window().directory
-
-    @property
-    def save_field(self):
-        """Save field flag."""
-        return self.window().save_field
-
-    @property
-    def save_voltage(self):
-        """Save voltage flag."""
-        return self.window().save_voltage
-
-    def checkPositionRange(self):
-        """Check position range."""
-        if not self.ui.correctdisp_chb.isChecked():
-            return True
-
-        probe_axis = self.measurement_probe_calibration.probe_axis
-        distance_xy = self.measurement_probe_calibration.distance_xy
-        distance_zy = self.measurement_probe_calibration.distance_zy
-        start = self.configuration.get_start(probe_axis)
-        end = self.configuration.get_end(probe_axis)
-        if (end - start) < (distance_xy + distance_zy):
-            message = ('The position range is insufficient to correct ' +
-                       'probe displacements.\n\nThe minimum position ' +
-                       'range required for axis %i ' % probe_axis +
-                       'is: \n\n%0.4f mm' % (distance_xy + distance_zy))
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return False
-        else:
-            return True
-
-    def clearGraph(self):
-        """Clear plots."""
-        self.ui.graph_pw.plotItem.curves.clear()
-        self.ui.graph_pw.clear()
-        self.graphx = []
-        self.graphy = []
-        self.graphz = []
-
-    def closeDialogs(self):
-        """Close dialogs."""
-        self.save_dialog.close()
 
     def saveStoredVoltageValuesToVoltageData(self):
         """Copy voltage values stored on multimeters."""

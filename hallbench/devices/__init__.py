@@ -2,3 +2,5 @@
 
 from . import GPIBLib
 from . import PmacLib
+from . import NMRLib
+from . import devices

@@ -7,17 +7,16 @@ from scipy import interpolate as _interpolate
 from . import utils as _utils
 
 
-class SensorCalibration(object):
+class CalibrationCurve(object):
     """Voltage to magnetic field conversion data."""
 
     def __init__(self, filename=None):
         """Initialize variables.
 
         Args:
-            filename (str): calibration file path.
+            filename (str): calibration curve file path.
         """
         self._function_type = None
-        self._voltage_offset = None
         self._function = None
         self._filename = None
         self._data = []
@@ -77,18 +76,8 @@ class SensorCalibration(object):
             raise TypeError('function_type must be a string.')
 
     @property
-    def voltage_offset(self):
-        """Sensor voltage offset."""
-        return self._voltage_offset
-
-    @voltage_offset.setter
-    def voltage_offset(self, value):
-        self._voltage_offset = value
-        self._set_conversion_function()
-
-    @property
     def data(self):
-        """Sensor calibration data."""
+        """Calibration curve data."""
         return self._data
 
     @data.setter
@@ -104,30 +93,29 @@ class SensorCalibration(object):
                 self._data = value
                 self._set_conversion_function()
             else:
-                raise ValueError('Invalid value for conversion data.')
+                raise ValueError('Invalid value for calibration data.')
         else:
-            raise TypeError('sensor conversion data must be a list.')
+            raise TypeError('calibration data must be a list.')
 
     @property
     def filename(self):
-        """Name of the sensor calibration file."""
+        """Name of the calibration file."""
         return self._filename
 
     def _set_conversion_function(self):
         if (len(self.data) != 0 and
            self.function_type == 'interpolation'):
             self._function = lambda v: _interpolation_conversion(
-                self.data, self.voltage_offset, v)
+                self.data, v)
         elif len(self.data) != 0 and self.function_type == 'polynomial':
             self._function = lambda v: _polynomial_conversion(
-                self.data, self.voltage_offset, v)
+                self.data, v)
         else:
             self._function = None
 
     def clear(self):
-        """Clear sensor calibration data."""
+        """Clear calibration curve data."""
         self._function_type = None
-        self._voltage_offset = None
         self._function = None
         self._filename = None
         self._data = []
@@ -156,8 +144,6 @@ class SensorCalibration(object):
 
         flines = _utils.read_file(filename)
         self.function_type = _utils.find_value(flines, 'function_type')
-        self.voltage_offset = _utils.find_value(
-            flines, 'voltage_offset', vtype=float)
 
         _data = []
         idx = _utils.find_index(flines, '----------')
@@ -182,8 +168,6 @@ class SensorCalibration(object):
             timestamp))
         f.write('function_type:                 \t{0:1s}\n'.format(
             self.function_type))
-        f.write('voltage_offset[V]:             \t{0:1s}\n'.format(
-            str(self.voltage_offset)))
         f.write('\n')
 
         if self.function_type == 'interpolation':
@@ -213,13 +197,16 @@ class ProbeCalibration(object):
         Args:
             filename (str): calibration file path.
         """
-        self._sensorx = SensorCalibration()
-        self._sensory = SensorCalibration()
-        self._sensorz = SensorCalibration()
+        self._sensorx = CalibrationCurve()
+        self._sensory = CalibrationCurve()
+        self._sensorz = CalibrationCurve()
         self._function_type = None
         self._probe_axis = None
         self._distance_xy = None
         self._distance_zy = None
+        self._angle_xy = None
+        self._angle_yz = None
+        self._angle_xz = None
         self._filename = None
         if filename is not None:
             self.read_file(filename)
@@ -268,10 +255,10 @@ class ProbeCalibration(object):
 
     @sensorx.setter
     def sensorx(self, value):
-        if isinstance(value, SensorCalibration):
+        if isinstance(value, CalibrationCurve):
             self._sensorx = value
         else:
-            raise TypeError('sensorx must be a SensorCalibration object.')
+            raise TypeError('sensorx must be a CalibrationCurve object.')
 
     @property
     def sensory(self):
@@ -280,10 +267,10 @@ class ProbeCalibration(object):
 
     @sensory.setter
     def sensory(self, value):
-        if isinstance(value, SensorCalibration):
+        if isinstance(value, CalibrationCurve):
             self._sensory = value
         else:
-            raise TypeError('sensory must be a SensorCalibration object.')
+            raise TypeError('sensory must be a CalibrationCurve object.')
 
     @property
     def sensorz(self):
@@ -292,10 +279,10 @@ class ProbeCalibration(object):
 
     @sensorz.setter
     def sensorz(self, value):
-        if isinstance(value, SensorCalibration):
+        if isinstance(value, CalibrationCurve):
             self._sensorz = value
         else:
-            raise TypeError('sensorz must be a SensorCalibration object.')
+            raise TypeError('sensorz must be a CalibrationCurve object.')
 
     @property
     def function_type(self):
@@ -337,6 +324,42 @@ class ProbeCalibration(object):
             raise ValueError('The sensor distance must be a positive number.')
 
     @property
+    def angle_xy(self):
+        """Angle between Sensor X and Sensor Y (Reference Sensor)."""
+        return self._angle_xy
+
+    @angle_xy.setter
+    def angle_xy(self, value):
+        if value >= -360.0 and value <= 360.0:
+            self._angle_xy = value
+        else:
+            raise ValueError('Invalid value for angle_xy.')
+
+    @property
+    def angle_yz(self):
+        """Angle between Sensor Y and Sensor Z (Reference Sensor)."""
+        return self._angle_yz
+
+    @angle_yz.setter
+    def angle_yz(self, value):
+        if value >= -360.0 and value <= 360.0:
+            self._angle_yz = value
+        else:
+            raise ValueError('Invalid value for angle_yz.')
+
+    @property
+    def angle_xz(self):
+        """Angle between Sensor X and Sensor Z (Reference Sensor)."""
+        return self._angle_xz
+
+    @angle_xz.setter
+    def angle_xz(self, value):
+        if value >= -360.0 and value <= 360.0:
+            self._angle_xz = value
+        else:
+            raise ValueError('Invalid value for angle_xz.')
+
+    @property
     def probe_axis(self):
         """Probe axis."""
         return self._probe_axis
@@ -359,13 +382,16 @@ class ProbeCalibration(object):
 
     def clear(self):
         """Clear calibration data."""
-        self._sensorx = SensorCalibration()
-        self._sensory = SensorCalibration()
-        self._sensorz = SensorCalibration()
+        self._sensorx = CalibrationCurve()
+        self._sensory = CalibrationCurve()
+        self._sensorz = CalibrationCurve()
         self._function_type = None
         self._probe_axis = None
         self._distance_xy = None
         self._distance_zy = None
+        self._angle_xy = None
+        self._angle_yz = None
+        self._angle_xz = None
         self._filename = None
 
     def corrected_position(self, axis, position_array, sensor):
@@ -440,22 +466,16 @@ class ProbeCalibration(object):
 
         if len(sensorx_data) != 0:
             self.sensorx.function_type = self.function_type
-            self.sensorx.voltage_offset = _utils.find_value(
-                flines, 'sensorx_offset', vtype=float)
             self.sensorx.data = sensorx_data
             self.distance_xy = _utils.find_value(
                 flines, 'distance_xy', vtype=float)
 
         if len(sensory_data) != 0:
             self.sensory.function_type = self.function_type
-            self.sensory.voltage_offset = _utils.find_value(
-                flines, 'sensory_offset', vtype=float)
             self.sensory.data = sensory_data
 
         if len(sensorz_data) != 0:
             self.sensorz.function_type = self.function_type
-            self.sensorz.voltage_offset = _utils.find_value(
-                flines, 'sensorz_offset', vtype=float)
             self.sensorz.data = sensorz_data
             self.distance_zy = _utils.find_value(
                 flines, 'distance_zy', vtype=float)
@@ -463,24 +483,24 @@ class ProbeCalibration(object):
     def read_data_from_sensor_files(
             self, filenamex=None, filenamey=None, filenamez=None):
         """Read calibration data from sensor files."""
-        self._sensorx = SensorCalibration()
-        self._sensory = SensorCalibration()
-        self._sensorz = SensorCalibration()
+        self._sensorx = CalibrationCurve()
+        self._sensory = CalibrationCurve()
+        self._sensorz = CalibrationCurve()
         self._function_type = None
 
         if filenamex is not None:
-            self.sensorx = SensorCalibration(filenamex)
+            self.sensorx = CalibrationCurve(filenamex)
             self.function_type = self.sensorx.function_type
 
         if filenamey is not None:
-            self.sensory = SensorCalibration(filenamey)
+            self.sensory = CalibrationCurve(filenamey)
             if self.function_type is None:
                 self.function_type = self.sensory.function_type
             elif self.sensory.function_type != self.function_type:
                 raise ValueError('Inconsistent calibration function types.')
 
         if filenamez is not None:
-            self.sensorz = SensorCalibration(filenamez)
+            self.sensorz = CalibrationCurve(filenamez)
             if self.function_type is None:
                 self.function_type = self.sensorz.function_type
             elif self.sensorz.function_type != self.function_type:
@@ -508,14 +528,14 @@ class ProbeCalibration(object):
             str(self.distance_xy)))
         f.write('distance_zy[mm]:                \t{0:1s}\n'.format(
             str(self.distance_zy)))
+        f.write('angle_xy[deg]:                  \t{0:1s}\n'.format(
+            str(self.angle_xy)))
+        f.write('angle_yz[deg]:                  \t{0:1s}\n'.format(
+            str(self.angle_yz)))
+        f.write('angle_xz[deg]:                  \t{0:1s}\n'.format(
+            str(self.angle_xz)))
         f.write('probe_axis:                     \t{0:1d}\n'.format(
             self.probe_axis))
-        f.write('sensorx_offset[V]:              \t{0:1s}\n'.format(
-            str(self.sensorx.voltage_offset)))
-        f.write('sensory_offset[V]:              \t{0:1s}\n'.format(
-            str(self.sensory.voltage_offset)))
-        f.write('sensorz_offset[V]:              \t{0:1s}\n'.format(
-            str(self.sensorz.voltage_offset)))
         f.write('\n')
 
         if self.function_type == 'interpolation':
@@ -552,11 +572,10 @@ class ProbeCalibration(object):
         f.close()
 
 
-def _polynomial_conversion(data, voltage_offset, voltage_array):
+def _polynomial_conversion(data, voltage_array):
     field_array = _np.ones(len(voltage_array))*_np.nan
-    offset_voltage_array = voltage_array - voltage_offset
-    for i in range(len(offset_voltage_array)):
-        voltage = offset_voltage_array[i]
+    for i in range(len(voltage_array)):
+        voltage = voltage_array[i]
         for d in data:
             vmin = d[0]
             vmax = d[1]
@@ -567,11 +586,10 @@ def _polynomial_conversion(data, voltage_offset, voltage_array):
     return field_array
 
 
-def _interpolation_conversion(data, voltage_offset, voltage_array):
+def _interpolation_conversion(data, voltage_array):
     d = _np.array(data)
     interp_func = _interpolate.splrep(d[:, 0], d[:, 1], k=1)
-    offset_voltage_array = voltage_array - voltage_offset
-    field_array = _interpolate.splev(offset_voltage_array, interp_func)
+    field_array = _interpolate.splev(voltage_array, interp_func)
     return field_array
 
 

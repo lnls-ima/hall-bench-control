@@ -12,8 +12,8 @@ import PyQt5.uic as _uic
 
 from hallbench.gui.connectionwidget import ConnectionWidget \
     as _ConnectionWidget
-from hallbench.gui.calibrationwidget import CalibrationWidget \
-    as _CalibrationWidget
+from hallbench.gui.loadcalibrationwidget import LoadCalibrationWidget \
+    as _LoadCalibrationWidget
 from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
 from hallbench.gui.setdirectorydialog import SetDirectoryDialog \
@@ -22,9 +22,7 @@ from hallbench.gui.recoverdatadialog import RecoverDataDialog \
     as _RecoverDataDialog
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
-from hallbench.devices.GPIBLib import Agilent3458A as _Agilent3458A
-from hallbench.devices.GPIBLib import Agilent34970A as _Agilent34970A
-from hallbench.devices.PmacLib import Pmac as _Pmac
+from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
 
 
 class HallBenchWindow(_QMainWindow):
@@ -34,7 +32,7 @@ class HallBenchWindow(_QMainWindow):
 
     def __init__(self, parent=None):
         """Setup the ui and add main tabs."""
-        super(HallBenchWindow, self).__init__(parent)
+        super().__init__(parent)
 
         # setup the ui
         uifile = _getUiFile(__file__, self)
@@ -56,7 +54,7 @@ class HallBenchWindow(_QMainWindow):
         self.save_voltage = True
         self.save_field = True
         self.probe_calibration = None
-        self.devices = HallBenchDevices()
+        self.devices = _HallBenchDevices()
 
         # create dialogs
         self.directory_dialog = _SetDirectoryDialog()
@@ -69,7 +67,7 @@ class HallBenchWindow(_QMainWindow):
         self.motors_tab = _MotorsWidget(self)
         self.ui.main_tab.addTab(self.motors_tab, 'Motors')
 
-        self.calibration_tab = _CalibrationWidget(self)
+        self.calibration_tab = _LoadCalibrationWidget(self)
         self.ui.main_tab.addTab(self.calibration_tab, 'Probe Calibration')
 
         self.measurement_tab = _MeasurementWidget(self)
@@ -109,6 +107,7 @@ class HallBenchWindow(_QMainWindow):
         self.recoverdata_dialog.close()
         self.calibration_tab.closeDialogs()
         self.measurement_tab.closeDialogs()
+        self.stopTimer()
         event.accept()
 
     def refreshInterface(self):
@@ -165,114 +164,3 @@ class HallBenchWindow(_QMainWindow):
     def updateMainTabStatus(self, tab, status):
         """Enable or disable main tabs."""
         self.ui.main_tab.setTabEnabled(tab, status)
-
-
-class HallBenchDevices(object):
-    """Hall Bench Devices."""
-
-    def __init__(self):
-        """Initiate variables."""
-        self.pmac = None
-        self.voltx = None
-        self.volty = None
-        self.voltz = None
-        self.multich = None
-        self.colimator = None
-        self.loaded = False
-
-    def clearMultimetersData(self):
-        """Clear multimeters stored data and update measurement flags."""
-        if not self.loaded:
-            return
-        self.voltx.end_measurement = False
-        self.volty.end_measurement = False
-        self.voltz.end_measurement = False
-        self.voltx.clear()
-        self.volty.clear()
-        self.voltz.clear()
-
-    def configurePmacTrigger(self, axis, pos, step, npts):
-        """Configure Pmac trigger."""
-        self.pmac.set_trigger(axis, pos, step, 10, npts, 1)
-
-    def connect(self, configuration):
-        """Connect devices.
-
-        Args:
-            configuration (ConnectionConfig): connection configuration.
-        """
-        if not self.loaded:
-            return [False]*5
-
-        status = []
-        if configuration.control_voltx_enable:
-            status.append(self.voltx.connect(configuration.control_voltx_addr))
-
-        if configuration.control_volty_enable:
-            status.append(self.volty.connect(configuration.control_volty_addr))
-
-        if configuration.control_voltz_enable:
-            status.append(self.voltz.connect(configuration.control_voltz_addr))
-
-        if configuration.control_pmac_enable:
-            status.append(self.pmac.connect())
-
-        if configuration.control_multich_enable:
-            status.append(
-                self.multich.connect(configuration.control_multich_addr))
-
-        return status
-
-    def disconnect(self):
-        """Disconnect devices."""
-        if not self.loaded:
-            return [True]*5
-
-        status = []
-        status.append(self.voltx.disconnect())
-        status.append(self.volty.disconnect())
-        status.append(self.voltz.disconnect())
-        status.append(self.pmac.disconnect())
-        status.append(self.multich.disconnect())
-
-        return status
-
-    def initialMeasurementConfiguration(self, configuration):
-        """Initial measurement configuration.
-
-        Args:
-            configuration (MeasurementConfig): measurement configuration.
-        """
-        if configuration.meas_probeX:
-            self.voltx.config(
-                configuration.meas_aper_ms, configuration.meas_precision)
-        if configuration.meas_probeY:
-            self.volty.config(
-                configuration.meas_aper_ms, configuration.meas_precision)
-        if configuration.meas_probeZ:
-            self.voltz.config(
-                configuration.meas_aper_ms, configuration.meas_precision)
-
-        self.pmac.set_axis_speed(1, configuration.meas_vel_ax1)
-        self.pmac.set_axis_speed(2, configuration.meas_vel_ax2)
-        self.pmac.set_axis_speed(3, configuration.meas_vel_ax3)
-        self.pmac.set_axis_speed(5, configuration.meas_vel_ax5)
-
-    def load(self):
-        """Load devices."""
-        try:
-            self.pmac = _Pmac('pmac.log')
-            self.voltx = _Agilent3458A('voltx.log')
-            self.volty = _Agilent3458A('volty.log')
-            self.voltz = _Agilent3458A('voltz.log')
-            self.multich = _Agilent34970A('multi.log')
-            self.loaded = True
-        except Exception:
-            self.loaded = False
-
-    def stopTrigger(self):
-        """Stop Pmac trigger and update measurement flags."""
-        self.pmac.stop_trigger()
-        self.voltx.end_measurement = True
-        self.volty.end_measurement = True
-        self.voltz.end_measurement = True

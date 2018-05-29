@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>calibration_wg</class>
- <widget class="QWidget" name="calibration_wg">
+ <class>loadcalibration_wg</class>
+ <widget class="QWidget" name="loadcalibration_wg">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -205,7 +205,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Sensor-Z Offset [V]:</string>
+         <string>Angle XZ [deg]:</string>
         </property>
        </widget>
       </item>
@@ -218,7 +218,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Sensor-Y Offset [V]:</string>
+         <string>Angle YZ [deg]:</string>
         </property>
        </widget>
       </item>
@@ -265,7 +265,7 @@
        </widget>
       </item>
       <item row="5" column="2">
-       <widget class="QLineEdit" name="offsety_le">
+       <widget class="QLineEdit" name="angleyz_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -299,7 +299,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Sensor-X Offset [V]:</string>
+         <string>Angle XY [deg]:</string>
         </property>
        </widget>
       </item>
@@ -336,7 +336,7 @@
        </widget>
       </item>
       <item row="6" column="2">
-       <widget class="QLineEdit" name="offsetz_le">
+       <widget class="QLineEdit" name="anglexz_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -349,7 +349,7 @@
        </widget>
       </item>
       <item row="4" column="2">
-       <widget class="QLineEdit" name="offsetx_le">
+       <widget class="QLineEdit" name="anglexy_le">
         <property name="font">
          <font>
           <weight>50</weight>

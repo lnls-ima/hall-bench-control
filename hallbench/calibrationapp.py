@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Main entry poin to the Hall bench control application."""
+"""Main entry poin to the Hall probe calibration application."""
 
 import sys as _sys
 import threading as _threading
@@ -27,27 +27,27 @@ class GUIThread(_threading.Thread):
             self.app = _QApplication([])
             self.app.setStyle(_style)
 
-            from hallbench.gui.hallbenchwindow import HallBenchWindow
-            self.window = HallBenchWindow()
+            from hallbench.gui.calibrationwindow import CalibrationWindow
+            self.window = CalibrationWindow()
             self.window.show()
 
             _sys.exit(self.app.exec_())
 
 
 def run():
-    """Run hallbench application."""
+    """Run calibration application."""
     app = None
     if (not _QApplication.instance()):
         app = _QApplication([])
         app.setStyle(_style)
 
-        from hallbench.gui.hallbenchwindow import HallBenchWindow
-        window = HallBenchWindow()
+        from hallbench.gui.calibrationwindow import CalibrationWindow
+        window = CalibrationWindow()
         window.show()
 
         _sys.exit(app.exec_())
 
 
 def run_in_thread():
-    """Run hallbench application in a thread."""
+    """Run calibration application in a thread."""
     return GUIThread()

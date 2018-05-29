@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """GPIB communication.
 
 Created on 10/02/2015

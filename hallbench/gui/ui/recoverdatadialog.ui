@@ -184,7 +184,7 @@
       <item row="2" column="0" colspan="4">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QTableWidget" name="filenames_table">
+         <widget class="QTableWidget" name="filenames_ta">
           <property name="font">
            <font>
             <pointsize>11</pointsize>

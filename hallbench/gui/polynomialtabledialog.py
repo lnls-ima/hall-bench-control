@@ -17,7 +17,7 @@ class PolynomialTableDialog(_QDialog):
 
     def __init__(self, parent=None):
         """Setup the ui and create connections."""
-        super(PolynomialTableDialog, self).__init__(parent)
+        super().__init__(parent)
 
         # setup the ui
         uifile = _getUiFile(__file__, self)
@@ -40,7 +40,7 @@ class PolynomialTableDialog(_QDialog):
 
     def copyToClipboard(self, sensor):
         """Copy table data to clipboard."""
-        table = getattr(self.ui, 'sensor' + sensor + '_table')
+        table = getattr(self.ui, 'sensor' + sensor + '_ta')
         text = ""
         for r in range(table.rowCount()):
             for c in range(table.columnCount()):
@@ -65,7 +65,7 @@ class PolynomialTableDialog(_QDialog):
     def updateTableSensorX(self):
         """Update sensor x table values."""
         precision = self.sensorxprec_sb.value()
-        table = self.ui.sensorx_table
+        table = self.ui.sensorx_ta
         data = self.calibration_data.sensorx.data
 
         formatstr = '{0:0.%if}' % precision
@@ -80,7 +80,7 @@ class PolynomialTableDialog(_QDialog):
     def updateTableSensorY(self):
         """Update sensor y table values."""
         precision = self.sensoryprec_sb.value()
-        table = self.ui.sensory_table
+        table = self.ui.sensory_ta
         data = self.calibration_data.sensory.data
 
         formatstr = '{0:0.%if}' % precision
@@ -95,7 +95,7 @@ class PolynomialTableDialog(_QDialog):
     def updateTableSensorZ(self):
         """Update sensor z table values."""
         precision = self.sensorzprec_sb.value()
-        table = self.ui.sensorz_table
+        table = self.ui.sensorz_ta
         data = self.calibration_data.sensorz.data
 
         formatstr = '{0:0.%if}' % precision

@@ -349,7 +349,7 @@ class MeasurementWidget(_QWidget):
 
     def configurePmacTrigger(self, axis, pos, step, npts):
         """Configure Pmac trigger."""
-        self.devices.configurePmacTrigger(axis, pos, step, npts)
+        self.devices.pmac.set_trigger(axis, pos, step, 10, npts, 1)
 
     def disableInvalidLineEdit(self):
         """Disable invalid line edit."""

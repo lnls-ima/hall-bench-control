@@ -34,15 +34,18 @@ class DBScan(object):
             'main_current' REAL NOT NULL,\
             'pmac_enable' INTEGER NOT NULL,\
             'voltx_enable' INTEGER NOT NULL,\
+            'voltx_address' INTEGER,\
             'volty_enable' INTEGER NOT NULL,\
+            'volty_address' INTEGER,\
             'voltz_enable' INTEGER NOT NULL,\
+            'voltz_address' INTEGER,\
             'multich_enable' INTEGER NOT NULL,\
+            'multich_address' INTEGER,\
+            'nmr_enable' INTEGER NOT NULL,\
+            'nmr_port' TEXT,\
+            'nmr_baudrate' INTEGER,\
             'colimator_enable' INTEGER NOT NULL,\
-            'voltx_addr' INTEGER,\
-            'volty_addr' INTEGER,\
-            'voltz_addr' INTEGER,\
-            'multich_addr' INTEGER,\
-            'colimator_addr' INTEGER,\
+            'colimator_port' TEXT,\
             'probex_enable' INTEGER NOT NULL,\
             'probey_enable' INTEGER NOT NULL,\
             'probez_enable' INTEGER NOT NULL,\

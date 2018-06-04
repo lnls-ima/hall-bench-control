@@ -99,22 +99,25 @@ class ConnectionConfig(Configuration):
         Args:
             filename (str): connection configuration filepath.
         """
-        self.control_pmac_enable = None
-        self.control_voltx_enable = None
-        self.control_volty_enable = None
-        self.control_voltz_enable = None
-        self.control_multich_enable = None
-        self.control_colimator_enable = None
-        self.control_voltx_addr = None
-        self.control_volty_addr = None
-        self.control_voltz_addr = None
-        self.control_multich_addr = None
-        self.control_colimator_addr = None
+        self.pmac_enable = None
+        self.voltx_enable = None
+        self.voltx_address = None
+        self.volty_enable = None
+        self.volty_address = None
+        self.voltz_enable = None
+        self.voltz_address = None
+        self.multich_enable = None
+        self.multich_address = None
+        self.nmr_enable = None
+        self.nmr_port = None
+        self.nmr_baudrate = None
+        self.colimator_enable = None
+        self.colimator_port = None
         super().__init__(filename)
 
     def get_attribute_type(self, name):
         """Get attribute type."""
-        if name == '_filename':
+        if name == '_filename' or 'port' in name:
             return str
         else:
             return int
@@ -136,28 +139,21 @@ class ConnectionConfig(Configuration):
             self._filename = filename
             data = [
                 'Configuration File\n\n',
-                '#control_pmac_enable\t{0:1d}\n\n'.format(
-                    self.control_pmac_enable),
-                '#control_voltx_enable\t{0:1d}\n'.format(
-                    self.control_voltx_enable),
-                '#control_volty_enable\t{0:1d}\n'.format(
-                    self.control_volty_enable),
-                '#control_voltz_enable\t{0:1d}\n\n'.format(
-                    self.control_voltz_enable),
-                '#control_multich_enable\t{0:1d}\n'.format(
-                    self.control_multich_enable),
-                '#control_colimator_enable\t{0:1d}\n\n'.format(
-                    self.control_colimator_enable),
-                '#control_voltx_addr\t{0:1d}\n'.format(
-                    self.control_voltx_addr),
-                '#control_volty_addr\t{0:1d}\n'.format(
-                    self.control_volty_addr),
-                '#control_voltz_addr\t{0:1d}\n\n'.format(
-                    self.control_voltz_addr),
-                '#control_multich_addr\t{0:1d}\n\n'.format(
-                    self.control_multich_addr),
-                '#control_colimator_addr\t{0:1d}\n'.format(
-                    self.control_colimator_addr)]
+                '#pmac_enable\t{0:1d}\n\n'.format(self.pmac_enable),
+                '#voltx_enable\t{0:1d}\n'.format(self.voltx_enable),
+                '#voltx_address\t{0:1d}\n'.format(self.voltx_address),
+                '#volty_enable\t{0:1d}\n'.format(self.volty_enable),
+                '#volty_address\t{0:1d}\n'.format(self.volty_address),
+                '#voltz_enable\t{0:1d}\n\n'.format(self.voltz_enable),
+                '#voltz_address\t{0:1d}\n\n'.format(self.voltz_address),
+                '#multich_enable\t{0:1d}\n'.format(self.multich_enable),
+                '#multich_address\t{0:1d}\n\n'.format(self.multich_address),
+                '#nmr_enable\t{0:1d}\n'.format(self.nmr_enable),
+                '#nmr_port\t{0:s}\n'.format(self.nmr_port),
+                '#nmr_baudrate\t{0:1d}\n'.format(self.nmr_baudrate),
+                '#colimator_enable\t{0:1d}\n\n'.format(self.colimator_enable),
+                '#colimator_port\t{0:s}\n'.format(self.colimator_port),
+                ]
 
             f = open(filename, mode='w')
             for item in data:

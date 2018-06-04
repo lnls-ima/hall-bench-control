@@ -5,7 +5,6 @@ Created on 10/02/2015
 @author: James Citadini
 """
 
-# Libraries
 import visa as _visa
 import logging as _logging
 import numpy as _np
@@ -21,23 +20,30 @@ class GPIB(object):
         Args:
             logfile (str): log file path.
         """
-        self.inst = None
         self.logger = None
-        self.log_events(logfile)
+        self.logfile = logfile
+        self.log_events()
 
-    def log_events(self, logfile):
-        """Prepare log file to save info, warning and error status.
+        self.inst = None
+        self._connected = False
 
-        Args:
-            logfile (str): log file path.
-        """
-        if logfile is not None:
-            _logging.basicConfig(
-                format='%(asctime)s\t%(levelname)s\t%(message)s',
-                datefmt='%m/%d/%Y %H:%M:%S',
-                filename=logfile,
-                level=_logging.DEBUG)
-            self.logger = _logging.getLogger(__name__)
+    @property
+    def connected(self):
+        """Return True if the device is connected, False otherwise."""
+        return self._connected
+
+    def log_events(self):
+        """Prepare log file to save info, warning and error status."""
+        if self.logfile is not None:
+            formatter = _logging.Formatter(
+                fmt='%(asctime)s\t%(levelname)s\t%(message)s',
+                datefmt='%m/%d/%Y %H:%M:%S')
+            fileHandler = _logging.FileHandler(self.logfile, mode='w')
+            fileHandler.setFormatter(formatter)
+            logname = self.logfile.replace('.log', '')
+            self.logger = _logging.getLogger(logname)
+            self.logger.addHandler(fileHandler)
+            self.logger.setLevel(_logging.ERROR)
 
     def connect(self, address):
         """Connect to a GPIB device with the given address.
@@ -62,8 +68,10 @@ class GPIB(object):
                 self.inst = _inst
                 # set a default timeout to 1
                 self.inst.timeout = 1000  # ms
+                self._connected = True
                 return True
             else:
+                self._connected = False
                 return False
         except Exception:
             self.logger.error('exception', exc_info=True)
@@ -74,6 +82,7 @@ class GPIB(object):
         try:
             if self.inst is not None:
                 self.inst.close()
+            self._connected = False
             return True
         except Exception:
             self.logger.error('exception', exc_info=True)
@@ -95,6 +104,7 @@ class GPIB(object):
                 return False
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def read_from_device(self):
         """Read a string from the device.

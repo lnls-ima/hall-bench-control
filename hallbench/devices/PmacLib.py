@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Pmac Lib."""
 
-import time as _time
 import ctypes as _ctypes
 import logging as _logging
 
@@ -129,7 +128,7 @@ class PmacCommands(object):
 
         jog_pos          - Jog motor indefinitely in positive direction
         jog_neg          - Jog motor indefinitely in negative direction
-        jog_stop         - Jog motor indefinitely in negative direction
+        jog_stop         - Stop jog
         jog_abs_position - Jog to absolute position
         jog_rel_position - Jog to relative position
         """
@@ -177,82 +176,98 @@ class Pmac(object):
 
     def __init__(self, logfile=None):
         """Initiate all function variables."""
-        self.logfile = logfile
         self.logger = None
+        self.logfile = logfile
         self.log_events()
 
         # load commands
         self.commands = PmacCommands()
 
         # start goblal variables
-        self.pmacdll = None
-        self.value = ''
+        self._pmacdll = None
+        self._value = ''
+        self._connected = False
 
-        # connect to dll and device
-        self.create()
+    @property
+    def connected(self):
+        """Return True if the device is connected, False otherwise."""
+        return self._connected
 
     def log_events(self):
         """Prepare logging file to save info, warning and error status."""
         if self.logfile is not None:
-            _logging.basicConfig(
-                format='%(asctime)s\t%(levelname)s\t%(message)s',
-                datefmt='%m/%d/%Y %H:%M:%S',
-                filename=self.logfile,
-                level=_logging.DEBUG)
-            self.logger = _logging.getLogger(__name__)
-
-    def create(self):
-        """Create an instance, open dll, and connect to device if possible."""
-        if self.load_dll():
-            return True
-        else:
-            self.logger.error('Fail to connect to dll')
-
-        return False
-
-    def set_par(self, input_par, value):
-        """Create string if desired value."""
-        try:
-            _parameter = input_par + '=' + str(value)
-            return _parameter
-        except Exception:
-            return input_par
+            formatter = _logging.Formatter(
+                fmt='%(asctime)s\t%(levelname)s\t%(message)s',
+                datefmt='%m/%d/%Y %H:%M:%S')
+            fileHandler = _logging.FileHandler(self.logfile, mode='w')
+            fileHandler.setFormatter(formatter)
+            logname = self.logfile.replace('.log', '')
+            self.logger = _logging.getLogger(logname)
+            self.logger.addHandler(fileHandler)
+            self.logger.setLevel(_logging.DEBUG)
 
     def load_dll(self):
-        """Load dll file PComm32W.dll to control the bench."""
+        """Load dll file PComm32W.dll to control the bench.
+
+        Returns:
+            True if successful, False otherwise.
+        """
         try:
-            self.pmacdll = _ctypes.windll.LoadLibrary('PComm32W.dll')
+            self._pmacdll = _ctypes.windll.LoadLibrary('PComm32W.dll')
             return True
         except Exception:
+            self.logger.error('Fail to connect to dll')
             return False
 
     def connect(self):
         """Connect to Pmac device - OpenPmacDevice(0)."""
+        if self._pmacdll is None:
+            if self.load_dll():
+                return False
+
         try:
-            return bool(self.pmacdll.OpenPmacDevice(0))
+            status = bool(self._pmacdll.OpenPmacDevice(0))
+            self._connected = status
+            return status
         except Exception:
             return False
 
     def disconnect(self):
         """Disconnect Pmac device - ClosePmacDevice(0)."""
+        if self._pmacdll is None:
+            return True
+
         try:
-            return bool(self.pmacdll.ClosePmacDevice(0))
+            status = bool(self._pmacdll.ClosePmacDevice(0))
+            if status is None:
+                self._connected = None
+            else:
+                self._connected = not status
+            return status
         except Exception:
             return None
 
     def lock_pmac(self):
         """Lock Pmac to avoid multiple operations - LockPmac(0)."""
         try:
-            return self.pmacdll.LockPmac(0)
+            return self._pmacdll.LockPmac(0)
         except Exception:
             return None
 
     def release_pmac(self):
         """Release Pmac - ReleasePmac(0)."""
         try:
-            return self.pmacdll.ReleasePmac(0)
+            return self._pmacdll.ReleasePmac(0)
         except Exception:
             return None
+
+    def set_par(self, input_par, value):
+        """Create string with the desired value."""
+        try:
+            _parameter = input_par + '=' + str(value)
+            return _parameter
+        except Exception:
+            return input_par
 
     def get_response(self, str_command):
         """
@@ -271,7 +286,7 @@ class Pmac(object):
             response = (' '*maxchar).encode('utf-8')
 
             # send command and get pmac response
-            _retval = self.pmacdll.PmacGetResponseExA(
+            _retval = self._pmacdll.PmacGetResponseExA(
                 0,
                 response,
                 maxchar,
@@ -282,7 +297,7 @@ class Pmac(object):
             if _retval & MASK_STATUS == COMM_EOT:
                 result = response.decode('utf-8')
                 # erase all result after /r
-                self.value = result[0:result.find('\r')]
+                self._value = result[0:result.find('\r')]
 
                 return True
             else:
@@ -298,11 +313,12 @@ class Pmac(object):
         """
         try:
             if self.get_response(str_command):
-                return self.value
+                return self._value
             else:
                 return ''
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def activate_bench(self):
         """
@@ -319,17 +335,19 @@ class Pmac(object):
             return False
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def axis_status(self, axis):
         """Get axis status."""
         try:
             _cmd = '#' + str(axis) + self.commands.axis_status
             if self.get_response(_cmd):
-                status = int(self.value, 16)
+                status = int(self._value, 16)
                 return status
             return None
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def align_bench(self, axis_mask):
         """Set the mask of the axis to be aligned and run plc script."""
@@ -337,7 +355,7 @@ class Pmac(object):
             _cmd = self.set_par(self.commands.p_axis_mask, axis_mask)
             if self.get_response(_cmd):
                 if self.get_response(self.commands.p_axis_mask):
-                    if int(self.value) == axis_mask:
+                    if int(self._value) == axis_mask:
                         if self.get_response(self.commands.rp_align_axis):
                             return True
                         else:
@@ -347,30 +365,34 @@ class Pmac(object):
             return False
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def get_position(self, axis):
         """Read the current position in counter and convert to mm."""
         try:
             _cmd = '#' + str(axis) + self.commands.current_position
             if self.get_response(_cmd):
-                _pos = float(self.value) / self.commands.CTS_MM_AXIS[axis-1]
+                _pos = float(self._value) / self.commands.CTS_MM_AXIS[axis-1]
                 return _pos
             else:
                 return None
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def get_velocity(self, axis):
         """Read the current velocity in cts/msc."""
         try:
             _cmd = self.commands.i_axis_speed[axis-1]
             if self.get_response(_cmd):
-                _vel = float(self.value)/self.commands.CTS_MM_AXIS[axis-1]*1000
+                _vel = float(
+                    self._value)/self.commands.CTS_MM_AXIS[axis-1]*1000
                 return _vel
             else:
                 return None
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def set_axis_speed(self, axis, value):
         """Set the axis speed."""
@@ -381,11 +403,12 @@ class Pmac(object):
             # set speed
             _cmd = self.set_par(self.commands.i_axis_speed[axis-1], adj_value)
             if self.get_response(_cmd):
-                if self.value != adj_value:
+                if self._value != adj_value:
                     return True
             return False
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def move_axis(self, axis, value):
         """Move axis to defined position."""
@@ -399,6 +422,7 @@ class Pmac(object):
             return False
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def stop_axis(self, axis):
         """Stop axis."""
@@ -408,6 +432,7 @@ class Pmac(object):
             return False
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def stop_all_axis(self):
         """Stop all axis."""
@@ -417,6 +442,7 @@ class Pmac(object):
             return False
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def kill_all_axis(self):
         """Kill all axis."""
@@ -426,6 +452,7 @@ class Pmac(object):
             return False
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def set_trigger(
             self,
@@ -476,6 +503,7 @@ class Pmac(object):
 
         except Exception:
             self.logger.error('exception', exc_info=True)
+            return None
 
     def stop_trigger(self):
         """Stop trigerring."""
@@ -487,10 +515,4 @@ class Pmac(object):
             return False
         except Exception:
             self.logger.error('exception', exc_info=True)
-
-
-def default_logfile(device_name):
-    """Default logfile."""
-    timestamp = _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime())
-    filename = timestamp + '_' + device_name + '.log'
-    return filename
+            return None

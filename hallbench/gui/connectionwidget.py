@@ -27,9 +27,9 @@ class ConnectionWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
-        self.configuration = None
+        self.config = None
 
-        # create connections
+        # create signal/slot connections
         self.ui.loadconfig_btn.clicked.connect(self.loadConfiguration)
         self.ui.saveconfig_btn.clicked.connect(self.saveConfiguration)
         self.ui.connect_btn.clicked.connect(self.connectDevices)
@@ -51,34 +51,65 @@ class ConnectionWidget(_QWidget):
             return
 
         if self.devices is None:
-            message = 'Invalid value for devices.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        connect_status = self.devices.connect(self.configuration)
-        self.updateLedStatus(connect_status)
+        try:
+            self.devices.connect(self.config)
+            self.updateLedStatus()
+            connected = self.connectionStatus()
 
-        if not any(connect_status):
+            if not connected:
+                message = 'Fail to connect devices.'
+                _QMessageBox.critical(
+                    self, 'Failure', message, _QMessageBox.Ok)
+
+        except Exception:
             message = 'Fail to connect devices.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
-            self.window().updateMainTabStatus(1, False)
-            self.window().updateMainTabStatus(2, False)
-            self.window().updateMainTabStatus(3, False)
-            return
-        else:
-            self.window().updateMainTabStatus(1, True)
-            self.window().updateMainTabStatus(2, True)
+
+    def connectionStatus(self):
+        """Connection status."""
+        try:
+            if self.config.pmac_enable:
+                pmac_connected = self.devices.pmac.connected
+                if pmac_connected is None or pmac_connected is False:
+                    return False
+
+            if self.config.voltx_enable and not self.devices.voltx.connected:
+                return False
+
+            if self.config.volty_enable and not self.devices.volty.connected:
+                return False
+
+            if self.config.voltz_enable and not self.devices.voltz.connected:
+                return False
+
+            if (self.config.multich_enable and
+               not self.devices.multich.connected):
+                return False
+
+            if self.config.nmr_enable and not self.devices.nmr.connected:
+                return False
+
+            return True
+
+        except Exception:
+            return False
 
     def disconnectDevices(self):
         """Disconnect bench devices."""
         if self.devices is None:
             return
 
-        disconnect_status = self.devices.disconnect()
-        connect_status = [not s for s in disconnect_status]
-        self.updateLedStatus(connect_status)
+        try:
+            self.devices.disconnect()
+            self.updateLedStatus()
+
+        except Exception:
+            message = 'Fail to disconnect devices.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
 
     def loadConfiguration(self):
         """Load configuration file to set connection parameters."""
@@ -94,36 +125,44 @@ class ConnectionWidget(_QWidget):
             return
 
         try:
-            self.configuration = _ConnectionConfig(filename)
+            self.config = _ConnectionConfig(filename)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
-        self.ui.filename_le.setText(filename)
+        try:
+            self.ui.filename_le.setText(filename)
 
-        self.ui.voltx_chb.setChecked(self.configuration.control_voltx_enable)
-        self.ui.volty_chb.setChecked(self.configuration.control_volty_enable)
-        self.ui.voltz_chb.setChecked(self.configuration.control_voltz_enable)
+            self.ui.pmac_chb.setChecked(self.config.pmac_enable)
 
-        self.ui.voltxaddress_sb.setValue(
-            self.configuration.control_voltx_addr)
-        self.ui.voltyaddress_sb.setValue(
-            self.configuration.control_volty_addr)
-        self.ui.voltzaddress_sb.setValue(
-            self.configuration.control_voltz_addr)
+            self.ui.voltx_chb.setChecked(self.config.voltx_enable)
+            self.ui.voltxaddress_sb.setValue(self.config.voltx_address)
 
-        self.ui.pmac_chb.setChecked(self.configuration.control_pmac_enable)
+            self.ui.volty_chb.setChecked(self.config.volty_enable)
+            self.ui.voltyaddress_sb.setValue(self.config.volty_address)
 
-        self.ui.multich_chb.setChecked(
-            self.configuration.control_multich_enable)
-        self.ui.multichaddress_sb.setValue(
-            self.configuration.control_multich_addr)
+            self.ui.voltz_chb.setChecked(self.config.voltz_enable)
+            self.ui.voltzaddress_sb.setValue(self.config.voltz_address)
 
-        self.ui.colimator_chb.setChecked(
-            self.configuration.control_colimator_enable)
-        self.ui.colimatorport_cmb.setCurrentIndex(
-            self.configuration.control_colimator_addr)
+            self.ui.multich_chb.setChecked(self.config.multich_enable)
+            self.ui.multichaddress_sb.setValue(self.config.multich_address)
+
+            self.ui.nmr_chb.setChecked(self.config.nmr_enable)
+            self.ui.nmrport_cmb.setCurrentIndex(
+                self.ui.nmrport_cmb.findText(self.config.nmr_port))
+            self.ui.nmrbaudrate_cmb.setCurrentIndex(
+                self.ui.nmrbaudrate_cmb.findText(
+                    str(self.config.nmr_baudrate)))
+
+            self.ui.colimator_chb.setChecked(self.config.colimator_enable)
+            self.ui.colimatorport_cmb.setCurrentIndex(
+                self.ui.colimatorport_cmb.findText(self.config.colimator_port))
+
+        except Exception:
+            message = 'Fail to load configuration.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
 
     def saveConfiguration(self):
         """Save connection parameters to file."""
@@ -138,63 +177,64 @@ class ConnectionWidget(_QWidget):
         if len(filename) == 0:
             return
 
-        if self.updateConfiguration():
-            try:
+        try:
+            if self.updateConfiguration():
                 if not filename.endswith('.txt'):
                     filename = filename + '.txt'
-                self.configuration.save_file(filename)
-            except Exception as e:
-                _QMessageBox.critical(
-                    self, 'Failure', str(e), _QMessageBox.Ok)
+                self.config.save_file(filename)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def saveConfigurationInMeasurementsDir(self):
         """Save configuration file in the measurements directory."""
         if self.directory is None:
             return
 
-        if self.configuration is None:
+        if self.config is None:
             return
 
         try:
             timestamp = _get_timestamp()
             filename = timestamp + '_' + 'connection_configuration.txt'
-            self.configuration.save_file(_path.join(
+            self.config.save_file(_path.join(
                 self.directory, filename))
         except Exception:
             pass
 
     def updateConfiguration(self):
         """Update connection configuration parameters."""
-        if self.configuration is None:
-            self.configuration = _ConnectionConfig()
+        if self.config is None:
+            self.config = _ConnectionConfig()
 
-        voltx_enable = self.ui.voltx_chb.isChecked()
-        volty_enable = self.ui.volty_chb.isChecked()
-        voltz_enable = self.ui.voltz_chb.isChecked()
-        self.configuration.control_voltx_enable = voltx_enable
-        self.configuration.control_volty_enable = volty_enable
-        self.configuration.control_voltz_enable = voltz_enable
+        try:
+            self.config.pmac_enable = self.ui.pmac_chb.isChecked()
 
-        voltx_value = self.ui.voltxaddress_sb.value()
-        volty_value = self.ui.voltyaddress_sb.value()
-        voltz_value = self.ui.voltzaddress_sb.value()
-        self.configuration.control_voltx_addr = voltx_value
-        self.configuration.control_volty_addr = volty_value
-        self.configuration.control_voltz_addr = voltz_value
+            self.config.voltx_enable = self.ui.voltx_chb.isChecked()
+            self.config.voltx_address = self.ui.voltxaddress_sb.value()
 
-        self.configuration.control_pmac_enable = self.ui.pmac_chb.isChecked()
+            self.config.volty_enable = self.ui.volty_chb.isChecked()
+            self.config.volty_address = self.ui.voltyaddress_sb.value()
 
-        multich_enable = self.ui.multich_chb.isChecked()
-        multich_addr = self.ui.multichaddress_sb.value()
-        self.configuration.control_multich_enable = multich_enable
-        self.configuration.control_multich_addr = multich_addr
+            self.config.voltz_enable = self.ui.voltz_chb.isChecked()
+            self.config.voltz_address = self.ui.voltzaddress_sb.value()
 
-        colimator_enable = self.ui.colimator_chb.isChecked()
-        colimator_addr = self.ui.colimatorport_cmb.currentIndex()
-        self.configuration.control_colimator_enable = colimator_enable
-        self.configuration.control_colimator_addr = colimator_addr
+            self.config.multich_enable = self.ui.multich_chb.isChecked()
+            self.config.multich_address = self.ui.multichaddress_sb.value()
 
-        if self.configuration.valid_data():
+            self.config.nmr_enable = self.ui.nmr_chb.isChecked()
+            self.config.nmr_port = self.ui.nmrport_cmb.currentText()
+            self.config.nmr_baudrate = int(
+                self.ui.nmrbaudrate_cmb.currentText())
+
+            self.config.colimator_enable = self.ui.colimator_chb.isChecked()
+            self.config.colimator_port = (
+                self.ui.colimatorport_cmb.currentText())
+
+        except Exception:
+            self.config = _ConnectionConfig()
+
+        if self.config.valid_data():
             return True
         else:
             message = 'Invalid connection configuration.'
@@ -202,13 +242,22 @@ class ConnectionWidget(_QWidget):
                 self, 'Failure', message, _QMessageBox.Ok)
             return False
 
-    def updateLedStatus(self, status):
+    def updateLedStatus(self):
         """Update led status."""
-        self.ui.voltxled_la.setEnabled(status[0])
-        self.ui.voltyled_la.setEnabled(status[1])
-        self.ui.voltzled_la.setEnabled(status[2])
-        self.ui.pmacled_la.setEnabled(status[3])
-        self.ui.multichled_la.setEnabled(status[4])
+        try:
+            pmac_connected = self.devices.pmac.connected
+            if pmac_connected is None:
+                self.ui.pmacled_la.setEnabled(False)
+            else:
+                self.ui.pmacled_la.setEnabled(pmac_connected)
 
-        if len(status) > 5:
-            self.ui.colimatorled_la.setEnabled(status[5])
+            self.ui.voltxled_la.setEnabled(self.devices.voltx.connected)
+            self.ui.voltyled_la.setEnabled(self.devices.volty.connected)
+            self.ui.voltzled_la.setEnabled(self.devices.voltz.connected)
+            self.ui.multichled_la.setEnabled(self.devices.multich.connected)
+            self.ui.nmrled_la.setEnabled(self.devices.nmr.connected)
+
+        except Exception:
+            message = 'Fail to update led status.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)

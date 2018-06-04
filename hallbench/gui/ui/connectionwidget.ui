@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1100</width>
-    <height>867</height>
+    <height>888</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -736,57 +736,57 @@
           </property>
           <item>
            <property name="text">
-            <string>COM 1</string>
+            <string>COM1</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 2</string>
+            <string>COM2</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 3</string>
+            <string>COM3</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 4</string>
+            <string>COM4</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 5</string>
+            <string>COM5</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 6</string>
+            <string>COM6</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 7</string>
+            <string>COM7</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 8</string>
+            <string>COM8</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 9</string>
+            <string>COM9</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 10</string>
+            <string>COM10</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 11</string>
+            <string>COM11</string>
            </property>
           </item>
          </widget>
@@ -1044,77 +1044,77 @@
           </property>
           <item>
            <property name="text">
-            <string>COM 1</string>
+            <string>COM1</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 2</string>
+            <string>COM2</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 3</string>
+            <string>COM3</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 4</string>
+            <string>COM4</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 5</string>
+            <string>COM5</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 6</string>
+            <string>COM6</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 7</string>
+            <string>COM7</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 8</string>
+            <string>COM8</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 9</string>
+            <string>COM9</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 10</string>
+            <string>COM10</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 11</string>
+            <string>COM11</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 12</string>
+            <string>COM12</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 13</string>
+            <string>COM13</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 14</string>
+            <string>COM14</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>COM 15</string>
+            <string>COM15</string>
            </property>
           </item>
          </widget>

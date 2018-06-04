@@ -73,25 +73,34 @@ class NMR(object):
         Args:
             logfile (str): log file path.
         """
+        self.logger = None
+        self.logfile = logfile
+        self.log_events()
+
         self.commands = NMRCommands()
         self.rlock = _threading.RLock()
         self.ser = None
-        self.logger = None
-        self.log_events(logfile)
 
-    def log_events(self, logfile):
-        """Prepare log file to save info, warning and error status.
+    @property
+    def connected(self):
+        """Return True if the port is open, False otherwise."""
+        if self.ser is None:
+            return False
+        else:
+            return self.ser.isOpen()
 
-        Args:
-            logfile (str): log file path.
-        """
-        if logfile is not None:
-            _logging.basicConfig(
-                format='%(asctime)s\t%(levelname)s\t%(message)s',
-                datefmt='%m/%d/%Y %H:%M:%S',
-                filename=logfile,
-                level=_logging.DEBUG)
-            self.logger = _logging.getLogger(__name__)
+    def log_events(self):
+        """Prepare log file to save info, warning and error status."""
+        if self.logfile is not None:
+            formatter = _logging.Formatter(
+                fmt='%(asctime)s\t%(levelname)s\t%(message)s',
+                datefmt='%m/%d/%Y %H:%M:%S')
+            fileHandler = _logging.FileHandler(self.logfile, mode='w')
+            fileHandler.setFormatter(formatter)
+            logname = self.logfile.replace('.log', '')
+            self.logger = _logging.getLogger(logname)
+            self.logger.addHandler(fileHandler)
+            self.logger.setLevel(_logging.ERROR)
 
     def connect(self, port, baudrate):
         """Connect to a serial port.
@@ -117,13 +126,21 @@ class NMR(object):
             return None
 
     def disconnect(self):
-        """Disconnect the NMR device."""
+        """Disconnect the NMR device.
+
+        Returns:
+            True if successful.
+        """
+        if self.ser is None:
+            return True
+
         try:
             self.send_command(self.commands.quit_search)
             _time.sleep(0.5)
             self.send_command(self.commands.local)
             _time.sleep(0.05)
             self.ser.close()
+            return True
         except Exception:
             self.logger.error('exception', exc_info=True)
             return None

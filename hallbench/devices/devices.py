@@ -11,72 +11,55 @@ class HallBenchDevices(object):
 
     def __init__(self):
         """Initiate variables."""
-        self.pmac = None
-        self.voltx = None
-        self.volty = None
-        self.voltz = None
-        self.multich = None
-        self.nmr = None
+        self.pmac = _PmacLib.Pmac('pmac.log')
+        self.voltx = _GPIBLib.Agilent3458A('voltx.log')
+        self.volty = _GPIBLib.Agilent3458A('volty.log')
+        self.voltz = _GPIBLib.Agilent3458A('voltz.log')
+        self.multich = _GPIBLib.Agilent34970A('multich.log')
+        self.nmr = _NMRLib.NMR('nmr.log')
         self.colimator = None
-        self.loaded = False
+
+    def connect(self, config):
+        """Connect devices.
+
+        Args:
+            config (ConnectionConfig): connection configuration.
+        """
+        if config.voltx_enable:
+            self.voltx.connect(config.voltx_address)
+
+        if config.volty_enable:
+            self.volty.connect(config.volty_address)
+
+        if config.voltz_enable:
+            self.voltz.connect(config.voltz_address)
+
+        if config.pmac_enable:
+            self.pmac.connect()
+
+        if config.multich_enable:
+            self.multich.connect(config.multich_address)
+
+        if config.nmr_enable:
+            self.nmr.connect(config.nmr_port, config.nmr_baudrate)
+
+    def disconnect(self):
+        """Disconnect devices."""
+        self.voltx.disconnect()
+        self.volty.disconnect()
+        self.voltz.disconnect()
+        self.pmac.disconnect()
+        self.multich.disconnect()
+        self.nmr.disconnect()
 
     def clearMultimetersData(self):
         """Clear multimeters stored data and update measurement flags."""
-        if not self.loaded:
-            return
         self.voltx.end_measurement = False
         self.volty.end_measurement = False
         self.voltz.end_measurement = False
         self.voltx.clear()
         self.volty.clear()
         self.voltz.clear()
-
-    def configurePmacTrigger(self, axis, pos, step, npts):
-        """Configure Pmac trigger."""
-        self.pmac.set_trigger(axis, pos, step, 10, npts, 1)
-
-    def connect(self, configuration):
-        """Connect devices.
-
-        Args:
-            configuration (ConnectionConfig): connection configuration.
-        """
-        if not self.loaded:
-            if not self.load():
-                return
-
-        status = []
-        if configuration.control_voltx_enable:
-            status.append(self.voltx.connect(configuration.control_voltx_addr))
-
-        if configuration.control_volty_enable:
-            status.append(self.volty.connect(configuration.control_volty_addr))
-
-        if configuration.control_voltz_enable:
-            status.append(self.voltz.connect(configuration.control_voltz_addr))
-
-        if configuration.control_pmac_enable:
-            status.append(self.pmac.connect())
-
-        if configuration.control_multich_enable:
-            status.append(
-                self.multich.connect(configuration.control_multich_addr))
-
-        return status
-
-    def disconnect(self):
-        """Disconnect devices."""
-        if not self.loaded:
-            return [True]*5
-
-        status = []
-        status.append(self.voltx.disconnect())
-        status.append(self.volty.disconnect())
-        status.append(self.voltz.disconnect())
-        status.append(self.pmac.disconnect())
-        status.append(self.multich.disconnect())
-
-        return status
 
     def initialMeasurementConfiguration(self, configuration):
         """Initial measurement configuration.
@@ -98,19 +81,6 @@ class HallBenchDevices(object):
         self.pmac.set_axis_speed(2, configuration.meas_vel_ax2)
         self.pmac.set_axis_speed(3, configuration.meas_vel_ax3)
         self.pmac.set_axis_speed(5, configuration.meas_vel_ax5)
-
-    def load(self):
-        """Load devices."""
-        try:
-            self.pmac = _PmacLib.Pmac('pmac.log')
-            self.voltx = _GPIBLib.Agilent3458A('voltx.log')
-            self.volty = _GPIBLib.Agilent3458A('volty.log')
-            self.voltz = _GPIBLib.Agilent3458A('voltz.log')
-            self.multich = _GPIBLib.Agilent34970A('multi.log')
-            self.nmr = _NMRLib.NMR('nmr.log')
-            self.loaded = True
-        except Exception:
-            self.loaded = False
 
     def stopTrigger(self):
         """Stop Pmac trigger and update measurement flags."""

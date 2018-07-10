@@ -1,0 +1,138 @@
+################
+-> arrumar todas as funções save_db
+
+->  funções em 'database'
+    -> scans
+        -> incluir voltage offset?
+        -> criar combobox para operator e probe_calibration
+        -> criar linedit para magnet_name, main_current e comments
+        -> criar variavel para software version e temperature
+        -> adicionar operator, probe_calibration, magnet_name, main_current e comments em MeasurementConfig
+    -> field_maps
+        -> salvar Gap, Control Gap e Magnet Length?
+        -> salvar
+        -> deixar só fieldmap no lugar de posições e campos?
+        -> criar linedit para magnet_name e main_current
+        -> magnet center vem de savefieldmapdialoga
+        -> adicionar comments?
+        -> dividir header_info em variáveis?
+        -> adicionar magnet_name e main_current em FieldMapData?
+    -> probe_calibrations
+        -> adicionar probe_name e calibration_magnet em ProbeCalibration
+        -> saveCoordinateSystemFile??
+
+    -> criar dicionarios dos nomes das colunas para os nomes das variáveis no programa quando for diferente
+
+    -> Magnets_info (criar tabela com informações?)
+
+-> QT
+    -> measurementwidget
+        -> Load and Save DB
+        -> criar popup em measure_btn com (utilizar savefieldmapdialog?):
+            -> combobox operator e probe_calibration
+            -> linedit magnet_name, main_current e comments
+        -> incluir correção de offset?
+    -> loadcalibrationwidget
+        -> alterar loadcalibrationwidget para fazer calibração também (como é feita atualmente?)
+            -> combobox para calibration_magnet
+            -> linedit para probe_name
+
+
+-> measurementwidget
+    self.configuration = _MeasurementConfig
+    self.field_data = _FieldData
+    self.fieldmap_data = _FieldMapData
+    ProbeCalibration?
+
+
+#DB column to program variables dict 
+-> scans:
+ 'id':'id', #None
+ 'date':'date', #None
+ 'hour':'hour', #None
+ 'operator':'operator', #?
+ 'software_version':'software_version', #?
+ 'magnet_name':'magnet_name', #?
+ 'main_current':'main_current', #?
+ 'probex_enable':'meas_probeX', #MeasurementConfig
+ 'probey_enable':'meas_probeY', #MeasurementConfig
+ 'probez_enable':'meas_probeZ', #MeasurementConfig
+ 'voltage_precision':'meas_precision', #MeasurementConfig
+ 'first_axis':'meas_first_axis', #MeasurementConfig
+ 'second_axis':'meas_second_axis', #MeasurementConfig
+ 'nr_measurements':'meas_nr', #MeasurementConfig
+ 'integration_time':'meas_aper', #MeasurementConfig
+ 'start_ax1':'meas_startpos_ax1', #MeasurementConfig
+ 'end_ax1':'meas_endpos_ax1', #MeasurementConfig
+ 'step_ax1':'meas_incr_ax1', #MeasurementConfig
+ 'extra_ax1':'meas_extra_ax1', #MeasurementConfig
+ 'vel_ax1':'meas_vel_ax1', #MeasurementConfig
+ 'start_ax2':'meas_startpos_ax2', #MeasurementConfig
+ 'end_ax2':'meas_endpos_ax2', #MeasurementConfig
+ 'step_ax2':'meas_incr_ax2', #MeasurementConfig
+ 'extra_ax2':'meas_extra_ax2', #MeasurementConfig
+ 'vel_ax2':'meas_vel_ax2', #MeasurementConfig
+ 'start_ax3':'meas_startpos_ax3', #MeasurementConfig
+ 'end_ax3':'meas_endpos_ax3', #MeasurementConfig
+ 'step_ax3':'meas_incr_ax3', #MeasurementConfig
+ 'extra_ax3':meas_extra_ax3', #MeasurementConfig
+ 'vel_ax3':'meas_vel_ax3', #MeasurementConfig
+ 'start_ax5':'meas_startpos_ax5', #MeasurementConfig
+ 'end_ax5':'meas_endpos_ax5', #MeasurementConfig
+ 'step_ax5':'meas_incr_ax5', #MeasurementConfig
+ 'extra_ax5':meas_extra_ax5', #MeasurementConfig
+ 'vel_ax5':'meas_vel_ax5', #MeasurementConfig
+ 'scan_axis':'scan_axis', #FieldData
+ 'pos1':'pos1', #FieldData
+ 'pos2':'pos2, #FieldData
+ 'pos3':'pos3', #FieldData
+ 'pos5':'pos5', #FieldData
+ 'pos6':'pos6', #FieldData
+ 'pos7':'pos7', #FieldData
+ 'pos8':'pos8', #FieldData
+ 'pos9':'pos9', #FieldData
+ 'probe_calibration':, #?
+ 'voltage_data_list':'voltage_data_list', #FieldData
+ 'sensorx':'sensorx', #FieldData
+ 'sensory':'sensory', #FieldData
+ 'sensorz':'sensorz', #FieldData
+ 'temperature':'temperature', #?
+ 'comments':'comments' #?
+
+
+-> field_maps
+ 'id':'id', #None
+ 'date':'id', #None
+ 'hour':'hour', #None
+ 'magnet_name':'magnet_name', #?
+ 'magnet_center':'magnet_center', #?
+ 'main_current':'main_current', #?
+ 'header_info':'header_info', #FieldMapData
+ 'correct_sensor_displacement':'correct_sensor_displacement', #FieldMapData
+ 'x':'field_map[:, 0]', #FieldMapDataa
+ 'y':'field_map[:, 1]', #FieldMapData
+ 'z':'field_map[:, 2]', #FieldMapData
+ 'Bx':'field_map[:, 3]', #FieldMapData
+ 'By':'field_map[:, 4]', #FieldMapData
+ 'Bz':'field_map[:, 5]' #FieldMapData
+
+-> probe_calibrations
+ 'id':'id', #None
+ 'date':'date', #None
+ 'hour':'hour', #None
+ 'calibration_magnet':'calibration_magnet', #?
+ 'probe_name':'probe_name', #?
+ 'function_type':'function_type', #ProbeCalibration
+ 'distance_xy':'distance_xy', #ProbeCalibration
+ 'distance_yz':'distance_yz', #ProbeCalibration
+ 'angle_xy':'angle_xy', #ProbeCalibration
+ 'angle_yz':'angle_yz', #ProbeCalibratioaan
+ 'angle_zx':'angle_zx', #ProbeCalibration
+ 'probe_axis':'probe_axis', #ProbeCalibration
+ 'sensorx':'sensorx.data', #ProbeCalibrationa
+ 'sensory':'sensory.data', #ProbeCalibration
+ 'sensorz':'sensorz.data', #ProbeCalibration
+
+
+
+

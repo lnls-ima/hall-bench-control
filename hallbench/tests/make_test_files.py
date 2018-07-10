@@ -160,12 +160,12 @@ def _make_connection_configuration_file(filename):
     cc.control_volty_enable = 1
     cc.control_voltz_enable = 1
     cc.control_multich_enable = 1
-    cc.control_colimator_enable = 0
+    cc.control_collimator_enable = 0
     cc.control_voltx_addr = 20
     cc.control_volty_addr = 21
     cc.control_voltz_addr = 22
     cc.control_multich_addr = 18
-    cc.control_colimator_addr = 3
+    cc.control_collimator_addr = 3
     cc.save_file(os.path.join(directory, filename))
 
 

@@ -163,29 +163,28 @@ class CalibrationCurve(object):
         self._filename = filename
         timestamp = _utils.get_timestamp()
 
-        f = open(filename, mode='w')
-        f.write('timestamp:                     \t{0:1s}\n'.format(
-            timestamp))
-        f.write('function_type:                 \t{0:1s}\n'.format(
-            self.function_type))
-        f.write('\n')
-
-        if self.function_type == 'interpolation':
-            f.write('voltage[V]'.ljust(15)+'\t')
-            f.write('field[T]'.ljust(15)+'\n')
-        elif self.function_type == 'polynomial':
-            f.write('v_min[V]'.ljust(15)+'\t')
-            f.write('v_max[V]'.ljust(15)+'\t')
-            f.write('polynomial_coefficients\n')
-
-        f.write('---------------------------------------------------' +
-                '---------------------------------------------------\n')
-
-        for d in self.data:
-            for value in d:
-                f.write('{0:+14.7e}\t'.format(value))
+        with open(filename, mode='w') as f:
+            f.write('timestamp:                     \t{0:1s}\n'.format(
+                timestamp))
+            f.write('function_type:                 \t{0:1s}\n'.format(
+                self.function_type))
             f.write('\n')
-        f.close()
+
+            if self.function_type == 'interpolation':
+                f.write('voltage[V]'.ljust(15)+'\t')
+                f.write('field[T]'.ljust(15)+'\n')
+            elif self.function_type == 'polynomial':
+                f.write('v_min[V]'.ljust(15)+'\t')
+                f.write('v_max[V]'.ljust(15)+'\t')
+                f.write('polynomial_coefficients\n')
+
+            f.write('---------------------------------------------------' +
+                    '---------------------------------------------------\n')
+
+            for d in self.data:
+                for value in d:
+                    f.write('{0:+14.7e}\t'.format(value))
+                f.write('\n')
 
 
 class ProbeCalibration(object):
@@ -519,57 +518,75 @@ class ProbeCalibration(object):
 
         timestamp = _utils.get_timestamp()
 
-        f = open(filename, mode='w')
-        f.write('timestamp:                      \t{0:1s}\n'.format(
-            timestamp))
-        f.write('function_type:                  \t{0:1s}\n'.format(
-            self.function_type))
-        f.write('distance_xy[mm]:                \t{0:1s}\n'.format(
-            str(self.distance_xy)))
-        f.write('distance_zy[mm]:                \t{0:1s}\n'.format(
-            str(self.distance_zy)))
-        f.write('angle_xy[deg]:                  \t{0:1s}\n'.format(
-            str(self.angle_xy)))
-        f.write('angle_yz[deg]:                  \t{0:1s}\n'.format(
-            str(self.angle_yz)))
-        f.write('angle_xz[deg]:                  \t{0:1s}\n'.format(
-            str(self.angle_xz)))
-        f.write('probe_axis:                     \t{0:1d}\n'.format(
-            self.probe_axis))
-        f.write('\n')
-
-        if self.function_type == 'interpolation':
-            f.write('sensor'.ljust(8)+'\t')
-            f.write('voltage[V]'.ljust(15)+'\t')
-            f.write('field[T]'.ljust(15)+'\n')
-        elif self.function_type == 'polynomial':
-            f.write('sensor'.ljust(8)+'\t')
-            f.write('v_min[V]'.ljust(15)+'\t')
-            f.write('v_max[V]'.ljust(15)+'\t')
-            f.write('polynomial_coefficients\n')
-
-        f.write('---------------------------------------------------' +
-                '---------------------------------------------------\n')
-
-        for d in self.sensorx.data:
-            f.write('x'.ljust(8)+'\t')
-            for value in d:
-                f.write('{0:+14.7e}\t'.format(value))
+        with open(filename, mode='w') as f:
+            f.write('timestamp:                      \t{0:1s}\n'.format(
+                timestamp))
+            f.write('function_type:                  \t{0:1s}\n'.format(
+                self.function_type))
+            f.write('distance_xy[mm]:                \t{0:1s}\n'.format(
+                str(self.distance_xy)))
+            f.write('distance_zy[mm]:                \t{0:1s}\n'.format(
+                str(self.distance_zy)))
+            f.write('angle_xy[deg]:                  \t{0:1s}\n'.format(
+                str(self.angle_xy)))
+            f.write('angle_yz[deg]:                  \t{0:1s}\n'.format(
+                str(self.angle_yz)))
+            f.write('angle_xz[deg]:                  \t{0:1s}\n'.format(
+                str(self.angle_xz)))
+            f.write('probe_axis:                     \t{0:1d}\n'.format(
+                self.probe_axis))
             f.write('\n')
 
-        for d in self.sensory.data:
-            f.write('y'.ljust(8)+'\t')
-            for value in d:
-                f.write('{0:+14.7e}\t'.format(value))
-            f.write('\n')
+            if self.function_type == 'interpolation':
+                f.write('sensor'.ljust(8)+'\t')
+                f.write('voltage[V]'.ljust(15)+'\t')
+                f.write('field[T]'.ljust(15)+'\n')
+            elif self.function_type == 'polynomial':
+                f.write('sensor'.ljust(8)+'\t')
+                f.write('v_min[V]'.ljust(15)+'\t')
+                f.write('v_max[V]'.ljust(15)+'\t')
+                f.write('polynomial_coefficients\n')
 
-        for d in self.sensorz.data:
-            f.write('z'.ljust(8)+'\t')
-            for value in d:
-                f.write('{0:+14.7e}\t'.format(value))
-            f.write('\n')
+            f.write('---------------------------------------------------' +
+                    '---------------------------------------------------\n')
 
-        f.close()
+            for d in self.sensorx.data:
+                f.write('x'.ljust(8)+'\t')
+                for value in d:
+                    f.write('{0:+14.7e}\t'.format(value))
+                f.write('\n')
+
+            for d in self.sensory.data:
+                f.write('y'.ljust(8)+'\t')
+                for value in d:
+                    f.write('{0:+14.7e}\t'.format(value))
+                f.write('\n')
+
+            for d in self.sensorz.data:
+                f.write('z'.ljust(8)+'\t')
+                for value in d:
+                    f.write('{0:+14.7e}\t'.format(value))
+                f.write('\n')
+
+    def save_db(self):
+        _timestamp = _utils.get_timestamp().split('_')
+        _db_values = [None,
+                      _timestamp[0],
+                      _timestamp[1].replace('-', ':'),
+                      'Calibration Magnet',
+                      'Probe Name',
+                      self.function_type,
+                      self.distance_xy,
+                      self.distance_zy,
+                      self.angle_xy,
+                      self.angle_yz,
+                      self.angle_xz,
+                      self.probe_axis,
+                      str(self.sensorx.data),
+                      str(self.sensory.data),
+                      str(self.sensorz.data)]
+
+        # Call DBCalibration.insert_into_database(database_filename,_db_values)
 
 
 def _polynomial_conversion(data, voltage_array):

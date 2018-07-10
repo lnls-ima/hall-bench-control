@@ -31,12 +31,12 @@ class TestUtils(TestCase):
             '#control_volty_enable\t1',
             '#control_voltz_enable\t1',
             '#control_multich_enable\t1',
-            '#control_colimator_enable\t0',
+            '#control_collimator_enable\t0',
             '#control_voltx_addr\t20',
             '#control_volty_addr\t21',
             '#control_voltz_addr\t22',
             '#control_multich_addr\t18',
-            '#control_colimator_addr\t3',
+            '#control_collimator_addr\t3',
         ]
         for i in range(len(read_flines)):
             self.assertEqual(read_flines[i], flines[i])

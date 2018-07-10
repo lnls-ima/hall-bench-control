@@ -111,8 +111,8 @@ class ConnectionConfig(Configuration):
         self.nmr_enable = None
         self.nmr_port = None
         self.nmr_baudrate = None
-        self.colimator_enable = None
-        self.colimator_port = None
+        self.collimator_enable = None
+        self.collimator_port = None
         super().__init__(filename)
 
     def get_attribute_type(self, name):
@@ -151,14 +151,14 @@ class ConnectionConfig(Configuration):
                 '#nmr_enable\t{0:1d}\n'.format(self.nmr_enable),
                 '#nmr_port\t{0:s}\n'.format(self.nmr_port),
                 '#nmr_baudrate\t{0:1d}\n'.format(self.nmr_baudrate),
-                '#colimator_enable\t{0:1d}\n\n'.format(self.colimator_enable),
-                '#colimator_port\t{0:s}\n'.format(self.colimator_port),
+                '#collimator_enable\t{0:1d}\n\n'.format(
+                    self.collimator_enable),
+                '#collimator_port\t{0:s}\n'.format(self.collimator_port),
                 ]
 
-            f = open(filename, mode='w')
-            for item in data:
-                f.write(item)
-            f.close()
+            with open(filename, mode='w') as f:
+                for item in data:
+                    f.write(item)
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
@@ -326,10 +326,9 @@ class MeasurementConfig(Configuration):
                 '#meas_extra_ax5\t{0:2f}\n'.format(self.meas_extra_ax5),
                 '#meas_vel_ax5\t{0:2f}\n'.format(self.meas_vel_ax5)]
 
-            f = open(filename, mode='w')
-            for item in data:
-                f.write(item)
-            f.close()
+            with open(filename, mode='w') as f:
+                for item in data:
+                    f.write(item)
 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename

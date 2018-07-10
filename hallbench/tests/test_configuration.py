@@ -25,12 +25,12 @@ class TestConnectionConfig(TestCase):
         self.assertIsNone(c.control_volty_enable)
         self.assertIsNone(c.control_voltz_enable)
         self.assertIsNone(c.control_multich_enable)
-        self.assertIsNone(c.control_colimator_enable)
+        self.assertIsNone(c.control_collimator_enable)
         self.assertIsNone(c.control_voltx_addr)
         self.assertIsNone(c.control_volty_addr)
         self.assertIsNone(c.control_voltz_addr)
         self.assertIsNone(c.control_multich_addr)
-        self.assertIsNone(c.control_colimator_addr)
+        self.assertIsNone(c.control_collimator_addr)
         self.assertIsNone(c.filename)
 
     def test_initialization_with_filename(self):
@@ -40,12 +40,12 @@ class TestConnectionConfig(TestCase):
         self.assertEqual(c.control_volty_enable, 1)
         self.assertEqual(c.control_voltz_enable, 1)
         self.assertEqual(c.control_multich_enable, 1)
-        self.assertEqual(c.control_colimator_enable, 0)
+        self.assertEqual(c.control_collimator_enable, 0)
         self.assertEqual(c.control_voltx_addr, 20)
         self.assertEqual(c.control_volty_addr, 21)
         self.assertEqual(c.control_voltz_addr, 22)
         self.assertEqual(c.control_multich_addr, 18)
-        self.assertEqual(c.control_colimator_addr, 3)
+        self.assertEqual(c.control_collimator_addr, 3)
         self.assertEqual(c.filename, self.filename)
 
     def test_read_file(self):
@@ -58,12 +58,12 @@ class TestConnectionConfig(TestCase):
         self.assertEqual(c.control_volty_enable, 1)
         self.assertEqual(c.control_voltz_enable, 1)
         self.assertEqual(c.control_multich_enable, 1)
-        self.assertEqual(c.control_colimator_enable, 0)
+        self.assertEqual(c.control_collimator_enable, 0)
         self.assertEqual(c.control_voltx_addr, 20)
         self.assertEqual(c.control_volty_addr, 21)
         self.assertEqual(c.control_voltz_addr, 22)
         self.assertEqual(c.control_multich_addr, 18)
-        self.assertEqual(c.control_colimator_addr, 3)
+        self.assertEqual(c.control_collimator_addr, 3)
 
     def test_valid_data(self):
         cnf = configuration.ConnectionConfig()
@@ -85,12 +85,12 @@ class TestConnectionConfig(TestCase):
         self.assertIsNone(c.control_volty_enable)
         self.assertIsNone(c.control_voltz_enable)
         self.assertIsNone(c.control_multich_enable)
-        self.assertIsNone(c.control_colimator_enable)
+        self.assertIsNone(c.control_collimator_enable)
         self.assertIsNone(c.control_voltx_addr)
         self.assertIsNone(c.control_volty_addr)
         self.assertIsNone(c.control_voltz_addr)
         self.assertIsNone(c.control_multich_addr)
-        self.assertIsNone(c.control_colimator_addr)
+        self.assertIsNone(c.control_collimator_addr)
         self.assertIsNone(c.filename)
 
     def test_save_file(self):
@@ -102,12 +102,12 @@ class TestConnectionConfig(TestCase):
         cw.control_volty_enable = 0
         cw.control_voltz_enable = 0
         cw.control_multich_enable = 0
-        cw.control_colimator_enable = 0
+        cw.control_collimator_enable = 0
         cw.control_voltx_addr = 1
         cw.control_volty_addr = 2
         cw.control_voltz_addr = 3
         cw.control_multich_addr = 4
-        cw.control_colimator_addr = 5
+        cw.control_collimator_addr = 5
         self.assertIsNone(cw.filename)
         cw.save_file(filename)
         self.assertEqual(cw.filename, filename)
@@ -118,13 +118,13 @@ class TestConnectionConfig(TestCase):
         self.assertEqual(cr.control_volty_enable, cw.control_volty_enable)
         self.assertEqual(cr.control_voltz_enable, cw.control_voltz_enable)
         self.assertEqual(cr.control_multich_enable, cw.control_multich_enable)
-        self.assertEqual(cr.control_colimator_enable,
-                         cw.control_colimator_enable)
+        self.assertEqual(cr.control_collimator_enable,
+                         cw.control_collimator_enable)
         self.assertEqual(cr.control_voltx_addr, cw.control_voltx_addr)
         self.assertEqual(cr.control_volty_addr, cw.control_volty_addr)
         self.assertEqual(cr.control_voltz_addr, cw.control_voltz_addr)
         self.assertEqual(cr.control_multich_addr, cw.control_multich_addr)
-        self.assertEqual(cr.control_colimator_addr, cw.control_colimator_addr)
+        self.assertEqual(cr.control_collimator_addr, cw.control_collimator_addr)
         self.assertEqual(cr.filename, cw.filename)
         os.remove(filename)
 

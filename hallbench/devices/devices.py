@@ -17,7 +17,7 @@ class HallBenchDevices(object):
         self.voltz = _GPIBLib.Agilent3458A('voltz.log')
         self.multich = _GPIBLib.Agilent34970A('multich.log')
         self.nmr = _NMRLib.NMR('nmr.log')
-        self.colimator = None
+        self.collimator = None
 
     def connect(self, config):
         """Connect devices.

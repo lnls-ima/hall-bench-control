@@ -188,22 +188,22 @@ class SaveFieldMapDialog(_QDialog):
             filename = timestamp + '_magnet_coordinate_system.txt'
             filename = _path.join(self.directory, filename)
 
-            f = open(filename, 'w')
+            with open(filename, 'w') as f:
+                center_pos3 = self.ui.centerpos3_sb.value()
+                center_pos2 = self.ui.centerpos2_sb.value()
+                center_pos1 = self.ui.centerpos1_sb.value()
 
-            center_pos3 = self.ui.centerpos3_sb.value()
-            center_pos2 = self.ui.centerpos2_sb.value()
-            center_pos1 = self.ui.centerpos1_sb.value()
+                magnet_x_axis = self.magnetXAxis()
+                magnet_y_axis = self.magnetYAxis()
 
-            magnet_x_axis = self.magnetXAxis()
-            magnet_y_axis = self.magnetYAxis()
+                f.write('fielmap_file:        {0:s}\n'.format(
+                                                            fieldmap_filename))
+                f.write('magnet_center_axis3: {0:0.4f}\n'.format(center_pos3))
+                f.write('magnet_center_axis2: {0:0.4f}\n'.format(center_pos2))
+                f.write('magnet_center_axis1: {0:0.4f}\n'.format(center_pos1))
+                f.write('magnet_x_axis:       {0:1d}\n'.format(magnet_x_axis))
+                f.write('magnet_y_axis:       {0:1d}\n'.format(magnet_y_axis))
 
-            f.write('fielmap_file:        {0:s}\n'.format(fieldmap_filename))
-            f.write('magnet_center_axis3: {0:0.4f}\n'.format(center_pos3))
-            f.write('magnet_center_axis2: {0:0.4f}\n'.format(center_pos2))
-            f.write('magnet_center_axis1: {0:0.4f}\n'.format(center_pos1))
-            f.write('magnet_x_axis:       {0:1d}\n'.format(magnet_x_axis))
-            f.write('magnet_y_axis:       {0:1d}\n'.format(magnet_y_axis))
-            f.close()
         except Exception:
             pass
 

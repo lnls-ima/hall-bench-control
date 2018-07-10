@@ -14,9 +14,8 @@ def read_file(filename):
     Returns:
         list of non-empty file lines.
     """
-    f = open(filename, mode='r')
-    fdata = f.read()
-    f.close()
+    with open(filename, mode='r') as f:
+        fdata = f.read()
     data = [line for line in fdata.splitlines() if len(line) != 0]
     return data
 

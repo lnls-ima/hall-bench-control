@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1100</width>
-    <height>888</height>
+    <height>944</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -981,7 +981,7 @@
       <item>
        <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="0">
-         <widget class="QCheckBox" name="colimator_chb">
+         <widget class="QCheckBox" name="collimator_chb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1030,7 +1030,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QComboBox" name="colimatorport_cmb">
+         <widget class="QComboBox" name="collimatorport_cmb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1145,7 +1145,16 @@
      <property name="spacing">
       <number>30</number>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>15</number>
+     </property>
+     <property name="topMargin">
+      <number>15</number>
+     </property>
+     <property name="rightMargin">
+      <number>15</number>
+     </property>
+     <property name="bottomMargin">
       <number>15</number>
      </property>
      <item>
@@ -1208,8 +1217,8 @@
   <tabstop>pmac_chb</tabstop>
   <tabstop>multich_chb</tabstop>
   <tabstop>multichaddress_sb</tabstop>
-  <tabstop>colimator_chb</tabstop>
-  <tabstop>colimatorport_cmb</tabstop>
+  <tabstop>collimator_chb</tabstop>
+  <tabstop>collimatorport_cmb</tabstop>
   <tabstop>connect_btn</tabstop>
   <tabstop>disconnect_btn</tabstop>
  </tabstops>

@@ -155,9 +155,10 @@ class ConnectionWidget(_QWidget):
                 self.ui.nmrbaudrate_cmb.findText(
                     str(self.config.nmr_baudrate)))
 
-            self.ui.colimator_chb.setChecked(self.config.colimator_enable)
-            self.ui.colimatorport_cmb.setCurrentIndex(
-                self.ui.colimatorport_cmb.findText(self.config.colimator_port))
+            self.ui.collimator_chb.setChecked(self.config.collimator_enable)
+            self.ui.collimatorport_cmb.setCurrentIndex(
+                self.ui.collimatorport_cmb.findText(
+                    self.config.collimator_port))
 
         except Exception:
             message = 'Fail to load configuration.'
@@ -227,9 +228,9 @@ class ConnectionWidget(_QWidget):
             self.config.nmr_baudrate = int(
                 self.ui.nmrbaudrate_cmb.currentText())
 
-            self.config.colimator_enable = self.ui.colimator_chb.isChecked()
-            self.config.colimator_port = (
-                self.ui.colimatorport_cmb.currentText())
+            self.config.collimator_enable = self.ui.collimator_chb.isChecked()
+            self.config.collimator_port = (
+                self.ui.collimatorport_cmb.currentText())
 
         except Exception:
             self.config = _ConnectionConfig()

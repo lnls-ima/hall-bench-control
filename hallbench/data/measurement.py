@@ -227,31 +227,30 @@ class Data(object):
                                     self._sensory, self._sensorz))
 
         self._filename = filename
-        f = open(filename, mode='w')
-        f.write('timestamp:         \t%s\n' % timestamp)
-        f.write('scan_axis:         \t%s\n' % scan_axis)
-        f.write('pos1[mm]:          \t%s\n' % pos1_str)
-        f.write('pos2[mm]:          \t%s\n' % pos2_str)
-        f.write('pos3[mm]:          \t%s\n' % pos3_str)
-        f.write('pos5[deg]:         \t%s\n' % pos5_str)
-        f.write('pos6[mm]:          \t%s\n' % pos6_str)
-        f.write('pos7[mm]:          \t%s\n' % pos7_str)
-        f.write('pos8[deg]:         \t%s\n' % pos8_str)
-        f.write('pos9[deg]:         \t%s\n' % pos9_str)
+        with open(filename, mode='w') as f:
+            f.write('timestamp:         \t%s\n' % timestamp)
+            f.write('scan_axis:         \t%s\n' % scan_axis)
+            f.write('pos1[mm]:          \t%s\n' % pos1_str)
+            f.write('pos2[mm]:          \t%s\n' % pos2_str)
+            f.write('pos3[mm]:          \t%s\n' % pos3_str)
+            f.write('pos5[deg]:         \t%s\n' % pos5_str)
+            f.write('pos6[mm]:          \t%s\n' % pos6_str)
+            f.write('pos7[mm]:          \t%s\n' % pos7_str)
+            f.write('pos8[deg]:         \t%s\n' % pos8_str)
+            f.write('pos9[deg]:         \t%s\n' % pos9_str)
 
-        for key, value in extras.items():
-            f.write('%s\t%s\n' % ((key + ':').ljust(19), str(value)))
+            for key, value in extras.items():
+                f.write('%s\t%s\n' % ((key + ':').ljust(19), str(value)))
 
-        f.write('\n')
-        f.write('%s\n' % columns_names)
-        f.write('---------------------------------------------------' +
-                '---------------------------------------------------\n')
-        for i in range(columns.shape[0]):
-            line = '{0:+0.4f}'.format(columns[i, 0])
-            for j in range(1, columns.shape[1]):
-                line = line + '\t' + '{0:+0.10e}'.format(columns[i, j])
-            f.write(line + '\n')
-        f.close()
+            f.write('\n')
+            f.write('%s\n' % columns_names)
+            f.write('---------------------------------------------------' +
+                    '---------------------------------------------------\n')
+            for i in range(columns.shape[0]):
+                line = '{0:+0.4f}'.format(columns[i, 0])
+                for j in range(1, columns.shape[1]):
+                    line = line + '\t' + '{0:+0.10e}'.format(columns[i, j])
+                f.write(line + '\n')
 
 
 class VoltageData(Data):
@@ -650,6 +649,17 @@ class FieldData(Data):
 
         super(FieldData, self).save_file(
             filename, extras={'probe_calibration': probe_calibration_filename})
+
+    def save_db(self):
+        _timestamp = _utils.get_timestamp().split('_')
+        _db_values = [None,
+                      _timestamp[0],
+                      _timestamp[1].replace('-', ':'),
+                      'operator',
+                      'software_version',
+                      'magnet_name',
+                      'main_current',
+                      ]
 
 
 class FieldMapData(object):
@@ -1179,29 +1189,52 @@ class FieldMapData(object):
             raise MeasurementDataError(message)
 
         self._filename = filename
-        f = open(filename, 'w')
 
-        for line in self.header_info:
-            variable = (str(line[0]) + ':').ljust(20)
-            value = str(line[1])
-            f.write('{0:1s}\t{1:1s}\n'.format(variable, value))
+        with open(filename, 'w') as f:
+            for line in self.header_info:
+                variable = (str(line[0]) + ':').ljust(20)
+                value = str(line[1])
+                f.write('{0:1s}\t{1:1s}\n'.format(variable, value))
 
-        if len(self.header_info) != 0:
-            f.write('\n')
+            if len(self.header_info) != 0:
+                f.write('\n')
 
-        f.write('X[mm]\tY[mm]\tZ[mm]\tBx[T]\tBy[T]\tBz[T]\n')
-        f.write('-----------------------------------------------' +
-                '----------------------------------------------\n')
+            f.write('X[mm]\tY[mm]\tZ[mm]\tBx[T]\tBy[T]\tBz[T]\n')
+            f.write('-----------------------------------------------' +
+                    '----------------------------------------------\n')
+
+            field_map = self.get_transformed_field_map(
+                magnet_center, magnet_x_axis, magnet_y_axis)
+
+            for i in range(field_map.shape[0]):
+                f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
+                    field_map[i, 0], field_map[i, 1], field_map[i, 2]))
+                f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
+                    field_map[i, 3], field_map[i, 4], field_map[i, 5]))
+
+    def sabe_db(
+            self, magnet_center=[0, 0, 0], magnet_x_axis=3, magnet_y_axis=2):
+        _timestamp = _utils.get_timestamp().split('_')
 
         field_map = self.get_transformed_field_map(
-            magnet_center, magnet_x_axis, magnet_y_axis)
+                magnet_center, magnet_x_axis, magnet_y_axis)
 
-        for i in range(field_map.shape[0]):
-            f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
-                field_map[i, 0], field_map[i, 1], field_map[i, 2]))
-            f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
-                field_map[i, 3], field_map[i, 4], field_map[i, 5]))
-        f.close()
+        _db_values = [None,
+                      _timestamp[0],
+                      _timestamp[1].replace('-', ':'),
+                      'Magnet Name',
+                      'Magnet Center',
+                      0.0,  # Main Current
+                      self.header_info,
+                      1 if self.correct_sensor_displacement else 0,
+                      str(field_map[:, 0]),
+                      str(field_map[:, 1]),
+                      str(field_map[:, 2]),
+                      str(field_map[:, 3]),
+                      str(field_map[:, 4]),
+                      str(field_map[:, 5])]
+
+        # Call DBMap.insert_into_database(database_filename, _db_values)
 
 
 def _to_array(value):

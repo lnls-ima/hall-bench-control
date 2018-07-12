@@ -20,19 +20,20 @@ def read_file(filename):
     return data
 
 
-def find_value(data, variable, vtype=str):
+def find_value(data, variable, vtype=str, raise_error=True):
     """Find variable value in file data.
 
     Args:
         data (list): list of file lines.
         variable (str): string to search in file lines.
         vtype (type): variable type
+        raise_error (bool): raise error flag.
 
     Returns:
         the variable value.
 
     Raises:
-        ValueError: if the value was not found.
+        ValueError: if raise_error is True and the value was not found.
     """
     file_line = next(
         (line for line in data if line.find(variable) != -1), None)
@@ -41,8 +42,11 @@ def find_value(data, variable, vtype=str):
         value = file_line.split()[1]
         value = vtype(value)
     except Exception:
-        message = 'Invalid value for "%s"' % variable
-        raise ValueError(message)
+        if raise_error:
+            message = 'Invalid value for "%s"' % variable
+            raise ValueError(message)
+        else:
+            value = None
 
     return value
 

@@ -5,6 +5,7 @@ measurements/
 hallbench/tests/*.txt
 hallbench/tests/*.dat
 
+*.db
 
 *interface.py
 *save_dialog.py

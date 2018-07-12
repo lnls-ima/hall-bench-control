@@ -1,9 +1,14 @@
 
 from setuptools import setup
 
+
+with open('.VERSION', 'r') as _f:
+    __version__ = _f.read().strip()
+
+
 setup(
     name='hallbench',
-    version='0.1.0',
+    version=__version__,
     description='Hall bench control application',
     url='https://github.com/lnls-ima/hall-bench-control',
     author='lnls-ima',

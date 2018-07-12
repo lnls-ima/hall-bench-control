@@ -1,5 +1,5 @@
 ################
--> arrumar todas as funções save_db
+-> arrumar todas as funções save_db (ok)
 
 ->  funções em 'database'
     -> scans
@@ -9,19 +9,19 @@
         -> criar variavel para software version e temperature
         -> adicionar operator, probe_calibration, magnet_name, main_current e comments em MeasurementConfig
     -> field_maps
-        -> salvar Gap, Control Gap e Magnet Length?
+        -> salvar Gap, Control Gap e Magnet Length? (ok)
         -> salvar
-        -> deixar só fieldmap no lugar de posições e campos?
+        -> deixar só fieldmap no lugar de posições e campos? (ok)
         -> criar linedit para magnet_name e main_current
         -> magnet center vem de savefieldmapdialoga
-        -> adicionar comments?
-        -> dividir header_info em variáveis?
-        -> adicionar magnet_name e main_current em FieldMapData?
+        -> adicionar comments? (ok)
+        -> dividir header_info em variáveis? (ok)
+        -> adicionar magnet_name e main_current em FieldMapData? (ok)
     -> probe_calibrations
-        -> adicionar probe_name e calibration_magnet em ProbeCalibration
+        -> adicionar probe_name e calibration_magnet em ProbeCalibration (ok)
         -> saveCoordinateSystemFile??
 
-    -> criar dicionarios dos nomes das colunas para os nomes das variáveis no programa quando for diferente
+    -> criar dicionarios dos nomes das colunas para os nomes das variáveis no programa quando for diferente (ok)
 
     -> Magnets_info (criar tabela com informações?)
 
@@ -45,7 +45,7 @@
     ProbeCalibration?
 
 
-#DB column to program variables dict 
+#DB column to program variables dict
 -> scans:
  'id':'id', #None
  'date':'date', #None
@@ -132,7 +132,3 @@
  'sensorx':'sensorx.data', #ProbeCalibrationa
  'sensory':'sensory.data', #ProbeCalibration
  'sensorz':'sensorz.data', #ProbeCalibration
-
-
-
-

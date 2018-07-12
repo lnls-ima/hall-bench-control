@@ -3,8 +3,19 @@
 """Implementation of classes to handle calibration files."""
 
 import numpy as _np
+import collections as _collections
 from scipy import interpolate as _interpolate
+
 from . import utils as _utils
+from . import database as _database
+
+
+class CalibrationError(Exception):
+    """Calibration exception."""
+
+    def __init__(self, message, *args):
+        """Initialization method."""
+        self.message = message
 
 
 class CalibrationCurve(object):
@@ -18,7 +29,6 @@ class CalibrationCurve(object):
         """
         self._function_type = None
         self._function = None
-        self._filename = None
         self._data = []
         if filename is not None:
             self.read_file(filename)
@@ -97,11 +107,6 @@ class CalibrationCurve(object):
         else:
             raise TypeError('calibration data must be a list.')
 
-    @property
-    def filename(self):
-        """Name of the calibration file."""
-        return self._filename
-
     def _set_conversion_function(self):
         if (len(self.data) != 0 and
            self.function_type == 'interpolation'):
@@ -117,7 +122,6 @@ class CalibrationCurve(object):
         """Clear calibration curve data."""
         self._function_type = None
         self._function = None
-        self._filename = None
         self._data = []
 
     def convert_voltage(self, voltage_array):
@@ -140,8 +144,6 @@ class CalibrationCurve(object):
         Args:
             filename (str): calibration file path.
         """
-        self._filename = filename
-
         flines = _utils.read_file(filename)
         self.function_type = _utils.find_value(flines, 'function_type')
 
@@ -160,7 +162,6 @@ class CalibrationCurve(object):
         if self.function_type is None:
             raise ValueError('Invalid calibration data.')
 
-        self._filename = filename
         timestamp = _utils.get_timestamp()
 
         with open(filename, mode='w') as f:
@@ -190,12 +191,33 @@ class CalibrationCurve(object):
 class ProbeCalibration(object):
     """Hall probe calibration data."""
 
+    _db_table = 'probe_calibrations'
+    _db_dict = _collections.OrderedDict([
+        ('id', [None, 'INTEGER NOT NULL']),
+        ('date', [None, 'TEXT NOT NULL']),
+        ('hour', [None, 'TEXT NOT NULL']),
+        ('probe_name', ['probe_name', 'TEXT NOT NULL UNIQUE']),
+        ('calibration_magnet', ['calibration_magnet', 'TEXT NOT NULL']),
+        ('function_type', ['function_type', 'TEXT NOT NULL']),
+        ('distance_xy', ['distance_xy', 'REAL NOT NULL']),
+        ('distance_yz', ['distance_yz', 'REAL NOT NULL']),
+        ('angle_xy', ['distance_xy', 'REAL NOT NULL']),
+        ('angle_yz', ['distance_yz', 'REAL NOT NULL']),
+        ('angle_zx', ['distance_zx', 'REAL NOT NULL']),
+        ('probe_axis', ['probe_axis', 'INTEGER NOT NULL']),
+        ('sensorx', ['datax', 'TEXT NOT NULL']),
+        ('sensory', ['datay', 'TEXT NOT NULL']),
+        ('sensorz', ['dataz', 'TEXT NOT NULL']),
+    ])
+
     def __init__(self, filename=None):
         """Initialize variables.
 
         Args:
             filename (str): calibration file path.
         """
+        self.probe_name = None
+        self.calibration_magnet = None
         self._sensorx = CalibrationCurve()
         self._sensory = CalibrationCurve()
         self._sensorz = CalibrationCurve()
@@ -206,7 +228,6 @@ class ProbeCalibration(object):
         self._angle_xy = None
         self._angle_yz = None
         self._angle_xz = None
-        self._filename = None
         if filename is not None:
             self.read_file(filename)
 
@@ -247,9 +268,33 @@ class ProbeCalibration(object):
             return not self.__eq__(other)
         return NotImplemented
 
+    @classmethod
+    def create_database_table(cls, database):
+        """Create database table."""
+        variables = []
+        for key in cls._db_dict.keys():
+            variables.append((key, cls._db_dict[key][1]))
+        success = _database.create_table(database, cls._db_table, variables)
+        return success
+
+    @property
+    def datax(self):
+        """Sensor X calibration data."""
+        return self._sensorx.data
+
+    @property
+    def datay(self):
+        """Sensor Y calibration data."""
+        return self._sensory.data
+
+    @property
+    def dataz(self):
+        """Sensor Z calibration data."""
+        return self._sensorz.data
+
     @property
     def sensorx(self):
-        """Sensor X calibration data."""
+        """Sensor X CalibrationCurve object."""
         return self._sensorx
 
     @sensorx.setter
@@ -261,7 +306,7 @@ class ProbeCalibration(object):
 
     @property
     def sensory(self):
-        """Sensor Y calibration data."""
+        """Sensor Y CalibrationCurve object."""
         return self._sensory
 
     @sensory.setter
@@ -273,7 +318,7 @@ class ProbeCalibration(object):
 
     @property
     def sensorz(self):
-        """Sensor Z calibration data."""
+        """Sensor Z CalibrationCurve object."""
         return self._sensorz
 
     @sensorz.setter
@@ -370,17 +415,10 @@ class ProbeCalibration(object):
         else:
             raise ValueError('Invalid value for probe axis.')
 
-    @property
-    def filename(self):
-        """Name of the probe calibration file."""
-        return self._filename
-
-    def valid_data(self):
-        """Check if parameters are valid."""
-        return True
-
     def clear(self):
         """Clear calibration data."""
+        self.probe_name = None
+        self.calibration_magnet = None
         self._sensorx = CalibrationCurve()
         self._sensory = CalibrationCurve()
         self._sensorz = CalibrationCurve()
@@ -391,7 +429,6 @@ class ProbeCalibration(object):
         self._angle_xy = None
         self._angle_yz = None
         self._angle_xz = None
-        self._filename = None
 
     def corrected_position(self, axis, position_array, sensor):
         """Return the corrected position list for the given sensor."""
@@ -409,10 +446,11 @@ class ProbeCalibration(object):
         return corr_position_array
 
     def field_in_bench_coordinate_system(self, fieldx, fieldy, fieldz):
-        """Return the field components transform to the bench coordinate system.
+        """Return field components transform to the bench coordinate system.
 
         Returns:
             [field3 (+X Axis), field2 (+Y Axis), field1 (+Z Axis)]
+
         """
         if self._probe_axis == 1:
             field3 = fieldx
@@ -436,8 +474,6 @@ class ProbeCalibration(object):
         Args:
             filename (str): calibration file path.
         """
-        self._filename = filename
-
         flines = _utils.read_file(filename)
         self.function_type = _utils.find_value(flines, 'function_type')
         self.probe_axis = _utils.find_value(
@@ -514,8 +550,6 @@ class ProbeCalibration(object):
         if self.function_type is None:
             raise ValueError('Invalid calibration data.')
 
-        self._filename = filename
-
         timestamp = _utils.get_timestamp()
 
         with open(filename, mode='w') as f:
@@ -568,25 +602,55 @@ class ProbeCalibration(object):
                     f.write('{0:+14.7e}\t'.format(value))
                 f.write('\n')
 
-    def save_db(self):
-        _timestamp = _utils.get_timestamp().split('_')
-        _db_values = [None,
-                      _timestamp[0],
-                      _timestamp[1].replace('-', ':'),
-                      'Calibration Magnet',
-                      'Probe Name',
-                      self.function_type,
-                      self.distance_xy,
-                      self.distance_zy,
-                      self.angle_xy,
-                      self.angle_yz,
-                      self.angle_xz,
-                      self.probe_axis,
-                      str(self.sensorx.data),
-                      str(self.sensory.data),
-                      str(self.sensorz.data)]
+    def read_from_database(self, database, idn):
+        """Read field data from database entry."""
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise CalibrationError(
+                'Failed to read probe calibration from database.')
 
-        # Call DBCalibration.insert_into_database(database_filename,_db_values)
+        db_entry = _database.read_from_database(database, self._db_table, idn)
+        if db_entry is None:
+            raise ValueError('Invalid database ID.')
+
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise CalibrationError(
+                    'Failed to read probe calibration from database.')
+            else:
+                if attr_name is not None:
+                    idx = db_column_names.index(key)
+                    setattr(self, attr_name, db_entry[idx])
+
+    def save_to_database(self, database):
+        """Insert field data into database table."""
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise CalibrationError(
+                'Failed to save probe calibration to database.')
+
+        timestamp = _utils.get_timestamp().split('_')
+        date = timestamp[0]
+        hour = timestamp[1].replace('-', ':')
+
+        db_values = []
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise CalibrationError(
+                    'Failed to save probe calibration to database.')
+            else:
+                if key == "id":
+                    db_values.append(None)
+                elif attr_name is None:
+                    db_values.append(locals()[key])
+                else:
+                    db_values.append(getattr(self, attr_name))
+
+        _database.insert_into_database(database, self._db_table, db_values)
 
 
 def _polynomial_conversion(data, voltage_array):

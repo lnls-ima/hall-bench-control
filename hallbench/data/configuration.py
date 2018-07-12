@@ -2,7 +2,10 @@
 
 """Implementation of classes to handle configuration files."""
 
+import collections as _collections
+
 from . import utils as _utils
+from . import database as _database
 
 
 class ConfigurationError(Exception):
@@ -22,14 +25,8 @@ class Configuration(object):
         Args:
             filename (str): configuration filepath.
         """
-        self._filename = None
         if filename is not None:
             self.read_file(filename)
-
-    @property
-    def filename(self):
-        """Name of the configuration file."""
-        return self._filename
 
     def __eq__(self, other):
         """Equality method."""
@@ -59,7 +56,7 @@ class Configuration(object):
 
     def valid_data(self):
         """Check if parameters are valid."""
-        al = [getattr(self, a) for a in self.__dict__ if a != '_filename']
+        al = [getattr(self, a) for a in self.__dict__]
         if all([a is not None for a in al]):
             return True
         else:
@@ -76,14 +73,12 @@ class Configuration(object):
         Args:
             filename (str): configuration filepath.
         """
-        self._filename = filename
         data = _utils.read_file(filename)
         for name in self.__dict__:
-            if name != '_filename':
-                tp = self.get_attribute_type(name)
-                if tp is not None:
-                    value = _utils.find_value(data, name, vtype=tp)
-                    setattr(self, name, value)
+            tp = self.get_attribute_type(name)
+            if tp is not None:
+                value = _utils.find_value(data, name, vtype=tp)
+                setattr(self, name, value)
 
     def save_file(self, filename):
         """Save configuration to file."""
@@ -117,7 +112,7 @@ class ConnectionConfig(Configuration):
 
     def get_attribute_type(self, name):
         """Get attribute type."""
-        if name == '_filename' or 'port' in name:
+        if 'port' in name:
             return str
         else:
             return int
@@ -136,24 +131,23 @@ class ConnectionConfig(Configuration):
             raise ConfigurationError(message)
 
         try:
-            self._filename = filename
             data = [
-                'Configuration File\n\n',
-                '#pmac_enable\t{0:1d}\n\n'.format(self.pmac_enable),
-                '#voltx_enable\t{0:1d}\n'.format(self.voltx_enable),
-                '#voltx_address\t{0:1d}\n'.format(self.voltx_address),
-                '#volty_enable\t{0:1d}\n'.format(self.volty_enable),
-                '#volty_address\t{0:1d}\n'.format(self.volty_address),
-                '#voltz_enable\t{0:1d}\n\n'.format(self.voltz_enable),
-                '#voltz_address\t{0:1d}\n\n'.format(self.voltz_address),
-                '#multich_enable\t{0:1d}\n'.format(self.multich_enable),
-                '#multich_address\t{0:1d}\n\n'.format(self.multich_address),
-                '#nmr_enable\t{0:1d}\n'.format(self.nmr_enable),
-                '#nmr_port\t{0:s}\n'.format(self.nmr_port),
-                '#nmr_baudrate\t{0:1d}\n'.format(self.nmr_baudrate),
-                '#collimator_enable\t{0:1d}\n\n'.format(
+                '# Configuration File\n\n',
+                'pmac_enable\t{0:1d}\n\n'.format(self.pmac_enable),
+                'voltx_enable\t{0:1d}\n'.format(self.voltx_enable),
+                'voltx_address\t{0:1d}\n'.format(self.voltx_address),
+                'volty_enable\t{0:1d}\n'.format(self.volty_enable),
+                'volty_address\t{0:1d}\n'.format(self.volty_address),
+                'voltz_enable\t{0:1d}\n\n'.format(self.voltz_enable),
+                'voltz_address\t{0:1d}\n\n'.format(self.voltz_address),
+                'multich_enable\t{0:1d}\n'.format(self.multich_enable),
+                'multich_address\t{0:1d}\n\n'.format(self.multich_address),
+                'nmr_enable\t{0:1d}\n'.format(self.nmr_enable),
+                'nmr_port\t{0:s}\n'.format(self.nmr_port),
+                'nmr_baudrate\t{0:1d}\n'.format(self.nmr_baudrate),
+                'collimator_enable\t{0:1d}\n\n'.format(
                     self.collimator_enable),
-                '#collimator_port\t{0:s}\n'.format(self.collimator_port),
+                'collimator_port\t{0:s}\n'.format(self.collimator_port),
                 ]
 
             with open(filename, mode='w') as f:
@@ -168,41 +162,94 @@ class ConnectionConfig(Configuration):
 class MeasurementConfig(Configuration):
     """Read, write and stored measurement configuration data."""
 
+    _db_table = 'configurations'
+    _db_dict = _collections.OrderedDict([
+        ('id', [None, 'INTEGER NOT NULL']),
+        ('date', [None, 'TEXT NOT NULL']),
+        ('hour', [None, 'TEXT NOT NULL']),
+        ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
+        ('main_current', ['main_current', 'TEXT NOT NULL']),
+        ('probe_calibration_id', [None, 'INTEGER']),
+        ('temperature', [None, 'REAL']),
+        ('operator', [None, 'TEXT']),
+        ('software_version', [None, 'TEXT']),
+        ('probex_enable', ['probex_enable', 'INTEGER NOT NULL']),
+        ('probey_enable', ['probey_enable', 'INTEGER NOT NULL']),
+        ('probez_enable', ['probez_enable', 'INTEGER NOT NULL']),
+        ('voltage_precision', ['voltage_precision', 'INTEGER NOT NULL']),
+        ('first_axis', ['first_axis', 'INTEGER NOT NULL']),
+        ('second_axis', ['second_axis', 'INTEGER NOT NULL']),
+        ('nr_measurements', ['nr_measurements', 'INTEGER NOT NULL']),
+        ('integration_time', ['integration_time', 'REAL NOT NULL']),
+        ('start_ax1', ['start_ax1', 'REAL NOT NULL']),
+        ('end_ax1', ['end_ax1', 'REAL NOT NULL']),
+        ('step_ax1', ['step_ax1', 'REAL NOT NULL']),
+        ('extra_ax1', ['extra_ax1', 'REAL NOT NULL']),
+        ('vel_ax1', ['vel_ax1', 'REAL NOT NULL']),
+        ('start_ax2', ['start_ax2', 'REAL NOT NULL']),
+        ('end_ax2', ['end_ax2', 'REAL NOT NULL']),
+        ('step_ax2', ['step_ax2', 'REAL NOT NULL']),
+        ('extra_ax2', ['extra_ax2', 'REAL NOT NULL']),
+        ('vel_ax2', ['vel_ax2', 'REAL NOT NULL']),
+        ('start_ax3', ['start_ax3', 'REAL NOT NULL']),
+        ('end_ax3', ['end_ax3', 'REAL NOT NULL']),
+        ('step_ax3', ['step_ax3', 'REAL NOT NULL']),
+        ('extra_ax3', ['extra_ax3', 'REAL NOT NULL']),
+        ('vel_ax3', ['vel_ax3', 'REAL NOT NULL']),
+        ('start_ax5', ['start_ax5', 'REAL NOT NULL']),
+        ('end_ax5', ['end_ax5', 'REAL NOT NULL']),
+        ('step_ax5', ['step_ax5', 'REAL NOT NULL']),
+        ('extra_ax5', ['extra_ax5', 'REAL NOT NULL']),
+        ('vel_ax5', ['vel_ax5', 'REAL NOT NULL']),
+        ('comments', [None, 'TEXT']),
+    ])
+
     def __init__(self, filename=None):
         """Initialization method.
 
         Args:
             filename (str): measurement configuration filepath.
         """
-        self.meas_probeX = None
-        self.meas_probeY = None
-        self.meas_probeZ = None
-        self.meas_precision = None
-        self.meas_first_axis = None
-        self.meas_second_axis = None
-        self.meas_aper = None
-        self.meas_nr = None
-        self.meas_startpos_ax1 = None
-        self.meas_endpos_ax1 = None
-        self.meas_incr_ax1 = None
-        self.meas_extra_ax1 = None
-        self.meas_vel_ax1 = None
-        self.meas_startpos_ax2 = None
-        self.meas_endpos_ax2 = None
-        self.meas_incr_ax2 = None
-        self.meas_extra_ax2 = None
-        self.meas_vel_ax2 = None
-        self.meas_startpos_ax3 = None
-        self.meas_endpos_ax3 = None
-        self.meas_incr_ax3 = None
-        self.meas_extra_ax3 = None
-        self.meas_vel_ax3 = None
-        self.meas_startpos_ax5 = None
-        self.meas_endpos_ax5 = None
-        self.meas_incr_ax5 = None
-        self.meas_extra_ax5 = None
-        self.meas_vel_ax5 = None
+        self.magnet_name = None
+        self.main_current = None
+        self.probex_enable = None
+        self.probey_enable = None
+        self.probez_enable = None
+        self.voltage_precision = None
+        self.first_axis = None
+        self.second_axis = None
+        self.nr_measurements = None
+        self.integration_time = None
+        self.start_ax1 = None
+        self.end_ax1 = None
+        self.step_ax1 = None
+        self.extra_ax1 = None
+        self.vel_ax1 = None
+        self.start_ax2 = None
+        self.end_ax2 = None
+        self.step_ax2 = None
+        self.extra_ax2 = None
+        self.vel_ax2 = None
+        self.start_ax3 = None
+        self.end_ax3 = None
+        self.step_ax3 = None
+        self.extra_ax3 = None
+        self.vel_ax3 = None
+        self.start_ax5 = None
+        self.end_ax5 = None
+        self.step_ax5 = None
+        self.extra_ax5 = None
+        self.vel_ax5 = None
         super().__init__(filename)
+
+    @classmethod
+    def create_database_table(cls, database):
+        """Create database table."""
+        variables = []
+        for key in cls._db_dict.keys():
+            variables.append((key, cls._db_dict[key][1]))
+        success = _database.create_table(database, cls._db_table, variables)
+        return success
 
     def _set_axis_param(self, param, axis, value):
         axis_param = param + str(axis)
@@ -219,55 +266,56 @@ class MeasurementConfig(Configuration):
 
     def get_start(self, axis):
         """Get start position for the given axis."""
-        return getattr(self, 'meas_startpos_ax' + str(axis))
+        return getattr(self, 'start_ax' + str(axis))
 
     def set_start(self, axis, value):
         """Set start position value for the given axis."""
-        param = 'meas_startpos_ax'
+        param = 'start_ax'
         self._set_axis_param(param, axis, value)
 
     def get_end(self, axis):
         """Get end position for the given axis."""
-        return getattr(self, 'meas_endpos_ax' + str(axis))
+        return getattr(self, 'end_ax' + str(axis))
 
     def set_end(self, axis, value):
         """Set end position value for the given axis."""
-        param = 'meas_endpos_ax'
+        param = 'end_ax'
         self._set_axis_param(param, axis, value)
 
     def get_step(self, axis):
         """Get position step for the given axis."""
-        return getattr(self, 'meas_incr_ax' + str(axis))
+        return getattr(self, 'step_ax' + str(axis))
 
     def set_step(self, axis, value):
         """Set position step value for the given axis."""
-        param = 'meas_incr_ax'
+        param = 'step_ax'
         self._set_axis_param(param, axis, value)
 
     def get_extra(self, axis):
         """Get extra position for the given axis."""
-        return getattr(self, 'meas_extra_ax' + str(axis))
+        return getattr(self, 'extra_ax' + str(axis))
 
     def set_extra(self, axis, value):
         """Get extra position for the given axis."""
-        param = 'meas_extra_ax'
+        param = 'extra_ax'
         self._set_axis_param(param, axis, value)
 
     def get_velocity(self, axis):
         """Get velocity for the given axis."""
-        return getattr(self, 'meas_vel_ax' + str(axis))
+        return getattr(self, 'vel_ax' + str(axis))
 
     def set_velocity(self, axis, value):
         """Set velocity value for the given axis."""
-        param = 'meas_vel_ax'
+        param = 'vel_ax'
         self._set_axis_param(param, axis, value)
 
     def get_attribute_type(self, name):
         """Get attribute type."""
-        if name in ['meas_probeX', 'meas_probeY', 'meas_probeZ', 'meas_nr',
-                    'meas_precision', 'meas_first_axis', 'meas_second_axis']:
+        if name in ['probex_enable', 'probey_enable', 'probez_enable',
+                    'nr_measurements', 'voltage_precision',
+                    'first_axis', 'second_axis']:
             return int
-        elif name == '_filename':
+        elif name in ['magnet_name', 'main_current']:
             return str
         else:
             return float
@@ -286,45 +334,46 @@ class MeasurementConfig(Configuration):
             raise ConfigurationError(message)
 
         try:
-            self._filename = filename
             data = [
-                'Measurement Setup\n\n',
-                'Hall probes (X, Y, Z)\n',
-                '#meas_probeX\t{0:1d}\n'.format(self.meas_probeX),
-                '#meas_probeY\t{0:1d}\n'.format(self.meas_probeY),
-                '#meas_probeZ\t{0:1d}\n\n'.format(self.meas_probeZ),
-                'Digital Multimeter (aper [s])\n',
-                '#meas_aper\t{0:4f}\n\n'.format(self.meas_aper),
-                'Digital Multimeter (precision [single=0 or double=1])\n',
-                '#meas_precision\t{0:1d}\n\n'.format(self.meas_precision),
-                'Number of measurements\n',
-                '#meas_nr\t{0:1d}\n\n'.format(self.meas_nr),
-                'First Axis (Triggering Axis)\n',
-                '#meas_first_axis\t{0:1d}\n\n'.format(self.meas_first_axis),
-                'Second Axis\n',
-                '#meas_second_axis\t{0:1d}\n\n'.format(self.meas_second_axis),
-                ('Axis Parameters (StartPos, EndPos, Incr, Extra, Velocity)' +
+                '# Measurement Setup\n\n',
+                'magnet_name\t{0:s}\n'.format(self.magnet_name),
+                'main_current\t{0:s}\n'.format(self.main_current),
+                '# Hall probes (X, Y, Z)\n',
+                'probex_enable\t{0:1d}\n'.format(self.probex_enable),
+                'probey_enable\t{0:1d}\n'.format(self.probey_enable),
+                'probez_enable\t{0:1d}\n\n'.format(self.probez_enable),
+                '# Digital Multimeter (aper [s])\n',
+                'integration_time\t{0:4f}\n\n'.format(self.integration_time),
+                '# Digital Multimeter (precision [single=0 or double=1])\n',
+                'voltage_precision\t{0:1d}\n\n'.format(self.voltage_precision),
+                '# Number of measurements\n',
+                'nr_measurements\t{0:1d}\n\n'.format(self.nr_measurements),
+                '# First Axis (Triggering Axis)\n',
+                'first_axis\t{0:1d}\n\n'.format(self.first_axis),
+                '#Second Axis\n',
+                'second_axis\t{0:1d}\n\n'.format(self.second_axis),
+                ('#Axis Parameters (StartPos, EndPos, Incr, Extra, Velocity)' +
                  ' - Ax1, Ax2, Ax3, Ax5\n'),
-                '#meas_startpos_ax1\t{0:4f}\n'.format(self.meas_startpos_ax1),
-                '#meas_endpos_ax1\t{0:4f}\n'.format(self.meas_endpos_ax1),
-                '#meas_incr_ax1\t{0:2f}\n'.format(self.meas_incr_ax1),
-                '#meas_extra_ax1\t{0:2f}\n'.format(self.meas_extra_ax1),
-                '#meas_vel_ax1\t{0:2f}\n\n'.format(self.meas_vel_ax1),
-                '#meas_startpos_ax2\t{0:4f}\n'.format(self.meas_startpos_ax2),
-                '#meas_endpos_ax2\t{0:4f}\n'.format(self.meas_endpos_ax2),
-                '#meas_incr_ax2\t{0:2f}\n'.format(self.meas_incr_ax2),
-                '#meas_extra_ax2\t{0:2f}\n'.format(self.meas_extra_ax2),
-                '#meas_vel_ax2\t{0:2f}\n\n'.format(self.meas_vel_ax2),
-                '#meas_startpos_ax3\t{0:4f}\n'.format(self.meas_startpos_ax3),
-                '#meas_endpos_ax3\t{0:4f}\n'.format(self.meas_endpos_ax3),
-                '#meas_incr_ax3\t{0:2f}\n'.format(self.meas_incr_ax3),
-                '#meas_extra_ax3\t{0:2f}\n'.format(self.meas_extra_ax3),
-                '#meas_vel_ax3\t{0:2f}\n\n'.format(self.meas_vel_ax3),
-                '#meas_startpos_ax5\t{0:4f}\n'.format(self.meas_startpos_ax5),
-                '#meas_endpos_ax5\t{0:4f}\n'.format(self.meas_endpos_ax5),
-                '#meas_incr_ax5\t{0:2f}\n'.format(self.meas_incr_ax5),
-                '#meas_extra_ax5\t{0:2f}\n'.format(self.meas_extra_ax5),
-                '#meas_vel_ax5\t{0:2f}\n'.format(self.meas_vel_ax5)]
+                'start_ax1\t{0:4f}\n'.format(self.start_ax1),
+                'end_ax1\t{0:4f}\n'.format(self.end_ax1),
+                'step_ax1\t{0:2f}\n'.format(self.step_ax1),
+                'extra_ax1\t{0:2f}\n'.format(self.extra_ax1),
+                'vel_ax1\t{0:2f}\n\n'.format(self.vel_ax1),
+                'start_ax2\t{0:4f}\n'.format(self.start_ax2),
+                'end_ax2\t{0:4f}\n'.format(self.end_ax2),
+                'step_ax2\t{0:2f}\n'.format(self.step_ax2),
+                'extra_ax2\t{0:2f}\n'.format(self.extra_ax2),
+                'vel_ax2\t{0:2f}\n\n'.format(self.vel_ax2),
+                'start_ax3\t{0:4f}\n'.format(self.start_ax3),
+                'end_ax3\t{0:4f}\n'.format(self.end_ax3),
+                'step_ax3\t{0:2f}\n'.format(self.step_ax3),
+                'extra_ax3\t{0:2f}\n'.format(self.extra_ax3),
+                'vel_ax3\t{0:2f}\n\n'.format(self.vel_ax3),
+                'start_ax5\t{0:4f}\n'.format(self.start_ax5),
+                'end_ax5\t{0:4f}\n'.format(self.end_ax5),
+                'step_ax5\t{0:2f}\n'.format(self.step_ax5),
+                'extra_ax5\t{0:2f}\n'.format(self.extra_ax5),
+                'vel_ax5\t{0:2f}\n'.format(self.vel_ax5)]
 
             with open(filename, mode='w') as f:
                 for item in data:
@@ -333,3 +382,55 @@ class MeasurementConfig(Configuration):
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
             raise ConfigurationError(message)
+
+    def read_from_database(self, database, idn):
+        """Read field data from database entry."""
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise ConfigurationError(
+                'Failed to read configuration from database.')
+
+        db_entry = _database.read_from_database(database, self._db_table, idn)
+        if db_entry is None:
+            raise ValueError('Invalid database ID.')
+
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise ConfigurationError(
+                    'Failed to read configuration from database.')
+            else:
+                if attr_name is not None:
+                    idx = db_column_names.index(key)
+                    setattr(self, attr_name, db_entry[idx])
+
+    def save_to_database(
+            self, database, probe_calibration_id, temperature,
+            operator, software_version, comments):
+        """Insert field data into database table."""
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise ConfigurationError(
+                'Failed to save configuration to database.')
+
+        timestamp = _utils.get_timestamp().split('_')
+        date = timestamp[0]
+        hour = timestamp[1].replace('-', ':')
+
+        db_values = []
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise ConfigurationError(
+                    'Failed to save configuration to database.')
+            else:
+                if key == "id":
+                    db_values.append(None)
+                elif attr_name is None:
+                    db_values.append(locals()[key])
+                else:
+                    db_values.append(getattr(self, attr_name))
+
+        _database.insert_into_database(database, self._db_table, db_values)

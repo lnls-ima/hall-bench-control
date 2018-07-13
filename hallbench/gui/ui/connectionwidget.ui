@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
-    <height>944</height>
+    <width>1200</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -136,37 +136,16 @@
       <property name="bottomMargin">
        <number>10</number>
       </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="2" column="0">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <property name="spacing">
+         <number>15</number>
         </property>
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Digital Multimeters
-(Hall Probes)</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <property name="bottomMargin">
-         <number>6</number>
-        </property>
-        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-         <widget class="QLabel" name="label_4">
+        <item row="2" column="2">
+         <widget class="QLabel" name="voltzled_la">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -177,53 +156,10 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/3458a.png</pixmap>
+           <pixmap>../../resources/img/led.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="0">
-       <layout class="QGridLayout" name="gridLayout_2">
-        <property name="spacing">
-         <number>15</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QCheckBox" name="voltx_chb">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>X-axis</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QSpinBox" name="voltxaddress_sb">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="suffix">
-           <string/>
           </property>
          </widget>
         </item>
@@ -246,39 +182,6 @@
           </property>
           <property name="scaledContents">
            <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QCheckBox" name="volty_chb">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Y-axis</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QSpinBox" name="voltyaddress_sb">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
           </property>
          </widget>
         </item>
@@ -306,42 +209,76 @@
         </item>
         <item row="2" column="0">
          <widget class="QCheckBox" name="voltz_chb">
+          <property name="text">
+           <string>Z-axis</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="voltx_chb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
+          <property name="text">
+           <string>X-axis</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="volty_chb">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
           <property name="text">
-           <string>Z-axis</string>
+           <string>Y-axis</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="voltxaddress_sb">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="voltyaddress_sb">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
          </widget>
         </item>
         <item row="2" column="1">
          <widget class="QSpinBox" name="voltzaddress_sb">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
          </widget>
         </item>
-        <item row="2" column="2">
-         <widget class="QLabel" name="voltzled_la">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <property name="bottomMargin">
+         <number>6</number>
+        </property>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLabel" name="label_4">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -352,7 +289,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/3458a.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -361,10 +298,21 @@
         </item>
        </layout>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Digital Multimeters
+(Hall Probes)</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
      </layout>
-     <zorder>label_3</zorder>
      <zorder></zorder>
      <zorder></zorder>
+     <zorder>label_6</zorder>
     </widget>
    </item>
    <item row="1" column="1" rowspan="2" colspan="3">
@@ -420,20 +368,7 @@
        <number>10</number>
       </property>
       <item>
-       <widget class="QLabel" name="label_8">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
+       <widget class="QLabel" name="label_3">
         <property name="text">
          <string>PMAC
 (Delta Tau)</string>
@@ -490,30 +425,6 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QCheckBox" name="pmac_chb">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>100</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Enable</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="1">
          <widget class="QLabel" name="pmacled_la">
           <property name="enabled">
@@ -539,12 +450,24 @@
           </property>
          </widget>
         </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="pmac_chb">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Enable</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
-     <zorder>label_8</zorder>
-     <zorder></zorder>
      <zorder>verticalSpacer_2</zorder>
+     <zorder>label_3</zorder>
     </widget>
    </item>
    <item row="3" column="0">
@@ -572,14 +495,7 @@
        <number>15</number>
       </property>
       <item>
-       <widget class="QLabel" name="label_15">
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
+       <widget class="QLabel" name="label_7">
         <property name="text">
          <string>Digital Multichannel
 (Temperatures)</string>
@@ -614,30 +530,6 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QCheckBox" name="multich_chb">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>100</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Enable</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="2">
          <widget class="QLabel" name="multichled_la">
           <property name="enabled">
@@ -663,6 +555,19 @@
           </property>
          </widget>
         </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="multich_chb">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Enable</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="1">
          <widget class="QSpinBox" name="multichaddress_sb">
           <property name="sizePolicy">
@@ -670,11 +575,6 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
           </property>
          </widget>
         </item>
@@ -697,6 +597,31 @@
       </property>
       <item row="2" column="0">
        <layout class="QGridLayout" name="gridLayout_7">
+        <item row="0" column="2">
+         <widget class="QLabel" name="nmrled_la">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap>../../resources/img/led.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0">
          <widget class="QCheckBox" name="nmr_chb">
           <property name="sizePolicy">
@@ -705,34 +630,31 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="minimumSize">
-           <size>
-            <width>100</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
           <property name="text">
            <string>Enable</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="nmrport_cmb">
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_14">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
+          <property name="text">
+           <string>Baud rate</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
           <item>
            <property name="text">
@@ -791,49 +713,13 @@
           </item>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_5">
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Baud rate</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QLabel" name="nmrled_la">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="comboBox_2">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
-          </property>
-          <property name="scaledContents">
-           <bool>true</bool>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="nmrbaudrate_cmb">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
           </property>
           <property name="currentIndex">
            <number>6</number>
@@ -877,23 +763,6 @@
         </item>
        </layout>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_17">
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>NMR</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
@@ -917,6 +786,16 @@
         </item>
        </layout>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>NMR</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -936,17 +815,7 @@
        <number>9</number>
       </property>
       <item>
-       <widget class="QLabel" name="label_16">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
+       <widget class="QLabel" name="label_13">
         <property name="text">
          <string>Auto-Colimator</string>
         </property>
@@ -980,30 +849,6 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_5">
-        <item row="0" column="0">
-         <widget class="QCheckBox" name="collimator_chb">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>100</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Enable</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="2">
          <widget class="QLabel" name="colimatorled_la">
           <property name="enabled">
@@ -1029,6 +874,35 @@
           </property>
          </widget>
         </item>
+        <item row="1" column="1">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>30</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="collimator_chb">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Enable</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="1">
          <widget class="QComboBox" name="collimatorport_cmb">
           <property name="sizePolicy">
@@ -1036,11 +910,6 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
           </property>
           <item>
            <property name="text">
@@ -1119,22 +988,6 @@
           </item>
          </widget>
         </item>
-        <item row="1" column="1">
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>30</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
        </layout>
       </item>
      </layout>
@@ -1145,16 +998,7 @@
      <property name="spacing">
       <number>30</number>
      </property>
-     <property name="leftMargin">
-      <number>15</number>
-     </property>
-     <property name="topMargin">
-      <number>15</number>
-     </property>
-     <property name="rightMargin">
-      <number>15</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>15</number>
      </property>
      <item>
@@ -1167,7 +1011,6 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>14</pointsize>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -1179,9 +1022,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="disconnect_btn">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -1190,7 +1030,6 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>14</pointsize>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -1208,19 +1047,6 @@
   <tabstop>filename_le</tabstop>
   <tabstop>loadconfig_btn</tabstop>
   <tabstop>saveconfig_btn</tabstop>
-  <tabstop>voltx_chb</tabstop>
-  <tabstop>voltxaddress_sb</tabstop>
-  <tabstop>volty_chb</tabstop>
-  <tabstop>voltyaddress_sb</tabstop>
-  <tabstop>voltz_chb</tabstop>
-  <tabstop>voltzaddress_sb</tabstop>
-  <tabstop>pmac_chb</tabstop>
-  <tabstop>multich_chb</tabstop>
-  <tabstop>multichaddress_sb</tabstop>
-  <tabstop>collimator_chb</tabstop>
-  <tabstop>collimatorport_cmb</tabstop>
-  <tabstop>connect_btn</tabstop>
-  <tabstop>disconnect_btn</tabstop>
  </tabstops>
  <resources/>
  <connections/>

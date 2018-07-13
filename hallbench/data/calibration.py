@@ -210,7 +210,7 @@ class ProbeCalibration(object):
         ('sensorz', ['dataz', 'TEXT NOT NULL']),
     ])
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
 
         Args:
@@ -228,6 +228,13 @@ class ProbeCalibration(object):
         self._angle_xy = None
         self._angle_yz = None
         self._angle_xz = None
+
+        if filename is not None and idn is not None:
+            raise ValueError('Invalid arguments for ProbeCalibration.')
+
+        if idn is not None and database is not None:
+            self.read_from_database(database, idn)
+
         if filename is not None:
             self.read_file(filename)
 

@@ -2,7 +2,6 @@
 
 """Implementation of classes to store and analyse measurement data."""
 
-import os as _os
 import numpy as _np
 import pandas as _pd
 import collections as _collections

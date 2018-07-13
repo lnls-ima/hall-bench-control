@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
-    <height>853</height>
+    <width>1200</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,9 +47,6 @@
       </property>
       <item>
        <widget class="QPushButton" name="activate_btn">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -58,7 +55,6 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -70,9 +66,6 @@
       </item>
       <item>
        <widget class="QPushButton" name="stopall_btn">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -81,7 +74,6 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -93,9 +85,6 @@
       </item>
       <item>
        <widget class="QPushButton" name="killall_btn">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -104,7 +93,6 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -914,9 +902,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>activate_btn</tabstop>
-  <tabstop>stopall_btn</tabstop>
-  <tabstop>killall_btn</tabstop>
   <tabstop>hommingax1_chb</tabstop>
   <tabstop>hommingax2_chb</tabstop>
   <tabstop>hommingax3_chb</tabstop>

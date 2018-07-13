@@ -169,13 +169,13 @@ class MeasurementConfig(Configuration):
         ('hour', [None, 'TEXT NOT NULL']),
         ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
         ('main_current', ['main_current', 'TEXT NOT NULL']),
-        ('probe_calibration_id', [None, 'INTEGER']),
+        ('probe_name', ['probe_name', 'TEXT']),
         ('temperature', [None, 'REAL']),
         ('operator', [None, 'TEXT']),
         ('software_version', [None, 'TEXT']),
-        ('probex_enable', ['probex_enable', 'INTEGER NOT NULL']),
-        ('probey_enable', ['probey_enable', 'INTEGER NOT NULL']),
-        ('probez_enable', ['probez_enable', 'INTEGER NOT NULL']),
+        ('voltx_enable', ['voltx_enable', 'INTEGER NOT NULL']),
+        ('volty_enable', ['volty_enable', 'INTEGER NOT NULL']),
+        ('voltz_enable', ['voltz_enable', 'INTEGER NOT NULL']),
         ('voltage_precision', ['voltage_precision', 'INTEGER NOT NULL']),
         ('first_axis', ['first_axis', 'INTEGER NOT NULL']),
         ('second_axis', ['second_axis', 'INTEGER NOT NULL']),
@@ -201,10 +201,9 @@ class MeasurementConfig(Configuration):
         ('step_ax5', ['step_ax5', 'REAL NOT NULL']),
         ('extra_ax5', ['extra_ax5', 'REAL NOT NULL']),
         ('vel_ax5', ['vel_ax5', 'REAL NOT NULL']),
-        ('comments', [None, 'TEXT']),
     ])
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, database=None, idn=None):
         """Initialization method.
 
         Args:
@@ -212,9 +211,10 @@ class MeasurementConfig(Configuration):
         """
         self.magnet_name = None
         self.main_current = None
-        self.probex_enable = None
-        self.probey_enable = None
-        self.probez_enable = None
+        self.probe_name = None
+        self.voltx_enable = None
+        self.volty_enable = None
+        self.voltz_enable = None
         self.voltage_precision = None
         self.first_axis = None
         self.second_axis = None
@@ -240,7 +240,14 @@ class MeasurementConfig(Configuration):
         self.step_ax5 = None
         self.extra_ax5 = None
         self.vel_ax5 = None
-        super().__init__(filename)
+
+        if filename is not None and idn is not None:
+            raise ValueError('Invalid arguments for MeasurementConfig.')
+
+        if idn is not None and database is not None:
+            self.read_from_database(database, idn)
+        else:
+            super().__init__(filename)
 
     @classmethod
     def create_database_table(cls, database):
@@ -311,11 +318,11 @@ class MeasurementConfig(Configuration):
 
     def get_attribute_type(self, name):
         """Get attribute type."""
-        if name in ['probex_enable', 'probey_enable', 'probez_enable',
+        if name in ['voltx_enable', 'volty_enable', 'voltz_enable',
                     'nr_measurements', 'voltage_precision',
                     'first_axis', 'second_axis']:
             return int
-        elif name in ['magnet_name', 'main_current']:
+        elif name in ['magnet_name', 'main_current', 'probe_name']:
             return str
         else:
             return float
@@ -336,12 +343,15 @@ class MeasurementConfig(Configuration):
         try:
             data = [
                 '# Measurement Setup\n\n',
+                '# Magnet\n',
                 'magnet_name\t{0:s}\n'.format(self.magnet_name),
-                'main_current\t{0:s}\n'.format(self.main_current),
-                '# Hall probes (X, Y, Z)\n',
-                'probex_enable\t{0:1d}\n'.format(self.probex_enable),
-                'probey_enable\t{0:1d}\n'.format(self.probey_enable),
-                'probez_enable\t{0:1d}\n\n'.format(self.probez_enable),
+                'main_current\t{0:s}\n\n'.format(self.main_current),
+                '# Probe Calibration\n',
+                'probe_name\t{0:s}\n\n'.format(self.probe_name),
+                '# Digital Multimeters (X, Y, Z)\n',
+                'voltx_enable\t{0:1d}\n'.format(self.voltx_enable),
+                'volty_enable\t{0:1d}\n'.format(self.volty_enable),
+                'voltz_enable\t{0:1d}\n\n'.format(self.voltz_enable),
                 '# Digital Multimeter (aper [s])\n',
                 'integration_time\t{0:4f}\n\n'.format(self.integration_time),
                 '# Digital Multimeter (precision [single=0 or double=1])\n',
@@ -354,26 +364,26 @@ class MeasurementConfig(Configuration):
                 'second_axis\t{0:1d}\n\n'.format(self.second_axis),
                 ('#Axis Parameters (StartPos, EndPos, Incr, Extra, Velocity)' +
                  ' - Ax1, Ax2, Ax3, Ax5\n'),
-                'start_ax1\t{0:4f}\n'.format(self.start_ax1),
-                'end_ax1\t{0:4f}\n'.format(self.end_ax1),
-                'step_ax1\t{0:2f}\n'.format(self.step_ax1),
-                'extra_ax1\t{0:2f}\n'.format(self.extra_ax1),
-                'vel_ax1\t{0:2f}\n\n'.format(self.vel_ax1),
-                'start_ax2\t{0:4f}\n'.format(self.start_ax2),
-                'end_ax2\t{0:4f}\n'.format(self.end_ax2),
-                'step_ax2\t{0:2f}\n'.format(self.step_ax2),
-                'extra_ax2\t{0:2f}\n'.format(self.extra_ax2),
-                'vel_ax2\t{0:2f}\n\n'.format(self.vel_ax2),
-                'start_ax3\t{0:4f}\n'.format(self.start_ax3),
-                'end_ax3\t{0:4f}\n'.format(self.end_ax3),
-                'step_ax3\t{0:2f}\n'.format(self.step_ax3),
-                'extra_ax3\t{0:2f}\n'.format(self.extra_ax3),
-                'vel_ax3\t{0:2f}\n\n'.format(self.vel_ax3),
-                'start_ax5\t{0:4f}\n'.format(self.start_ax5),
-                'end_ax5\t{0:4f}\n'.format(self.end_ax5),
-                'step_ax5\t{0:2f}\n'.format(self.step_ax5),
-                'extra_ax5\t{0:2f}\n'.format(self.extra_ax5),
-                'vel_ax5\t{0:2f}\n'.format(self.vel_ax5)]
+                'start_ax1  \t{0:4f}\n'.format(self.start_ax1),
+                'end_ax1    \t{0:4f}\n'.format(self.end_ax1),
+                'step_ax1   \t{0:2f}\n'.format(self.step_ax1),
+                'extra_ax1  \t{0:2f}\n'.format(self.extra_ax1),
+                'vel_ax1    \t{0:2f}\n\n'.format(self.vel_ax1),
+                'start_ax2  \t{0:4f}\n'.format(self.start_ax2),
+                'end_ax2    \t{0:4f}\n'.format(self.end_ax2),
+                'step_ax2   \t{0:2f}\n'.format(self.step_ax2),
+                'extra_ax2  \t{0:2f}\n'.format(self.extra_ax2),
+                'vel_ax2    \t{0:2f}\n\n'.format(self.vel_ax2),
+                'start_ax3  \t{0:4f}\n'.format(self.start_ax3),
+                'end_ax3    \t{0:4f}\n'.format(self.end_ax3),
+                'step_ax3   \t{0:2f}\n'.format(self.step_ax3),
+                'extra_ax3  \t{0:2f}\n'.format(self.extra_ax3),
+                'vel_ax3    \t{0:2f}\n\n'.format(self.vel_ax3),
+                'start_ax5  \t{0:4f}\n'.format(self.start_ax5),
+                'end_ax5    \t{0:4f}\n'.format(self.end_ax5),
+                'step_ax5   \t{0:2f}\n'.format(self.step_ax5),
+                'extra_ax5  \t{0:2f}\n'.format(self.extra_ax5),
+                'vel_ax5    \t{0:2f}\n'.format(self.vel_ax5)]
 
             with open(filename, mode='w') as f:
                 for item in data:
@@ -406,8 +416,7 @@ class MeasurementConfig(Configuration):
                     setattr(self, attr_name, db_entry[idx])
 
     def save_to_database(
-            self, database, probe_calibration_id, temperature,
-            operator, software_version, comments):
+            self, database, temperature, operator, software_version):
         """Insert field data into database table."""
         db_column_names = _database.get_table_column_names(
             database, self._db_table)

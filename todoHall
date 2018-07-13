@@ -29,13 +29,13 @@
     -> measurementwidget
         -> Load and Save DB
         -> criar popup em measure_btn com (utilizar savefieldmapdialog?):
-            -> combobox operator e probe_calibration
-            -> linedit magnet_name, main_current e comments
+            -> combobox operator e probe_calibration (ok)
+            -> linedit magnet_name, main_current e {comments} (ok)
         -> incluir correção de offset?
     -> loadcalibrationwidget
         -> alterar loadcalibrationwidget para fazer calibração também (como é feita atualmente?)
-            -> combobox para calibration_magnet
-            -> linedit para probe_name
+            -> {combobox} para calibration_magnet (ok)
+            -> linedit para probe_name (ok)
 
 
 -> measurementwidget

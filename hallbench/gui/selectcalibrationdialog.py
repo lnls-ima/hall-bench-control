@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-"""Load Calibration widget for the Hall Bench Control application."""
+"""Select Calibration widget for the Hall Bench Control application."""
 
 import numpy as _np
 import warnings as _warnings
 from PyQt5.QtWidgets import (
-    QWidget as _QWidget,
+    QDialog as _QDialog,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     )
@@ -20,8 +20,8 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 
 
-class LoadCalibrationWidget(_QWidget):
-    """Load Calibration widget class for the Hall Bench Control application."""
+class SelectCalibrationDialog(_QDialog):
+    """Select Calibration dialog class for Hall Bench Control application."""
 
     _axis_str_dict = {
         1: '+ Axis #1 (+Z)', 2: '+ Axis #2 (+Y)', 3: '+ Axis #3 (+X)'}
@@ -47,6 +47,7 @@ class LoadCalibrationWidget(_QWidget):
 
         # create connections
         self.ui.loadfile_btn.clicked.connect(self.loadFile)
+        self.ui.loaddb_btn.clicked.connect(self.loadDB)
         self.ui.showtable_btn.clicked.connect(self.showTable)
         self.ui.updategraph_btn.clicked.connect(self.updateGraph)
         self.ui.voltage_sb.valueChanged.connect(self.updateField)
@@ -109,42 +110,18 @@ class LoadCalibrationWidget(_QWidget):
         self.ui.viewdata_pw.setLabel('left', 'Magnetic Field [T]')
         self.ui.viewdata_pw.showGrid(x=True, y=True)
 
-    def loadFile(self):
-        """Load probe calibration file."""
-        default_filename = self.ui.filename_le.text()
-        filename = _QFileDialog.getOpenFileName(
-            self, caption='Load probe calibration file',
-            directory=default_filename, filter="Text files (*.txt)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            self.probe_calibration = _ProbeCalibration(filename)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-            self.probe_calibration = None
-            self.setEnabled(False)
-            self.updateGraph()
-            return
-
-        self.setEnabled(True)
-        self.updateGraph()
-
-        self.ui.functiontype_le.setText(
+    def load(self):
+        """Load probe calibration parameters."""
+        self.ui.function_type_le.setText(
             self.probe_calibration.function_type.capitalize())
 
         probe_axis = self.probe_calibration.probe_axis
         if probe_axis in self._axis_str_dict.keys():
-            self.ui.probeaxis_le.setText(self._axis_str_dict[probe_axis])
-            self.ui.probeaxis_le.setEnabled(True)
+            self.ui.probe_axis_le.setText(self._axis_str_dict[probe_axis])
+            self.ui.probe_axis_le.setEnabled(True)
         else:
-            self.ui.probeaxis_le.setText('')
-            self.ui.probeaxis_le.setEnabled(False)
+            self.ui.probe_axis_le.setText('')
+            self.ui.probe_axis_le.setEnabled(False)
 
         distance_xy = self.probe_calibration.distance_xy
         if distance_xy is not None:
@@ -165,6 +142,56 @@ class LoadCalibrationWidget(_QWidget):
         self.ui.fieldx_le.setText('')
         self.ui.fieldy_le.setText('')
         self.ui.fieldz_le.setText('')
+
+    def loadDB(self):
+        """Load probe calibration from database."""
+        self.ui.filename_le.setText("")
+
+        try:
+            idn = int(self.ui.idn_le.text())
+        except Exception:
+            _QMessageBox.critical(
+                self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
+            return
+
+        try:
+            self.probe_calibration = _ProbeCalibration(self.database, idn)
+        except Exception as e:
+            self.setEnabled(False)
+            self.updateGraph()
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+            return
+
+        self.setEnabled(True)
+        self.updateGraph()
+        self.load()
+
+    def loadFile(self):
+        """Load probe calibration file."""
+        default_filename = self.ui.filename_le.text()
+        filename = _QFileDialog.getOpenFileName(
+            self, caption='Load probe calibration file',
+            directory=default_filename, filter="Text files (*.txt)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            self.probe_calibration = _ProbeCalibration(filename)
+        except Exception as e:
+            self.setEnabled(False)
+            self.updateGraph()
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+            return
+
+        self.setEnabled(True)
+        self.updateGraph()
+        self.load()
 
     def setEnabled(self, enabled):
         """Enable or disable controls."""

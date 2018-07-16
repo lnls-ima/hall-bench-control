@@ -107,7 +107,7 @@
         <property name="minimumSize">
          <size>
           <width>200</width>
-          <height>40</height>
+          <height>30</height>
          </size>
         </property>
         <property name="maximumSize">
@@ -139,7 +139,7 @@
         <property name="minimumSize">
          <size>
           <width>200</width>
-          <height>40</height>
+          <height>30</height>
          </size>
         </property>
         <property name="text">
@@ -239,7 +239,7 @@
        </widget>
       </item>
       <item row="5" column="2">
-       <widget class="QLineEdit" name="distancezy_le">
+       <widget class="QLineEdit" name="distance_zy_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -326,7 +326,7 @@
        </widget>
       </item>
       <item row="8" column="2">
-       <widget class="QLineEdit" name="anglexz_le">
+       <widget class="QLineEdit" name="angle_xz_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -339,7 +339,7 @@
        </widget>
       </item>
       <item row="6" column="2">
-       <widget class="QLineEdit" name="anglexy_le">
+       <widget class="QLineEdit" name="angle_xy_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -394,7 +394,7 @@
        </widget>
       </item>
       <item row="4" column="2">
-       <widget class="QLineEdit" name="distancexy_le">
+       <widget class="QLineEdit" name="distance_xy_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -407,7 +407,7 @@
        </widget>
       </item>
       <item row="7" column="2">
-       <widget class="QLineEdit" name="angleyz_le">
+       <widget class="QLineEdit" name="angle_yz_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -689,6 +689,9 @@
         <property name="text">
          <string>Voltage [V]:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
       <item>
@@ -724,6 +727,9 @@
         <property name="text">
          <string>Bx [T]:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
       <item>
@@ -749,6 +755,9 @@
         </property>
         <property name="text">
          <string>By[T]:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -776,6 +785,9 @@
         <property name="text">
          <string>Bz[T]:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
       <item>
@@ -794,7 +806,7 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
     <widget class="QLabel" name="label_5">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Maximum">

@@ -37,7 +37,7 @@ class MeasurementWidget(_QWidget):
     _measurement_axes = [1, 2, 3, 5]
 
     def __init__(self, parent=None):
-        """Setup the ui, add widgets and create connections."""
+        """Set up the ui, add widgets and create connections."""
         super().__init__(parent)
 
         # setup the ui
@@ -55,6 +55,7 @@ class MeasurementWidget(_QWidget):
         self.select_calibration_dialog = _SelectCalibrationDialog()
 
         # variables initialization
+        self.probe_calibration = None
         self.graphx = []
         self.graphy = []
         self.graphz = []
@@ -62,7 +63,7 @@ class MeasurementWidget(_QWidget):
         self.voltage_data = None
         self.field_data = None
         self.fieldmap_data = None
-        self.configuration = None
+        self.config = None
         self.measurement_probe_calibration = None
         self.measurement_directory = None
         self.threadx = None
@@ -73,50 +74,14 @@ class MeasurementWidget(_QWidget):
         self.connectSignalSlots()
 
     @property
-    def probe_calibration(self):
-        """Probe calibration data object."""
-        return self.window().probe_calibration
-
-    @property
     def devices(self):
         """Hall Bench Devices."""
         return self.window().devices
 
-    # @property
-    # def directory(self):
-    #     """Directory to save files."""
-    #     return self.window().directory
-
-    # @property
-    # def save_field(self):
-    #     """Save field flag."""
-    #     return self.window().save_field
-
-    # @property
-    # def save_voltage(self):
-    #     """Save voltage flag."""
-    #     return self.window().save_voltage
-
-    # def checkPositionRange(self):
-    #     """Check position range."""
-    #     if not self.ui.correctdisp_chb.isChecked():
-    #         return True
-    #
-    #     probe_axis = self.measurement_probe_calibration.probe_axis
-    #     distance_xy = self.measurement_probe_calibration.distance_xy
-    #     distance_zy = self.measurement_probe_calibration.distance_zy
-    #     start = self.configuration.get_start(probe_axis)
-    #     end = self.configuration.get_end(probe_axis)
-    #     if (end - start) < (distance_xy + distance_zy):
-    #         message = ('The position range is insufficient to correct ' +
-    #                    'probe displacements.\n\nThe minimum position ' +
-    #                    'range required for axis %i ' % probe_axis +
-    #                    'is: \n\n%0.4f mm' % (distance_xy + distance_zy))
-    #         _QMessageBox.critical(
-    #             self, 'Failure', message, _QMessageBox.Ok)
-    #         return False
-    #     else:
-    #         return True
+    @property
+    def database(self):
+        """Database filename."""
+        return self.window().database
 
     def clearGraph(self):
         """Clear plots."""
@@ -129,6 +94,7 @@ class MeasurementWidget(_QWidget):
     def closeDialogs(self):
         """Close dialogs."""
         self.save_dialog.close()
+        self.select_calibration_dialog.close()
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
@@ -243,20 +209,15 @@ class MeasurementWidget(_QWidget):
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
         self.ui.savefieldmap_btn.clicked.connect(self.showSaveFieldMapDialog)
 
-    def saveStoredVoltageValuesToVoltageData(self):
-        """Copy voltage values stored on multimeters."""
-        self.voltage_data.sensorx = self.devices.voltx.voltage
-        self.voltage_data.sensory = self.devices.volty.voltage
-        self.voltage_data.sensorz = self.devices.voltz.voltage
+        self.select_calibration_dialog.probeCalibrationChanged.connect(
+            self.updateProbeCalibration)
 
     def configureAndMeasure(self):
         """Configure and start measurement."""
         if (self.devices is None
            or not self.validProbeCalibration()
-           or not self.validDirectory()
            or not self.updateConfiguration()
-           or not self.checkPositionRange()
-           or not self.initialMeasurementConfiguration()):
+           or not self.configureDevices()):
             return
 
         self.ui.stop_btn.setEnabled(True)
@@ -264,21 +225,21 @@ class MeasurementWidget(_QWidget):
         self.stop = False
         self.fieldmap_data = None
 
-        first_axis = self.configuration.meas_first_axis
-        second_axis = self.configuration.meas_second_axis
+        first_axis = self.config.first_axis
+        second_axis = self.config.second_axis
         fixed_axes = self.getFixedAxes()
 
         for axis in fixed_axes:
             if self.stop is True:
                 return
-            pos = self.configuration.get_start(axis)
+            pos = self.config.get_start(axis)
             self.moveAxis(axis, pos)
 
         field_data_list = []
         if second_axis != -1:
-            start = self.configuration.get_start(second_axis)
-            end = self.configuration.get_end(second_axis)
-            step = self.configuration.get_step(second_axis)
+            start = self.config.get_start(second_axis)
+            end = self.config.get_end(second_axis)
+            step = self.config.get_step(second_axis)
             npts = _np.ceil(round((end - start) / step, 4) + 1)
             pos_list = _np.linspace(start, end, npts)
 
@@ -292,7 +253,7 @@ class MeasurementWidget(_QWidget):
             # move to initial position
             if self.stop is True:
                 return
-            second_axis_start = self.configuration.get_start(second_axis)
+            second_axis_start = self.config.get_start(second_axis)
             self.moveAxis(second_axis, second_axis_start)
 
         else:
@@ -304,7 +265,7 @@ class MeasurementWidget(_QWidget):
         # move to initial position
         if self.stop is True:
             return
-        first_axis_start = self.configuration.get_start(first_axis)
+        first_axis_start = self.config.get_start(first_axis)
         self.moveAxis(second_axis, first_axis_start)
 
         self.updateFieldMapData(field_data_list)
@@ -315,6 +276,33 @@ class MeasurementWidget(_QWidget):
         message = 'End of measurements.'
         _QMessageBox.information(
             self, 'Measurements', message, _QMessageBox.Ok)
+
+    def configureDevices(self):
+        """Configure devices."""
+        try:
+            if self.config.voltx_enable:
+                self.devices.voltx.config(
+                    self.config.integration_time,
+                    self.config.voltage_precision)
+            if self.config.volty_enable:
+                self.devices.volty.config(
+                    self.config.integration_time,
+                    self.config.voltage_precision)
+            if self.config.voltz_enable:
+                self.devices.voltz.config(
+                    self.config.integration_time,
+                    self.config.voltage_precision)
+
+            self.devices.pmac.set_axis_speed(1, self.config.vel_ax1)
+            self.devices.pmac.set_axis_speed(2, self.config.vel_ax2)
+            self.devices.pmac.set_axis_speed(3, self.config.vel_ax3)
+            self.devices.pmac.set_axis_speed(5, self.config.vel_ax5)
+            return True
+        except Exception:
+            message = 'Failed to configure devices.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return False
 
     def configureGraph(self, nr_curves, label):
         """Configure graph.
@@ -421,15 +409,6 @@ class MeasurementWidget(_QWidget):
                 if axis != 5:
                     second_rb.setEnabled(True)
 
-    # def fieldmapDataBackup(self):
-    #     """Fieldmap data backup."""
-    #     if self.fieldmap_data is None:
-    #         return
-    #
-    #     timestamp = _get_timestamp()
-    #     filename = timestamp + '_fieldmap_backup.txt'
-    #     self.fieldmap_data.save_file(filename)
-
     def fixEndPositionValue(self, axis):
         """Fix end position value."""
         start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
@@ -466,24 +445,13 @@ class MeasurementWidget(_QWidget):
 
     def getFixedAxes(self):
         """Get fixed axes."""
-        first_axis = self.configuration.meas_first_axis
-        second_axis = self.configuration.meas_second_axis
+        first_axis = self.config.first_axis
+        second_axis = self.config.second_axis
         fixed_axes = [a for a in self._measurement_axes]
         fixed_axes.remove(first_axis)
         if second_axis != -1:
             fixed_axes.remove(second_axis)
         return fixed_axes
-
-    def initialMeasurementConfiguration(self):
-        """Initial measurement configuration."""
-        if self.devices.loaded:
-            self.devices.initialMeasurementConfiguration(self.configuration)
-            return True
-        else:
-            message = 'Devices not loaded.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return False
 
     def killReadingThreads(self):
         """Kill threads."""
@@ -496,28 +464,28 @@ class MeasurementWidget(_QWidget):
 
     def loadConfiguration(self):
         """Set measurement parameters."""
-        self.ui.magnet_name_le.setText(self.configuration.magnet_name)
-        self.ui.main_current_le.setText(self.configuration.main_current)
-        self.ui.probe_name_le.setText(self.configuration.probe_name)
+        self.ui.magnet_name_le.setText(self.config.magnet_name)
+        self.ui.main_current_le.setText(self.config.main_current)
+        self.ui.probe_name_le.setText(self.config.probe_name)
 
-        self.ui.voltx_enable_chb.setChecked(self.configuration.voltx_enable)
-        self.ui.volty_enable_chb.setChecked(self.configuration.volty_enable)
-        self.ui.voltz_enable_chb.setChecked(self.configuration.voltz_enable)
+        self.ui.voltx_enable_chb.setChecked(self.config.voltx_enable)
+        self.ui.volty_enable_chb.setChecked(self.config.volty_enable)
+        self.ui.voltz_enable_chb.setChecked(self.config.voltz_enable)
 
         self.ui.integration_time_le.setText('{0:0.4f}'.format(
-            self.configuration.integration_time))
+            self.config.integration_time))
         self.ui.voltage_precision_cmb.setCurrentIndex(
-            self.configuration.voltage_precision)
+            self.config.voltage_precision)
 
-        self.ui.nr_measurements_sb.setValue(self.configuration.nr_measurements)
+        self.ui.nr_measurements_sb.setValue(self.config.nr_measurements)
 
-        first_axis = self.configuration.first_axis
+        first_axis = self.config.first_axis
         first_rb = getattr(self.ui, 'first_ax' + str(first_axis) + '_rb')
         first_rb.setChecked(True)
 
         self.disableSecondAxisButton()
 
-        second_axis = self.configuration.second_axis
+        second_axis = self.config.second_axis
         if second_axis != -1:
             second_rb = getattr(
                 self.ui, 'second_ax' + str(second_axis) + '_rb')
@@ -528,23 +496,23 @@ class MeasurementWidget(_QWidget):
 
         for axis in self._measurement_axes:
             start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
-            value = self.configuration.get_start(axis)
+            value = self.config.get_start(axis)
             start_le.setText('{0:0.4f}'.format(value))
 
             step_le = getattr(self.ui, 'step_ax' + str(axis) + '_le')
-            value = self.configuration.get_step(axis)
+            value = self.config.get_step(axis)
             step_le.setText('{0:0.4f}'.format(value))
 
             end_le = getattr(self.ui, 'end_ax' + str(axis) + '_le')
-            value = self.configuration.get_end(axis)
+            value = self.config.get_end(axis)
             end_le.setText('{0:0.4f}'.format(value))
 
             extra_le = getattr(self.ui, 'extra_ax' + str(axis) + '_le')
-            value = self.configuration.get_extra(axis)
+            value = self.config.get_extra(axis)
             extra_le.setText('{0:0.4f}'.format(value))
 
             vel_le = getattr(self.ui, 'vel_ax' + str(axis) + '_le')
-            value = self.configuration.get_velocity(axis)
+            value = self.config.get_velocity(axis)
             vel_le.setText('{0:0.4f}'.format(value))
 
         self.disableInvalidLineEdit()
@@ -561,7 +529,7 @@ class MeasurementWidget(_QWidget):
             return
 
         try:
-            self.configuration = _MeasurementConfig(self.database, idn)
+            self.config = _MeasurementConfig(self.database, idn)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -585,7 +553,7 @@ class MeasurementWidget(_QWidget):
             return
 
         try:
-            self.configuration = _MeasurementConfig(filename)
+            self.config = _MeasurementConfig(filename)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -664,26 +632,10 @@ class MeasurementWidget(_QWidget):
             try:
                 if not filename.endswith('.txt'):
                     filename = filename + '.txt'
-                self.configuration.save_file(filename)
+                self.config.save_file(filename)
             except Exception as e:
                 _QMessageBox.critical(
                     self, 'Failure', str(e), _QMessageBox.Ok)
-
-    # def saveConfigurationInMeasurementsDir(self):
-    #     """Save configuration file in the measurements directory."""
-    #     if self.measurement_directory is None:
-    #         return
-    #
-    #     if self.configuration is None:
-    #         return
-    #
-    #     try:
-    #         timestamp = _get_timestamp()
-    #         filename = timestamp + '_' + 'measurement_configuration.txt'
-    #         self.configuration.save_file(_path.join(
-    #             self.measurement_directory, filename))
-    #     except Exception:
-    #         pass
 
     def saveFieldData(self):
         """Save field data to file."""
@@ -704,7 +656,7 @@ class MeasurementWidget(_QWidget):
 
         timestamp = _get_timestamp()
         filename = timestamp + '_field_data'
-        first_axis = self.configuration.meas_first_axis
+        first_axis = self.config.first_axis
 
         axes = [1, 2, 3]
         axes.remove(first_axis)
@@ -715,25 +667,6 @@ class MeasurementWidget(_QWidget):
 
         filepath = _path.join(self.measurement_directory, filename)
         self.field_data.save_file(filepath)
-
-    # def saveMeasurementProbeCalibration(self):
-    #     """Save probe calibration to file."""
-    #     if self.measurement_probe_calibration is None:
-    #         message = 'Invalid probe calibration data.'
-    #         _QMessageBox.critical(
-    #             self, 'Failure', message, _QMessageBox.Ok)
-    #         return
-    #
-    #     if self.measurement_directory is None:
-    #         message = 'Invalid directory.'
-    #         _QMessageBox.critical(
-    #             self, 'Failure', message, _QMessageBox.Ok)
-    #         return
-    #
-    #     timestamp = _get_timestamp()
-    #     filename = timestamp + '_probe_calibration.txt'
-    #     filepath = _path.join(self.measurement_directory, filename)
-    #     self.measurement_probe_calibration.save_file(filepath)
 
     def saveVoltageData(self, to_pos):
         """Save voltage data to file."""
@@ -754,7 +687,7 @@ class MeasurementWidget(_QWidget):
 
         timestamp = _get_timestamp()
         filename = timestamp + '_voltage_data'
-        first_axis = self.configuration.meas_first_axis
+        first_axis = self.config.first_axis
 
         axes = [1, 2, 3]
         axes.remove(first_axis)
@@ -772,19 +705,19 @@ class MeasurementWidget(_QWidget):
 
     def scanLine(self, first_axis):
         """Start line scan."""
-        start = self.configuration.get_start(first_axis)
-        end = self.configuration.get_end(first_axis)
-        step = self.configuration.get_step(first_axis)
-        extra = self.configuration.get_extra(first_axis)
-        vel = self.configuration.get_velocity(first_axis)
+        start = self.config.get_start(first_axis)
+        end = self.config.get_end(first_axis)
+        step = self.config.get_step(first_axis)
+        extra = self.config.get_extra(first_axis)
+        vel = self.config.get_velocity(first_axis)
 
-        aper_displacement = self.configuration.meas_aper * vel
+        aper_displacement = self.config.integration_time * vel
         npts = _np.ceil(round((end - start) / step, 4) + 1)
         scan_list = _np.linspace(start, end, npts)
         to_pos_scan_list = scan_list + aper_displacement/2
         to_neg_scan_list = (scan_list - aper_displacement/2)[::-1]
 
-        nr_measurements = self.configuration.meas_nr
+        nr_measurements = self.config.nr_measurements
         self.configureGraph(nr_measurements, 'Voltage [V]')
 
         voltage_data_list = []
@@ -793,7 +726,12 @@ class MeasurementWidget(_QWidget):
                 return
 
             self.voltage_data = _VoltageData()
-            self.devices.clearMultimetersData()
+            self.devices.voltx.end_measurement = False
+            self.devices.volty.end_measurement = False
+            self.devices.voltz.end_measurement = False
+            self.devices.voltx.clear()
+            self.devices.volty.clear()
+            self.devices.voltz.clear()
             self.updateMeasurementNumber(idx + 1)
 
             # flag to check if sensor is going or returning
@@ -827,7 +765,9 @@ class MeasurementWidget(_QWidget):
             # stop trigger and copy voltage values to voltage data
             self.stopTrigger()
             self.waitReadingThreads()
-            self.saveStoredVoltageValuesToVoltageData()
+            self.voltage_data.sensorx = self.devices.voltx.voltage
+            self.voltage_data.sensory = self.devices.volty.voltage
+            self.voltage_data.sensorz = self.devices.voltz.voltage
             self.killReadingThreads()
 
             if self.stop is True:
@@ -845,7 +785,7 @@ class MeasurementWidget(_QWidget):
         if self.voltage_data is None:
             self.voltage_data = _VoltageData()
 
-        first_axis = self.configuration.meas_first_axis
+        first_axis = self.config.first_axis
 
         for axis in self.voltage_data.axis_list:
             if axis != first_axis:
@@ -909,26 +849,26 @@ class MeasurementWidget(_QWidget):
 
     def showSelectCalibrationDialog(self):
         """Open select calibration dialog."""
-        self.select_calibration_dialog.show()
+        self.select_calibration_dialog.show(self.database)
 
     def startReadingThreads(self):
         """Start threads to read voltage values."""
-        if self.configuration.meas_probeX:
+        if self.config.voltx_enable:
             self.threadx = _threading.Thread(
                 target=self.devices.voltx.read,
-                args=(self.configuration.voltage_precision,))
+                args=(self.config.voltage_precision,))
             self.threadx.start()
 
-        if self.configuration.meas_probeY:
+        if self.config.volty_enable:
             self.thready = _threading.Thread(
                 target=self.devices.volty.read,
-                args=(self.configuration.voltage_precision,))
+                args=(self.config.voltage_precision,))
             self.thready.start()
 
-        if self.configuration.meas_probeZ:
+        if self.config.voltz_enable:
             self.threadz = _threading.Thread(
                 target=self.devices.voltz.read,
-                args=(self.configuration.voltage_precision,))
+                args=(self.config.voltage_precision,))
             self.threadz.start()
 
     def stopMeasurement(self):
@@ -942,7 +882,10 @@ class MeasurementWidget(_QWidget):
 
     def stopTrigger(self):
         """Stop trigger."""
-        self.devices.stopTrigger()
+        self.devices.pmac.stop_trigger()
+        self.devices.voltx.end_measurement = True
+        self.devices.volty.end_measurement = True
+        self.devices.voltz.end_measurement = True
 
     def uncheckRadioButtons(self, selected_axis):
         """Uncheck radio buttons."""
@@ -953,40 +896,40 @@ class MeasurementWidget(_QWidget):
 
     def updateConfiguration(self):
         """Update measurement configuration parameters."""
-        if self.configuration is None:
-            self.configuration = _MeasurementConfig()
+        if self.config is None:
+            self.config = _MeasurementConfig()
 
-        self.configuration.clear()
+        self.config.clear()
 
         _s = self.ui.magnet_name_le.text()
-        self.configuration.magnet_name = _s if len(_s) != 0 else None
+        self.config.magnet_name = _s if len(_s) != 0 else None
 
         _s = self.ui.main_current_le.text()
-        self.configuration.main_current = _s if len(_s) != 0 else None
+        self.config.main_current = _s if len(_s) != 0 else None
 
         _s = self.ui.probe_name_le.text()
-        self.configuration.probe_name = _s if len(_s) != 0 else None
+        self.config.probe_name = _s if len(_s) != 0 else None
 
         _voltx_enable = self.ui.voltx_enable_chb.isChecked()
-        self.configuration.voltx_enable = _voltx_enable
+        self.config.voltx_enable = _voltx_enable
 
         _volty_enable = self.ui.volty_enable_chb.isChecked()
-        self.configuration.volty_enable = _volty_enable
+        self.config.volty_enable = _volty_enable
 
         _voltz_enable = self.ui.voltz_enable_chb.isChecked()
-        self.configuration.voltz_enable = _voltz_enable
+        self.config.voltz_enable = _voltz_enable
 
         idx = self.ui.voltage_precision_cmb.currentIndex()
-        self.configuration.voltage_precision = idx
-        self.configuration.nr_measurements = self.ui.nr_measurements_sb.value()
+        self.config.voltage_precision = idx
+        self.config.nr_measurements = self.ui.nr_measurements_sb.value()
 
         integration_time = self.ui.integration_time_le.text()
         if bool(integration_time and integration_time.strip()):
-            self.configuration.integration_time = float(integration_time)
+            self.config.integration_time = float(integration_time)
 
         self.updateParametersFromTable()
 
-        if self.configuration.valid_data():
+        if self.config.valid_data():
             return True
         else:
             message = 'Invalid measurement configuration.'
@@ -1049,39 +992,39 @@ class MeasurementWidget(_QWidget):
             first_rb = getattr(self.ui, 'first_ax' + str(axis) + '_rb')
             second_rb = getattr(self.ui, 'second_ax' + str(axis) + '_rb')
             if first_rb.isChecked():
-                self.configuration.first_axis = axis
+                self.config.first_axis = axis
             elif second_rb.isChecked():
-                self.configuration.second_axis = axis
+                self.config.second_axis = axis
 
             start = self.getAxisParam('start', axis)
-            self.configuration.set_start(axis, start)
+            self.config.set_start(axis, start)
 
             step_le = getattr(self.ui, 'step_ax' + str(axis) + '_le')
             if step_le.isEnabled():
                 step = self.getAxisParam('step', axis)
-                self.configuration.set_step(axis, step)
+                self.config.set_step(axis, step)
             else:
-                self.configuration.set_step(axis, 0.0)
+                self.config.set_step(axis, 0.0)
 
             end_le = getattr(self.ui, 'end_ax' + str(axis) + '_le')
             if end_le.isEnabled():
                 end = self.getAxisParam('end', axis)
-                self.configuration.set_end(axis, end)
+                self.config.set_end(axis, end)
             else:
-                self.configuration.set_end(axis, start)
+                self.config.set_end(axis, start)
 
             extra_le = getattr(self.ui, 'extra_ax' + str(axis) + '_le')
             if extra_le.isEnabled():
                 extra = self.getAxisParam('extra', axis)
-                self.configuration.set_extra(axis, extra)
+                self.config.set_extra(axis, extra)
             else:
-                self.configuration.set_extra(axis, 0.0)
+                self.config.set_extra(axis, 0.0)
 
             vel = self.getAxisParam('vel', axis)
-            self.configuration.set_velocity(axis, vel)
+            self.config.set_velocity(axis, vel)
 
-        if self.configuration.second_axis is None:
-            self.configuration.second_axis = -1
+        if self.config.second_axis is None:
+            self.config.second_axis = -1
 
     def updatePositions(self):
         """Update axes positions."""
@@ -1089,16 +1032,12 @@ class MeasurementWidget(_QWidget):
             return
         self.position_widget.updatePositions()
 
-    # def validDirectory(self):
-    #     """Check if the directory is valid."""
-    #     self.measurement_directory = self.directory
-    #     if self.measurement_directory is not None:
-    #         return True
-    #     else:
-    #         message = 'Invalid directory.'
-    #         _QMessageBox.critical(
-    #             self, 'Failure', message, _QMessageBox.Ok)
-    #         return False
+    def updateProbeCalibration(self, probe_calibration):
+        """Update probe calibration."""
+        self.probe_calibration = probe_calibration
+        if self.probe_calibration is not None:
+            self.ui.probe_name_le.setText(self.probe_calibration.probe_name)
+            self.disableInvalidVoltimeter()
 
     def validProbeCalibration(self):
         """Check if the probe calibration is valid."""

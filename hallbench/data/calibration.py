@@ -482,6 +482,9 @@ class ProbeCalibration(object):
             filename (str): calibration file path.
         """
         flines = _utils.read_file(filename)
+        self.probe_name = _utils.find_value(flines, 'probe_name')
+        self.calibration_magnet = _utils.find_value(
+            flines, 'calibration_magnet')
         self.function_type = _utils.find_value(flines, 'function_type')
         self.probe_axis = _utils.find_value(
             flines, 'probe_axis', vtype=int)
@@ -511,6 +514,7 @@ class ProbeCalibration(object):
             self.sensorx.data = sensorx_data
             self.distance_xy = _utils.find_value(
                 flines, 'distance_xy', vtype=float)
+            self.angle_xy = _utils.find_value(flines, 'angle_xy', vtype=float)
 
         if len(sensory_data) != 0:
             self.sensory.function_type = self.function_type
@@ -521,32 +525,10 @@ class ProbeCalibration(object):
             self.sensorz.data = sensorz_data
             self.distance_zy = _utils.find_value(
                 flines, 'distance_zy', vtype=float)
+            self.angle_yz = _utils.find_value(flines, 'angle_yz', vtype=float)
 
-    def read_data_from_sensor_files(
-            self, filenamex=None, filenamey=None, filenamez=None):
-        """Read calibration data from sensor files."""
-        self._sensorx = CalibrationCurve()
-        self._sensory = CalibrationCurve()
-        self._sensorz = CalibrationCurve()
-        self._function_type = None
-
-        if filenamex is not None:
-            self.sensorx = CalibrationCurve(filenamex)
-            self.function_type = self.sensorx.function_type
-
-        if filenamey is not None:
-            self.sensory = CalibrationCurve(filenamey)
-            if self.function_type is None:
-                self.function_type = self.sensory.function_type
-            elif self.sensory.function_type != self.function_type:
-                raise ValueError('Inconsistent calibration function types.')
-
-        if filenamez is not None:
-            self.sensorz = CalibrationCurve(filenamez)
-            if self.function_type is None:
-                self.function_type = self.sensorz.function_type
-            elif self.sensorz.function_type != self.function_type:
-                raise ValueError('Inconsistent calibration function types.')
+        if len(sensorz_data) != 0 and len(sensorx_data) != 0:
+            self.angle_xz = _utils.find_value(flines, 'angle_xz', vtype=float)
 
     def save_file(self, filename):
         """Save calibration data to file.
@@ -560,22 +542,19 @@ class ProbeCalibration(object):
         timestamp = _utils.get_timestamp()
 
         with open(filename, mode='w') as f:
-            f.write('timestamp:                      \t{0:1s}\n'.format(
-                timestamp))
-            f.write('function_type:                  \t{0:1s}\n'.format(
-                self.function_type))
-            f.write('distance_xy[mm]:                \t{0:1s}\n'.format(
+            f.write('timestamp:         \t{0:1s}\n'.format(timestamp))
+            f.write('probe_name:        \t{0:1s}\n'.format(self.probe_name))
+            f.write('calibration_magnet:\t{0:1s}\n'.format(
+                self.calibration_magnet))
+            f.write('function_type:     \t{0:1s}\n'.format(self.function_type))
+            f.write('distance_xy[mm]:   \t{0:1s}\n'.format(
                 str(self.distance_xy)))
-            f.write('distance_zy[mm]:                \t{0:1s}\n'.format(
+            f.write('distance_zy[mm]:   \t{0:1s}\n'.format(
                 str(self.distance_zy)))
-            f.write('angle_xy[deg]:                  \t{0:1s}\n'.format(
-                str(self.angle_xy)))
-            f.write('angle_yz[deg]:                  \t{0:1s}\n'.format(
-                str(self.angle_yz)))
-            f.write('angle_xz[deg]:                  \t{0:1s}\n'.format(
-                str(self.angle_xz)))
-            f.write('probe_axis:                     \t{0:1d}\n'.format(
-                self.probe_axis))
+            f.write('angle_xy[deg]:     \t{0:1s}\n'.format(str(self.angle_xy)))
+            f.write('angle_yz[deg]:     \t{0:1s}\n'.format(str(self.angle_yz)))
+            f.write('angle_xz[deg]:     \t{0:1s}\n'.format(str(self.angle_xz)))
+            f.write('probe_axis:        \t{0:1d}\n'.format(self.probe_axis))
             f.write('\n')
 
             if self.function_type == 'interpolation':

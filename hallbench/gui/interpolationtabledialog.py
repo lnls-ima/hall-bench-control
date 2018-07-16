@@ -16,14 +16,14 @@ class InterpolationTableDialog(_QDialog):
     """Interpolation table class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
-        """Setup the ui and create connections."""
+        """Set up the ui and create connections."""
         super().__init__(parent)
 
         # setup the ui
         uifile = _getUiFile(__file__, self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.calibration_data = None
+        self.probe_calibration = None
         self.clip = _QApplication.clipboard()
 
         # create connections
@@ -48,15 +48,15 @@ class InterpolationTableDialog(_QDialog):
             text = text[:-1] + "\n"
         self.clip.setText(text)
 
-    def show(self, calibration_data):
+    def show(self, probe_calibration):
         """Update calibration data object and show dialog."""
-        self.calibration_data = calibration_data
+        self.probe_calibration = probe_calibration
         self.updateTables()
         super(InterpolationTableDialog, self).show()
 
     def updateTables(self):
         """Update table values."""
-        if self.calibration_data is None:
+        if self.probe_calibration is None:
             return
         self.updateTablesensorX()
         self.updateTablesensorY()
@@ -66,7 +66,7 @@ class InterpolationTableDialog(_QDialog):
         """Update sensor x table values."""
         precision = self.sensorxprec_sb.value()
         table = self.ui.sensorx_ta
-        data = self.calibration_data.sensorx.data
+        data = self.probe_calibration.sensorx.data
 
         formatstr = '{0:0.%if}' % precision
         table.setRowCount(0)
@@ -81,7 +81,7 @@ class InterpolationTableDialog(_QDialog):
         """Update sensor y table values."""
         precision = self.sensoryprec_sb.value()
         table = self.ui.sensory_ta
-        data = self.calibration_data.sensory.data
+        data = self.probe_calibration.sensory.data
 
         formatstr = '{0:0.%if}' % precision
         table.setRowCount(0)
@@ -96,7 +96,7 @@ class InterpolationTableDialog(_QDialog):
         """Update sensor z table values."""
         precision = self.sensorzprec_sb.value()
         table = self.ui.sensorz_ta
-        data = self.calibration_data.sensorz.data
+        data = self.probe_calibration.sensorz.data
 
         formatstr = '{0:0.%if}' % precision
         table.setRowCount(0)

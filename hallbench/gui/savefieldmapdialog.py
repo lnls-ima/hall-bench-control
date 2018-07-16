@@ -22,7 +22,7 @@ class SaveFieldMapDialog(_QDialog):
     _coil_list = ['main', 'trim', 'ch', 'cv', 'qs']
 
     def __init__(self, parent=None):
-        """Setup the ui and create connections."""
+        """Set up the ui and create connections."""
         super().__init__(parent)
 
         # setup the ui
@@ -287,7 +287,7 @@ class SaveFieldMapDialog(_QDialog):
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
     def setCoilFrameEnabled(self, checkbox, frame):
-        """Enabled or disabled coil frame."""
+        """Enable or disable coil frame."""
         if checkbox.isChecked():
             frame.setEnabled(True)
         else:

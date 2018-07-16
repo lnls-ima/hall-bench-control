@@ -142,7 +142,7 @@
          <number>15</number>
         </property>
         <item row="2" column="2">
-         <widget class="QLabel" name="voltzled_la">
+         <widget class="QLabel" name="voltz_led_la">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -164,7 +164,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QLabel" name="voltxled_la">
+         <widget class="QLabel" name="voltx_led_la">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -186,7 +186,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLabel" name="voltyled_la">
+         <widget class="QLabel" name="volty_led_la">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -208,14 +208,14 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QCheckBox" name="voltz_chb">
+         <widget class="QCheckBox" name="voltz_enable_chb">
           <property name="text">
            <string>Z-axis</string>
           </property>
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="voltx_chb">
+         <widget class="QCheckBox" name="voltx_enable_chb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -228,7 +228,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QCheckBox" name="volty_chb">
+         <widget class="QCheckBox" name="volty_enable_chb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -241,7 +241,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QSpinBox" name="voltxaddress_sb">
+         <widget class="QSpinBox" name="voltx_address_sb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -251,7 +251,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QSpinBox" name="voltyaddress_sb">
+         <widget class="QSpinBox" name="volty_address_sb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -261,7 +261,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QSpinBox" name="voltzaddress_sb">
+         <widget class="QSpinBox" name="voltz_address_sb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -426,7 +426,7 @@
       <item>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="1">
-         <widget class="QLabel" name="pmacled_la">
+         <widget class="QLabel" name="pmac_led_la">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -451,7 +451,7 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="pmac_chb">
+         <widget class="QCheckBox" name="pmac_enable_chb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -531,7 +531,7 @@
       <item>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="2">
-         <widget class="QLabel" name="multichled_la">
+         <widget class="QLabel" name="multich_led_la">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -556,7 +556,7 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="multich_chb">
+         <widget class="QCheckBox" name="multich_enable_chb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -569,7 +569,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QSpinBox" name="multichaddress_sb">
+         <widget class="QSpinBox" name="multich_address_sb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -598,7 +598,7 @@
       <item row="2" column="0">
        <layout class="QGridLayout" name="gridLayout_7">
         <item row="0" column="2">
-         <widget class="QLabel" name="nmrled_la">
+         <widget class="QLabel" name="nmr_led_la">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -623,7 +623,7 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="nmr_chb">
+         <widget class="QCheckBox" name="nmr_enable_chb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -649,7 +649,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QComboBox" name="comboBox">
+         <widget class="QComboBox" name="nmr_port_cmb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -714,7 +714,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QComboBox" name="comboBox_2">
+         <widget class="QComboBox" name="nmr_baudrate_cmb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -850,7 +850,7 @@
       <item>
        <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="2">
-         <widget class="QLabel" name="colimatorled_la">
+         <widget class="QLabel" name="colimator_led_la">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -891,7 +891,7 @@
          </spacer>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="collimator_chb">
+         <widget class="QCheckBox" name="collimator_enable_chb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -904,7 +904,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QComboBox" name="collimatorport_cmb">
+         <widget class="QComboBox" name="collimator_port_cmb">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1006,7 +1006,7 @@
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>50</height>
+         <height>60</height>
         </size>
        </property>
        <property name="font">
@@ -1025,7 +1025,7 @@
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>50</height>
+         <height>60</height>
         </size>
        </property>
        <property name="font">

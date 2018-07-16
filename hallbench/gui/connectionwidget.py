@@ -19,7 +19,7 @@ class ConnectionWidget(_QWidget):
     """Connection widget class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
-        """Setup the ui."""
+        """Set up the ui."""
         super().__init__(parent)
 
         # setup the ui
@@ -69,7 +69,7 @@ class ConnectionWidget(_QWidget):
                 self, 'Failure', message, _QMessageBox.Ok)
 
     def connectionStatus(self):
-        """Connection status."""
+        """Return the connection status."""
         try:
             if self.config.pmac_enable:
                 pmac_connected = self.devices.pmac.connected
@@ -134,30 +134,31 @@ class ConnectionWidget(_QWidget):
         try:
             self.ui.filename_le.setText(filename)
 
-            self.ui.pmac_chb.setChecked(self.config.pmac_enable)
+            self.ui.pmac_enable_chb.setChecked(self.config.pmac_enable)
 
-            self.ui.voltx_chb.setChecked(self.config.voltx_enable)
-            self.ui.voltxaddress_sb.setValue(self.config.voltx_address)
+            self.ui.voltx_enable_chb.setChecked(self.config.voltx_enable)
+            self.ui.voltx_address_sb.setValue(self.config.voltx_address)
 
-            self.ui.volty_chb.setChecked(self.config.volty_enable)
-            self.ui.voltyaddress_sb.setValue(self.config.volty_address)
+            self.ui.volty_enable_chb.setChecked(self.config.volty_enable)
+            self.ui.volty_address_sb.setValue(self.config.volty_address)
 
-            self.ui.voltz_chb.setChecked(self.config.voltz_enable)
-            self.ui.voltzaddress_sb.setValue(self.config.voltz_address)
+            self.ui.voltz_enable_chb.setChecked(self.config.voltz_enable)
+            self.ui.voltz_address_sb.setValue(self.config.voltz_address)
 
-            self.ui.multich_chb.setChecked(self.config.multich_enable)
-            self.ui.multichaddress_sb.setValue(self.config.multich_address)
+            self.ui.multich_enable_chb.setChecked(self.config.multich_enable)
+            self.ui.multich_address_sb.setValue(self.config.multich_address)
 
-            self.ui.nmr_chb.setChecked(self.config.nmr_enable)
-            self.ui.nmrport_cmb.setCurrentIndex(
-                self.ui.nmrport_cmb.findText(self.config.nmr_port))
-            self.ui.nmrbaudrate_cmb.setCurrentIndex(
-                self.ui.nmrbaudrate_cmb.findText(
+            self.ui.nmr_enable_chb.setChecked(self.config.nmr_enable)
+            self.ui.nmr_port_cmb.setCurrentIndex(
+                self.ui.nmr_port_cmb.findText(self.config.nmr_port))
+            self.ui.nmr_baudrate_cmb.setCurrentIndex(
+                self.ui.nmr_baudrate_cmb.findText(
                     str(self.config.nmr_baudrate)))
 
-            self.ui.collimator_chb.setChecked(self.config.collimator_enable)
-            self.ui.collimatorport_cmb.setCurrentIndex(
-                self.ui.collimatorport_cmb.findText(
+            self.ui.collimator_enable_chb.setChecked(
+                self.config.collimator_enable)
+            self.ui.collimator_port_cmb.setCurrentIndex(
+                self.ui.collimator_port_cmb.findText(
                     self.config.collimator_port))
 
         except Exception:
@@ -209,28 +210,29 @@ class ConnectionWidget(_QWidget):
             self.config = _ConnectionConfig()
 
         try:
-            self.config.pmac_enable = self.ui.pmac_chb.isChecked()
+            self.config.pmac_enable = self.ui.pmac_enable_chb.isChecked()
 
-            self.config.voltx_enable = self.ui.voltx_chb.isChecked()
-            self.config.voltx_address = self.ui.voltxaddress_sb.value()
+            self.config.voltx_enable = self.ui.voltx_enable_chb.isChecked()
+            self.config.voltx_address = self.ui.voltx_address_sb.value()
 
-            self.config.volty_enable = self.ui.volty_chb.isChecked()
-            self.config.volty_address = self.ui.voltyaddress_sb.value()
+            self.config.volty_enable = self.ui.volty_enable_chb.isChecked()
+            self.config.volty_address = self.ui.volty_address_sb.value()
 
-            self.config.voltz_enable = self.ui.voltz_chb.isChecked()
-            self.config.voltz_address = self.ui.voltzaddress_sb.value()
+            self.config.voltz_enable = self.ui.voltz_enable_chb.isChecked()
+            self.config.voltz_address = self.ui.voltz_address_sb.value()
 
-            self.config.multich_enable = self.ui.multich_chb.isChecked()
-            self.config.multich_address = self.ui.multichaddress_sb.value()
+            self.config.multich_enable = self.ui.multich_enable_chb.isChecked()
+            self.config.multich_address = self.ui.multich_address_sb.value()
 
-            self.config.nmr_enable = self.ui.nmr_chb.isChecked()
-            self.config.nmr_port = self.ui.nmrport_cmb.currentText()
+            self.config.nmr_enable = self.ui.nmr_enable_chb.isChecked()
+            self.config.nmr_port = self.ui.nmr_port_cmb.currentText()
             self.config.nmr_baudrate = int(
-                self.ui.nmrbaudrate_cmb.currentText())
+                self.ui.nmr_baudrate_cmb.currentText())
 
-            self.config.collimator_enable = self.ui.collimator_chb.isChecked()
+            self.config.collimator_enable = (
+                self.ui.collimator_enable_chb.isChecked())
             self.config.collimator_port = (
-                self.ui.collimatorport_cmb.currentText())
+                self.ui.collimator_port_cmb.currentText())
 
         except Exception:
             self.config = _ConnectionConfig()
@@ -248,15 +250,15 @@ class ConnectionWidget(_QWidget):
         try:
             pmac_connected = self.devices.pmac.connected
             if pmac_connected is None:
-                self.ui.pmacled_la.setEnabled(False)
+                self.ui.pmac_led_la.setEnabled(False)
             else:
-                self.ui.pmacled_la.setEnabled(pmac_connected)
+                self.ui.pmac_led_la.setEnabled(pmac_connected)
 
-            self.ui.voltxled_la.setEnabled(self.devices.voltx.connected)
-            self.ui.voltyled_la.setEnabled(self.devices.volty.connected)
-            self.ui.voltzled_la.setEnabled(self.devices.voltz.connected)
-            self.ui.multichled_la.setEnabled(self.devices.multich.connected)
-            self.ui.nmrled_la.setEnabled(self.devices.nmr.connected)
+            self.ui.voltx_led_la.setEnabled(self.devices.voltx.connected)
+            self.ui.volty_led_la.setEnabled(self.devices.volty.connected)
+            self.ui.voltz_led_la.setEnabled(self.devices.voltz.connected)
+            self.ui.multich_led_la.setEnabled(self.devices.multich.connected)
+            self.ui.nmr_led_la.setEnabled(self.devices.nmr.connected)
 
         except Exception:
             message = 'Fail to update led status.'

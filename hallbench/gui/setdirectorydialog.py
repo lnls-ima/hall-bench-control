@@ -18,7 +18,7 @@ class SetDirectoryDialog(_QDialog):
     directoryChanged = _pyqtSignal(str)
 
     def __init__(self, parent=None):
-        """Setup the ui and create connections."""
+        """Set up the ui and create connections."""
         super().__init__(parent)
 
         # setup the ui

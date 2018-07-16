@@ -23,7 +23,7 @@ class MotorsWidget(_QWidget):
     }
 
     def __init__(self, parent=None):
-        """Setup the ui, add position widget and create connections."""
+        """Set up the ui, add position widget and create connections."""
         super().__init__(parent)
 
         # setup the ui

@@ -24,7 +24,7 @@ class RecoverDataDialog(_QDialog):
     """Recover data dialog class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
-        """Setup the ui and create connections."""
+        """Set up the ui and create connections."""
         super().__init__(parent)
 
         # setup the ui

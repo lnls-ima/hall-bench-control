@@ -17,7 +17,7 @@
    <property name="verticalSpacing">
     <number>20</number>
    </property>
-   <item row="0" column="0">
+   <item row="1" column="0">
     <widget class="QGroupBox" name="groupBox">
      <property name="font">
       <font>
@@ -189,7 +189,7 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="font">
       <font>
@@ -361,7 +361,7 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <widget class="QGroupBox" name="groupBox_3">
      <property name="font">
       <font>
@@ -531,6 +531,16 @@
        </layout>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>Magnetic Field [T] = C0 + C1*Voltage[V] + C2*Voltage[V]² + C3*Voltage[V]³ + ... </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
     </widget>
    </item>
   </layout>

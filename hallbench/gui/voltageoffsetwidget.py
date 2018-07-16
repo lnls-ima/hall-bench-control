@@ -26,7 +26,7 @@ class VoltageOffsetWidget(_QWidget):
     _voltage_mult_factor = 1000  # [V] -> [mV]
 
     def __init__(self, parent=None):
-        """Setup the ui and signal/slot connections."""
+        """Set up the ui and signal/slot connections."""
         super().__init__(parent)
 
         # setup the ui

@@ -24,7 +24,7 @@ class CalibrationWindow(_QMainWindow):
     _timer_interval = 250  # [ms]
 
     def __init__(self, parent=None):
-        """Setup the ui and add main tabs."""
+        """Set up the ui and add main tabs."""
         super().__init__(parent)
 
         # setup the ui

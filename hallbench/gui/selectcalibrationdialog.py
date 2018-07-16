@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     )
+from PyQt5.QtCore import pyqtSignal as _pyqtSignal
 import PyQt5.uic as _uic
 import pyqtgraph as _pyqtgraph
 
@@ -23,11 +24,13 @@ from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 class SelectCalibrationDialog(_QDialog):
     """Select Calibration dialog class for Hall Bench Control application."""
 
+    probeCalibrationChanged = _pyqtSignal(_ProbeCalibration)
+
     _axis_str_dict = {
         1: '+ Axis #1 (+Z)', 2: '+ Axis #2 (+Y)', 3: '+ Axis #3 (+X)'}
 
     def __init__(self, parent=None):
-        """Setup the ui and create connections."""
+        """Set up the ui and create connections."""
         super().__init__(parent)
 
         # setup the ui
@@ -37,6 +40,9 @@ class SelectCalibrationDialog(_QDialog):
         self.interpolation_dialog = _InterpolationTableDialog()
         self.polynomial_dialog = _PolynomialTableDialog()
 
+        self._probe_calibration = None
+
+        self.database = None
         self.graphx = []
         self.graphy = []
         self.graphz = []
@@ -52,21 +58,33 @@ class SelectCalibrationDialog(_QDialog):
         self.ui.updategraph_btn.clicked.connect(self.updateGraph)
         self.ui.voltage_sb.valueChanged.connect(self.updateField)
 
+        if self.database is None:
+            self.ui.loaddb_btn.setEnabled(False)
+            self.ui.idn_le.setEnabled(False)
+        else:
+            self.ui.loaddb_btn.setEnabled(True)
+            self.ui.idn_le.setEnabled(True)
+
     @property
     def probe_calibration(self):
         """Calibration data object."""
-        return self.window().probe_calibration
+        return self._probe_calibration
 
     @probe_calibration.setter
     def probe_calibration(self, value):
-        self.window().probe_calibration = value
-        self.interpolation_dialog.close()
-        self.polynomial_dialog.close()
+        self._probe_calibration = value
+        self.probeCalibrationChanged.emit(self.probe_calibration)
+        self.closeDialogs()
 
     def closeDialogs(self):
-        """Close dialogs."""
-        self.interpolation_dialog.close()
-        self.polynomial_dialog.close()
+        """Close table dialogs."""
+        self.interpolation_dialog.accept()
+        self.polynomial_dialog.accept()
+
+    def closeEvent(self, evnt):
+        """Close dialog."""
+        self.closeDialogs()
+        super().closeEvent(evnt)
 
     def configureGraph(self, symbol=False):
         """Configure calibration data plots."""
@@ -112,10 +130,13 @@ class SelectCalibrationDialog(_QDialog):
 
     def load(self):
         """Load probe calibration parameters."""
+        self.ui.probe_name_le.setText(self._probe_calibration.probe_name)
+        self.ui.calibration_magnet_le.setText(
+            self._probe_calibration.calibration_magnet)
         self.ui.function_type_le.setText(
-            self.probe_calibration.function_type.capitalize())
+            self._probe_calibration.function_type.capitalize())
 
-        probe_axis = self.probe_calibration.probe_axis
+        probe_axis = self._probe_calibration.probe_axis
         if probe_axis in self._axis_str_dict.keys():
             self.ui.probe_axis_le.setText(self._axis_str_dict[probe_axis])
             self.ui.probe_axis_le.setEnabled(True)
@@ -123,21 +144,45 @@ class SelectCalibrationDialog(_QDialog):
             self.ui.probe_axis_le.setText('')
             self.ui.probe_axis_le.setEnabled(False)
 
-        distance_xy = self.probe_calibration.distance_xy
+        distance_xy = self._probe_calibration.distance_xy
         if distance_xy is not None:
-            self.ui.distancexy_le.setText('{0:0.4f}'.format(distance_xy))
-            self.ui.distancexy_le.setEnabled(True)
+            self.ui.distance_xy_le.setText('{0:0.4f}'.format(distance_xy))
+            self.ui.distance_xy_le.setEnabled(True)
         else:
-            self.ui.distancexy_le.setText('')
-            self.ui.distancexy_le.setEnabled(False)
+            self.ui.distance_xy_le.setText('')
+            self.ui.distance_xy_le.setEnabled(False)
 
-        distance_zy = self.probe_calibration.distance_zy
+        distance_zy = self._probe_calibration.distance_zy
         if distance_zy is not None:
-            self.ui.distancezy_le.setText('{0:0.4f}'.format(distance_zy))
-            self.ui.distancezy_le.setEnabled(True)
+            self.ui.distance_zy_le.setText('{0:0.4f}'.format(distance_zy))
+            self.ui.distance_zy_le.setEnabled(True)
         else:
-            self.ui.distancezy_le.setText('')
-            self.ui.distancezy_le.setEnabled(False)
+            self.ui.distance_zy_le.setText('')
+            self.ui.distance_zy_le.setEnabled(False)
+
+        angle_xy = self._probe_calibration.angle_xy
+        if angle_xy is not None:
+            self.ui.angle_xy_le.setText('{0:0.4f}'.format(angle_xy))
+            self.ui.angle_xy_le.setEnabled(True)
+        else:
+            self.ui.angle_xy_le.setText('')
+            self.ui.angle_xy_le.setEnabled(False)
+
+        angle_yz = self._probe_calibration.angle_yz
+        if angle_yz is not None:
+            self.ui.angle_yz_le.setText('{0:0.4f}'.format(angle_yz))
+            self.ui.angle_yz_le.setEnabled(True)
+        else:
+            self.ui.angle_yz_le.setText('')
+            self.ui.angle_yz_le.setEnabled(False)
+
+        angle_xz = self._probe_calibration.angle_xz
+        if angle_xz is not None:
+            self.ui.angle_xz_le.setText('{0:0.4f}'.format(angle_xz))
+            self.ui.angle_xz_le.setEnabled(True)
+        else:
+            self.ui.angle_xz_le.setText('')
+            self.ui.angle_xz_le.setEnabled(False)
 
         self.ui.fieldx_le.setText('')
         self.ui.fieldy_le.setText('')
@@ -146,6 +191,8 @@ class SelectCalibrationDialog(_QDialog):
     def loadDB(self):
         """Load probe calibration from database."""
         self.ui.filename_le.setText("")
+        self.setEnabled(False)
+        self.updateGraph()
 
         try:
             idn = int(self.ui.idn_le.text())
@@ -157,8 +204,6 @@ class SelectCalibrationDialog(_QDialog):
         try:
             self.probe_calibration = _ProbeCalibration(self.database, idn)
         except Exception as e:
-            self.setEnabled(False)
-            self.updateGraph()
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
             return
@@ -169,6 +214,10 @@ class SelectCalibrationDialog(_QDialog):
 
     def loadFile(self):
         """Load probe calibration file."""
+        self.ui.idn_le.setText("")
+        self.setEnabled(False)
+        self.updateGraph()
+
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getOpenFileName(
             self, caption='Load probe calibration file',
@@ -183,12 +232,11 @@ class SelectCalibrationDialog(_QDialog):
         try:
             self.probe_calibration = _ProbeCalibration(filename)
         except Exception as e:
-            self.setEnabled(False)
-            self.updateGraph()
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
+        self.filename_le.setText(filename)
         self.setEnabled(True)
         self.updateGraph()
         self.load()
@@ -201,17 +249,22 @@ class SelectCalibrationDialog(_QDialog):
         self.ui.updategraph_btn.setEnabled(enabled)
         self.ui.getfield_gb.setEnabled(enabled)
 
+    def show(self, database):
+        """Update database and show dialog."""
+        self.database = database
+        super().show()
+
     def showTable(self):
         """Show calibration data table."""
-        if self.probe_calibration is None:
+        if self._probe_calibration is None:
             return
 
-        if self.probe_calibration.function_type == 'interpolation':
+        if self._probe_calibration.function_type == 'interpolation':
             self.polynomial_dialog.close()
-            self.interpolation_dialog.show(self.probe_calibration)
-        elif self.probe_calibration.function_type == 'polynomial':
+            self.interpolation_dialog.show(self._probe_calibration)
+        elif self._probe_calibration.function_type == 'polynomial':
             self.interpolation_dialog.close()
-            self.polynomial_dialog.show(self.probe_calibration)
+            self.polynomial_dialog.show(self._probe_calibration)
         else:
             return
 
@@ -221,13 +274,13 @@ class SelectCalibrationDialog(_QDialog):
         self.ui.fieldy_le.setText('')
         self.ui.fieldz_le.setText('')
 
-        if self.probe_calibration is None:
+        if self._probe_calibration is None:
             return
 
         voltage = [self.ui.voltage_sb.value()]
-        fieldx = self.probe_calibration.sensorx.convert_voltage(voltage)[0]
-        fieldy = self.probe_calibration.sensory.convert_voltage(voltage)[0]
-        fieldz = self.probe_calibration.sensorz.convert_voltage(voltage)[0]
+        fieldx = self._probe_calibration.sensorx.convert_voltage(voltage)[0]
+        fieldy = self._probe_calibration.sensory.convert_voltage(voltage)[0]
+        fieldz = self._probe_calibration.sensorz.convert_voltage(voltage)[0]
 
         if not _np.isnan(fieldx):
             self.ui.fieldx_le.setText('{0:0.4f}'.format(fieldx))
@@ -250,12 +303,12 @@ class SelectCalibrationDialog(_QDialog):
         self.legend.removeItem('Y')
         self.legend.removeItem('Z')
 
-        if self.probe_calibration is None or len(voltage) == 0:
+        if self._probe_calibration is None or len(voltage) == 0:
             return
 
-        fieldx = self.probe_calibration.sensorx.convert_voltage(voltage)
-        fieldy = self.probe_calibration.sensory.convert_voltage(voltage)
-        fieldz = self.probe_calibration.sensorz.convert_voltage(voltage)
+        fieldx = self._probe_calibration.sensorx.convert_voltage(voltage)
+        fieldy = self._probe_calibration.sensory.convert_voltage(voltage)
+        fieldz = self._probe_calibration.sensorz.convert_voltage(voltage)
 
         symbol = self.ui.addmarkers_chb.isChecked()
         self.configureGraph(symbol=symbol)

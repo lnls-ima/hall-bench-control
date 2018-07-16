@@ -12,8 +12,6 @@ import PyQt5.uic as _uic
 
 from hallbench.gui.connectionwidget import ConnectionWidget \
     as _ConnectionWidget
-from hallbench.gui.loadcalibrationwidget import LoadCalibrationWidget \
-    as _LoadCalibrationWidget
 from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
 from hallbench.gui.setdirectorydialog import SetDirectoryDialog \
@@ -31,7 +29,7 @@ class HallBenchWindow(_QMainWindow):
     _timer_interval = 250  # [ms]
 
     def __init__(self, parent=None):
-        """Setup the ui and add main tabs."""
+        """Set up the ui and add main tabs."""
         super().__init__(parent)
 
         # setup the ui
@@ -51,10 +49,8 @@ class HallBenchWindow(_QMainWindow):
 
         # variables initialization
         self.directory = default_directory
-        self.save_voltage = True
-        self.save_field = True
-        self.probe_calibration = None
         self.devices = _HallBenchDevices()
+        self.database = None
 
         # create dialogs
         self.directory_dialog = _SetDirectoryDialog()
@@ -67,9 +63,6 @@ class HallBenchWindow(_QMainWindow):
         self.motors_tab = _MotorsWidget(self)
         self.ui.main_tab.addTab(self.motors_tab, 'Motors')
 
-        self.calibration_tab = _LoadCalibrationWidget(self)
-        self.ui.main_tab.addTab(self.calibration_tab, 'Probe Calibration')
-
         self.measurement_tab = _MeasurementWidget(self)
         self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')
 
@@ -80,11 +73,7 @@ class HallBenchWindow(_QMainWindow):
         self.ui.setdir_act.triggered.connect(self.showDirectoryDialog)
         self.ui.savevoltage_act.triggered.connect(self.setSaveVoltageFlag)
         self.ui.savefield_act.triggered.connect(self.setSaveFieldFlag)
-
         self.ui.recoverdata_act.triggered.connect(self.showRecoverDataDialog)
-
-        self.measurement_tab.measure_btn.clicked.connect(
-            self.saveConfigurations)
 
     @property
     def voltage_data(self):
@@ -105,7 +94,6 @@ class HallBenchWindow(_QMainWindow):
         """Close main window and dialogs."""
         self.directory_dialog.close()
         self.recoverdata_dialog.close()
-        self.calibration_tab.closeDialogs()
         self.measurement_tab.closeDialogs()
         self.stopTimer()
         event.accept()
@@ -118,12 +106,6 @@ class HallBenchWindow(_QMainWindow):
             _QApplication.processEvents()
         except Exception:
             pass
-
-    def saveConfigurations(self):
-        """Save configuration files."""
-        if self.ui.saveconfig_act.isChecked():
-            self.ui.connection_tab.saveConfigurationInMeasurementsDir()
-            self.ui.measurement_tab.saveConfigurationInMeasurementsDir()
 
     def showDirectoryDialog(self):
         """Show set directory dialog."""

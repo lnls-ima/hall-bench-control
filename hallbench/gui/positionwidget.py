@@ -15,7 +15,7 @@ class PositionWidget(_QWidget):
     """Position Widget class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
-        """Setup the ui."""
+        """Set up the ui."""
         super().__init__(parent)
 
         # setup the ui

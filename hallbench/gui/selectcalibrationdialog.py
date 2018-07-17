@@ -58,13 +58,6 @@ class SelectCalibrationDialog(_QDialog):
         self.ui.updategraph_btn.clicked.connect(self.updateGraph)
         self.ui.voltage_sb.valueChanged.connect(self.updateField)
 
-        if self.database is None:
-            self.ui.loaddb_btn.setEnabled(False)
-            self.ui.idn_le.setEnabled(False)
-        else:
-            self.ui.loaddb_btn.setEnabled(True)
-            self.ui.idn_le.setEnabled(True)
-
     @property
     def probe_calibration(self):
         """Calibration data object."""
@@ -78,13 +71,16 @@ class SelectCalibrationDialog(_QDialog):
 
     def closeDialogs(self):
         """Close table dialogs."""
-        self.interpolation_dialog.accept()
-        self.polynomial_dialog.accept()
+        try:
+            self.interpolation_dialog.accept()
+            self.polynomial_dialog.accept()
+        except Exception:
+            pass
 
-    def closeEvent(self, evnt):
+    def closeEvent(self, event):
         """Close dialog."""
         self.closeDialogs()
-        super().closeEvent(evnt)
+        super().closeEvent(event)
 
     def configureGraph(self, symbol=False):
         """Configure calibration data plots."""
@@ -130,63 +126,70 @@ class SelectCalibrationDialog(_QDialog):
 
     def load(self):
         """Load probe calibration parameters."""
-        self.ui.probe_name_le.setText(self._probe_calibration.probe_name)
-        self.ui.calibration_magnet_le.setText(
-            self._probe_calibration.calibration_magnet)
-        self.ui.function_type_le.setText(
-            self._probe_calibration.function_type.capitalize())
+        try:
+            self.ui.probe_name_le.setText(self._probe_calibration.probe_name)
+            self.ui.calibration_magnet_le.setText(
+                self._probe_calibration.calibration_magnet)
+            self.ui.function_type_le.setText(
+                self._probe_calibration.function_type.capitalize())
 
-        probe_axis = self._probe_calibration.probe_axis
-        if probe_axis in self._axis_str_dict.keys():
-            self.ui.probe_axis_le.setText(self._axis_str_dict[probe_axis])
-            self.ui.probe_axis_le.setEnabled(True)
-        else:
-            self.ui.probe_axis_le.setText('')
-            self.ui.probe_axis_le.setEnabled(False)
+            probe_axis = self._probe_calibration.probe_axis
+            if probe_axis in self._axis_str_dict.keys():
+                self.ui.probe_axis_le.setText(self._axis_str_dict[probe_axis])
+                self.ui.probe_axis_le.setEnabled(True)
+            else:
+                self.ui.probe_axis_le.setText('')
+                self.ui.probe_axis_le.setEnabled(False)
 
-        distance_xy = self._probe_calibration.distance_xy
-        if distance_xy is not None:
-            self.ui.distance_xy_le.setText('{0:0.4f}'.format(distance_xy))
-            self.ui.distance_xy_le.setEnabled(True)
-        else:
-            self.ui.distance_xy_le.setText('')
-            self.ui.distance_xy_le.setEnabled(False)
+            distance_xy = self._probe_calibration.distance_xy
+            if distance_xy is not None:
+                self.ui.distance_xy_le.setText('{0:0.4f}'.format(distance_xy))
+                self.ui.distance_xy_le.setEnabled(True)
+            else:
+                self.ui.distance_xy_le.setText('')
+                self.ui.distance_xy_le.setEnabled(False)
 
-        distance_zy = self._probe_calibration.distance_zy
-        if distance_zy is not None:
-            self.ui.distance_zy_le.setText('{0:0.4f}'.format(distance_zy))
-            self.ui.distance_zy_le.setEnabled(True)
-        else:
-            self.ui.distance_zy_le.setText('')
-            self.ui.distance_zy_le.setEnabled(False)
+            distance_zy = self._probe_calibration.distance_zy
+            if distance_zy is not None:
+                self.ui.distance_zy_le.setText('{0:0.4f}'.format(distance_zy))
+                self.ui.distance_zy_le.setEnabled(True)
+            else:
+                self.ui.distance_zy_le.setText('')
+                self.ui.distance_zy_le.setEnabled(False)
 
-        angle_xy = self._probe_calibration.angle_xy
-        if angle_xy is not None:
-            self.ui.angle_xy_le.setText('{0:0.4f}'.format(angle_xy))
-            self.ui.angle_xy_le.setEnabled(True)
-        else:
-            self.ui.angle_xy_le.setText('')
-            self.ui.angle_xy_le.setEnabled(False)
+            angle_xy = self._probe_calibration.angle_xy
+            if angle_xy is not None:
+                self.ui.angle_xy_le.setText('{0:0.4f}'.format(angle_xy))
+                self.ui.angle_xy_le.setEnabled(True)
+            else:
+                self.ui.angle_xy_le.setText('')
+                self.ui.angle_xy_le.setEnabled(False)
 
-        angle_yz = self._probe_calibration.angle_yz
-        if angle_yz is not None:
-            self.ui.angle_yz_le.setText('{0:0.4f}'.format(angle_yz))
-            self.ui.angle_yz_le.setEnabled(True)
-        else:
-            self.ui.angle_yz_le.setText('')
-            self.ui.angle_yz_le.setEnabled(False)
+            angle_yz = self._probe_calibration.angle_yz
+            if angle_yz is not None:
+                self.ui.angle_yz_le.setText('{0:0.4f}'.format(angle_yz))
+                self.ui.angle_yz_le.setEnabled(True)
+            else:
+                self.ui.angle_yz_le.setText('')
+                self.ui.angle_yz_le.setEnabled(False)
 
-        angle_xz = self._probe_calibration.angle_xz
-        if angle_xz is not None:
-            self.ui.angle_xz_le.setText('{0:0.4f}'.format(angle_xz))
-            self.ui.angle_xz_le.setEnabled(True)
-        else:
-            self.ui.angle_xz_le.setText('')
-            self.ui.angle_xz_le.setEnabled(False)
+            angle_xz = self._probe_calibration.angle_xz
+            if angle_xz is not None:
+                self.ui.angle_xz_le.setText('{0:0.4f}'.format(angle_xz))
+                self.ui.angle_xz_le.setEnabled(True)
+            else:
+                self.ui.angle_xz_le.setText('')
+                self.ui.angle_xz_le.setEnabled(False)
 
-        self.ui.fieldx_le.setText('')
-        self.ui.fieldy_le.setText('')
-        self.ui.fieldz_le.setText('')
+            self.ui.fieldx_le.setText('')
+            self.ui.fieldy_le.setText('')
+            self.ui.fieldz_le.setText('')
+
+        except Exception:
+            message = 'Failed to load calibration data.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
 
     def loadDB(self):
         """Load probe calibration from database."""
@@ -202,7 +205,8 @@ class SelectCalibrationDialog(_QDialog):
             return
 
         try:
-            self.probe_calibration = _ProbeCalibration(self.database, idn)
+            self.probe_calibration = _ProbeCalibration(
+                database=self.database, idn=idn)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -232,8 +236,7 @@ class SelectCalibrationDialog(_QDialog):
         try:
             self.probe_calibration = _ProbeCalibration(filename)
         except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
         self.filename_le.setText(filename)
@@ -252,6 +255,7 @@ class SelectCalibrationDialog(_QDialog):
     def show(self, database):
         """Update database and show dialog."""
         self.database = database
+        self.updateLoadDB()
         super().show()
 
     def showTable(self):
@@ -268,6 +272,15 @@ class SelectCalibrationDialog(_QDialog):
         else:
             return
 
+    def updateLoadDB(self):
+        """Update load from database controls."""
+        if self.database is None:
+            self.ui.loaddb_btn.setEnabled(False)
+            self.ui.idn_le.setEnabled(False)
+        else:
+            self.ui.loaddb_btn.setEnabled(True)
+            self.ui.idn_le.setEnabled(True)
+
     def updateField(self):
         """Convert voltage to magnetic field."""
         self.ui.fieldx_le.setText('')
@@ -277,53 +290,63 @@ class SelectCalibrationDialog(_QDialog):
         if self._probe_calibration is None:
             return
 
-        voltage = [self.ui.voltage_sb.value()]
-        fieldx = self._probe_calibration.sensorx.convert_voltage(voltage)[0]
-        fieldy = self._probe_calibration.sensory.convert_voltage(voltage)[0]
-        fieldz = self._probe_calibration.sensorz.convert_voltage(voltage)[0]
+        try:
+            volt = [self.ui.voltage_sb.value()]
+            fieldx = self._probe_calibration.sensorx.convert_voltage(volt)[0]
+            fieldy = self._probe_calibration.sensory.convert_voltage(volt)[0]
+            fieldz = self._probe_calibration.sensorz.convert_voltage(volt)[0]
 
-        if not _np.isnan(fieldx):
-            self.ui.fieldx_le.setText('{0:0.4f}'.format(fieldx))
+            if not _np.isnan(fieldx):
+                self.ui.fieldx_le.setText('{0:0.4f}'.format(fieldx))
 
-        if not _np.isnan(fieldy):
-            self.ui.fieldy_le.setText('{0:0.4f}'.format(fieldy))
+            if not _np.isnan(fieldy):
+                self.ui.fieldy_le.setText('{0:0.4f}'.format(fieldy))
 
-        if not _np.isnan(fieldz):
-            self.ui.fieldz_le.setText('{0:0.4f}'.format(fieldz))
+            if not _np.isnan(fieldz):
+                self.ui.fieldz_le.setText('{0:0.4f}'.format(fieldz))
+        except Exception as e:
+            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+            return
 
     def updateGraph(self):
         """Update calibration data plots."""
-        vmin = self.ui.voltagemin_sb.value()
-        vmax = self.ui.voltagemax_sb.value()
-        npts = self.ui.voltagenpts_sb.value()
-        voltage = _np.linspace(vmin, vmax, npts)
+        try:
+            vmin = self.ui.voltagemin_sb.value()
+            vmax = self.ui.voltagemax_sb.value()
+            npts = self.ui.voltagenpts_sb.value()
+            voltage = _np.linspace(vmin, vmax, npts)
 
-        self.ui.viewdata_pw.clear()
-        self.legend.removeItem('X')
-        self.legend.removeItem('Y')
-        self.legend.removeItem('Z')
+            self.ui.viewdata_pw.clear()
+            self.legend.removeItem('X')
+            self.legend.removeItem('Y')
+            self.legend.removeItem('Z')
 
-        if self._probe_calibration is None or len(voltage) == 0:
+            if self._probe_calibration is None or len(voltage) == 0:
+                return
+
+            fieldx = self._probe_calibration.sensorx.convert_voltage(voltage)
+            fieldy = self._probe_calibration.sensory.convert_voltage(voltage)
+            fieldz = self._probe_calibration.sensorz.convert_voltage(voltage)
+
+            symbol = self.ui.addmarkers_chb.isChecked()
+            self.configureGraph(symbol=symbol)
+
+            with _warnings.catch_warnings():
+                _warnings.simplefilter("ignore")
+
+                if not _np.all(_np.isnan(fieldx)):
+                    self.graphx[0].setData(voltage, fieldx)
+                    self.legend.addItem(self.graphx[0], 'X')
+
+                if not _np.all(_np.isnan(fieldy)):
+                    self.graphy[0].setData(voltage, fieldy)
+                    self.legend.addItem(self.graphy[0], 'Y')
+
+                if not _np.all(_np.isnan(fieldz)):
+                    self.graphz[0].setData(voltage, fieldz)
+                    self.legend.addItem(self.graphz[0], 'Z')
+
+        except Exception:
+            message = 'Failed to update plot.'
+            _QMessageBox.critical(self, 'Failure', message, _QMessageBox.Ok)
             return
-
-        fieldx = self._probe_calibration.sensorx.convert_voltage(voltage)
-        fieldy = self._probe_calibration.sensory.convert_voltage(voltage)
-        fieldz = self._probe_calibration.sensorz.convert_voltage(voltage)
-
-        symbol = self.ui.addmarkers_chb.isChecked()
-        self.configureGraph(symbol=symbol)
-
-        with _warnings.catch_warnings():
-            _warnings.simplefilter("ignore")
-
-            if not _np.all(_np.isnan(fieldx)):
-                self.graphx[0].setData(voltage, fieldx)
-                self.legend.addItem(self.graphx[0], 'X')
-
-            if not _np.all(_np.isnan(fieldy)):
-                self.graphy[0].setData(voltage, fieldy)
-                self.legend.addItem(self.graphy[0], 'Y')
-
-            if not _np.all(_np.isnan(fieldz)):
-                self.graphz[0].setData(voltage, fieldz)
-                self.legend.addItem(self.graphz[0], 'Z')

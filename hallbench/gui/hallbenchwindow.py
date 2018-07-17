@@ -10,17 +10,17 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QTimer as _QTimer
 import PyQt5.uic as _uic
 
+from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.connectionwidget import ConnectionWidget \
     as _ConnectionWidget
+from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
 from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
-from hallbench.gui.setdirectorydialog import SetDirectoryDialog \
-    as _SetDirectoryDialog
-from hallbench.gui.recoverdatadialog import RecoverDataDialog \
-    as _RecoverDataDialog
-from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
 from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
+from hallbench.data.database import create_database as _create_database
+
+
+_database_filename = 'hall_bench_measurements.db'
 
 
 class HallBenchWindow(_QMainWindow):
@@ -36,25 +36,14 @@ class HallBenchWindow(_QMainWindow):
         uifile = _getUiFile(__file__, self)
         self.ui = _uic.loadUi(uifile, self)
 
-        # clear out the current tabs
+        # clear the current tabs
         self.ui.main_tab.clear()
 
-        base_directory = _os.path.split(_os.path.dirname(__file__))[0]
-        default_directory = _os.path.join(base_directory, 'measurements')
-        if not _os.path.isdir(default_directory):
-            try:
-                _os.mkdir(default_directory)
-            except Exception:
-                default_directory = None
-
         # variables initialization
-        self.directory = default_directory
+        _default_directory = _os.path.dirname(_os.path.dirname(
+            _os.path.dirname(_os.path.abspath(__file__))))
+        self.database = _os.path.join(_default_directory, _database_filename)
         self.devices = _HallBenchDevices()
-        self.database = None
-
-        # create dialogs
-        self.directory_dialog = _SetDirectoryDialog()
-        self.recoverdata_dialog = _RecoverDataDialog()
 
         # add tabs
         self.connection_tab = _ConnectionWidget(self)
@@ -66,14 +55,12 @@ class HallBenchWindow(_QMainWindow):
         self.measurement_tab = _MeasurementWidget(self)
         self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')
 
-        # create timer
         self.timer = _QTimer()
 
-        # create connections
-        self.ui.setdir_act.triggered.connect(self.showDirectoryDialog)
-        self.ui.savevoltage_act.triggered.connect(self.setSaveVoltageFlag)
-        self.ui.savefield_act.triggered.connect(self.setSaveFieldFlag)
-        self.ui.recoverdata_act.triggered.connect(self.showRecoverDataDialog)
+        self.ui.database_le.setText(self.database)
+        _create_database(self.database)
+
+        self.updateMainTabStatus()
 
     @property
     def voltage_data(self):
@@ -92,11 +79,12 @@ class HallBenchWindow(_QMainWindow):
 
     def closeEvent(self, event):
         """Close main window and dialogs."""
-        self.directory_dialog.close()
-        self.recoverdata_dialog.close()
-        self.measurement_tab.closeDialogs()
-        self.stopTimer()
-        event.accept()
+        try:
+            self.measurement_tab.closeDialogs()
+            self.stopTimer()
+            event.accept()
+        except Exception:
+            event.accept()
 
     def refreshInterface(self):
         """Read probes positions and update the interface."""
@@ -107,33 +95,6 @@ class HallBenchWindow(_QMainWindow):
         except Exception:
             pass
 
-    def showDirectoryDialog(self):
-        """Show set directory dialog."""
-        self.directory_dialog.show(self.directory)
-        self.directory_dialog.directoryChanged.connect(self.updateDirectory)
-
-    def updateDirectory(self, directory):
-        """Update directory."""
-        self.directory = directory
-
-    def showRecoverDataDialog(self):
-        """Show recover data dialog."""
-        self.recoverdata_dialog.show(directory=self.directory)
-
-    def setSaveFieldFlag(self):
-        """Set save configuration flag."""
-        if self.ui.savefield_act.isChecked():
-            self.save_field = True
-        else:
-            self.save_field = False
-
-    def setSaveVoltageFlag(self):
-        """Set save voltage flag."""
-        if self.ui.savevoltage_act.isChecked():
-            self.save_voltage = True
-        else:
-            self.save_voltage = False
-
     def startTimer(self):
         """Start timer for interface updates."""
         self.timer.timeout.connect(self.refreshInterface)
@@ -143,6 +104,17 @@ class HallBenchWindow(_QMainWindow):
         """Stop timer."""
         self.timer.stop()
 
-    def updateMainTabStatus(self, tab, status):
+    def updateMainTabStatus(self):
         """Enable or disable main tabs."""
-        self.ui.main_tab.setTabEnabled(tab, status)
+        try:
+            _idx = self.ui.main_tab.indexOf(self.ui.motors_tab)
+            if _idx != -1:
+                self.ui.main_tab.setTabEnabled(
+                    _idx, self.devices.pmac.connected)
+
+            _idx = self.ui.main_tab.indexOf(self.ui.measurement_tab)
+            if _idx != -1:
+                self.ui.main_tab.setTabEnabled(
+                    _idx, self.ui.motors_tab.homing)
+        except Exception:
+            pass

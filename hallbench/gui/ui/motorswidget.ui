@@ -109,7 +109,7 @@
     <layout class="QVBoxLayout" name="position_lt"/>
    </item>
    <item row="1" column="0">
-    <widget class="QGroupBox" name="homming_gb">
+    <widget class="QGroupBox" name="homing_gb">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -120,7 +120,7 @@
       </font>
      </property>
      <property name="title">
-      <string>Homming</string>
+      <string>Homing</string>
      </property>
      <property name="checkable">
       <bool>false</bool>
@@ -147,7 +147,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Select axis for homming: </string>
+         <string>Select axis for homing: </string>
         </property>
        </widget>
       </item>
@@ -157,7 +157,7 @@
          <number>10</number>
         </property>
         <item row="1" column="1">
-         <widget class="QCheckBox" name="hommingax6_chb">
+         <widget class="QCheckBox" name="homingax6_chb">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -170,7 +170,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QCheckBox" name="hommingax2_chb">
+         <widget class="QCheckBox" name="homingax2_chb">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -183,7 +183,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QCheckBox" name="hommingax8_chb">
+         <widget class="QCheckBox" name="homingax8_chb">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -196,7 +196,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QCheckBox" name="hommingax5_chb">
+         <widget class="QCheckBox" name="homingax5_chb">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -209,7 +209,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QCheckBox" name="hommingax7_chb">
+         <widget class="QCheckBox" name="homingax7_chb">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -222,7 +222,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QCheckBox" name="hommingax3_chb">
+         <widget class="QCheckBox" name="homingax3_chb">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -235,7 +235,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QCheckBox" name="hommingax9_chb">
+         <widget class="QCheckBox" name="homingax9_chb">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -248,7 +248,7 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="hommingax1_chb">
+         <widget class="QCheckBox" name="homingax1_chb">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -261,7 +261,7 @@
          </widget>
         </item>
         <item row="3" column="0" colspan="3">
-         <widget class="QPushButton" name="homming_btn">
+         <widget class="QPushButton" name="homing_btn">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -272,7 +272,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Start Homming</string>
+           <string>Start Homing</string>
           </property>
          </widget>
         </item>
@@ -902,15 +902,15 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>hommingax1_chb</tabstop>
-  <tabstop>hommingax2_chb</tabstop>
-  <tabstop>hommingax3_chb</tabstop>
-  <tabstop>hommingax5_chb</tabstop>
-  <tabstop>hommingax6_chb</tabstop>
-  <tabstop>hommingax7_chb</tabstop>
-  <tabstop>hommingax8_chb</tabstop>
-  <tabstop>hommingax9_chb</tabstop>
-  <tabstop>homming_btn</tabstop>
+  <tabstop>homingax1_chb</tabstop>
+  <tabstop>homingax2_chb</tabstop>
+  <tabstop>homingax3_chb</tabstop>
+  <tabstop>homingax5_chb</tabstop>
+  <tabstop>homingax6_chb</tabstop>
+  <tabstop>homingax7_chb</tabstop>
+  <tabstop>homingax8_chb</tabstop>
+  <tabstop>homingax9_chb</tabstop>
+  <tabstop>homing_btn</tabstop>
   <tabstop>minax1_le</tabstop>
   <tabstop>maxax1_le</tabstop>
   <tabstop>minax2_le</tabstop>

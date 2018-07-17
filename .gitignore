@@ -2,6 +2,7 @@
 
 Data/
 measurements/
+logs/
 hallbench/tests/*.txt
 hallbench/tests/*.dat
 

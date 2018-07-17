@@ -4,16 +4,16 @@
 ->  funções em 'database'
     -> scans
         -> incluir voltage offset?
-        -> criar combobox para operator e probe_calibration
-        -> criar linedit para magnet_name, main_current e comments
-        -> criar variavel para software version e temperature
+        -> criar {combobox} para operator e probe_calibration (ok)
+        -> criar linedit para magnet_name, main_current e {comments} (ok)
+        -> criar variavel para software version e temperature (ok)
         -> adicionar operator, probe_calibration, magnet_name, main_current e comments em MeasurementConfig
     -> field_maps
         -> salvar Gap, Control Gap e Magnet Length? (ok)
         -> salvar
         -> deixar só fieldmap no lugar de posições e campos? (ok)
         -> criar linedit para magnet_name e main_current
-        -> magnet center vem de savefieldmapdialoga
+        -> magnet center vem de fieldmapdialoga
         -> adicionar comments? (ok)
         -> dividir header_info em variáveis? (ok)
         -> adicionar magnet_name e main_current em FieldMapData? (ok)
@@ -28,7 +28,7 @@
 -> QT
     -> measurementwidget
         -> Load and Save DB
-        -> criar popup em measure_btn com (utilizar savefieldmapdialog?):
+        -> criar popup em measure_btn com (utilizar fieldmapdialog?):
             -> combobox operator e probe_calibration (ok)
             -> linedit magnet_name, main_current e {comments} (ok)
         -> incluir correção de offset?

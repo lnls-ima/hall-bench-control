@@ -2,7 +2,6 @@
 
 """Connection widget for the Hall Bench Control application."""
 
-import os.path as _path
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
@@ -12,7 +11,6 @@ import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.data.configuration import ConnectionConfig as _ConnectionConfig
-from hallbench.data.utils import get_timestamp as _get_timestamp
 
 
 class ConnectionWidget(_QWidget):
@@ -27,7 +25,7 @@ class ConnectionWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
-        self.config = None
+        self.config = _ConnectionConfig()
 
         # create signal/slot connections
         self.ui.loadconfig_btn.clicked.connect(self.loadConfiguration)
@@ -40,17 +38,9 @@ class ConnectionWidget(_QWidget):
         """Hall Bench Devices."""
         return self.window().devices
 
-    @property
-    def directory(self):
-        """Directory to save files."""
-        return self.window().directory
-
     def connectDevices(self):
         """Connect bench devices."""
         if not self.updateConfiguration():
-            return
-
-        if self.devices is None:
             return
 
         try:
@@ -67,6 +57,8 @@ class ConnectionWidget(_QWidget):
             message = 'Fail to connect devices.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
+
+        self.window().updateMainTabStatus()
 
     def connectionStatus(self):
         """Return the connection status."""
@@ -99,9 +91,6 @@ class ConnectionWidget(_QWidget):
 
     def disconnectDevices(self):
         """Disconnect bench devices."""
-        if self.devices is None:
-            return
-
         try:
             self.devices.disconnect()
             self.updateLedStatus()
@@ -188,26 +177,9 @@ class ConnectionWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
-    def saveConfigurationInMeasurementsDir(self):
-        """Save configuration file in the measurements directory."""
-        if self.directory is None:
-            return
-
-        if self.config is None:
-            return
-
-        try:
-            timestamp = _get_timestamp()
-            filename = timestamp + '_' + 'connection_configuration.txt'
-            self.config.save_file(_path.join(
-                self.directory, filename))
-        except Exception:
-            pass
-
     def updateConfiguration(self):
         """Update connection configuration parameters."""
-        if self.config is None:
-            self.config = _ConnectionConfig()
+        self.config = _ConnectionConfig()
 
         try:
             self.config.pmac_enable = self.ui.pmac_enable_chb.isChecked()

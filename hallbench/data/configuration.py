@@ -6,6 +6,7 @@ import collections as _collections
 
 from . import utils as _utils
 from . import database as _database
+from hallbench import __version__
 
 
 class ConfigurationError(Exception):
@@ -170,17 +171,17 @@ class MeasurementConfig(Configuration):
         ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
         ('main_current', ['main_current', 'TEXT NOT NULL']),
         ('probe_name', ['probe_name', 'TEXT']),
-        ('temperature', [None, 'REAL']),
-        ('operator', [None, 'TEXT']),
+        ('temperature', ['temperature', 'TEXT']),
+        ('operator', ['operator', 'TEXT']),
         ('software_version', [None, 'TEXT']),
         ('voltx_enable', ['voltx_enable', 'INTEGER NOT NULL']),
         ('volty_enable', ['volty_enable', 'INTEGER NOT NULL']),
         ('voltz_enable', ['voltz_enable', 'INTEGER NOT NULL']),
         ('voltage_precision', ['voltage_precision', 'INTEGER NOT NULL']),
-        ('first_axis', ['first_axis', 'INTEGER NOT NULL']),
-        ('second_axis', ['second_axis', 'INTEGER NOT NULL']),
         ('nr_measurements', ['nr_measurements', 'INTEGER NOT NULL']),
         ('integration_time', ['integration_time', 'REAL NOT NULL']),
+        ('first_axis', ['first_axis', 'INTEGER NOT NULL']),
+        ('second_axis', ['second_axis', 'INTEGER NOT NULL']),
         ('start_ax1', ['start_ax1', 'REAL NOT NULL']),
         ('end_ax1', ['end_ax1', 'REAL NOT NULL']),
         ('step_ax1', ['step_ax1', 'REAL NOT NULL']),
@@ -212,14 +213,16 @@ class MeasurementConfig(Configuration):
         self.magnet_name = None
         self.main_current = None
         self.probe_name = None
+        self.temperature = None
+        self.operator = None
         self.voltx_enable = None
         self.volty_enable = None
         self.voltz_enable = None
         self.voltage_precision = None
-        self.first_axis = None
-        self.second_axis = None
         self.nr_measurements = None
         self.integration_time = None
+        self.first_axis = None
+        self.second_axis = None
         self.start_ax1 = None
         self.end_ax1 = None
         self.step_ax1 = None
@@ -322,7 +325,8 @@ class MeasurementConfig(Configuration):
                     'nr_measurements', 'voltage_precision',
                     'first_axis', 'second_axis']:
             return int
-        elif name in ['magnet_name', 'main_current', 'probe_name']:
+        elif name in ['magnet_name', 'main_current', 'probe_name',
+                      'temperature', 'operator']:
             return str
         else:
             return float
@@ -343,9 +347,10 @@ class MeasurementConfig(Configuration):
         try:
             data = [
                 '# Measurement Setup\n\n',
-                '# Magnet\n',
                 'magnet_name\t{0:s}\n'.format(self.magnet_name),
-                'main_current\t{0:s}\n\n'.format(self.main_current),
+                'main_current\t{0:s}\n'.format(self.main_current),
+                'temperature\t{0:s}\n'.format(self.temperature),
+                'operator\t{0:s}\n\n'.format(self.operator),
                 '# Probe Calibration\n',
                 'probe_name\t{0:s}\n\n'.format(self.probe_name),
                 '# Digital Multimeters (X, Y, Z)\n',
@@ -402,6 +407,7 @@ class MeasurementConfig(Configuration):
                 'Failed to read configuration from database.')
 
         db_entry = _database.read_from_database(database, self._db_table, idn)
+
         if db_entry is None:
             raise ValueError('Invalid database ID.')
 
@@ -415,8 +421,7 @@ class MeasurementConfig(Configuration):
                     idx = db_column_names.index(key)
                     setattr(self, attr_name, db_entry[idx])
 
-    def save_to_database(
-            self, database, temperature, operator, software_version):
+    def save_to_database(self, database):
         """Insert field data into database table."""
         db_column_names = _database.get_table_column_names(
             database, self._db_table)
@@ -427,6 +432,7 @@ class MeasurementConfig(Configuration):
         timestamp = _utils.get_timestamp().split('_')
         date = timestamp[0]
         hour = timestamp[1].replace('-', ':')
+        software_version = __version__
 
         db_values = []
         for key in self._db_dict.keys():
@@ -442,4 +448,6 @@ class MeasurementConfig(Configuration):
                 else:
                     db_values.append(getattr(self, attr_name))
 
-        _database.insert_into_database(database, self._db_table, db_values)
+        idn = _database.insert_into_database(
+            database, self._db_table, db_values)
+        return idn

@@ -636,7 +636,9 @@ class ProbeCalibration(object):
                 else:
                     db_values.append(getattr(self, attr_name))
 
-        _database.insert_into_database(database, self._db_table, db_values)
+        idn = _database.insert_into_database(
+            database, self._db_table, db_values)
+        return idn
 
 
 def _polynomial_conversion(data, voltage_array):

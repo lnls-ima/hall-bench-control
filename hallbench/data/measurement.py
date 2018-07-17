@@ -622,7 +622,9 @@ class FieldData(Data):
                 else:
                     db_values.append(getattr(self, attr_name))
 
-        _database.insert_into_database(database, self._db_table, db_values)
+        idn = _database.insert_into_database(
+            database, self._db_table, db_values)
+        return idn
 
 
 class FieldMapData(object):
@@ -956,7 +958,9 @@ class FieldMapData(object):
                 else:
                     db_values.append(getattr(self, attr_name))
 
-        _database.insert_into_database(database, self._db_table, db_values)
+        idn = _database.insert_into_database(
+            database, self._db_table, db_values)
+        return idn
 
 
 def _to_array(value):
@@ -1145,8 +1149,8 @@ def _get_fieldmap_position_and_field_values(
     index = fieldx.index
     columns = fieldx.columns
     if (len(columns) != len(columns.drop_duplicates())):
-        msg = 'Duplicate position found in field data list.'
-        raise MeasurementDataError(msg)
+        message = 'Duplicate position found in field data list.'
+        raise MeasurementDataError(message)
 
     if correct_displacement:
         index = fieldy.index

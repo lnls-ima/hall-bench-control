@@ -29,7 +29,7 @@ class PositionWidget(_QWidget):
 
     def updatePositions(self):
         """Update axes positions."""
-        if self.pmac is None:
+        if not self.pmac.connected:
             return
 
         try:

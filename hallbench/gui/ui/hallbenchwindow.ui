@@ -53,12 +53,12 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Database filename:</string>
+          <string>Database:  </string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="database_filename_le">
+        <widget class="QLineEdit" name="database_le">
          <property name="readOnly">
           <bool>true</bool>
          </property>
@@ -78,25 +78,6 @@
      <height>25</height>
     </rect>
    </property>
-   <widget class="QMenu" name="files_menu">
-    <property name="title">
-     <string>&amp;Save Options</string>
-    </property>
-    <addaction name="setdir_act"/>
-    <addaction name="separator"/>
-    <addaction name="saveconfig_act"/>
-    <addaction name="savevoltage_act"/>
-    <addaction name="savefield_act"/>
-   </widget>
-   <widget class="QMenu" name="menu_Measurement_Data">
-    <property name="title">
-     <string>&amp;Measurement Data</string>
-    </property>
-    <addaction name="recoverdata_act"/>
-    <addaction name="plotdata_act"/>
-   </widget>
-   <addaction name="files_menu"/>
-   <addaction name="menu_Measurement_Data"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="setdir_act">

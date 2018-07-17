@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>savefieldmap_dl</class>
- <widget class="QDialog" name="savefieldmap_dl">
+ <class>fieldmap_dl</class>
+ <widget class="QDialog" name="fieldmap_dl">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Save Measurement</string>
+   <string>Field Map</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0" colspan="2">

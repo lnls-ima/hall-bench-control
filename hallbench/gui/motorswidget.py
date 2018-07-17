@@ -34,11 +34,42 @@ class MotorsWidget(_QWidget):
         self.position_widget = _PositionWidget(self)
         self.ui.position_lt.addWidget(self.position_widget)
 
+        # variables initialization
+        self.homing = False
+
         # disable combo box itens
         for item in range(self.ui.selectaxis_cmb.count()):
             self.ui.selectaxis_cmb.model().item(item).setEnabled(False)
 
-        # create connections
+        self.connectSignalSlots()
+
+    @property
+    def pmac(self):
+        """Pmac object."""
+        return self.window().devices.pmac
+
+    def activateBench(self):
+        """Activate the bench and enable control."""
+        try:
+            if self.pmac.activate_bench():
+                self.setHomingEnabled(True)
+                self.setAxisLimitsEnabled(True)
+                self.releaseAccessToMovement()
+
+            else:
+                self.setHomingEnabled(False)
+                self.setAxisLimitsEnabled(False)
+                self.setMovementEnabled(False)
+                message = 'Failed to activate bench.'
+                _QMessageBox.critical(
+                    self, 'Failure', message, _QMessageBox.Ok)
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
+    def connectSignalSlots(self):
+        """Create signal/slot connections."""
         self.ui.minax1_le.editingFinished.connect(
             lambda: self.setAxisLimitsStrFormat(self.ui.minax1_le))
         self.ui.minax2_le.editingFinished.connect(
@@ -68,115 +99,104 @@ class MotorsWidget(_QWidget):
         self.ui.activate_btn.clicked.connect(self.activateBench)
         self.ui.stopall_btn.clicked.connect(self.stopAllAxis)
         self.ui.killall_btn.clicked.connect(self.killAllAxis)
-        self.ui.homming_btn.clicked.connect(self.startHomming)
+        self.ui.homing_btn.clicked.connect(self.startHoming)
         self.ui.setlimits_btn.clicked.connect(self.setAxisLimits)
         self.ui.resetlimits_btn.clicked.connect(self.resetAxisLimits)
         self.ui.move_btn.clicked.connect(self.moveToTarget)
         self.ui.stop_btn.clicked.connect(self.stopAxis)
 
-    @property
-    def pmac(self):
-        """Pmac object."""
-        return self.window().devices.pmac
-
-    def activateBench(self):
-        """Activate the bench and enable control."""
-        if self.pmac is None:
-            return
-
-        if self.pmac.activate_bench():
-            self.setHommingEnabled(True)
-            self.setAxisLimitsEnabled(True)
-            self.releaseAccessToMovement()
-        else:
-            self.setHommingEnabled(False)
-            self.setAxisLimitsEnabled(False)
-            self.setMovementEnabled(False)
-            message = 'Failed to activate bench.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-
     def killAllAxis(self):
         """Kill all axis."""
-        if self.pmac is None:
-            return
-        self.pmac.kill_all_axis()
+        try:
+            self.pmac.kill_all_axis()
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def moveToTarget(self, axis):
         """Move Hall probe to target position."""
-        axis = self.selectedAxis()
-        if axis is None:
-            return
+        try:
+            axis = self.selectedAxis()
+            if axis is None:
+                return
 
-        targetvel = float(self.ui.targetvel_le.text())
-        targetpos = float(self.ui.targetpos_le.text())
-        velocity = self.pmac.get_velocity(axis)
+            targetvel = float(self.ui.targetvel_le.text())
+            targetpos = float(self.ui.targetpos_le.text())
+            velocity = self.pmac.get_velocity(axis)
 
-        if targetvel != velocity:
-            self.pmac.set_axis_speed(axis, targetvel)
+            if targetvel != velocity:
+                self.pmac.set_axis_speed(axis, targetvel)
 
-        self.pmac.move_axis(axis, targetpos)
+            self.pmac.move_axis(axis, targetpos)
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def releaseAccessToMovement(self):
-        """Check homming status and enable movement."""
-        if self.pmac is None:
-            return
+        """Check homing status and enable movement."""
+        try:
+            list_of_axis = self.pmac.commands.list_of_axis
 
-        list_of_axis = self.pmac.commands.list_of_axis
+            item = 0
+            homing_status = []
+            for axis in list_of_axis:
+                if (self.pmac.axis_status(axis) & 1024) != 0:
+                    self.ui.selectaxis_cmb.model().item(item).setEnabled(True)
+                    homing_status.append(True)
+                else:
+                    self.ui.selectaxis_cmb.model().item(item).setEnabled(False)
+                    homing_status.append(False)
+                item += 1
 
-        item = 0
-        hommming_status = []
-        for axis in list_of_axis:
-            if (self.pmac.axis_status(axis) & 1024) != 0:
-                self.ui.selectaxis_cmb.model().item(item).setEnabled(True)
-                hommming_status.append(True)
+            if any(homing_status):
+                self.setMovementEnabled(True)
+                self.updateVelocityAndPosition()
             else:
-                self.ui.selectaxis_cmb.model().item(item).setEnabled(False)
-                hommming_status.append(False)
-            item += 1
+                self.setMovementEnabled(False)
 
-        if any(hommming_status):
-            self.setMovementEnabled(True)
-            self.updateVelocityAndPosition()
-        else:
-            self.setMovementEnabled(False)
+            if all(homing_status):
+                self.homing = True
+            else:
+                self.homing = False
 
-        if all(hommming_status):
-            self.updateMainTabStatus(3, True)
-        else:
-            self.updateMainTabStatus(3, False)
+            self.window().updateMainTabStatus()
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def resetAxisLimits(self):
         """Reset axis limits."""
-        if self.pmac is None:
-            return
+        try:
+            neg_list = self.pmac.commands.i_softlimit_neg_list
+            pos_list = self.pmac.commands.i_softlimit_pos_list
 
-        neg_list = self.pmac.commands.i_softlimit_neg_list
-        pos_list = self.pmac.commands.i_softlimit_pos_list
+            if self.pmac.get_response(self.pmac.set_par(neg_list[0], 0)):
+                self.ui.minax1_le.setText('')
 
-        if self.pmac.get_response(self.pmac.set_par(neg_list[0], 0)):
-            self.ui.minax1_le.setText('')
+            if self.pmac.get_response(self.pmac.set_par(pos_list[0], 0)):
+                self.ui.maxax1_le.setText('')
 
-        if self.pmac.get_response(self.pmac.set_par(pos_list[0], 0)):
-            self.ui.maxax1_le.setText('')
+            if self.pmac.get_response(self.pmac.set_par(neg_list[1], 0)):
+                self.ui.minax2_le.setText('')
 
-        if self.pmac.get_response(self.pmac.set_par(neg_list[1], 0)):
-            self.ui.minax2_le.setText('')
+            if self.pmac.get_response(self.pmac.set_par(pos_list[1], 0)):
+                self.ui.maxax2_le.setText('')
 
-        if self.pmac.get_response(self.pmac.set_par(pos_list[1], 0)):
-            self.ui.maxax2_le.setText('')
+            if self.pmac.get_response(self.pmac.set_par(neg_list[2], 0)):
+                self.ui.minax3_le.setText('')
 
-        if self.pmac.get_response(self.pmac.set_par(neg_list[2], 0)):
-            self.ui.minax3_le.setText('')
+            if self.pmac.get_response(self.pmac.set_par(pos_list[2], 0)):
+                self.ui.maxax3_le.setText('')
 
-        if self.pmac.get_response(self.pmac.set_par(pos_list[2], 0)):
-            self.ui.maxax3_le.setText('')
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def selectedAxis(self):
         """Return the selected axis."""
-        if self.pmac is None:
-            return None
-
         axis_str = self.ui.selectaxis_cmb.currentText()
         if axis_str == '':
             return None
@@ -189,27 +209,29 @@ class MotorsWidget(_QWidget):
 
     def setAxisLimits(self):
         """Set axis limits."""
-        if self.pmac is None:
-            return
+        try:
+            neg_list = self.pmac.commands.i_softlimit_neg_list
+            pos_list = self.pmac.commands.i_softlimit_pos_list
+            cts_mm_axis = self.pmac.commands.CTS_MM_AXIS
 
-        neg_list = self.pmac.commands.i_softlimit_neg_list
-        pos_list = self.pmac.commands.i_softlimit_pos_list
-        cts_mm_axis = self.pmac.commands.CTS_MM_AXIS
+            minax1 = float(self.ui.minax1_le.text())*cts_mm_axis[0]
+            maxax1 = float(self.ui.maxax1_le.text())*cts_mm_axis[0]
+            self.pmac.get_response(self.pmac.set_par(neg_list[0], minax1))
+            self.pmac.get_response(self.pmac.set_par(pos_list[0], maxax1))
 
-        minax1 = float(self.ui.minax1_le.text())*cts_mm_axis[0]
-        maxax1 = float(self.ui.maxax1_le.text())*cts_mm_axis[0]
-        self.pmac.get_response(self.pmac.set_par(neg_list[0], minax1))
-        self.pmac.get_response(self.pmac.set_par(pos_list[0], maxax1))
+            minax2 = float(self.ui.minax1_le.text())*cts_mm_axis[1]
+            maxax2 = float(self.ui.maxax1_le.text())*cts_mm_axis[1]
+            self.pmac.get_response(self.pmac.set_par(neg_list[1], minax2))
+            self.pmac.get_response(self.pmac.set_par(pos_list[1], maxax2))
 
-        minax2 = float(self.ui.minax1_le.text())*cts_mm_axis[1]
-        maxax2 = float(self.ui.maxax1_le.text())*cts_mm_axis[1]
-        self.pmac.get_response(self.pmac.set_par(neg_list[1], minax2))
-        self.pmac.get_response(self.pmac.set_par(pos_list[1], maxax2))
+            minax3 = float(self.ui.minax1_le.text())*cts_mm_axis[2]
+            maxax3 = float(self.ui.maxax1_le.text())*cts_mm_axis[2]
+            self.pmac.get_response(self.pmac.set_par(neg_list[2], minax3))
+            self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
 
-        minax3 = float(self.ui.minax1_le.text())*cts_mm_axis[2]
-        maxax3 = float(self.ui.maxax1_le.text())*cts_mm_axis[2]
-        self.pmac.get_response(self.pmac.set_par(neg_list[2], minax3))
-        self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
+        except Exception:
+            _QMessageBox.critical(
+                self, 'Failure', 'Could not set axis limits.', _QMessageBox.Ok)
 
     def setAxisLimitsEnabled(self, enabled):
         """Enable/Disable axis limits controls."""
@@ -225,10 +247,10 @@ class MotorsWidget(_QWidget):
         except Exception:
             obj.setText('')
 
-    def setHommingEnabled(self, enabled):
-        """Enable/Disable homming controls."""
-        self.ui.homming_gb.setEnabled(enabled)
-        self.ui.homming_btn.setEnabled(enabled)
+    def setHomingEnabled(self, enabled):
+        """Enable/Disable homing controls."""
+        self.ui.homing_gb.setEnabled(enabled)
+        self.ui.homing_btn.setEnabled(enabled)
 
     def setMovementEnabled(self, enabled):
         """Enable/Disable movement controls."""
@@ -244,85 +266,102 @@ class MotorsWidget(_QWidget):
         except Exception:
             self.updateVelocityAndPosition()
 
-    def startHomming(self):
-        """Homming of the selected axes."""
-        if self.pmac is None:
-            return
+    def startHoming(self):
+        """Homing of the selected axes."""
+        try:
+            axis_homing_mask = 0
+            list_of_axis = self.pmac.commands.list_of_axis
 
-        axis_homming_mask = 0
-        list_of_axis = self.pmac.commands.list_of_axis
+            for axis in list_of_axis:
+                obj = getattr(self.ui, 'homingax' + str(axis) + '_chb')
+                val = int(obj.isChecked())
+                axis_homing_mask += (val << (axis-1))
 
-        for axis in list_of_axis:
-            obj = getattr(self.ui, 'hommingax' + str(axis) + '_chb')
-            val = int(obj.isChecked())
-            axis_homming_mask += (val << (axis-1))
-
-        self.pmac.align_bench(axis_homming_mask)
-        _time.sleep(self._align_bench_time_interval)
-
-        while int(self.pmac.read_response(
-                self.pmac.commands.prog_running)) == 1:
+            self.pmac.align_bench(axis_homing_mask)
             _time.sleep(self._align_bench_time_interval)
-        else:
-            self.releaseAccessToMovement()
-            message = 'Finished homming of the selected axes.'
-            _QMessageBox.information(
-                self, 'Hommming', message, _QMessageBox.Ok)
+
+            while int(self.pmac.read_response(
+                    self.pmac.commands.prog_running)) == 1:
+                _time.sleep(self._align_bench_time_interval)
+            else:
+                self.releaseAccessToMovement()
+                message = 'Finished homing of the selected axes.'
+                _QMessageBox.information(
+                    self, 'Homing', message, _QMessageBox.Ok)
+        except Exception:
+            _QMessageBox.critical(
+                self, 'Failure', 'Homing failed.', _QMessageBox.Ok)
 
     def stopAllAxis(self):
         """Stop all axis."""
-        if self.pmac is None:
-            return
+        try:
+            self.pmac.stop_all_axis()
 
-        self.pmac.stop_all_axis()
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def stopAxis(self):
         """Stop the selected axis."""
-        axis = self.selectedAxis()
-        if axis is None:
-            return
-        self.pmac.stop_axis(axis)
+        try:
+            axis = self.selectedAxis()
+            if axis is None:
+                return
+            self.pmac.stop_axis(axis)
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def updatePositions(self):
         """Update axes positions."""
-        if self.pmac is None:
-            return
         self.position_widget.updatePositions()
 
     def updateRelDisp(self):
         """Update relative displacement value."""
-        axis = self.selectedAxis()
-        if axis is None:
-            return
+        try:
+            axis = self.selectedAxis()
+            if axis is None:
+                return
 
-        position = self.pmac.get_position(axis)
-        targetpos = float(self.ui.targetpos_le.text())
-        reldisp = targetpos - position
-        self.ui.reldisp_le.setText('{0:0.4f}'.format(reldisp))
+            position = self.pmac.get_position(axis)
+            targetpos = float(self.ui.targetpos_le.text())
+            reldisp = targetpos - position
+            self.ui.reldisp_le.setText('{0:0.4f}'.format(reldisp))
+
+        except Exception:
+            pass
 
     def updateTargetPos(self):
         """Update target position value."""
-        axis = self.selectedAxis()
-        if axis is None:
-            return
+        try:
+            axis = self.selectedAxis()
+            if axis is None:
+                return
 
-        position = self.pmac.get_position(axis)
-        reldisp = float(self.ui.reldisp_le.text())
-        targetpos = position + reldisp
-        self.ui.targetpos_le.setText('{0:0.4f}'.format(targetpos))
+            position = self.pmac.get_position(axis)
+            reldisp = float(self.ui.reldisp_le.text())
+            targetpos = position + reldisp
+            self.ui.targetpos_le.setText('{0:0.4f}'.format(targetpos))
+
+        except Exception:
+            pass
 
     def updateVelocityAndPosition(self):
         """Update velocity and position values for the selected axis."""
-        axis = self.selectedAxis()
-        if axis is None:
-            return
+        try:
+            axis = self.selectedAxis()
+            if axis is None:
+                return
 
-        velocity = self.pmac.get_velocity(axis)
-        position = self.pmac.get_position(axis)
-        self.ui.targetvel_le.setText('{0:0.4f}'.format(velocity))
-        self.ui.reldisp_le.setText('{0:0.4f}'.format(0))
-        self.ui.targetpos_le.setText('{0:0.4f}'.format(position))
+            velocity = self.pmac.get_velocity(axis)
+            position = self.pmac.get_position(axis)
+            self.ui.targetvel_le.setText('{0:0.4f}'.format(velocity))
+            self.ui.reldisp_le.setText('{0:0.4f}'.format(0))
+            self.ui.targetpos_le.setText('{0:0.4f}'.format(position))
 
-        self.ui.targetvelunit_la.setText(self._axis_unit[axis] + '/s')
-        self.ui.reldispunit_la.setText(self._axis_unit[axis])
-        self.ui.targetposunit_la.setText(self._axis_unit[axis])
+            self.ui.targetvelunit_la.setText(self._axis_unit[axis] + '/s')
+            self.ui.reldispunit_la.setText(self._axis_unit[axis])
+            self.ui.targetposunit_la.setText(self._axis_unit[axis])
+        except Exception:
+            pass

@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 """Hall Bench Devices."""
 
+import os as _os
 from . import GPIBLib as _GPIBLib
 from . import PmacLib as _PmacLib
 from . import NMRLib as _NMRLib
+
+
+_logs_dir = 'logs'
 
 
 class HallBenchDevices(object):
@@ -11,12 +15,21 @@ class HallBenchDevices(object):
 
     def __init__(self):
         """Initialize variables and log files."""
-        self.pmac = _PmacLib.Pmac('pmac.log')
-        self.voltx = _GPIBLib.Agilent3458A('voltx.log')
-        self.volty = _GPIBLib.Agilent3458A('volty.log')
-        self.voltz = _GPIBLib.Agilent3458A('voltz.log')
-        self.multich = _GPIBLib.Agilent34970A('multich.log')
-        self.nmr = _NMRLib.NMR('nmr.log')
+        _dir_path = _os.path.dirname(_os.path.dirname(
+            _os.path.dirname(_os.path.abspath(__file__))))
+        _logs_path = _os.path.join(_dir_path, _logs_dir)
+        if not _os.path.isdir(_logs_path):
+            _os.mkdir(_logs_path)
+        self.pmac = _PmacLib.Pmac(_os.path.join(_logs_path, 'pmac.log'))
+        self.voltx = _GPIBLib.Agilent3458A(
+            _os.path.join(_logs_path, 'voltx.log'))
+        self.volty = _GPIBLib.Agilent3458A(
+            _os.path.join(_logs_path, 'volty.log'))
+        self.voltz = _GPIBLib.Agilent3458A(
+            _os.path.join(_logs_path, 'voltz.log'))
+        self.multich = _GPIBLib.Agilent34970A(
+            _os.path.join(_logs_path, 'multich.log'))
+        self.nmr = _NMRLib.NMR(_os.path.join(_logs_path, 'nmr.log'))
         self.collimator = None
 
     def connect(self, config):

@@ -103,10 +103,10 @@ class PmacCommands(object):
         """P-variables.
 
         p_axis_mask - Bit mask to select the motors to be homed - b1200r
-        p_homming_status - Homming status
+        p_homing_status - Homing status
         """
         self.p_axis_mask = 'P810'
-        self.p_homming_status = 'P813'
+        self.p_homing_status = 'P813'
 
     def _ivariables(self):
         """I-Variables.

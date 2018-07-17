@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Save field map dialog for the Hall Bench Control application."""
+"""Field map dialog for the Hall Bench Control application."""
 
 import os.path as _path
 from PyQt5.QtWidgets import (
@@ -16,8 +16,8 @@ import hallbench.data.magnets_info as _magnets_info
 from hallbench.data.utils import get_timestamp as _get_timestamp
 
 
-class SaveFieldMapDialog(_QDialog):
-    """Save field map dialog class for the Hall Bench Control application."""
+class FieldMapDialog(_QDialog):
+    """Field map dialog class for the Hall Bench Control application."""
 
     _coil_list = ['main', 'trim', 'ch', 'cv', 'qs']
 
@@ -300,4 +300,4 @@ class SaveFieldMapDialog(_QDialog):
         """Update fieldmap variable and show dialog."""
         self.fieldmap = fieldmap
         self.directory = directory
-        super(SaveFieldMapDialog, self).show()
+        super(FieldMapDialog, self).show()

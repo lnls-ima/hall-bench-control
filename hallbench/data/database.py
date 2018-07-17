@@ -140,9 +140,8 @@ def insert_into_database(database, table, values):
     column_names = get_table_column_names(database, table)
 
     if len(values) != len(column_names):
-        msg = 'Inconsistent number of values for database table {0}.'.format(
-            table)
-        raise DataBaseError(msg)
+        message = 'Inconsistent number of values for table {0}.'.format(table)
+        raise DataBaseError(message)
 
     _l = []
     [_l.append('?') for i in range(len(values))]
@@ -154,13 +153,16 @@ def insert_into_database(database, table, values):
     try:
         cur.execute(
             ('INSERT INTO {0} VALUES '.format(table) + _l), values)
+        idn = cur.lastrowid
         con.commit()
         con.close()
+        return idn
 
     except Exception:
         con.close()
-        msg = 'Could not insert values into table {0}.'.format(table)
-        raise DataBaseError(msg)
+        message = 'Could not insert values into table {0}.'.format(table)
+        raise DataBaseError(message)
+        return None
 
 
 def read_from_database(database, table, idn=None):
@@ -187,11 +189,11 @@ def read_from_database(database, table, idn=None):
             cur.execute(
                 """SELECT * FROM {0}\
                 WHERE id = (SELECT MAX(id) FROM {0})""".format(table))
-        entry = cur.fetchall()
+        entry = cur.fetchone()
         con.close()
     except Exception:
         con.close()
-        msg = ('Could not retrieve data from {0}'.format(table))
-        raise DataBaseError(msg)
+        message = ('Could not retrieve data from {0}'.format(table))
+        raise DataBaseError(message)
 
     return entry

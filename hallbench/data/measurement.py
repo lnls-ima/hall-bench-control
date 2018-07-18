@@ -603,6 +603,7 @@ class FieldData(Data):
         if len(db_column_names) == 0:
             raise MeasurementDataError(
                 'Failed to save field data to database.')
+            return None
 
         timestamp = _utils.get_timestamp().split('_')
         date = timestamp[0]
@@ -614,6 +615,7 @@ class FieldData(Data):
             if key not in db_column_names:
                 raise MeasurementDataError(
                     'Failed to save field data to database.')
+                return None
             else:
                 if key == "id":
                     db_values.append(None)
@@ -726,6 +728,37 @@ class FieldMapData(object):
         """Magnet Y axis."""
         return self._magnet_y_axis
 
+    @property
+    def default_filename(self):
+        """Return the default filename."""
+        if len(self.magnet_name) != 0:
+            name = self.magnet_name
+        else:
+            name = 'fieldmap'
+
+        if len(self._map) != 0:
+            x = _np.unique(self._map[:, 0])
+            y = _np.unique(self._map[:, 1])
+            z = _np.unique(self._map[:, 2])
+            if len(x) > 1:
+                name = name + '_X={0:.0f}_{1:.0f}mm'.format(x[0], x[-1])
+            if len(y) > 1:
+                name = name + '_Y={0:.0f}_{1:.0f}mm'.format(y[0], y[-1])
+            if len(z) > 1:
+                name = name + '_Z={0:.0f}_{1:.0f}mm'.format(z[0], z[-1])
+
+        for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
+            current = getattr(self, 'current_' + coil)
+            if current is not None and len(current) != 0:
+                ac = coil if coil != 'trim' else 'tc'
+                name = name + '_I' + ac + '=' + current + 'A'
+
+        datetime = _utils.get_timestamp()
+        date = datetime.split('_')[0]
+
+        filename = '{0:1s}_{1:1s}.dat'.format(date, name)
+        return filename
+
     def clear(self):
         """Clear."""
         self.magnet_name = ''
@@ -749,14 +782,14 @@ class FieldMapData(object):
 
     def set_fieldmap_data(
             self, field_data_list, probe_calibration,
-            correct_displacement, magnet_center,
+            correct_displacements, magnet_center,
             magnet_x_axis, magnet_y_axis):
         """Set fieldmap from list of FieldData objects.
 
         Args:
             field_data_list (list): list of FieldData objects.
             probe_calibration (ProbeCalibration): probe calibration data.
-            correct_displacement (bool): correct sensor displacement flag.
+            correct_displacements (bool): correct sensor displacements flag.
             magnet_center (list): magnet center position.
             magnet_x_axis (int): magnet x-axis direction.
                                  [3, -3, 2, -2, 1 or -1]
@@ -768,7 +801,7 @@ class FieldMapData(object):
                 'probe_calibration must be a ProbeCalibration object.')
 
         _r = _get_fieldmap_position_and_field_values(
-            field_data_list, probe_calibration, correct_displacement)
+            field_data_list, probe_calibration, correct_displacements)
         pos1, pos2, pos3 = _r[0], _r[1], _r[2]
         field1, field2, field3 = _r[3], _r[4], _r[5]
         index_axis, columns_axis = _r[6], _r[7]
@@ -936,9 +969,10 @@ class FieldMapData(object):
         """Insert field data into database table."""
         db_column_names = _database.get_table_column_names(
             database, self._db_table)
+
         if len(db_column_names) == 0:
-            raise MeasurementDataError(
-                'Failed to save fieldmap to database.')
+            raise MeasurementDataError('Failed to save fieldmap to database.')
+            return None
 
         timestamp = _utils.get_timestamp().split('_')
         date = timestamp[0]
@@ -950,6 +984,8 @@ class FieldMapData(object):
             if key not in db_column_names:
                 raise MeasurementDataError(
                     'Failed to save fieldmap to database.')
+                return None
+
             else:
                 if key == "id":
                     db_values.append(None)
@@ -1097,7 +1133,7 @@ def _valid_field_data_list(field_data_list):
 
 
 def _get_fieldmap_position_and_field_values(
-        field_data_list, probe_calibration, correct_displacement):
+        field_data_list, probe_calibration, correct_displacements):
     if not _valid_field_data_list(field_data_list):
         raise MeasurementDataError('Invalid field data list.')
 
@@ -1152,7 +1188,7 @@ def _get_fieldmap_position_and_field_values(
         message = 'Duplicate position found in field data list.'
         raise MeasurementDataError(message)
 
-    if correct_displacement:
+    if correct_displacements:
         index = fieldy.index
         columns = fieldy.columns
 

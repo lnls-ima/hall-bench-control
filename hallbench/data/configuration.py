@@ -428,6 +428,7 @@ class MeasurementConfig(Configuration):
         if len(db_column_names) == 0:
             raise ConfigurationError(
                 'Failed to save configuration to database.')
+            return None
 
         timestamp = _utils.get_timestamp().split('_')
         date = timestamp[0]
@@ -440,6 +441,7 @@ class MeasurementConfig(Configuration):
             if key not in db_column_names:
                 raise ConfigurationError(
                     'Failed to save configuration to database.')
+                return None
             else:
                 if key == "id":
                     db_values.append(None)

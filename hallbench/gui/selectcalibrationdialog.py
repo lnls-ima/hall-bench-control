@@ -41,8 +41,8 @@ class SelectCalibrationDialog(_QDialog):
         self.polynomial_dialog = _PolynomialTableDialog()
 
         self._probe_calibration = None
-
         self.database = None
+
         self.graphx = []
         self.graphy = []
         self.graphz = []

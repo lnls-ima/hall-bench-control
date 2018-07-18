@@ -60,6 +60,7 @@ class MeasurementWidget(_QWidget):
         self.graphy = []
         self.graphz = []
         self.position_list = []
+        self.scan_id_list = []
         self.field_data_list = []
         self.field_data = None
         self.voltage_data = None
@@ -241,6 +242,7 @@ class MeasurementWidget(_QWidget):
                 pos = self.config.get_start(axis)
                 self.moveAxis(axis, pos)
 
+            self.scan_id_list = []
             self.field_data_list = []
             if second_axis != -1:
                 start = self.config.get_start(second_axis)
@@ -671,42 +673,12 @@ class MeasurementWidget(_QWidget):
             return
 
         try:
-            self.field_data.save_to_database(self.database, self.config_id)
+            idn = self.field_data.save_to_database(
+                self.database, self.config_id)
+            self.scan_id_list.append(idn)
 
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
-
-    # def saveVoltageData(self, to_pos):
-    #     """Save voltage data to file."""
-    #     if self.voltage_data is None:
-    #         message = 'Invalid voltage data.'
-    #         _QMessageBox.critical(
-    #             self, 'Failure', message, _QMessageBox.Ok)
-    #         return
-    #
-    #     if measurement_directory is None:
-    #         message = 'Invalid directory.'
-    #         _QMessageBox.critical(
-    #             self, 'Failure', message, _QMessageBox.Ok)
-    #         return
-    #
-    #     timestamp = _get_timestamp()
-    #     filename = timestamp + '_voltage_data'
-    #     first_axis = self.config.first_axis
-    #
-    #     axes = [1, 2, 3]
-    #     axes.remove(first_axis)
-    #     for axis in axes:
-    #         pos = getattr(self.voltage_data, 'pos' + str(axis))[0]
-    #         filename = filename+'_pos'+str(axis)+'={0:0.4f}mm'.format(pos)
-    #
-    #     if to_pos:
-    #         filename = filename + '_to_pos.txt'
-    #     else:
-    #         filename = filename + '_to_neg.txt'
-    #
-    #     filepath = _path.join(self.measurement_directory, filename)
-    #     self.voltage_data.save_file(filepath)
 
     def scanLine(self, first_axis):
         """Start line scan."""
@@ -837,17 +809,11 @@ class MeasurementWidget(_QWidget):
 
     def showFieldMapDialog(self):
         """Open fieldmap dialog."""
-        if len(self.field_data_list) == 0:
-            message = 'Empty field data list.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return
-
-        if self.measurement_directory is None:
-            self.fieldmap_dialog.show(self.field_data_list)
-        else:
-            self.fieldmap_dialog.show(
-                self.field_data_list, self.measurement_directory)
+        self.fieldmap_dialog.show(
+            self.field_data_list,
+            self.measurement_probe_calibration,
+            self.database,
+            self.scan_id_list)
 
     def showSelectCalibrationDialog(self):
         """Open select calibration dialog."""

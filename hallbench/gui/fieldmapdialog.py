@@ -2,10 +2,9 @@
 
 """Field map dialog for the Hall Bench Control application."""
 
-import os.path as _path
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
-    QTableWidgetItem as _QTableWidgetItem,
+    QFileDialog as _QFileDialog,
     QLineEdit as _QLineEdit,
     QMessageBox as _QMessageBox,
     )
@@ -13,7 +12,7 @@ import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 import hallbench.data.magnets_info as _magnets_info
-from hallbench.data.utils import get_timestamp as _get_timestamp
+from hallbench.data.measurement import FieldMapData as _FieldMapData
 
 
 class FieldMapDialog(_QDialog):
@@ -30,8 +29,10 @@ class FieldMapDialog(_QDialog):
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
-        self.fieldmap = None
-        self.directory = ''
+        self.database = None
+        self.field_data_list = None
+        self.probe_calibration = None
+        self.scan_id_list = None
 
         # add predefined magnet names
         names = _magnets_info.get_magnets_name()
@@ -58,15 +59,10 @@ class FieldMapDialog(_QDialog):
 
         self.ui.clear_btn.clicked.connect(self.clearInfo)
         self.ui.predefined_cmb.currentIndexChanged.connect(self.loadMagnetInfo)
-        self.ui.addrow_btn.clicked.connect(self.addTableRow)
-        self.ui.removerow_btn.clicked.connect(self.removeTableRow)
-        self.ui.axisx_cmb.currentIndexChanged.connect(self.disableInvalidAxes)
-        self.ui.savefieldmap_btn.clicked.connect(self.saveFieldMap)
-
-    def addTableRow(self):
-        """Add row to aditional parameters table."""
-        self.ui.additionalparam_ta.setRowCount(
-            self.ui.additionalparam_ta.rowCount() + 1)
+        self.ui.magnet_x_axis_cmb.currentIndexChanged.connect(
+            self.disableInvalidAxes)
+        self.ui.savedb_btn.clicked.connect(self.saveToDB)
+        self.ui.savefile_btn.clicked.connect(self.saveToFile)
 
     def clearInfo(self):
         """Clear inputs."""
@@ -78,46 +74,86 @@ class FieldMapDialog(_QDialog):
         self.ui.centerpos3_sb.setValue(0)
         self.ui.centerpos2_sb.setValue(0)
         self.ui.centerpos1_sb.setValue(0)
-        self.ui.axisx_cmb.setCurrentIndex(0)
-        self.ui.axisy_cmb.setCurrentIndex(2)
+        self.ui.magnet_x_axis_cmb.setCurrentIndex(0)
+        self.ui.magnet_y_axis_cmb.setCurrentIndex(2)
 
     def clearMagnetInfo(self):
         """Clear magnet inputs."""
         self.ui.predefined_cmb.setCurrentIndex(0)
         self.ui.predefined_la.setText('')
-        self.ui.magnetname_le.setText('')
+        self.ui.magnet_name_le.setText('')
         self.ui.gap_le.setText('')
-        self.ui.controlgap_le.setText('')
-        self.ui.magnetlength_le.setText('')
+        self.ui.control_gap_le.setText('')
+        self.ui.magnet_length_le.setText('')
+        self.ui.comments_te.setPlainText('')
         self.ui.main_chb.setChecked(False)
         self.ui.trim_chb.setChecked(False)
         self.ui.ch_chb.setChecked(False)
         self.ui.cv_chb.setChecked(False)
         self.ui.qs_chb.setChecked(False)
-        self.ui.additionalparam_ta.setRowCount(0)
+        self.ui.correct_displacements_chb.setChecked(True)
 
     def disableInvalidAxes(self):
         """Disable invalid magnet axes."""
         for i in range(6):
-            self.ui.axisy_cmb.model().item(i).setEnabled(True)
+            self.ui.magnet_y_axis_cmb.model().item(i).setEnabled(True)
 
-        idx_axisx = self.ui.axisx_cmb.currentIndex()
-        idx_axisy = self.ui.axisy_cmb.currentIndex()
+        idx_axisx = self.ui.magnet_x_axis_cmb.currentIndex()
+        idx_axisy = self.ui.magnet_y_axis_cmb.currentIndex()
         if idx_axisx in [0, 1]:
             if idx_axisy in [0, 1]:
-                self.ui.axisy_cmb.setCurrentIndex(-1)
-            self.ui.axisy_cmb.model().item(0).setEnabled(False)
-            self.ui.axisy_cmb.model().item(1).setEnabled(False)
+                self.ui.magnet_y_axis_cmb.setCurrentIndex(-1)
+            self.ui.magnet_y_axis_cmb.model().item(0).setEnabled(False)
+            self.ui.magnet_y_axis_cmb.model().item(1).setEnabled(False)
         elif idx_axisx in [2, 3]:
             if idx_axisy in [2, 3]:
-                self.ui.axisy_cmb.setCurrentIndex(-1)
-            self.ui.axisy_cmb.model().item(2).setEnabled(False)
-            self.ui.axisy_cmb.model().item(3).setEnabled(False)
+                self.ui.magnet_y_axis_cmb.setCurrentIndex(-1)
+            self.ui.magnet_y_axis_cmb.model().item(2).setEnabled(False)
+            self.ui.magnet_y_axis_cmb.model().item(3).setEnabled(False)
         elif idx_axisx in [4, 5]:
             if idx_axisy in [4, 5]:
-                self.ui.axisy_cmb.setCurrentIndex(-1)
-            self.ui.axisy_cmb.model().item(4).setEnabled(False)
-            self.ui.axisy_cmb.model().item(5).setEnabled(False)
+                self.ui.magnet_y_axis_cmb.setCurrentIndex(-1)
+            self.ui.magnet_y_axis_cmb.model().item(4).setEnabled(False)
+            self.ui.magnet_y_axis_cmb.model().item(5).setEnabled(False)
+
+    def getFieldMap(self):
+        """Get fieldmap data."""
+        if self.field_data_list is None or self.probe_calibration is None:
+            return None
+
+        fieldmap = _FieldMapData()
+        fieldmap.magnet_name = self.ui.magnet_name_le.text()
+        fieldmap.gap = self.ui.gap_le.text()
+        fieldmap.control_gap = self.ui.control_gap_le.text()
+        fieldmap.magnet_length = self.ui.magnet_length_le.text()
+        fieldmap.comments = self.ui.comments_te.toPlainText()
+
+        for coil in self._coil_list:
+            if getattr(self.ui, coil + '_chb').isChecked():
+                current = getattr(self.ui, 'current_' + coil + '_le').text()
+                setattr(fieldmap, 'current_' + coil, current)
+                turns = getattr(self.ui, 'nr_turns' + coil + '_le').text()
+                setattr(fieldmap, 'nr_turns_' + coil, turns)
+
+        center_pos3 = self.ui.centerpos3_sb.value()
+        center_pos2 = self.ui.centerpos2_sb.value()
+        center_pos1 = self.ui.centerpos1_sb.value()
+        magnet_center = [center_pos3, center_pos2, center_pos1]
+
+        magnet_x_axis = self.magnetXAxis()
+        magnet_y_axis = self.magnetYAxis()
+
+        correct_displacements = self.ui.correct_displacements_chb.isChecked()
+
+        try:
+            fieldmap.set_fieldmap_data(
+                self.field_data_list, self.probe_calibration,
+                correct_displacements, magnet_center,
+                magnet_x_axis, magnet_y_axis)
+            return fieldmap
+
+        except Exception:
+            return None
 
     def loadMagnetInfo(self):
         """Load pre-defined magnet info."""
@@ -130,39 +166,28 @@ class FieldMapDialog(_QDialog):
         if m is None:
             return
 
-        self.ui.additionalparam_ta.setRowCount(0)
         self.ui.predefined_la.setText(m.pop('description'))
-        self.ui.magnetname_le.setText(str(m.pop('magnet_name')))
+        self.ui.magnet_name_le.setText(str(m.pop('magnet_name')))
         self.ui.gap_le.setText(str(m.pop('gap[mm]')))
-        self.ui.controlgap_le.setText(str(m.pop('control_gap[mm]')))
-        self.ui.magnetlength_le.setText(str(m.pop('magnet_length[mm]')))
+        self.ui.control_gap_le.setText(str(m.pop('control_gap[mm]')))
+        self.ui.magnet_length_le.setText(str(m.pop('magnet_length[mm]')))
 
         for coil in self._coil_list:
             turns_key = 'nr_turns_' + coil
             chb = getattr(self.ui, coil + '_chb')
             if turns_key in m.keys():
-                turns_le = getattr(self.ui, coil + 'turns_le')
+                turns_le = getattr(self.ui, 'nr_turns_' + coil + '_le')
                 turns_le.setText(str(m.pop(turns_key)))
                 chb.setChecked(True)
                 if coil != 'main':
-                    current_le = getattr(self.ui, coil + 'current_le')
+                    current_le = getattr(self.ui, 'current_' + coil + '_le')
                     current_le.setText('0')
             else:
                 chb.setChecked(False)
 
-        if len(m) != 0:
-            count = 0
-            for parameter, value in m.items():
-                self.ui.additionalparam_ta.setRowCount(count+1)
-                self.ui.additionalparam_ta.setItem(
-                    count, 0, _QTableWidgetItem(str(parameter)))
-                self.ui.additionalparam_ta.setItem(
-                    count, 1, _QTableWidgetItem(str(value)))
-                count = count + 1
-
     def magnetXAxis(self):
         """Get magnet x-axis value."""
-        axis_str = self.ui.axisx_cmb.currentText()
+        axis_str = self.ui.magnet_x_axis_cmb.currentText()
         axis = int(axis_str[8])
         if axis_str.startswith('-'):
             axis = axis*(-1)
@@ -170,115 +195,70 @@ class FieldMapDialog(_QDialog):
 
     def magnetYAxis(self):
         """Get magnet y-axis value."""
-        axis_str = self.ui.axisy_cmb.currentText()
+        axis_str = self.ui.magnet_y_axis_cmb.currentText()
         axis = int(axis_str[8])
         if axis_str.startswith('-'):
             axis = axis*(-1)
         return axis
 
-    def removeTableRow(self):
-        """Remove last row from aditional parameters table."""
-        self.ui.additionalparam_ta.setRowCount(
-            self.ui.additionalparam_ta.rowCount() - 1)
-
-    def saveCoordinateSystemFile(self, fieldmap_filename):
-        """Save file with magnet coordinate system info."""
-        try:
-            timestamp = _get_timestamp()
-            filename = timestamp + '_magnet_coordinate_system.txt'
-            filename = _path.join(self.directory, filename)
-
-            with open(filename, 'w') as f:
-                center_pos3 = self.ui.centerpos3_sb.value()
-                center_pos2 = self.ui.centerpos2_sb.value()
-                center_pos1 = self.ui.centerpos1_sb.value()
-
-                magnet_x_axis = self.magnetXAxis()
-                magnet_y_axis = self.magnetYAxis()
-
-                f.write('fielmap_file:        {0:s}\n'.format(
-                                                            fieldmap_filename))
-                f.write('magnet_center_axis3: {0:0.4f}\n'.format(center_pos3))
-                f.write('magnet_center_axis2: {0:0.4f}\n'.format(center_pos2))
-                f.write('magnet_center_axis1: {0:0.4f}\n'.format(center_pos1))
-                f.write('magnet_x_axis:       {0:1d}\n'.format(magnet_x_axis))
-                f.write('magnet_y_axis:       {0:1d}\n'.format(magnet_y_axis))
-
-        except Exception:
-            pass
-
-    def saveFieldMap(self):
-        """Save field map to file."""
-        if self.fieldmap is None:
+    def saveToDB(self):
+        """Save fieldmap to database."""
+        if self.database is None or len(self.database) == 0:
+            message = 'Invalid database filename.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        datetime = _get_timestamp()
-        date = datetime.split('_')[0]
-        magnet_name = self.ui.magnetname_le.text()
-        gap = self.ui.gap_le.text()
-        control_gap = self.ui.controlgap_le.text()
-        magnet_length = self.ui.magnetlength_le.text()
+        if self.scan_id_list is None or len(self.scan_id_list) == 0:
+            message = 'Invalid list of scan IDs.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
 
-        header_info = []
-        header_info.append(['fieldmap_name', magnet_name])
-        header_info.append(['timestamp', datetime])
-        header_info.append(['nr_magnets', 1])
-        header_info.append(['magnet_name', magnet_name])
-        header_info.append(['gap[mm]', gap])
-        header_info.append(['control_gap[mm]', control_gap])
-        header_info.append(['magnet_length[mm]', magnet_length])
+        fieldmap = self.getFieldMap()
+        if fieldmap is None:
+            message = 'Failed to save fieldmap to database.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
 
-        if len(magnet_name) != 0:
-            filename = magnet_name
-        else:
-            filename = 'hall_probe_measurement'
-
-        for coil in self._coil_list:
-            if getattr(self.ui, coil + '_chb').isChecked():
-                current = getattr(self.ui, coil + 'current_le').text()
-                header_info.append(['current_' + coil + '[A]', current])
-                turns = getattr(self.ui, coil + 'turns_le').text()
-                header_info.append(['nr_turns_' + coil, turns])
-                if len(current) != 0:
-                    ac = coil if coil != 'trim' else 'tc'
-                    filename = filename + '_I' + ac + '=' + current + 'A'
-
-        filename = '{0:1s}_{1:1s}.dat'.format(date, filename)
-        filename = _path.join(self.directory, filename)
-
-        header_info.insert(2, ['filename', filename])
-
-        for i in range(self.ui.additionalparam_ta.rowCount()):
-            parameter = self.ui.additionalparam_ta.item(i, 0).text()
-            value = self.ui.additionalparam_ta.item(i, 1).text()
-            if len(value) != 0:
-                header_info.append([parameter.replace(" ", ""), value])
-
-        header_info.append(['center_pos_z[mm]', '0'])
-        header_info.append(['center_pos_x[mm]', '0'])
-        header_info.append(['rotation[deg]', '0'])
-
-        self.fieldmap.header_info = header_info
-
-        center_pos3 = self.ui.centerpos3_sb.value()
-        center_pos2 = self.ui.centerpos2_sb.value()
-        center_pos1 = self.ui.centerpos1_sb.value()
-        magnet_center = [center_pos3, center_pos2, center_pos1]
-
-        magnet_x_axis = self.magnetXAxis()
-        magnet_y_axis = self.magnetYAxis()
+        nr_scans = len(self.scan_id_list)
+        initial_scan = self.scan_id_list[0]
+        final_scan = self.scan_id_list[-1]
 
         try:
-            self.fieldmap.save_file(
-                filename,
-                magnet_center=magnet_center,
-                magnet_x_axis=magnet_x_axis,
-                magnet_y_axis=magnet_y_axis,
-            )
+            idn = fieldmap.save_to_database(
+                self.database, nr_scans, initial_scan, final_scan)
+            message = 'Fieldmap data saved to database table. ID: %i' % idn
+            _QMessageBox.information(
+                self, 'Information', message, _QMessageBox.Ok)
 
-            self.saveCoordinateSystemFile(filename)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
-            message = 'Field map data saved in file: \n%s' % filename
+    def saveToFile(self):
+        """Save fieldmap to database."""
+        fieldmap = self.getFieldMap()
+        if fieldmap is None:
+            message = 'Failed to save fieldmap to file.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
+
+        filename = _QFileDialog.getSaveFileName(
+            self, caption='Save fieldmap file',
+            directory=fieldmap.default_filename, filter="Text files (*.txt)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            fieldmap.save_file(filename)
+            message = 'Fieldmap data saved to file: \n%s' % filename
             _QMessageBox.information(
                 self, 'Information', message, _QMessageBox.Ok)
 
@@ -296,8 +276,22 @@ class FieldMapDialog(_QDialog):
             for le in lineedits:
                 le.clear()
 
-    def show(self, fieldmap, directory=''):
+    def show(self, field_data_list, probe_calibration, database, scan_id_list):
         """Update fieldmap variable and show dialog."""
-        self.fieldmap = fieldmap
-        self.directory = directory
-        super(FieldMapDialog, self).show()
+        if field_data_list is None or len(field_data_list) == 0:
+            message = 'Invalid field data list.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
+
+        if probe_calibration is None:
+            message = 'Invalid probe calibration data.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
+
+        self.field_data_list = field_data_list
+        self.probe_calibration = probe_calibration
+        self.database = database
+        self.scan_id_list = scan_id_list
+        super().show()

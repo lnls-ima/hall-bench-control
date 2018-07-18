@@ -253,6 +253,11 @@ class MeasurementConfig(Configuration):
             super().__init__(filename)
 
     @classmethod
+    def database_table_name(cls):
+        """Return the database table name."""
+        return cls._db_table
+
+    @classmethod
     def create_database_table(cls, database):
         """Create database table."""
         variables = []

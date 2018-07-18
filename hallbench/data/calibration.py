@@ -2,6 +2,7 @@
 
 """Implementation of classes to handle calibration files."""
 
+import json as _json
 import numpy as _np
 import collections as _collections
 from scipy import interpolate as _interpolate
@@ -200,14 +201,14 @@ class ProbeCalibration(object):
         ('calibration_magnet', ['calibration_magnet', 'TEXT NOT NULL']),
         ('function_type', ['function_type', 'TEXT NOT NULL']),
         ('distance_xy', ['distance_xy', 'REAL NOT NULL']),
-        ('distance_yz', ['distance_yz', 'REAL NOT NULL']),
-        ('angle_xy', ['distance_xy', 'REAL NOT NULL']),
-        ('angle_yz', ['distance_yz', 'REAL NOT NULL']),
-        ('angle_zx', ['distance_zx', 'REAL NOT NULL']),
+        ('distance_zy', ['distance_zy', 'REAL NOT NULL']),
+        ('angle_xy', ['angle_xy', 'REAL NOT NULL']),
+        ('angle_yz', ['angle_yz', 'REAL NOT NULL']),
+        ('angle_xz', ['angle_xz', 'REAL NOT NULL']),
         ('probe_axis', ['probe_axis', 'INTEGER NOT NULL']),
-        ('sensorx', ['datax', 'TEXT NOT NULL']),
-        ('sensory', ['datay', 'TEXT NOT NULL']),
-        ('sensorz', ['dataz', 'TEXT NOT NULL']),
+        ('sensorx', ['sensorx', 'TEXT NOT NULL']),
+        ('sensory', ['sensory', 'TEXT NOT NULL']),
+        ('sensorz', ['sensorz', 'TEXT NOT NULL']),
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -276,6 +277,11 @@ class ProbeCalibration(object):
         return NotImplemented
 
     @classmethod
+    def database_table_name(cls):
+        """Return the database table name."""
+        return cls._db_table
+
+    @classmethod
     def create_database_table(cls, database):
         """Create database table."""
         variables = []
@@ -283,21 +289,6 @@ class ProbeCalibration(object):
             variables.append((key, cls._db_dict[key][1]))
         success = _database.create_table(database, cls._db_table, variables)
         return success
-
-    @property
-    def datax(self):
-        """Sensor X calibration data."""
-        return self._sensorx.data
-
-    @property
-    def datay(self):
-        """Sensor Y calibration data."""
-        return self._sensory.data
-
-    @property
-    def dataz(self):
-        """Sensor Z calibration data."""
-        return self._sensorz.data
 
     @property
     def sensorx(self):
@@ -608,7 +599,13 @@ class ProbeCalibration(object):
             else:
                 if attr_name is not None:
                     idx = db_column_names.index(key)
-                    setattr(self, attr_name, db_entry[idx])
+                    if attr_name in ['sensorx', 'sensory', 'sensorz']:
+                        sensor = CalibrationCurve()
+                        sensor.function_type = self.function_type
+                        sensor.data = _json.loads(db_entry[idx])
+                        setattr(self, attr_name, sensor)
+                    else:
+                        setattr(self, attr_name, db_entry[idx])
 
     def save_to_database(self, database):
         """Insert field data into database table."""
@@ -635,6 +632,9 @@ class ProbeCalibration(object):
                     db_values.append(None)
                 elif attr_name is None:
                     db_values.append(locals()[key])
+                elif attr_name in ['sensorx', 'sensory', 'sensorz']:
+                    sensor = getattr(self, attr_name)
+                    db_values.append(_json.dumps(sensor.data))
                 else:
                     db_values.append(getattr(self, attr_name))
 

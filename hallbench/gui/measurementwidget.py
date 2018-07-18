@@ -16,7 +16,8 @@ from PyQt5.QtWidgets import (
 import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.positionwidget import PositionWidget as _PositionWidget
+from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
+    as _CurrentPositionWidget
 from hallbench.gui.fieldmapdialog import FieldMapDialog \
     as _FieldMapDialog
 from hallbench.gui.selectcalibrationdialog import SelectCalibrationDialog \
@@ -42,9 +43,9 @@ class MeasurementWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # add position widget
-        self.position_widget = _PositionWidget(self)
+        self.current_position_widget = _CurrentPositionWidget(self)
         layout = _QVBoxLayout()
-        layout.addWidget(self.position_widget)
+        layout.addWidget(self.current_position_widget)
         self.ui.position_wg.setLayout(layout)
 
         # create dialogs
@@ -951,7 +952,7 @@ class MeasurementWidget(_QWidget):
 
     def updatePositions(self):
         """Update axes positions."""
-        self.position_widget.updatePositions()
+        self.current_position_widget.updatePositions()
 
     def updateProbeCalibration(self, probe_calibration):
         """Update probe calibration."""

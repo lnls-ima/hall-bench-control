@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Position widget for the Hall Bench Control application."""
+"""Current Position widget for the Hall Bench Control application."""
 
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
@@ -11,8 +11,8 @@ import PyQt5.uic as _uic
 from hallbench.gui.utils import getUiFile as _getUiFile
 
 
-class PositionWidget(_QWidget):
-    """Position Widget class for the Hall Bench Control application."""
+class CurrentPositionWidget(_QWidget):
+    """Current Position Widget class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
         """Set up the ui."""

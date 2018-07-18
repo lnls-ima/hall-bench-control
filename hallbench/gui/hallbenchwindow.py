@@ -16,6 +16,8 @@ from hallbench.gui.connectionwidget import ConnectionWidget \
 from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
 from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
+from hallbench.gui.databasewidget import DatabaseWidget \
+    as _DatabaseWidget
 from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
 from hallbench.data.database import create_database as _create_database
 
@@ -54,6 +56,9 @@ class HallBenchWindow(_QMainWindow):
 
         self.measurement_tab = _MeasurementWidget(self)
         self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')
+
+        self.database_tab = _DatabaseWidget(self)
+        self.ui.main_tab.addTab(self.database_tab, 'Database')
 
         self.timer = _QTimer()
 

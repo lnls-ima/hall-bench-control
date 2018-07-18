@@ -218,7 +218,7 @@ class SelectCalibrationDialog(_QDialog):
 
     def loadFile(self):
         """Load probe calibration file."""
-        self.ui.idn_le.setText("")
+        self.setDatabaseID('')
         self.setEnabled(False)
         self.updateGraph()
 
@@ -244,6 +244,12 @@ class SelectCalibrationDialog(_QDialog):
         self.updateGraph()
         self.load()
 
+    def setDatabaseID(self, idn, read_only=False):
+        """Set database id text."""
+        self.ui.idn_le.setText(str(idn))
+        self.ui.idn_le.setReadOnly(read_only)
+        self.ui.idn_le.setEnabled(True)
+
     def setEnabled(self, enabled):
         """Enable or disable controls."""
         self.ui.calibrationdata_gb.setEnabled(enabled)
@@ -251,6 +257,13 @@ class SelectCalibrationDialog(_QDialog):
         self.ui.plotoptions_gb.setEnabled(enabled)
         self.ui.updategraph_btn.setEnabled(enabled)
         self.ui.getfield_gb.setEnabled(enabled)
+
+    def setLoadOptionEnabled(self, enabled):
+        """Enable or disable load option."""
+        self.ui.loadfile_btn.setEnabled(enabled)
+        self.ui.loaddb_btn.setEnabled(enabled)
+        self.ui.idn_le.setEnabled(enabled)
+        self.ui.filename_le.setEnabled(enabled)
 
     def show(self, database):
         """Update database and show dialog."""

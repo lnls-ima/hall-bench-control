@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import (
 import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.positionwidget import PositionWidget as _PositionWidget
+from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
+    as _CurrentPositionWidget
 
 
 class MotorsWidget(_QWidget):
@@ -31,8 +32,8 @@ class MotorsWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # add position widget
-        self.position_widget = _PositionWidget(self)
-        self.ui.position_lt.addWidget(self.position_widget)
+        self.current_position_widget = _CurrentPositionWidget(self)
+        self.ui.position_lt.addWidget(self.current_position_widget)
 
         # variables initialization
         self.homing = False
@@ -315,7 +316,7 @@ class MotorsWidget(_QWidget):
 
     def updatePositions(self):
         """Update axes positions."""
-        self.position_widget.updatePositions()
+        self.current_position_widget.updatePositions()
 
     def updateRelDisp(self):
         """Update relative displacement value."""

@@ -2,6 +2,7 @@
 
 """Implementation of classes to store and analyse measurement data."""
 
+import json as _json
 import numpy as _np
 import pandas as _pd
 import collections as _collections
@@ -448,6 +449,9 @@ class FieldData(Data):
         ('fieldy_std', ['_stdy', 'TEXT NOT NULL']),
         ('fieldz_std', ['_stdz', 'TEXT NOT NULL']),
     ])
+    _db_json_str = [
+        '_pos1', '_pos2', '_pos3', '_pos5', '_pos6', '_pos7', '_pos8',
+        '_avgx', '_avgy', '_avgz', '_stdx', '_stdy', '_stdz']
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -466,6 +470,11 @@ class FieldData(Data):
 
         else:
             super().__init__(filename=filename, data_unit='T')
+
+    @classmethod
+    def database_table_name(cls):
+        """Return the database table name."""
+        return cls._db_table
 
     @classmethod
     def create_database_table(cls, database):
@@ -594,7 +603,10 @@ class FieldData(Data):
             else:
                 if attr_name is not None and key != 'scan_axis':
                     idx = db_column_names.index(key)
-                    setattr(self, attr_name, db_entry[idx])
+                    if attr_name in self._db_json_str:
+                        setattr(self, attr_name, _json.loads(db_entry[idx]))
+                    else:
+                        setattr(self, attr_name, db_entry[idx])
 
     def save_to_database(self, database, configuration_id):
         """Insert field data into database table."""
@@ -621,6 +633,8 @@ class FieldData(Data):
                     db_values.append(None)
                 elif attr_name is None:
                     db_values.append(locals()[key])
+                elif attr_name in self._db_json_str:
+                    db_values.append(_json.dumps(getattr(self, attr_name)))
                 else:
                     db_values.append(getattr(self, attr_name))
 
@@ -661,6 +675,7 @@ class FieldMapData(object):
         ('magnet_y_axis', ['_magnet_y_axis', 'INTEGER']),
         ('map', ['_map', 'TEXT NOT NULL']),
     ])
+    _db_json_str = ['_magnet_center', '_map']
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -698,6 +713,11 @@ class FieldMapData(object):
 
         if filename is not None:
             self.read_file(filename)
+
+    @classmethod
+    def database_table_name(cls):
+        """Return the database table name."""
+        return cls._db_table
 
     @classmethod
     def create_database_table(cls, database):
@@ -963,7 +983,10 @@ class FieldMapData(object):
             else:
                 if attr_name is not None:
                     idx = db_column_names.index(key)
-                    setattr(self, attr_name, db_entry[idx])
+                    if attr_name in self._db_json_str:
+                        setattr(self, attr_name, _json.loads(db_entry[idx]))
+                    else:
+                        setattr(self, attr_name, db_entry[idx])
 
     def save_to_database(self, database, nr_scans, initial_scan, final_scan):
         """Insert field data into database table."""
@@ -991,6 +1014,8 @@ class FieldMapData(object):
                     db_values.append(None)
                 elif attr_name is None:
                     db_values.append(locals()[key])
+                elif attr_name in self._db_json_str:
+                    db_values.append(_json.dumps(getattr(self, attr_name)))
                 else:
                     db_values.append(getattr(self, attr_name))
 

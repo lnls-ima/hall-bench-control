@@ -277,11 +277,6 @@ class ProbeCalibration(object):
         return NotImplemented
 
     @classmethod
-    def database_table_name(cls):
-        """Return the database table name."""
-        return cls._db_table
-
-    @classmethod
     def create_database_table(cls, database):
         """Create database table."""
         variables = []
@@ -289,6 +284,22 @@ class ProbeCalibration(object):
             variables.append((key, cls._db_dict[key][1]))
         success = _database.create_table(database, cls._db_table, variables)
         return success
+
+    @classmethod
+    def database_table_name(cls):
+        """Return the database table name."""
+        return cls._db_table
+
+    @classmethod
+    def get_probe_calibration_id(cls, database, probe_name):
+        """Search probe name in database and return table ID."""
+        entries = _database.search_database_str(
+            database, cls._db_table, 'probe_name', probe_name)
+        if len(entries) != 0:
+            idn = entries[0][0]
+        else:
+            idn = None
+        return idn
 
     @property
     def sensorx(self):
@@ -521,6 +532,34 @@ class ProbeCalibration(object):
         if len(sensorz_data) != 0 and len(sensorx_data) != 0:
             self.angle_xz = _utils.find_value(flines, 'angle_xz', vtype=float)
 
+    def read_from_database(self, database, idn):
+        """Read field data from database entry."""
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise CalibrationError(
+                'Failed to read probe calibration from database.')
+
+        db_entry = _database.read_from_database(database, self._db_table, idn)
+        if db_entry is None:
+            raise ValueError('Invalid database ID.')
+
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise CalibrationError(
+                    'Failed to read probe calibration from database.')
+            else:
+                if attr_name is not None:
+                    idx = db_column_names.index(key)
+                    if attr_name in ['sensorx', 'sensory', 'sensorz']:
+                        sensor = CalibrationCurve()
+                        sensor.function_type = self.function_type
+                        sensor.data = _json.loads(db_entry[idx])
+                        setattr(self, attr_name, sensor)
+                    else:
+                        setattr(self, attr_name, db_entry[idx])
+
     def save_file(self, filename):
         """Save calibration data to file.
 
@@ -578,34 +617,6 @@ class ProbeCalibration(object):
                 for value in d:
                     f.write('{0:+14.7e}\t'.format(value))
                 f.write('\n')
-
-    def read_from_database(self, database, idn):
-        """Read field data from database entry."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise CalibrationError(
-                'Failed to read probe calibration from database.')
-
-        db_entry = _database.read_from_database(database, self._db_table, idn)
-        if db_entry is None:
-            raise ValueError('Invalid database ID.')
-
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise CalibrationError(
-                    'Failed to read probe calibration from database.')
-            else:
-                if attr_name is not None:
-                    idx = db_column_names.index(key)
-                    if attr_name in ['sensorx', 'sensory', 'sensorz']:
-                        sensor = CalibrationCurve()
-                        sensor.function_type = self.function_type
-                        sensor.data = _json.loads(db_entry[idx])
-                        setattr(self, attr_name, sensor)
-                    else:
-                        setattr(self, attr_name, db_entry[idx])
 
     def save_to_database(self, database):
         """Insert field data into database table."""

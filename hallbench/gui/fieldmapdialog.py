@@ -2,7 +2,9 @@
 
 """Field map dialog for the Hall Bench Control application."""
 
+from PyQt5.QtCore import Qt as _Qt
 from PyQt5.QtWidgets import (
+    QApplication as _QApplication,
     QDialog as _QDialog,
     QFileDialog as _QFileDialog,
     QLineEdit as _QLineEdit,
@@ -25,7 +27,7 @@ class FieldMapDialog(_QDialog):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(__file__, self)
+        uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
@@ -121,6 +123,9 @@ class FieldMapDialog(_QDialog):
         if self.field_data_list is None or self.probe_calibration is None:
             return None
 
+        self.blockSignals(True)
+        _QApplication.setOverrideCursor(_Qt.WaitCursor)
+
         fieldmap = _FieldMapData()
         fieldmap.magnet_name = self.ui.magnet_name_le.text()
         fieldmap.gap = self.ui.gap_le.text()
@@ -150,9 +155,14 @@ class FieldMapDialog(_QDialog):
                 self.field_data_list, self.probe_calibration,
                 correct_displacements, magnet_center,
                 magnet_x_axis, magnet_y_axis)
+
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             return fieldmap
 
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             return None
 
     def loadMagnetInfo(self):
@@ -248,7 +258,8 @@ class FieldMapDialog(_QDialog):
 
         filename = _QFileDialog.getSaveFileName(
             self, caption='Save fieldmap file',
-            directory=fieldmap.default_filename, filter="Text files (*.txt)")
+            directory=fieldmap.default_filename,
+            filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
             filename = filename[0]
@@ -257,6 +268,8 @@ class FieldMapDialog(_QDialog):
             return
 
         try:
+            if not filename.endswith('.txt') and not filename.endswith('.dat'):
+                filename = filename + '.txt'
             fieldmap.save_file(filename)
             message = 'Fieldmap data saved to file: \n%s' % filename
             _QMessageBox.information(

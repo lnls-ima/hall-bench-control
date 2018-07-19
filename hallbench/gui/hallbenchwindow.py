@@ -35,7 +35,7 @@ class HallBenchWindow(_QMainWindow):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(__file__, self)
+        uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # clear the current tabs
@@ -62,10 +62,11 @@ class HallBenchWindow(_QMainWindow):
 
         self.timer = _QTimer()
 
-        self.ui.database_le.setText(self.database)
         _create_database(self.database)
+        self.ui.database_le.setText(self.database)
 
         self.updateMainTabStatus()
+        self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
 
     @property
     def voltage_data(self):
@@ -109,15 +110,21 @@ class HallBenchWindow(_QMainWindow):
         """Stop timer."""
         self.timer.stop()
 
+    def updateDatabaseTab(self):
+        """Update database tab."""
+        database_tab_idx = self.ui.main_tab.indexOf(self.database_tab)
+        if self.ui.main_tab.currentIndex() == database_tab_idx:
+            self.database_tab.updateDatabaseTables()
+
     def updateMainTabStatus(self):
         """Enable or disable main tabs."""
         try:
-            _idx = self.ui.main_tab.indexOf(self.ui.motors_tab)
+            _idx = self.ui.main_tab.indexOf(self.motors_tab)
             if _idx != -1:
                 self.ui.main_tab.setTabEnabled(
                     _idx, self.devices.pmac.connected)
 
-            _idx = self.ui.main_tab.indexOf(self.ui.measurement_tab)
+            _idx = self.ui.main_tab.indexOf(self.measurement_tab)
             if _idx != -1:
                 self.ui.main_tab.setTabEnabled(
                     _idx, self.ui.motors_tab.homing)

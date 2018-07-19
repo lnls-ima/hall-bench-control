@@ -30,7 +30,7 @@ class VoltageOffsetWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(__file__, self)
+        uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization

@@ -51,22 +51,14 @@ class Configuration(object):
         else:
             raise TypeError('%s must be of type %s.' % (name, tp.__name__))
 
-    def get_attribute_type(self, name):
-        """Get attribute type."""
-        return None
-
-    def valid_data(self):
-        """Check if parameters are valid."""
-        al = [getattr(self, a) for a in self.__dict__]
-        if all([a is not None for a in al]):
-            return True
-        else:
-            return False
-
     def clear(self):
         """Clear configuration."""
         for key in self.__dict__:
             self.__dict__[key] = None
+
+    def get_attribute_type(self, name):
+        """Get attribute type."""
+        return None
 
     def read_file(self, filename):
         """Read configuration from file.
@@ -84,6 +76,14 @@ class Configuration(object):
     def save_file(self, filename):
         """Save configuration to file."""
         pass
+
+    def valid_data(self):
+        """Check if parameters are valid."""
+        al = [getattr(self, a) for a in self.__dict__]
+        if all([a is not None for a in al]):
+            return True
+        else:
+            return False
 
 
 class ConnectionConfig(Configuration):
@@ -253,11 +253,6 @@ class MeasurementConfig(Configuration):
             super().__init__(filename)
 
     @classmethod
-    def database_table_name(cls):
-        """Return the database table name."""
-        return cls._db_table
-
-    @classmethod
     def create_database_table(cls, database):
         """Create database table."""
         variables = []
@@ -265,6 +260,11 @@ class MeasurementConfig(Configuration):
             variables.append((key, cls._db_dict[key][1]))
         success = _database.create_table(database, cls._db_table, variables)
         return success
+
+    @classmethod
+    def database_table_name(cls):
+        """Return the database table name."""
+        return cls._db_table
 
     def _set_axis_param(self, param, axis, value):
         axis_param = param + str(axis)
@@ -279,51 +279,6 @@ class MeasurementConfig(Configuration):
             else:
                 raise ConfigurationError('Invalid value for "%s"' % axis_param)
 
-    def get_start(self, axis):
-        """Get start position for the given axis."""
-        return getattr(self, 'start_ax' + str(axis))
-
-    def set_start(self, axis, value):
-        """Set start position value for the given axis."""
-        param = 'start_ax'
-        self._set_axis_param(param, axis, value)
-
-    def get_end(self, axis):
-        """Get end position for the given axis."""
-        return getattr(self, 'end_ax' + str(axis))
-
-    def set_end(self, axis, value):
-        """Set end position value for the given axis."""
-        param = 'end_ax'
-        self._set_axis_param(param, axis, value)
-
-    def get_step(self, axis):
-        """Get position step for the given axis."""
-        return getattr(self, 'step_ax' + str(axis))
-
-    def set_step(self, axis, value):
-        """Set position step value for the given axis."""
-        param = 'step_ax'
-        self._set_axis_param(param, axis, value)
-
-    def get_extra(self, axis):
-        """Get extra position for the given axis."""
-        return getattr(self, 'extra_ax' + str(axis))
-
-    def set_extra(self, axis, value):
-        """Get extra position for the given axis."""
-        param = 'extra_ax'
-        self._set_axis_param(param, axis, value)
-
-    def get_velocity(self, axis):
-        """Get velocity for the given axis."""
-        return getattr(self, 'vel_ax' + str(axis))
-
-    def set_velocity(self, axis, value):
-        """Set velocity value for the given axis."""
-        param = 'vel_ax'
-        self._set_axis_param(param, axis, value)
-
     def get_attribute_type(self, name):
         """Get attribute type."""
         if name in ['voltx_enable', 'volty_enable', 'voltz_enable',
@@ -335,6 +290,49 @@ class MeasurementConfig(Configuration):
             return str
         else:
             return float
+
+    def get_end(self, axis):
+        """Get end position for the given axis."""
+        return getattr(self, 'end_ax' + str(axis))
+
+    def get_extra(self, axis):
+        """Get extra position for the given axis."""
+        return getattr(self, 'extra_ax' + str(axis))
+
+    def get_start(self, axis):
+        """Get start position for the given axis."""
+        return getattr(self, 'start_ax' + str(axis))
+
+    def get_step(self, axis):
+        """Get position step for the given axis."""
+        return getattr(self, 'step_ax' + str(axis))
+
+    def get_velocity(self, axis):
+        """Get velocity for the given axis."""
+        return getattr(self, 'vel_ax' + str(axis))
+
+    def read_from_database(self, database, idn):
+        """Read field data from database entry."""
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise ConfigurationError(
+                'Failed to read configuration from database.')
+
+        db_entry = _database.read_from_database(database, self._db_table, idn)
+
+        if db_entry is None:
+            raise ValueError('Invalid database ID.')
+
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise ConfigurationError(
+                    'Failed to read configuration from database.')
+            else:
+                if attr_name is not None:
+                    idx = db_column_names.index(key)
+                    setattr(self, attr_name, db_entry[idx])
 
     def save_file(self, filename):
         """Save measurement configuration to file.
@@ -403,29 +401,6 @@ class MeasurementConfig(Configuration):
             message = 'Failed to save configuration to file: "%s"' % filename
             raise ConfigurationError(message)
 
-    def read_from_database(self, database, idn):
-        """Read field data from database entry."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise ConfigurationError(
-                'Failed to read configuration from database.')
-
-        db_entry = _database.read_from_database(database, self._db_table, idn)
-
-        if db_entry is None:
-            raise ValueError('Invalid database ID.')
-
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise ConfigurationError(
-                    'Failed to read configuration from database.')
-            else:
-                if attr_name is not None:
-                    idx = db_column_names.index(key)
-                    setattr(self, attr_name, db_entry[idx])
-
     def save_to_database(self, database):
         """Insert field data into database table."""
         db_column_names = _database.get_table_column_names(
@@ -458,3 +433,28 @@ class MeasurementConfig(Configuration):
         idn = _database.insert_into_database(
             database, self._db_table, db_values)
         return idn
+
+    def set_end(self, axis, value):
+        """Set end position value for the given axis."""
+        param = 'end_ax'
+        self._set_axis_param(param, axis, value)
+
+    def set_extra(self, axis, value):
+        """Get extra position for the given axis."""
+        param = 'extra_ax'
+        self._set_axis_param(param, axis, value)
+
+    def set_start(self, axis, value):
+        """Set start position value for the given axis."""
+        param = 'start_ax'
+        self._set_axis_param(param, axis, value)
+
+    def set_step(self, axis, value):
+        """Set position step value for the given axis."""
+        param = 'step_ax'
+        self._set_axis_param(param, axis, value)
+
+    def set_velocity(self, axis, value):
+        """Set velocity value for the given axis."""
+        param = 'vel_ax'
+        self._set_axis_param(param, axis, value)

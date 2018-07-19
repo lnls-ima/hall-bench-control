@@ -84,26 +84,28 @@ def database_exists(database):
         return False
 
 
-def table_exists(database, table):
-    """Check if table exists in database.
+def search_database_str(database, table, parameter, value):
+    """Search string in database.
 
     Args:
         database (str): full file path to database.
         table (str): database table name.
+        parameter (str): parameter to search.
+        value (str): value to search.
 
     Returns:
-        True if the table exists, False otherwise.
+        a list of database entries.
     """
-    if not database_exists(database):
-        return False
-
-    con = _sqlite.connect(database)
-    cur = con.cursor()
-    cur.execute("PRAGMA TABLE_INFO({0})".format(table))
-    if len(cur.fetchall()) > 0:
-        return True
-    else:
-        return False
+    try:
+        con = _sqlite.connect(database)
+        cur = con.cursor()
+        cmd = 'SELECT * FROM {0} WHERE {1}'.format(table, parameter)
+        cmd = cmd + ' = ' + str(value)
+        cur.execute(cmd)
+        entries = cur.fetchall()
+        return entries
+    except Exception:
+        return []
 
 
 def get_table_column_names(database, table):
@@ -197,3 +199,25 @@ def read_from_database(database, table, idn=None):
         raise DataBaseError(message)
 
     return entry
+
+
+def table_exists(database, table):
+    """Check if table exists in database.
+
+    Args:
+        database (str): full file path to database.
+        table (str): database table name.
+
+    Returns:
+        True if the table exists, False otherwise.
+    """
+    if not database_exists(database):
+        return False
+
+    con = _sqlite.connect(database)
+    cur = con.cursor()
+    cur.execute("PRAGMA TABLE_INFO({0})".format(table))
+    if len(cur.fetchall()) > 0:
+        return True
+    else:
+        return False

@@ -5,16 +5,16 @@
 import os.path as _path
 
 
-def getUiFile(modpath, widget):
+_basepath = _path.dirname(_path.abspath(__file__))
+
+
+def getUiFile(widget):
     """Get the ui file path.
 
     Args:
-        modpath (str)
         widget  (QWidget)
     """
-    # generate the uifile path
-    basepath = _path.dirname(modpath)
     basename = '%s.ui' % widget.__class__.__name__.lower()
-    uifile = _path.join(basepath, _path.join('ui', basename))
+    uifile = _path.join(_basepath, _path.join('ui', basename))
 
     return uifile

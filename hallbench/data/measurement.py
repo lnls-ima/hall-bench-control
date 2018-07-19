@@ -12,8 +12,10 @@ from . import utils as _utils
 from . import calibration as _calibration
 from . import database as _database
 
+
 _position_precision = 4
 _check_position_precision = 3
+_measurements_label = 'Hall'
 
 
 class MeasurementDataError(Exception):
@@ -36,6 +38,10 @@ class Data(object):
     _pos7_unit = 'mm'
     _pos8_unit = 'deg'
     _pos9_unit = 'deg'
+    _db_table = ''
+    _db_dict = {}
+    _db_json_str = []
+    _data_label = ''
 
     def __init__(self, filename=None, data_unit="V"):
         """Initialize variables.
@@ -46,6 +52,7 @@ class Data(object):
         """
         self.magnet_name = ''
         self.main_current = ''
+        self._timestamp = None
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
         self._pos3 = _np.array([])
@@ -70,6 +77,7 @@ class Data(object):
         r = ''
         r += fmtstr.format('magnet_name', str(self.magnet_name))
         r += fmtstr.format('main_current[A]', str(self.main_current))
+        r += fmtstr.format('timestamp', str(self._timestamp))
         r += fmtstr.format('scan_axis', str(self.scan_axis))
         r += fmtstr.format('pos1[mm]', str(self._pos1))
         r += fmtstr.format('pos2[mm]', str(self._pos2))
@@ -87,6 +95,23 @@ class Data(object):
         r += fmtstr.format('stdz[%s]' % self._data_unit, str(self._stdz))
         return r
 
+    @classmethod
+    def create_database_table(cls, database):
+        """Create database table."""
+        if len(cls._db_table) == 0:
+            return False
+
+        variables = []
+        for key in cls._db_dict.keys():
+            variables.append((key, cls._db_dict[key][1]))
+        success = _database.create_table(database, cls._db_table, variables)
+        return success
+
+    @classmethod
+    def database_table_name(cls):
+        """Return the database table name."""
+        return cls._db_table
+
     @property
     def axis_list(self):
         """List of all bench axes."""
@@ -99,7 +124,7 @@ class Data(object):
             return 0
         else:
             npts = len(getattr(self, '_pos' + str(self.scan_axis)))
-            v = [self._voltagex_avg, self._voltagey_avg, self._voltagez_avg]
+            v = [self._avgx, self._avgy, self._avgz]
             if all([vi.size == 0 for vi in v]):
                 return 0
             for vi in v:
@@ -128,10 +153,32 @@ class Data(object):
     def scan_pos(self, value):
         setattr(self, 'pos' + str(self.scan_axis), value)
 
+    @property
+    def default_filename(self):
+        """Return the default filename."""
+        label = self._data_label + '_' + _measurements_label
+        if len(self.magnet_name) != 0:
+            name = self.magnet_name + '_' + label
+        else:
+            name = label
+
+        if self.npts != 0:
+            if self.pos1.size == 1:
+                name = name + '_pos1={0:.0f}mm'.format(self.pos1[0])
+            if self.pos2.size == 1:
+                name = name + '_pos2={0:.0f}mm'.format(self.pos2[0])
+            if self.pos3.size == 1:
+                name = name + '_pos3={0:.0f}mm'.format(self.pos3[0])
+
+        self._timestamp = _utils.get_timestamp()
+        filename = '{0:1s}_{1:1s}.dat'.format(self._timestamp, name)
+        return filename
+
     def clear(self):
         """Clear Data."""
         self.magnet_name = ''
         self.main_current = ''
+        self._timestamp = None
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
                 self.__dict__[key] = _np.array([])
@@ -194,6 +241,34 @@ class Data(object):
             message = 'Inconsistent number of columns in file: %s' % filename
             raise MeasurementDataError(message)
 
+    def read_from_database(self, database, idn):
+        """Read data from database entry."""
+        if len(self._db_table) == 0:
+            return
+
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise MeasurementDataError('Failed to read data from database.')
+
+        db_entry = _database.read_from_database(database, self._db_table, idn)
+        if db_entry is None:
+            raise ValueError('Invalid database ID.')
+
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise MeasurementDataError(
+                    'Failed to read data from database.')
+            else:
+                if attr_name is not None and key != 'scan_axis':
+                    idx = db_column_names.index(key)
+                    if attr_name in self._db_json_str:
+                        _l = _json.loads(db_entry[idx])
+                        setattr(self, attr_name, _to_array(_l))
+                    else:
+                        setattr(self, attr_name, db_entry[idx])
+
     def reverse(self):
         """Reverse Data."""
         for key in self.__dict__:
@@ -202,17 +277,21 @@ class Data(object):
                 self.__dict__[key] = value[::-1]
 
     def save_file(self, filename, include_std=True):
-        """Save voltage data to file.
+        """Save data to file.
 
         Args:
             filename (str): file full path.
             include_std (bool, optional): save std values to file.
         """
-        if self.scan_axis is None or self.npts == 0:
+        if self.scan_axis is None:
             raise MeasurementDataError('Invalid scan axis.')
 
+        if self.npts == 0:
+            raise MeasurementDataError('Empty data.')
+
         scan_axis = self.scan_axis
-        timestamp = _utils.get_timestamp()
+        if self._timestamp is None:
+            self._timestamp = _utils.get_timestamp()
 
         pos1_str = '%f' % self._pos1[0] if self._pos1.size == 1 else '--'
         pos2_str = '%f' % self._pos2[0] if self._pos2.size == 1 else '--'
@@ -229,41 +308,36 @@ class Data(object):
 
         columns_names = (
             'pos%i[%s]\t' % (scan_axis, scan_axis_unit) +
-            'avgx[{0:s}]\tavgy[{0:s}]\tavgz[{0:s}]\t'.format(self._data_unit))
+            'avgx[{0:s}]\t\tavgy[{0:s}]\t\tavgz[{0:s}]\t\t'.format(
+                self._data_unit))
 
-        voltagex_avg = (self._voltagex_avg if len(self._voltagex_avg) == npts
-                        else _np.zeros(npts))
-        voltagey_avg = (self._voltagey_avg if len(self._voltagey_avg) == npts
-                        else _np.zeros(npts))
-        voltagez_avg = (self._voltagez_avg if len(self._voltagez_avg) == npts
-                        else _np.zeros(npts))
+        avgx = self._avgx if len(self._avgx) == npts else _np.zeros(npts)
+        avgy = self._avgy if len(self._avgy) == npts else _np.zeros(npts)
+        avgz = self._avgz if len(self._avgz) == npts else _np.zeros(npts)
 
         if include_std:
             columns_names = (
-                columns_names + 'stdx[{0:s}]\tstdy[{0:s}]\tstdz[{0:s}]'.format(
+                columns_names +
+                'stdx[{0:s}]\t\tstdy[{0:s}]\t\tstdz[{0:s}]'.format(
                     self._data_unit))
 
-            voltagex_std = (
-                self._voltagex_std if len(self._voltagex_std) == npts
-                else _np.zeros(npts))
-            voltagey_std = (
-                self._voltagey_std if len(self._voltagey_std) == npts
-                else _np.zeros(npts))
-            voltagez_std = (
-                self._voltagez_std if len(self._voltagez_std) == npts
-                else _np.zeros(npts))
+            stdx = self._stdx if len(self._stdx) == npts else _np.zeros(npts)
+            stdy = self._stdy if len(self._stdy) == npts else _np.zeros(npts)
+            stdz = self._stdz if len(self._stdz) == npts else _np.zeros(npts)
 
             columns = _np.column_stack(
-                (scan_axis_pos, voltagex_avg, voltagey_avg, voltagez_avg,
-                 voltagex_std, voltagey_std, voltagez_std))
+                (scan_axis_pos, avgx, avgy, avgz, stdx, stdy, stdz))
         else:
-            columns = _np.column_stack(
-                (scan_axis_pos, voltagex_avg, voltagey_avg, voltagez_avg))
+            columns = _np.column_stack((scan_axis_pos, avgx, avgy, avgz))
+
+        magnet_name = self.magnet_name if len(self.magnet_name) != 0 else '--'
+        main_current = (
+            self.main_current if len(self.main_current) != 0 else '--')
 
         with open(filename, mode='w') as f:
-            f.write('timestamp:         \t%s\n' % timestamp)
-            f.write('magnet_name:       \t%s\n' % self.magnet_name)
-            f.write('main_current[A]:   \t%s\n' % self.main_current)
+            f.write('timestamp:         \t%s\n' % self._timestamp)
+            f.write('magnet_name:       \t%s\n' % magnet_name)
+            f.write('main_current[A]:   \t%s\n' % main_current)
             f.write('scan_axis:         \t%s\n' % scan_axis)
             f.write('pos1[mm]:          \t%s\n' % pos1_str)
             f.write('pos2[mm]:          \t%s\n' % pos2_str)
@@ -275,17 +349,93 @@ class Data(object):
             f.write('pos9[deg]:         \t%s\n' % pos9_str)
             f.write('\n')
             f.write('%s\n' % columns_names)
-            f.write('---------------------------------------------------' +
-                    '---------------------------------------------------\n')
+            f.write('-----------------------------------------------------' +
+                    '-----------------------------------------------------\n')
             for i in range(columns.shape[0]):
                 line = '{0:+0.4f}'.format(columns[i, 0])
                 for j in range(1, columns.shape[1]):
                     line = line + '\t' + '{0:+0.10e}'.format(columns[i, j])
                 f.write(line + '\n')
 
+    def save_to_database(self, database, configuration_id):
+        """Insert data into database table."""
+        if len(self._db_table) == 0:
+            return None
+
+        print(self._db_json_str)
+
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise MeasurementDataError('Failed to save data to database.')
+            return None
+
+        if self._timestamp is None:
+            self._timestamp = _utils.get_timestamp()
+
+        date = self._timestamp.split('_')[0]
+        hour = self._timestamp.split('_')[1].replace('-', ':')
+
+        db_values = []
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise MeasurementDataError(
+                    'Failed to save data to database.')
+                return None
+            else:
+                if key == "id":
+                    print('id ', key)
+                    db_values.append(None)
+                elif attr_name is None:
+                    print('None ', key)
+                    db_values.append(locals()[key])
+                elif attr_name in self._db_json_str:
+                    print('json ', key)
+                    _l = getattr(self, attr_name).tolist()
+                    db_values.append(_json.dumps(_l))
+                else:
+                    print('else ', key)
+                    db_values.append(getattr(self, attr_name))
+
+        idn = _database.insert_into_database(
+            database, self._db_table, db_values)
+        return idn
+
 
 class VoltageData(Data):
     """Position and voltage values."""
+
+    _db_table = 'raw_data'
+    _db_dict = _collections.OrderedDict([
+        ('id', [None, 'INTEGER NOT NULL']),
+        ('date', [None, 'TEXT NOT NULL']),
+        ('hour', [None, 'TEXT NOT NULL']),
+        ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
+        ('main_current', ['main_current', 'TEXT NOT NULL']),
+        ('configuration_id', [None, 'INTEGER']),
+        ('scan_axis', ['scan_axis', 'INTEGER']),
+        ('pos1', ['_pos1', 'TEXT NOT NULL']),
+        ('pos2', ['_pos2', 'TEXT NOT NULL']),
+        ('pos3', ['_pos3', 'TEXT NOT NULL']),
+        ('pos5', ['_pos5', 'TEXT NOT NULL']),
+        ('pos6', ['_pos6', 'TEXT NOT NULL']),
+        ('pos7', ['_pos7', 'TEXT NOT NULL']),
+        ('pos8', ['_pos8', 'TEXT NOT NULL']),
+        ('pos9', ['_pos9', 'TEXT NOT NULL']),
+        ('voltagex_avg', ['_avgx', 'TEXT NOT NULL']),
+        ('voltagey_avg', ['_avgy', 'TEXT NOT NULL']),
+        ('voltagez_avg', ['_avgz', 'TEXT NOT NULL']),
+        ('voltagex_std', ['_stdx', 'TEXT NOT NULL']),
+        ('voltagey_std', ['_stdy', 'TEXT NOT NULL']),
+        ('voltagez_std', ['_stdz', 'TEXT NOT NULL']),
+    ])
+    _db_json_str = [
+        '_pos1', '_pos2', '_pos3', '_pos5',
+        '_pos6', '_pos7', '_pos8', '_pos9',
+        '_avgx', '_avgy', '_avgz',
+        '_stdx', '_stdy', '_stdz']
+    _data_label = 'RawData'
 
     def __init__(self, filename=None):
         """Initialize variables.
@@ -433,7 +583,7 @@ class FieldData(Data):
         ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
         ('main_current', ['main_current', 'TEXT NOT NULL']),
         ('configuration_id', [None, 'INTEGER']),
-        ('scan_axis', ['scan_axis', 'INTEGER NOT NULL']),
+        ('scan_axis', ['scan_axis', 'INTEGER']),
         ('pos1', ['_pos1', 'TEXT NOT NULL']),
         ('pos2', ['_pos2', 'TEXT NOT NULL']),
         ('pos3', ['_pos3', 'TEXT NOT NULL']),
@@ -450,8 +600,11 @@ class FieldData(Data):
         ('fieldz_std', ['_stdz', 'TEXT NOT NULL']),
     ])
     _db_json_str = [
-        '_pos1', '_pos2', '_pos3', '_pos5', '_pos6', '_pos7', '_pos8',
-        '_avgx', '_avgy', '_avgz', '_stdx', '_stdy', '_stdz']
+        '_pos1', '_pos2', '_pos3', '_pos5',
+        '_pos6', '_pos7', '_pos8', '_pos9',
+        '_avgx', '_avgy', '_avgz',
+        '_stdx', '_stdy', '_stdz']
+    _data_label = 'Scan'
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -470,20 +623,6 @@ class FieldData(Data):
 
         else:
             super().__init__(filename=filename, data_unit='T')
-
-    @classmethod
-    def database_table_name(cls):
-        """Return the database table name."""
-        return cls._db_table
-
-    @classmethod
-    def create_database_table(cls, database):
-        """Create database table."""
-        variables = []
-        for key in cls._db_dict.keys():
-            variables.append((key, cls._db_dict[key][1]))
-        success = _database.create_table(database, cls._db_table, variables)
-        return success
 
     @property
     def pos1(self):
@@ -567,13 +706,13 @@ class FieldData(Data):
             pos = getattr(vd, 'pos' + str(axis))
             setattr(self, '_pos' + str(axis), pos)
 
-        bx_avg = probe_calibration.sensorx.convert_voltage(vd.voltagex_avg)
-        by_avg = probe_calibration.sensory.convert_voltage(vd.voltagey_avg)
-        bz_avg = probe_calibration.sensorz.convert_voltage(vd.voltagez_avg)
+        bx_avg = probe_calibration.sensorx.convert_voltage(vd.avgx)
+        by_avg = probe_calibration.sensory.convert_voltage(vd.avgy)
+        bz_avg = probe_calibration.sensorz.convert_voltage(vd.avgz)
 
-        bx_std = probe_calibration.sensorx.convert_voltage(vd.voltagex_std)
-        by_std = probe_calibration.sensory.convert_voltage(vd.voltagey_std)
-        bz_std = probe_calibration.sensorz.convert_voltage(vd.voltagez_std)
+        bx_std = probe_calibration.sensorx.convert_voltage(vd.stdx)
+        by_std = probe_calibration.sensory.convert_voltage(vd.stdy)
+        bz_std = probe_calibration.sensorz.convert_voltage(vd.stdz)
 
         self._avgx = bx_avg
         self._avgy = by_avg
@@ -582,65 +721,6 @@ class FieldData(Data):
         self._stdx = bx_std
         self._stdy = by_std
         self._stdz = bz_std
-
-    def read_from_database(self, database, idn):
-        """Read field data from database entry."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise MeasurementDataError(
-                'Failed to read field data from database.')
-
-        db_entry = _database.read_from_database(database, self._db_table, idn)
-        if db_entry is None:
-            raise ValueError('Invalid database ID.')
-
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise MeasurementDataError(
-                    'Failed to read field data from database.')
-            else:
-                if attr_name is not None and key != 'scan_axis':
-                    idx = db_column_names.index(key)
-                    if attr_name in self._db_json_str:
-                        setattr(self, attr_name, _json.loads(db_entry[idx]))
-                    else:
-                        setattr(self, attr_name, db_entry[idx])
-
-    def save_to_database(self, database, configuration_id):
-        """Insert field data into database table."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise MeasurementDataError(
-                'Failed to save field data to database.')
-            return None
-
-        timestamp = _utils.get_timestamp().split('_')
-        date = timestamp[0]
-        hour = timestamp[1].replace('-', ':')
-
-        db_values = []
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise MeasurementDataError(
-                    'Failed to save field data to database.')
-                return None
-            else:
-                if key == "id":
-                    db_values.append(None)
-                elif attr_name is None:
-                    db_values.append(locals()[key])
-                elif attr_name in self._db_json_str:
-                    db_values.append(_json.dumps(getattr(self, attr_name)))
-                else:
-                    db_values.append(getattr(self, attr_name))
-
-        idn = _database.insert_into_database(
-            database, self._db_table, db_values)
-        return idn
 
 
 class FieldMapData(object):
@@ -676,6 +756,7 @@ class FieldMapData(object):
         ('map', ['_map', 'TEXT NOT NULL']),
     ])
     _db_json_str = ['_magnet_center', '_map']
+    _data_label = 'Fieldmap'
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -751,10 +832,11 @@ class FieldMapData(object):
     @property
     def default_filename(self):
         """Return the default filename."""
+        label = self._data_label + '_' + _measurements_label
         if len(self.magnet_name) != 0:
-            name = self.magnet_name
+            name = self.magnet_name + '_' + label
         else:
-            name = 'fieldmap'
+            name = label
 
         if len(self._map) != 0:
             x = _np.unique(self._map[:, 0])
@@ -799,6 +881,169 @@ class FieldMapData(object):
         self._magnet_center = None
         self._magnet_x_axis = None
         self._magnet_y_axis = None
+
+    def read_file(self, filename):
+        """Read fieldmap file.
+
+        Args:
+            filename (str): fieldmap file path.
+        """
+        flines = _utils.read_file(filename)
+        self.magnet_name = _utils.find_value(flines, 'magnet_name')
+        self.gap = _utils.find_value(flines, 'gap')
+        self.control_gap = _utils.find_value(flines, 'control_gap')
+        self.magnet_length = _utils.find_value(flines, 'magnet_length')
+        self.current_main = _utils.find_value(
+            flines, 'current_main', raise_error=False)
+        self.nr_turns_main = _utils.find_value(
+            flines, 'nr_turns_main', raise_error=False)
+        self.current_trim = _utils.find_value(
+            flines, 'current_trim', raise_error=False)
+        self.nr_turns_trim = _utils.find_value(
+            flines, 'nr_turns_trim', raise_error=False)
+        self.current_ch = _utils.find_value(
+            flines, 'current_ch', raise_error=False)
+        self.nr_turns_ch = _utils.find_value(
+            flines, 'nr_turns_ch', raise_error=False)
+        self.current_cv = _utils.find_value(
+            flines, 'current_cv', raise_error=False)
+        self.nr_turns_cv = _utils.find_value(
+            flines, 'nr_turns_cv', raise_error=False)
+        self.current_qs = _utils.find_value(
+            flines, 'current_ch', raise_error=False)
+        self.nr_turns_qs = _utils.find_value(
+            flines, 'nr_turns_ch', raise_error=False)
+
+        data = []
+        idx = _utils.find_index(flines, '-------------------------')
+        for line in flines[idx+1:]:
+            data_line = [float(d) for d in line.split('\t')]
+            data.append(data_line)
+        data = _np.array(data)
+
+        pos3 = _np.unique(data[:, 0])
+        pos2 = _np.unique(data[:, 1])
+        pos1 = _np.unique(data[:, 2])
+        measurement_axes = []
+        if len(pos3) > 1:
+            measurement_axes.append(3)
+        if len(pos2) > 1:
+            measurement_axes.append(2)
+        if len(pos1) > 1:
+            measurement_axes.append(1)
+
+        if len(measurement_axes) > 2 or len(measurement_axes) == 0:
+            raise MeasurementDataError('Invalid field map file: %s' % filename)
+
+        self._map = data
+
+    def read_from_database(self, database, idn):
+        """Read fieldmap from database entry."""
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+        if len(db_column_names) == 0:
+            raise MeasurementDataError(
+                'Failed to read fieldmap from database.')
+
+        db_entry = _database.read_from_database(database, self._db_table, idn)
+        if db_entry is None:
+            raise ValueError('Invalid database ID.')
+
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise MeasurementDataError(
+                    'Failed to read fieldmap from database.')
+            else:
+                if attr_name is not None:
+                    idx = db_column_names.index(key)
+                    if attr_name in self._db_json_str:
+                        _l = _json.loads(db_entry[idx])
+                        setattr(self, attr_name, _to_array(_l))
+                    else:
+                        setattr(self, attr_name, db_entry[idx])
+
+    def save_file(self, filename):
+        """Save fieldmap file.
+
+        Args:
+            filename (str): fieldmap file path.
+        """
+        header_info = []
+        header_info.append(['fieldmap_name', self.magnet_name])
+        header_info.append(['timestamp', _utils.get_timestamp()])
+        header_info.append(['filename', filename])
+        header_info.append(['nr_magnets', 1])
+        header_info.append(['magnet_name', self.magnet_name])
+        header_info.append(['gap[mm]', self.gap])
+        header_info.append(['control_gap[mm]', self.control_gap])
+        header_info.append(['magnet_length[mm]', self.magnet_length])
+
+        for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
+            current = getattr(self, 'current_' + coil)
+            turns = getattr(self, 'nr_turns_' + coil)
+            if current is not None:
+                header_info.append(['current_' + coil + '[A]', current])
+                header_info.append(['nr_turns_' + coil, turns])
+
+        header_info.append(['center_pos_z[mm]', '0'])
+        header_info.append(['center_pos_x[mm]', '0'])
+        header_info.append(['rotation[deg]', '0'])
+
+        with open(filename, 'w') as f:
+            for line in header_info:
+                variable = (str(line[0]) + ':').ljust(20)
+                value = str(line[1])
+                f.write('{0:1s}\t{1:1s}\n'.format(variable, value))
+
+            if len(header_info) != 0:
+                f.write('\n')
+
+            f.write('X[mm]\tY[mm]\tZ[mm]\tBx[T]\tBy[T]\tBz[T]\n')
+            f.write('-----------------------------------------------' +
+                    '----------------------------------------------\n')
+
+            for i in range(self._map.shape[0]):
+                f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
+                    self._map[i, 0], self._map[i, 1], self._map[i, 2]))
+                f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
+                    self._map[i, 3], self._map[i, 4], self._map[i, 5]))
+
+    def save_to_database(self, database, nr_scans, initial_scan, final_scan):
+        """Insert field data into database table."""
+        db_column_names = _database.get_table_column_names(
+            database, self._db_table)
+
+        if len(db_column_names) == 0:
+            raise MeasurementDataError('Failed to save fieldmap to database.')
+            return None
+
+        timestamp = _utils.get_timestamp().split('_')
+        date = timestamp[0]
+        hour = timestamp[1].replace('-', ':')
+
+        db_values = []
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise MeasurementDataError(
+                    'Failed to save fieldmap to database.')
+                return None
+
+            else:
+                if key == "id":
+                    db_values.append(None)
+                elif attr_name is None:
+                    db_values.append(locals()[key])
+                elif attr_name in self._db_json_str:
+                    _l = getattr(self, attr_name).tolist()
+                    db_values.append(_json.dumps(_l))
+                else:
+                    db_values.append(getattr(self, attr_name))
+
+        idn = _database.insert_into_database(
+            database, self._db_table, db_values)
+        return idn
 
     def set_fieldmap_data(
             self, field_data_list, probe_calibration,
@@ -862,224 +1107,34 @@ class FieldMapData(object):
         self._magnet_y_axis = magnet_y_axis
         self._map = _map
 
-    def read_file(self, filename):
-        """Read fieldmap file.
 
-        Args:
-            filename (str): fieldmap file path.
-        """
-        flines = _utils.read_file(filename)
-        self.magnet_name = _utils.find_value(flines, 'magnet_name')
-        self.gap = _utils.find_value(flines, 'gap')
-        self.control_gap = _utils.find_value(flines, 'control_gap')
-        self.magnet_length = _utils.find_value(flines, 'magnet_length')
-        self.current_main = _utils.find_value(
-            flines, 'current_main', raise_error=False)
-        self.nr_turns_main = _utils.find_value(
-            flines, 'nr_turns_main', raise_error=False)
-        self.current_trim = _utils.find_value(
-            flines, 'current_trim', raise_error=False)
-        self.nr_turns_trim = _utils.find_value(
-            flines, 'nr_turns_trim', raise_error=False)
-        self.current_ch = _utils.find_value(
-            flines, 'current_ch', raise_error=False)
-        self.nr_turns_ch = _utils.find_value(
-            flines, 'nr_turns_ch', raise_error=False)
-        self.current_cv = _utils.find_value(
-            flines, 'current_cv', raise_error=False)
-        self.nr_turns_cv = _utils.find_value(
-            flines, 'nr_turns_cv', raise_error=False)
-        self.current_qs = _utils.find_value(
-            flines, 'current_ch', raise_error=False)
-        self.nr_turns_qs = _utils.find_value(
-            flines, 'nr_turns_ch', raise_error=False)
-
-        data = []
-        idx = _utils.find_index(flines, '-------------------------')
-        for line in flines[idx+1:]:
-            data_line = [float(d) for d in line.split('\t')]
-            data.append(data_line)
-        data = _np.array(data)
-
-        pos3 = _np.unique(data[:, 0])
-        pos2 = _np.unique(data[:, 1])
-        pos1 = _np.unique(data[:, 2])
-        measurement_axes = []
-        if len(pos3) > 1:
-            measurement_axes.append(3)
-        if len(pos2) > 1:
-            measurement_axes.append(2)
-        if len(pos1) > 1:
-            measurement_axes.append(1)
-
-        if len(measurement_axes) > 2 or len(measurement_axes) == 0:
-            raise MeasurementDataError('Invalid field map file: %s' % filename)
-
-        self._map = data
-
-    def save_file(self, filename):
-        """Save fieldmap file.
-
-        Args:
-            filename (str): fieldmap file path.
-        """
-        header_info = []
-        header_info.append(['fieldmap_name', self.magnet_name])
-        header_info.append(['timestamp', _utils.get_timestamp()])
-        header_info.append(['filename', filename])
-        header_info.append(['nr_magnets', 1])
-        header_info.append(['magnet_name', self.magnet_name])
-        header_info.append(['gap[mm]', self.gap])
-        header_info.append(['control_gap[mm]', self.control_gap])
-        header_info.append(['magnet_length[mm]', self.magnet_length])
-
-        for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
-            current = getattr(self, 'current_' + coil)
-            turns = getattr(self, 'nr_turns_' + coil)
-            if current is not None:
-                header_info.append(['current_' + coil + '[A]', current])
-                header_info.append(['nr_turns_' + coil, turns])
-
-        header_info.append(['center_pos_z[mm]', '0'])
-        header_info.append(['center_pos_x[mm]', '0'])
-        header_info.append(['rotation[deg]', '0'])
-
-        with open(filename, 'w') as f:
-            for line in header_info:
-                variable = (str(line[0]) + ':').ljust(20)
-                value = str(line[1])
-                f.write('{0:1s}\t{1:1s}\n'.format(variable, value))
-
-            if len(header_info) != 0:
-                f.write('\n')
-
-            f.write('X[mm]\tY[mm]\tZ[mm]\tBx[T]\tBy[T]\tBz[T]\n')
-            f.write('-----------------------------------------------' +
-                    '----------------------------------------------\n')
-
-            for i in range(self._map.shape[0]):
-                f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
-                    self._map[i, 0], self._map[i, 1], self._map[i, 2]))
-                f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
-                    self._map[i, 3], self._map[i, 4], self._map[i, 5]))
-
-    def read_from_database(self, database, idn):
-        """Read fieldmap from database entry."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise MeasurementDataError(
-                'Failed to read fieldmap from database.')
-
-        db_entry = _database.read_from_database(database, self._db_table, idn)
-        if db_entry is None:
-            raise ValueError('Invalid database ID.')
-
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise MeasurementDataError(
-                    'Failed to read fieldmap from database.')
-            else:
-                if attr_name is not None:
-                    idx = db_column_names.index(key)
-                    if attr_name in self._db_json_str:
-                        setattr(self, attr_name, _json.loads(db_entry[idx]))
-                    else:
-                        setattr(self, attr_name, db_entry[idx])
-
-    def save_to_database(self, database, nr_scans, initial_scan, final_scan):
-        """Insert field data into database table."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-
-        if len(db_column_names) == 0:
-            raise MeasurementDataError('Failed to save fieldmap to database.')
-            return None
-
-        timestamp = _utils.get_timestamp().split('_')
-        date = timestamp[0]
-        hour = timestamp[1].replace('-', ':')
-
-        db_values = []
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise MeasurementDataError(
-                    'Failed to save fieldmap to database.')
-                return None
-
-            else:
-                if key == "id":
-                    db_values.append(None)
-                elif attr_name is None:
-                    db_values.append(locals()[key])
-                elif attr_name in self._db_json_str:
-                    db_values.append(_json.dumps(getattr(self, attr_name)))
-                else:
-                    db_values.append(getattr(self, attr_name))
-
-        idn = _database.insert_into_database(
-            database, self._db_table, db_values)
-        return idn
+def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
+    vector = _np.array(vector)
+    center = _np.array(center)
+    transf_vector = _np.dot(transf_matrix, vector - center)
+    return transf_vector
 
 
-def _to_array(value):
-    if value is not None:
-        if not isinstance(value, _np.ndarray):
-            value = _np.array(value)
-        if len(value.shape) == 0:
-            value = _np.array([value])
+def _cut_data_frames(dfx, dfy, dfz, nbeg, nend, axis=0):
+    if axis == 1:
+        if nbeg > 0:
+            dfx = dfx.drop(dfx.columns[:nbeg], axis=axis)
+            dfy = dfy.drop(dfy.columns[:nbeg], axis=axis)
+            dfz = dfz.drop(dfz.columns[:nbeg], axis=axis)
+        if nend > 0:
+            dfx = dfx.drop(dfx.columns[-nend:], axis=axis)
+            dfy = dfy.drop(dfy.columns[-nend:], axis=axis)
+            dfz = dfz.drop(dfz.columns[-nend:], axis=axis)
     else:
-        value = _np.array([])
-    return value
-
-
-def _valid_voltage_data_list(voltage_data_list):
-    """Check if the voltage data list is valid.
-
-    Args:
-        voltage_data_list (list): list of VoltageData objects.
-
-    Returns:
-        True is the list is valid, False otherwise.
-    """
-    if isinstance(voltage_data_list, VoltageData):
-        voltage_data_list = [voltage_data_list]
-
-    if not all([isinstance(vd, VoltageData) for vd in voltage_data_list]):
-        return False
-
-    if len(voltage_data_list) == 0:
-        return False
-
-    if any([vd.scan_axis is None or vd.npts == 0 for vd in voltage_data_list]):
-        return False
-
-    if not all([vd.scan_axis == voltage_data_list[0].scan_axis
-                for vd in voltage_data_list]):
-        return False
-
-    if not all([
-            vd.npts == voltage_data_list[0].npts for vd in voltage_data_list]):
-        return False
-
-    fixed_axes = [a for a in voltage_data_list[0].axis_list
-                  if a != voltage_data_list[0].scan_axis]
-    for axis in fixed_axes:
-        pos_set = set()
-        for vd in voltage_data_list:
-            pos_attr = getattr(vd, 'pos' + str(axis))
-            if len(pos_attr) == 1:
-                pos_value = _np.around(
-                    pos_attr[0], decimals=_check_position_precision)
-                pos_set.add(pos_value)
-            else:
-                return False
-        if len(pos_set) != 1:
-            return False
-
-    return True
+        if nbeg > 0:
+            dfx = dfx.drop(dfx.index[:nbeg])
+            dfy = dfy.drop(dfy.index[:nbeg])
+            dfz = dfz.drop(dfz.index[:nbeg])
+        if nend > 0:
+            dfx = dfx.drop(dfx.index[-nend:])
+            dfy = dfy.drop(dfy.index[-nend:])
+            dfz = dfz.drop(dfz.index[-nend:])
+    return dfx, dfy, dfz
 
 
 def _get_avg_voltage(voltage_data_list):
@@ -1095,20 +1150,20 @@ def _get_avg_voltage(voltage_data_list):
     volty_list = []
     voltz_list = []
     for vd in voltage_data_list:
-        if len(vd.voltagex_avg) == npts:
-            fr = _interpolate.splrep(vd.scan_pos, vd.voltagex_avg, s=0, k=1)
+        if len(vd.avgx) == npts:
+            fr = _interpolate.splrep(vd.scan_pos, vd.avgx, s=0, k=1)
             voltx = _interpolate.splev(interp_pos, fr, der=0)
         else:
             voltx = _np.zeros(npts)
 
-        if len(vd.voltagey_avg) == npts:
-            fs = _interpolate.splrep(vd.scan_pos, vd.voltagey_avg, s=0, k=1)
+        if len(vd.avgy) == npts:
+            fs = _interpolate.splrep(vd.scan_pos, vd.avgy, s=0, k=1)
             volty = _interpolate.splev(interp_pos, fs, der=0)
         else:
             volty = _np.zeros(npts)
 
-        if len(vd.voltagez_avg) == npts:
-            ft = _interpolate.splrep(vd.scan_pos, vd.voltagez_avg, s=0, k=1)
+        if len(vd.avgz) == npts:
+            ft = _interpolate.splrep(vd.scan_pos, vd.avgz, s=0, k=1)
             voltz = _interpolate.splev(interp_pos, ft, der=0)
         else:
             voltz = _np.zeros(npts)
@@ -1119,42 +1174,14 @@ def _get_avg_voltage(voltage_data_list):
 
     voltage = voltage_data_list[0].copy()
     setattr(voltage, 'pos' + str(scan_axis), interp_pos)
-    voltage.voltagex_avg = _np.mean(voltx_list, axis=0)
-    voltage.voltagey_avg = _np.mean(volty_list, axis=0)
-    voltage.voltagez_avg = _np.mean(voltz_list, axis=0)
-    voltage.voltagex_std = _np.std(voltx_list, axis=0)
-    voltage.voltagey_std = _np.std(volty_list, axis=0)
-    voltage.voltagez_std = _np.std(voltz_list, axis=0)
+    voltage.avgx = _np.mean(voltx_list, axis=0)
+    voltage.avgy = _np.mean(volty_list, axis=0)
+    voltage.avgz = _np.mean(voltz_list, axis=0)
+    voltage.stdx = _np.std(voltx_list, axis=0)
+    voltage.stdy = _np.std(volty_list, axis=0)
+    voltage.stdz = _np.std(voltz_list, axis=0)
 
     return voltage
-
-
-def _valid_field_data_list(field_data_list):
-    """Check if the field data list is valid.
-
-    Args:
-        field_data_list (list): list of FieldData objects.
-
-    Returns:
-        True is the list is valid, False otherwise.
-    """
-    if isinstance(field_data_list, FieldData):
-        field_data_list = [field_data_list]
-
-    if not all([isinstance(fd, FieldData) for fd in field_data_list]):
-        return False
-
-    if len(field_data_list) == 0:
-        return False
-
-    if any([fd.scan_axis is None or fd.npts == 0 for fd in field_data_list]):
-        return False
-
-    if not all([fd.scan_axis == field_data_list[0].scan_axis
-                for fd in field_data_list]):
-        return False
-
-    return True
 
 
 def _get_fieldmap_position_and_field_values(
@@ -1197,11 +1224,11 @@ def _get_fieldmap_position_and_field_values(
         index = _pd.Index(index, float)
         columns = _pd.Index(columns, float)
         dfx.append(_pd.DataFrame(
-            fd.sensorx, index=index, columns=columns))
+            fd.avgx, index=index, columns=columns))
         dfy.append(_pd.DataFrame(
-            fd.sensory, index=index, columns=columns))
+            fd.avgy, index=index, columns=columns))
         dfz.append(_pd.DataFrame(
-            fd.sensorz, index=index, columns=columns))
+            fd.avgz, index=index, columns=columns))
 
     fieldx = _pd.concat(dfx, axis=1)
     fieldy = _pd.concat(dfy, axis=1)
@@ -1273,54 +1300,10 @@ def _get_fieldmap_position_and_field_values(
     return [pos1, pos2, pos3, field1, field2, field3, index_axis, columns_axis]
 
 
-def _interpolate_data_frames(dfx, dfy, dfz, axis=0):
-
-    def _interpolate_vec(x, pos):
-        f = _interpolate.splrep(x.index, x.values, s=0, k=1)
-        return _interpolate.splev(pos, f, der=0)
-
-    if axis == 1:
-        pos = dfy.columns
-        interp_dfx = dfx.apply(_interpolate_vec, axis=axis, args=[pos])
-        interp_dfz = dfz.apply(_interpolate_vec, axis=axis, args=[pos])
-        interp_dfx.columns = pos
-        interp_dfz.columns = pos
-    else:
-        pos = dfy.index
-        interp_dfx = dfx.apply(_interpolate_vec, args=[pos])
-        interp_dfz = dfz.apply(_interpolate_vec, args=[pos])
-        interp_dfx.index = pos
-        interp_dfz.index = pos
-
-    return interp_dfx, dfy, interp_dfz
-
-
 def _get_number_of_cuts(px, py, pz):
     nbeg = max(len(_np.where(px < py[0])[0]), len(_np.where(pz < py[0])[0]))
     nend = max(len(_np.where(px > py[-1])[0]), len(_np.where(pz > py[-1])[0]))
     return nbeg, nend
-
-
-def _cut_data_frames(dfx, dfy, dfz, nbeg, nend, axis=0):
-    if axis == 1:
-        if nbeg > 0:
-            dfx = dfx.drop(dfx.columns[:nbeg], axis=axis)
-            dfy = dfy.drop(dfy.columns[:nbeg], axis=axis)
-            dfz = dfz.drop(dfz.columns[:nbeg], axis=axis)
-        if nend > 0:
-            dfx = dfx.drop(dfx.columns[-nend:], axis=axis)
-            dfy = dfy.drop(dfy.columns[-nend:], axis=axis)
-            dfz = dfz.drop(dfz.columns[-nend:], axis=axis)
-    else:
-        if nbeg > 0:
-            dfx = dfx.drop(dfx.index[:nbeg])
-            dfy = dfy.drop(dfy.index[:nbeg])
-            dfz = dfz.drop(dfz.index[:nbeg])
-        if nend > 0:
-            dfx = dfx.drop(dfx.index[-nend:])
-            dfy = dfy.drop(dfy.index[-nend:])
-            dfz = dfz.drop(dfz.index[-nend:])
-    return dfx, dfy, dfz
 
 
 def _get_transformation_matrix(axis_x, axis_y):
@@ -1344,8 +1327,109 @@ def _get_transformation_matrix(axis_x, axis_y):
     return m
 
 
-def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
-    vector = _np.array(vector)
-    center = _np.array(center)
-    transf_vector = _np.dot(transf_matrix, vector - center)
-    return transf_vector
+def _interpolate_data_frames(dfx, dfy, dfz, axis=0):
+
+    def _interpolate_vec(x, pos):
+        f = _interpolate.splrep(x.index, x.values, s=0, k=1)
+        return _interpolate.splev(pos, f, der=0)
+
+    if axis == 1:
+        pos = dfy.columns
+        interp_dfx = dfx.apply(_interpolate_vec, axis=axis, args=[pos])
+        interp_dfz = dfz.apply(_interpolate_vec, axis=axis, args=[pos])
+        interp_dfx.columns = pos
+        interp_dfz.columns = pos
+    else:
+        pos = dfy.index
+        interp_dfx = dfx.apply(_interpolate_vec, args=[pos])
+        interp_dfz = dfz.apply(_interpolate_vec, args=[pos])
+        interp_dfx.index = pos
+        interp_dfz.index = pos
+
+    return interp_dfx, dfy, interp_dfz
+
+
+def _valid_field_data_list(field_data_list):
+    """Check if the field data list is valid.
+
+    Args:
+        field_data_list (list): list of FieldData objects.
+
+    Returns:
+        True is the list is valid, False otherwise.
+    """
+    if isinstance(field_data_list, FieldData):
+        field_data_list = [field_data_list]
+
+    if not all([isinstance(fd, FieldData) for fd in field_data_list]):
+        return False
+
+    if len(field_data_list) == 0:
+        return False
+
+    if any([fd.scan_axis is None or fd.npts == 0 for fd in field_data_list]):
+        return False
+
+    if not all([fd.scan_axis == field_data_list[0].scan_axis
+                for fd in field_data_list]):
+        return False
+
+    return True
+
+
+def _valid_voltage_data_list(voltage_data_list):
+    """Check if the voltage data list is valid.
+
+    Args:
+        voltage_data_list (list): list of VoltageData objects.
+
+    Returns:
+        True is the list is valid, False otherwise.
+    """
+    if isinstance(voltage_data_list, VoltageData):
+        voltage_data_list = [voltage_data_list]
+
+    if not all([isinstance(vd, VoltageData) for vd in voltage_data_list]):
+        return False
+
+    if len(voltage_data_list) == 0:
+        return False
+
+    if any([vd.scan_axis is None or vd.npts == 0 for vd in voltage_data_list]):
+        return False
+
+    if not all([vd.scan_axis == voltage_data_list[0].scan_axis
+                for vd in voltage_data_list]):
+        return False
+
+    if not all([
+            vd.npts == voltage_data_list[0].npts for vd in voltage_data_list]):
+        return False
+
+    fixed_axes = [a for a in voltage_data_list[0].axis_list
+                  if a != voltage_data_list[0].scan_axis]
+    for axis in fixed_axes:
+        pos_set = set()
+        for vd in voltage_data_list:
+            pos_attr = getattr(vd, 'pos' + str(axis))
+            if len(pos_attr) == 1:
+                pos_value = _np.around(
+                    pos_attr[0], decimals=_check_position_precision)
+                pos_set.add(pos_value)
+            else:
+                return False
+        if len(pos_set) != 1:
+            return False
+
+    return True
+
+
+def _to_array(value):
+    if value is not None:
+        if not isinstance(value, _np.ndarray):
+            value = _np.array(value)
+        if len(value.shape) == 0:
+            value = _np.array([value])
+    else:
+        value = _np.array([])
+    return value

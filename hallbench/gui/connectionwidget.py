@@ -21,7 +21,7 @@ class ConnectionWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(__file__, self)
+        uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
@@ -105,7 +105,7 @@ class ConnectionWidget(_QWidget):
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getOpenFileName(
             self, caption='Open connection configuration file',
-            directory=default_filename, filter="Text files (*.txt)")
+            directory=default_filename, filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
             filename = filename[0]
@@ -160,7 +160,7 @@ class ConnectionWidget(_QWidget):
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getSaveFileName(
             self, caption='Save connection configuration file',
-            directory=default_filename, filter="Text files (*.txt)")
+            directory=default_filename, filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
             filename = filename[0]
@@ -170,7 +170,8 @@ class ConnectionWidget(_QWidget):
 
         try:
             if self.updateConfiguration():
-                if not filename.endswith('.txt'):
+                if (not filename.endswith('.txt')
+                   and not filename.endswith('.dat')):
                     filename = filename + '.txt'
                 self.config.save_file(filename)
         except Exception as e:

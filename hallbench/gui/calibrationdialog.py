@@ -1,48 +1,46 @@
 # -*- coding: utf-8 -*-
 
-"""Select Calibration widget for the Hall Bench Control application."""
+"""Calibration dialog for the Hall Bench Control application."""
 
 import numpy as _np
 import warnings as _warnings
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
     QFileDialog as _QFileDialog,
+    QApplication as _QApplication,
+    QTableWidgetItem as _QTableWidgetItem,
     QMessageBox as _QMessageBox,
     )
 from PyQt5.QtCore import pyqtSignal as _pyqtSignal
 import PyQt5.uic as _uic
 import pyqtgraph as _pyqtgraph
 
-from hallbench.gui.interpolationtabledialog import InterpolationTableDialog \
-    as _InterpolationTableDialog
-from hallbench.gui.polynomialtabledialog import PolynomialTableDialog \
-    as _PolynomialTableDialog
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 
 
-class SelectCalibrationDialog(_QDialog):
-    """Select Calibration dialog class for Hall Bench Control application."""
+class CalibrationDialog(_QDialog):
+    """Calibration dialog class for Hall Bench Control application."""
 
     probeCalibrationChanged = _pyqtSignal(_ProbeCalibration)
 
     _axis_str_dict = {
         1: '+ Axis #1 (+Z)', 2: '+ Axis #2 (+Y)', 3: '+ Axis #3 (+X)'}
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, load_enabled=True):
         """Set up the ui and create connections."""
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(__file__, self)
+        uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.interpolation_dialog = _InterpolationTableDialog()
-        self.polynomial_dialog = _PolynomialTableDialog()
+        self.interpolation_dialog = InterpolationTableDialog()
+        self.polynomial_dialog = PolynomialTableDialog()
 
         self._probe_calibration = None
+        self._load_enabled = load_enabled
         self.database = None
-
         self.graphx = []
         self.graphy = []
         self.graphz = []
@@ -57,6 +55,12 @@ class SelectCalibrationDialog(_QDialog):
         self.ui.showtable_btn.clicked.connect(self.showTable)
         self.ui.updategraph_btn.clicked.connect(self.updateGraph)
         self.ui.voltage_sb.valueChanged.connect(self.updateField)
+
+        # Enable or disable load option
+        self.ui.loadfile_btn.setEnabled(self._load_enabled)
+        self.ui.loaddb_btn.setEnabled(self._load_enabled)
+        self.ui.filename_le.setEnabled(self._load_enabled)
+        self.ui.idn_le.setReadOnly(not self._load_enabled)
 
     @property
     def probe_calibration(self):
@@ -181,11 +185,15 @@ class SelectCalibrationDialog(_QDialog):
                 self.ui.angle_xz_le.setText('')
                 self.ui.angle_xz_le.setEnabled(False)
 
+            self.setDataEnabled(True)
+            self.updateGraph()
             self.ui.fieldx_le.setText('')
             self.ui.fieldy_le.setText('')
             self.ui.fieldz_le.setText('')
 
         except Exception:
+            self.setDataEnabled(False)
+            self.updateGraph()
             message = 'Failed to load calibration data.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
@@ -193,8 +201,8 @@ class SelectCalibrationDialog(_QDialog):
 
     def loadDB(self):
         """Load probe calibration from database."""
-        self.ui.filename_le.setText("")
-        self.setEnabled(False)
+        self.ui.filename_le.setText('')
+        self.setDataEnabled(False)
         self.updateGraph()
 
         try:
@@ -212,20 +220,18 @@ class SelectCalibrationDialog(_QDialog):
                 self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
-        self.setEnabled(True)
-        self.updateGraph()
         self.load()
 
     def loadFile(self):
         """Load probe calibration file."""
         self.setDatabaseID('')
-        self.setEnabled(False)
+        self.setDataEnabled(False)
         self.updateGraph()
 
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getOpenFileName(
             self, caption='Load probe calibration file',
-            directory=default_filename, filter="Text files (*.txt)")
+            directory=default_filename, filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
             filename = filename[0]
@@ -240,17 +246,37 @@ class SelectCalibrationDialog(_QDialog):
             return
 
         self.filename_le.setText(filename)
-        self.setEnabled(True)
-        self.updateGraph()
         self.load()
 
-    def setDatabaseID(self, idn, read_only=False):
+    def searchDB(self, probe_name):
+        """Search probe calibration in database."""
+        if (self.probe_calibration is not None and
+           self.probe_calibration.probe_name == probe_name):
+            return
+
+        if probe_name is None or len(probe_name) == 0:
+            return
+
+        if self.database is None or len(self.database) == 0:
+            return
+
+        try:
+            idn = _ProbeCalibration.get_probe_calibration_id(
+                self.database, probe_name)
+            if idn is not None:
+                self.setDatabaseID(idn)
+                self.loadDB()
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
+    def setDatabaseID(self, idn):
         """Set database id text."""
+        self.ui.filename_le.setText('')
         self.ui.idn_le.setText(str(idn))
-        self.ui.idn_le.setReadOnly(read_only)
         self.ui.idn_le.setEnabled(True)
 
-    def setEnabled(self, enabled):
+    def setDataEnabled(self, enabled):
         """Enable or disable controls."""
         self.ui.calibrationdata_gb.setEnabled(enabled)
         self.ui.showtable_btn.setEnabled(enabled)
@@ -258,17 +284,20 @@ class SelectCalibrationDialog(_QDialog):
         self.ui.updategraph_btn.setEnabled(enabled)
         self.ui.getfield_gb.setEnabled(enabled)
 
-    def setLoadOptionEnabled(self, enabled):
-        """Enable or disable load option."""
-        self.ui.loadfile_btn.setEnabled(enabled)
-        self.ui.loaddb_btn.setEnabled(enabled)
-        self.ui.idn_le.setEnabled(enabled)
-        self.ui.filename_le.setEnabled(enabled)
-
     def show(self, database):
         """Update database and show dialog."""
         self.database = database
-        self.updateLoadDB()
+
+        if self.database is not None:
+            self.ui.idn_le.setEnabled(True)
+            if self._load_enabled:
+                self.ui.loaddb_btn.setEnabled(True)
+            else:
+                self.ui.loaddb_btn.setEnabled(False)
+        else:
+            self.ui.loaddb_btn.setEnabled(False)
+            self.ui.idn_le.setEnabled(False)
+
         super().show()
 
     def showTable(self):
@@ -284,15 +313,6 @@ class SelectCalibrationDialog(_QDialog):
             self.polynomial_dialog.show(self._probe_calibration)
         else:
             return
-
-    def updateLoadDB(self):
-        """Update load from database controls."""
-        if self.database is None:
-            self.ui.loaddb_btn.setEnabled(False)
-            self.ui.idn_le.setEnabled(False)
-        else:
-            self.ui.loaddb_btn.setEnabled(True)
-            self.ui.idn_le.setEnabled(True)
 
     def updateField(self):
         """Convert voltage to magnetic field."""
@@ -363,3 +383,195 @@ class SelectCalibrationDialog(_QDialog):
             message = 'Failed to update plot.'
             _QMessageBox.critical(self, 'Failure', message, _QMessageBox.Ok)
             return
+
+
+class InterpolationTableDialog(_QDialog):
+    """Interpolation table class for the Hall Bench Control application."""
+
+    def __init__(self, parent=None):
+        """Set up the ui and create connections."""
+        super().__init__(parent)
+
+        # setup the ui
+        uifile = _getUiFile(self)
+        self.ui = _uic.loadUi(uifile, self)
+
+        self.probe_calibration = None
+        self.clip = _QApplication.clipboard()
+
+        # create connections
+        self.ui.copysensorx_btn.clicked.connect(
+            lambda: self.copyToClipboard('x'))
+        self.ui.copysensory_btn.clicked.connect(
+            lambda: self.copyToClipboard('y'))
+        self.ui.copysensorz_btn.clicked.connect(
+            lambda: self.copyToClipboard('z'))
+
+        self.ui.sensorxprec_sb.valueChanged.connect(self.updateTablesensorX)
+        self.ui.sensoryprec_sb.valueChanged.connect(self.updateTablesensorY)
+        self.ui.sensorzprec_sb.valueChanged.connect(self.updateTablesensorZ)
+
+    def copyToClipboard(self, sensor):
+        """Copy table data to clipboard."""
+        table = getattr(self.ui, 'sensor' + sensor + '_ta')
+        text = ""
+        for r in range(table.rowCount()):
+            for c in range(table.columnCount()):
+                text += str(table.item(r, c).text()) + "\t"
+            text = text[:-1] + "\n"
+        self.clip.setText(text)
+
+    def show(self, probe_calibration):
+        """Update calibration data object and show dialog."""
+        self.probe_calibration = probe_calibration
+        self.updateTables()
+        super(InterpolationTableDialog, self).show()
+
+    def updateTables(self):
+        """Update table values."""
+        if self.probe_calibration is None:
+            return
+        self.updateTablesensorX()
+        self.updateTablesensorY()
+        self.updateTablesensorZ()
+
+    def updateTablesensorX(self):
+        """Update sensor x table values."""
+        precision = self.sensorxprec_sb.value()
+        table = self.ui.sensorx_ta
+        data = self.probe_calibration.sensorx.data
+
+        formatstr = '{0:0.%if}' % precision
+        table.setRowCount(0)
+        for i in range(len(data)):
+            table.setRowCount(i+1)
+            row = data[i]
+            for j in range(len(row)):
+                table.setItem(i, j, _QTableWidgetItem(
+                    formatstr.format(row[j])))
+
+    def updateTablesensorY(self):
+        """Update sensor y table values."""
+        precision = self.sensoryprec_sb.value()
+        table = self.ui.sensory_ta
+        data = self.probe_calibration.sensory.data
+
+        formatstr = '{0:0.%if}' % precision
+        table.setRowCount(0)
+        for i in range(len(data)):
+            table.setRowCount(i+1)
+            row = data[i]
+            for j in range(len(row)):
+                table.setItem(i, j, _QTableWidgetItem(
+                    formatstr.format(row[j])))
+
+    def updateTablesensorZ(self):
+        """Update sensor z table values."""
+        precision = self.sensorzprec_sb.value()
+        table = self.ui.sensorz_ta
+        data = self.probe_calibration.sensorz.data
+
+        formatstr = '{0:0.%if}' % precision
+        table.setRowCount(0)
+        for i in range(len(data)):
+            table.setRowCount(i+1)
+            row = data[i]
+            for j in range(len(row)):
+                table.setItem(i, j, _QTableWidgetItem(
+                    formatstr.format(row[j])))
+
+
+class PolynomialTableDialog(_QDialog):
+    """Polynomial table class for the Hall Bench Control application."""
+
+    def __init__(self, parent=None):
+        """Set up the ui and create connections."""
+        super().__init__(parent)
+
+        # setup the ui
+        uifile = _getUiFile(self)
+        self.ui = _uic.loadUi(uifile, self)
+
+        self.probe_calibration = None
+        self.clip = _QApplication.clipboard()
+
+        # create connections
+        self.ui.copysensorx_btn.clicked.connect(
+            lambda: self.copyToClipboard('x'))
+        self.ui.copysensory_btn.clicked.connect(
+            lambda: self.copyToClipboard('y'))
+        self.ui.copysensorz_btn.clicked.connect(
+            lambda: self.copyToClipboard('z'))
+
+        self.ui.sensorxprec_sb.valueChanged.connect(self.updateTableSensorX)
+        self.ui.sensoryprec_sb.valueChanged.connect(self.updateTableSensorY)
+        self.ui.sensorzprec_sb.valueChanged.connect(self.updateTableSensorZ)
+
+    def copyToClipboard(self, sensor):
+        """Copy table data to clipboard."""
+        table = getattr(self.ui, 'sensor' + sensor + '_ta')
+        text = ""
+        for r in range(table.rowCount()):
+            for c in range(table.columnCount()):
+                text += str(table.item(r, c).text()) + "\t"
+            text = text[:-1] + "\n"
+        self.clip.setText(text)
+
+    def show(self, probe_calibration):
+        """Update calibration data object and show dialog."""
+        self.probe_calibration = probe_calibration
+        self.updateTables()
+        super(PolynomialTableDialog, self).show()
+
+    def updateTables(self):
+        """Update table values."""
+        if self.probe_calibration is None:
+            return
+        self.updateTableSensorX()
+        self.updateTableSensorY()
+        self.updateTableSensorZ()
+
+    def updateTableSensorX(self):
+        """Update sensor x table values."""
+        precision = self.sensorxprec_sb.value()
+        table = self.ui.sensorx_ta
+        data = self.probe_calibration.sensorx.data
+
+        formatstr = '{0:0.%if}' % precision
+        table.setRowCount(0)
+        for i in range(len(data)):
+            table.setRowCount(i+1)
+            row = data[i]
+            for j in range(len(row)):
+                table.setItem(i, j, _QTableWidgetItem(
+                    formatstr.format(row[j])))
+
+    def updateTableSensorY(self):
+        """Update sensor y table values."""
+        precision = self.sensoryprec_sb.value()
+        table = self.ui.sensory_ta
+        data = self.probe_calibration.sensory.data
+
+        formatstr = '{0:0.%if}' % precision
+        table.setRowCount(0)
+        for i in range(len(data)):
+            table.setRowCount(i+1)
+            row = data[i]
+            for j in range(len(row)):
+                table.setItem(i, j, _QTableWidgetItem(
+                    formatstr.format(row[j])))
+
+    def updateTableSensorZ(self):
+        """Update sensor z table values."""
+        precision = self.sensorzprec_sb.value()
+        table = self.ui.sensorz_ta
+        data = self.probe_calibration.sensorz.data
+
+        formatstr = '{0:0.%if}' % precision
+        table.setRowCount(0)
+        for i in range(len(data)):
+            table.setRowCount(i+1)
+            row = data[i]
+            for j in range(len(row)):
+                table.setItem(i, j, _QTableWidgetItem(
+                    formatstr.format(row[j])))

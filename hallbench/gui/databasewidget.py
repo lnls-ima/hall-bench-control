@@ -6,6 +6,7 @@ import PyQt5.uic as _uic
 from PyQt5.QtCore import Qt as _Qt
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
+    QApplication as _QApplication,
     QLabel as _QLabel,
     QTableWidget as _QTableWidget,
     QTableWidgetItem as _QTableWidgetItem,
@@ -17,8 +18,10 @@ from PyQt5.QtWidgets import (
     )
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.selectcalibrationdialog import SelectCalibrationDialog \
-    as _SelectCalibrationDialog
+from hallbench.gui.calibrationdialog import CalibrationDialog \
+    as _CalibrationDialog
+from hallbench.gui.configurationwidgets import ConfigurationDialog \
+    as _ConfigurationDialog
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
@@ -43,11 +46,12 @@ class DatabaseWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(__file__, self)
+        uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # create dialogs
-        self.calibration_dialog = _SelectCalibrationDialog()
+        self.calibration_dialog = _CalibrationDialog(load_enabled=False)
+        self.configuration_dialog = _ConfigurationDialog(load_enabled=False)
 
         self.tables = []
         self.ui.database_tab.clear()
@@ -77,13 +81,23 @@ class DatabaseWidget(_QWidget):
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
+        self.ui.refresh_btn.clicked.connect(self.updateDatabaseTables)
         self.ui.database_tab.currentChanged.connect(self.disableInvalidButtons)
         self.ui.view_calibration_btn.clicked.connect(self.viewCalibration)
         self.ui.save_calibration_btn.clicked.connect(self.saveCalibration)
+        self.ui.view_configuration_btn.clicked.connect(self.viewConfiguration)
+        self.ui.save_configuration_btn.clicked.connect(self.saveConfiguration)
+        self.ui.save_scan_btn.clicked.connect(self.saveScan)
 
     def disableInvalidButtons(self):
         """Disable invalid buttons."""
         current_table = self.getCurrentTable()
+        if current_table is None:
+            self.ui.calibration_gb.setEnabled(False)
+            self.ui.configuration_gb.setEnabled(False)
+            self.ui.scan_gb.setEnabled(False)
+            self.ui.fieldmap_gb.setEnabled(False)
+            return
 
         _enable = current_table.table_name == self._calibration_table_name
         self.ui.calibration_gb.setEnabled(_enable)
@@ -100,12 +114,19 @@ class DatabaseWidget(_QWidget):
     def getCurrentTable(self):
         """Get current table."""
         idx = self.ui.database_tab.currentIndex()
-        current_table = self.tables[idx]
-        return current_table
+        if len(self.tables) > idx and idx != -1:
+            current_table = self.tables[idx]
+            return current_table
+        else:
+            return None
 
     def getSelectedID(self):
         """Get selected ID from current table."""
-        idns = self.getCurrentTable().getSelectedIDs()
+        current_table = self.getCurrentTable()
+        if current_table is None:
+            return
+
+        idns = current_table.getSelectedIDs()
 
         if len(idns) == 0:
             return None
@@ -120,7 +141,11 @@ class DatabaseWidget(_QWidget):
 
     def getSelectedIDs(self):
         """Get selected IDs from current table."""
-        return self.getCurrentTable().getSelectedIDs()
+        current_table = self.getCurrentTable()
+        if current_table is None:
+            return []
+
+        return current_table.getSelectedIDs()
 
     def loadDatabase(self):
         """Load database."""
@@ -162,6 +187,9 @@ class DatabaseWidget(_QWidget):
     def saveCalibration(self):
         """Save probe calibration data to file."""
         current_table = self.getCurrentTable()
+        if current_table is None:
+            return
+
         if current_table.table_name != self._calibration_table_name:
             return
 
@@ -189,15 +217,111 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
+    def saveConfiguration(self):
+        """Save configuration data to file."""
+        current_table = self.getCurrentTable()
+        if current_table is None:
+            return
+
+        if current_table.table_name != self._configuration_table_name:
+            return
+
+        idn = self.getSelectedID()
+        if idn is None:
+            return
+
+        filename = _QFileDialog.getSaveFileName(
+            self, caption='Save configuration file',
+            filter="Text files (*.txt *.dat)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            if not filename.endswith('.txt') and not filename.endswith('.dat'):
+                filename = filename + '.txt'
+            configuration = _MeasurementConfig()
+            configuration.read_from_database(self.database, idn)
+            configuration.save_file(filename)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
+    def saveScan(self):
+        """Save scan data to file."""
+        current_table = self.getCurrentTable()
+        if current_table is None:
+            return
+
+        if current_table.table_name != self._scan_table_name:
+            return
+
+        idn = self.getSelectedID()
+        if idn is None:
+            return
+
+        try:
+            scan = _FieldData()
+            scan.read_from_database(self.database, idn)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
+        filename = _QFileDialog.getSaveFileName(
+            self, caption='Save configuration file',
+            directory=scan.default_filename,
+            filter="Text files (*.txt *.dat)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            if not filename.endswith('.txt') and not filename.endswith('.dat'):
+                filename = filename + '.txt'
+            scan.save_file(filename)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
     def scrollDownTables(self):
         """Scroll down all tables."""
         for idx in range(len(self.tables)):
             self.ui.database_tab.setCurrentIndex(idx)
             self.tables[idx].scrollDown()
 
+    def updateDatabaseTables(self):
+        """Update database tables."""
+        try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+
+            idx = self.ui.database_tab.currentIndex()
+            self.clearDatabase()
+            self.loadDatabase()
+            self.scrollDownTables()
+            self.ui.database_tab.setCurrentIndex(idx)
+
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+
+        except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+            _QMessageBox.critical(
+                self, 'Failure', 'Failed to update database.', _QMessageBox.Ok)
+
     def viewCalibration(self):
         """Open calibration dialog."""
         current_table = self.getCurrentTable()
+        if current_table is None:
+            return
+
         if current_table.table_name != self._calibration_table_name:
             return
 
@@ -206,13 +330,35 @@ class DatabaseWidget(_QWidget):
             return
 
         self.calibration_dialog.show(self.database)
-        self.calibration_dialog.setLoadOptionEnabled(False)
-        self.calibration_dialog.setDatabaseID(idn, read_only=True)
+        self.calibration_dialog.setDatabaseID(idn)
         self.calibration_dialog.loadDB()
+
+    def viewConfiguration(self):
+        """Open configuration dialog."""
+        current_table = self.getCurrentTable()
+        if current_table is None:
+            return
+
+        if current_table.table_name != self._configuration_table_name:
+            return
+
+        idn = self.getSelectedID()
+        if idn is None:
+            return
+
+        self.configuration_dialog.show(self.database)
+        self.configuration_dialog.main_wg.setDatabaseID(idn)
+        self.configuration_dialog.main_wg.loadDB()
 
 
 class DatabaseTable(_QTableWidget):
     """Database table widget."""
+
+    _datatype_dict = {
+        'INTEGER': int,
+        'REAL': float,
+        'TEXT': str,
+        }
 
     def __init__(self, parent=None):
         """Set up the ui."""
@@ -290,10 +436,11 @@ class DatabaseTable(_QTableWidget):
         command = 'SELECT * FROM ' + self.table_name
         data = cur.execute(command).fetchall()
 
-        if len(data) > 0:
-            self.data_types = [
-                type(data[0][col]) for col in range(
-                    len(self.column_names))]
+        self.data_types = []
+        cur.execute("PRAGMA TABLE_INFO({0})".format(self.table_name))
+        table_info = cur.fetchall()
+        for i in range(len(table_info)):
+            self.data_types.append(self._datatype_dict[table_info[i][2]])
 
         self.setRowCount(1)
         for j in range(len(self.column_names)):
@@ -325,6 +472,9 @@ class DatabaseTable(_QTableWidget):
             tabledata = data[-self.number_rows_sb.value()::]
         else:
             tabledata = data
+
+        if len(tabledata) == 0:
+            return
 
         self.initial_id_sb.setValue(int(tabledata[0][0]))
         self.setRowCount(len(tabledata) + 1)

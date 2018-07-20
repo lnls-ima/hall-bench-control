@@ -266,6 +266,25 @@ class MeasurementConfig(Configuration):
         """Return the database table name."""
         return cls._db_table
 
+    @classmethod
+    def get_probe_name_from_database(cls, database, idn):
+        """Return the probe name of the database record."""
+        if len(cls._db_table) == 0:
+            return None
+
+        db_column_names = _database.get_table_column_names(
+            database, cls._db_table)
+        if len(db_column_names) == 0:
+            return None
+
+        db_entry = _database.read_from_database(database, cls._db_table, idn)
+        if db_entry is None:
+            return None
+
+        idx = db_column_names.index('probe_name')
+        probe_name = db_entry[idx]
+        return probe_name
+
     def _set_axis_param(self, param, axis, value):
         axis_param = param + str(axis)
         if value is None:

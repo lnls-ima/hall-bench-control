@@ -383,7 +383,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Load Data and Save Field Map</string>
+        <string>Load Data and Save Fieldmap</string>
        </property>
       </widget>
      </item>

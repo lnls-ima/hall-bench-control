@@ -32,11 +32,15 @@ def create_database(database):
     if not success:
         raise DataBaseError('Fail to create database table')
 
+    success = _measurement.VoltageData.create_database_table(database)
+    if not success:
+        raise DataBaseError('Fail to create database table')
+
     success = _measurement.FieldData.create_database_table(database)
     if not success:
         raise DataBaseError('Fail to create database table')
 
-    success = _measurement.FieldMapData.create_database_table(database)
+    success = _measurement.Fieldmap.create_database_table(database)
     if not success:
         raise DataBaseError('Fail to create database table')
 
@@ -103,6 +107,7 @@ def search_database_str(database, table, parameter, value):
         cmd = cmd + ' = ' + str(value)
         cur.execute(cmd)
         entries = cur.fetchall()
+        con.close()
         return entries
     except Exception:
         return []
@@ -125,6 +130,7 @@ def get_table_column_names(database, table):
     cur = con.cursor()
     cur.execute('SELECT * FROM {0}'.format(table))
     column_names = [d[0] for d in cur.description]
+    con.close()
     return column_names
 
 
@@ -218,6 +224,8 @@ def table_exists(database, table):
     cur = con.cursor()
     cur.execute("PRAGMA TABLE_INFO({0})".format(table))
     if len(cur.fetchall()) > 0:
+        con.close()
         return True
     else:
+        con.close()
         return False

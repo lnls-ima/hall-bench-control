@@ -79,14 +79,15 @@ class HallBenchWindow(_QMainWindow):
         return self.measurement_tab.field_data
 
     @property
-    def fieldmap_data(self):
-        """Measurement field map data."""
-        return self.measurement_tab.fieldmap_data
+    def fieldmap(self):
+        """Measurement fieldmap."""
+        return self.measurement_tab.fieldmap
 
     def closeEvent(self, event):
         """Close main window and dialogs."""
         try:
             self.measurement_tab.closeDialogs()
+            self.database_tab.closeDialogs()
             self.stopTimer()
             event.accept()
         except Exception:

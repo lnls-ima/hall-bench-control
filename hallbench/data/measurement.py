@@ -15,6 +15,7 @@ from . import database as _database
 
 _position_precision = 4
 _check_position_precision = 3
+_empty_str = '--'
 _measurements_label = 'Hall'
 
 
@@ -50,8 +51,8 @@ class Data(object):
             filename (str, optional): file full path.
             data_unit (str, optional): data unit.
         """
-        self.magnet_name = ''
-        self.main_current = ''
+        self._magnet_name = None
+        self._main_current = None
         self._timestamp = None
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
@@ -112,6 +113,49 @@ class Data(object):
         """Return the database table name."""
         return cls._db_table
 
+    @classmethod
+    def get_configuration_id_from_database(cls, database, idn):
+        """Return the configuration ID of the database record."""
+        if len(cls._db_table) == 0:
+            return None
+
+        db_column_names = _database.get_table_column_names(
+            database, cls._db_table)
+        if len(db_column_names) == 0:
+            return None
+
+        db_entry = _database.read_from_database(database, cls._db_table, idn)
+        if db_entry is None:
+            return None
+
+        idx = db_column_names.index('configuration_id')
+        configuration_id = db_entry[idx]
+        return configuration_id
+
+    @property
+    def magnet_name(self):
+        """Return the magnet name."""
+        return self._magnet_name
+
+    @magnet_name.setter
+    def magnet_name(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._magnet_name = value
+
+    @property
+    def main_current(self):
+        """Return the main current."""
+        return self._main_current
+
+    @main_current.setter
+    def main_current(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._main_current = value
+
     @property
     def axis_list(self):
         """List of all bench axes."""
@@ -157,7 +201,7 @@ class Data(object):
     def default_filename(self):
         """Return the default filename."""
         label = self._data_label + '_' + _measurements_label
-        if len(self.magnet_name) != 0:
+        if self.magnet_name is not None:
             name = self.magnet_name + '_' + label
         else:
             name = label
@@ -176,8 +220,8 @@ class Data(object):
 
     def clear(self):
         """Clear Data."""
-        self.magnet_name = ''
-        self.main_current = ''
+        self.magnet_name = None
+        self.main_current = None
         self._timestamp = None
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
@@ -290,9 +334,6 @@ class Data(object):
             raise MeasurementDataError('Empty data.')
 
         scan_axis = self.scan_axis
-        if self._timestamp is None:
-            self._timestamp = _utils.get_timestamp()
-
         pos1_str = '%f' % self._pos1[0] if self._pos1.size == 1 else '--'
         pos2_str = '%f' % self._pos2[0] if self._pos2.size == 1 else '--'
         pos3_str = '%f' % self._pos3[0] if self._pos3.size == 1 else '--'
@@ -330,9 +371,15 @@ class Data(object):
         else:
             columns = _np.column_stack((scan_axis_pos, avgx, avgy, avgz))
 
-        magnet_name = self.magnet_name if len(self.magnet_name) != 0 else '--'
+        if self._timestamp is None:
+            self._timestamp = _utils.get_timestamp()
+
+        magnet_name = (
+            self.magnet_name if self.magnet_name is not None
+            else _empty_str)
         main_current = (
-            self.main_current if len(self.main_current) != 0 else '--')
+            self.main_current if self.main_current is not None
+            else _empty_str)
 
         with open(filename, mode='w') as f:
             f.write('timestamp:         \t%s\n' % self._timestamp)
@@ -362,8 +409,6 @@ class Data(object):
         if len(self._db_table) == 0:
             return None
 
-        print(self._db_json_str)
-
         db_column_names = _database.get_table_column_names(
             database, self._db_table)
         if len(db_column_names) == 0:
@@ -385,17 +430,13 @@ class Data(object):
                 return None
             else:
                 if key == "id":
-                    print('id ', key)
                     db_values.append(None)
                 elif attr_name is None:
-                    print('None ', key)
                     db_values.append(locals()[key])
                 elif attr_name in self._db_json_str:
-                    print('json ', key)
                     _l = getattr(self, attr_name).tolist()
                     db_values.append(_json.dumps(_l))
                 else:
-                    print('else ', key)
                     db_values.append(getattr(self, attr_name))
 
         idn = _database.insert_into_database(
@@ -411,8 +452,8 @@ class VoltageData(Data):
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
-        ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
-        ('main_current', ['main_current', 'TEXT NOT NULL']),
+        ('magnet_name', ['magnet_name', 'TEXT']),
+        ('main_current', ['main_current', 'TEXT']),
         ('configuration_id', [None, 'INTEGER']),
         ('scan_axis', ['scan_axis', 'INTEGER']),
         ('pos1', ['_pos1', 'TEXT NOT NULL']),
@@ -580,8 +621,8 @@ class FieldData(Data):
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
-        ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
-        ('main_current', ['main_current', 'TEXT NOT NULL']),
+        ('magnet_name', ['magnet_name', 'TEXT']),
+        ('main_current', ['main_current', 'TEXT']),
         ('configuration_id', [None, 'INTEGER']),
         ('scan_axis', ['scan_axis', 'INTEGER']),
         ('pos1', ['_pos1', 'TEXT NOT NULL']),
@@ -723,7 +764,7 @@ class FieldData(Data):
         self._stdz = bz_std
 
 
-class FieldMapData(object):
+class Fieldmap(object):
     """Map for position and magnetic field values."""
 
     _db_table = 'fieldmaps'
@@ -731,15 +772,15 @@ class FieldMapData(object):
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
-        ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
+        ('magnet_name', ['magnet_name', 'TEXT']),
         ('main_current', ['current_main', 'TEXT']),
         ('nr_scans', [None, 'INTEGER']),
         ('initial_scan', [None, 'INTEGER']),
         ('final_scan', [None, 'INTEGER']),
-        ('gap', ['gap', 'TEXT NOT NULL']),
-        ('control_gap', ['control_gap', 'TEXT NOT NULL']),
-        ('magnet_length', ['magnet_length', 'TEXT NOT NULL']),
-        ('comments', ['comments', 'TEXT NOT NULL']),
+        ('gap', ['gap', 'TEXT']),
+        ('control_gap', ['control_gap', 'TEXT']),
+        ('magnet_length', ['magnet_length', 'TEXT']),
+        ('comments', ['comments', 'TEXT']),
         ('current_main', ['current_main', 'TEXT']),
         ('nr_turns_main', ['nr_turns_main', 'TEXT']),
         ('current_trim', ['current_trim', 'TEXT']),
@@ -769,11 +810,12 @@ class FieldMapData(object):
         if filename is not None and idn is not None:
             raise ValueError('Invalid arguments for FieldData.')
 
-        self.magnet_name = ''
-        self.gap = ''
-        self.control_gap = ''
-        self.magnet_length = ''
-        self.comments = ''
+        self._timestamp = None
+        self.magnet_name = None
+        self.gap = None
+        self.control_gap = None
+        self.magnet_length = None
+        self.comments = None
         self.current_main = None
         self.nr_turns_main = None
         self.current_trim = None
@@ -855,18 +897,19 @@ class FieldMapData(object):
                 ac = coil if coil != 'trim' else 'tc'
                 name = name + '_I' + ac + '=' + current + 'A'
 
-        datetime = _utils.get_timestamp()
-        date = datetime.split('_')[0]
+        self._timestamp = _utils.get_timestamp()
+        date = self._timestamp.split('_')[0]
 
         filename = '{0:1s}_{1:1s}.dat'.format(date, name)
         return filename
 
     def clear(self):
         """Clear."""
-        self.magnet_name = ''
-        self.gap = ''
-        self.control_gap = ''
-        self.magnet_length = ''
+        self._timestamp = None
+        self.magnet_name = None
+        self.gap = None
+        self.control_gap = None
+        self.magnet_length = None
         self.current_main = None
         self.nr_turns_main = None
         self.current_trim = None
@@ -889,10 +932,16 @@ class FieldMapData(object):
             filename (str): fieldmap file path.
         """
         flines = _utils.read_file(filename)
-        self.magnet_name = _utils.find_value(flines, 'magnet_name')
-        self.gap = _utils.find_value(flines, 'gap')
-        self.control_gap = _utils.find_value(flines, 'control_gap')
-        self.magnet_length = _utils.find_value(flines, 'magnet_length')
+
+        _s = _utils.find_value(flines, 'magnet_name')
+        self.magnet_name = _s if _s != _empty_str else None
+        _s = _utils.find_value(flines, 'gap')
+        self.gap = _s if _s != _empty_str else None
+        _s = _utils.find_value(flines, 'control_gap')
+        self.control_gap = _s if _s != _empty_str else None
+        _s = _utils.find_value(flines, 'magnet_length')
+        self.magnet_length = _s if _s != _empty_str else None
+
         self.current_main = _utils.find_value(
             flines, 'current_main', raise_error=False)
         self.nr_turns_main = _utils.find_value(
@@ -933,7 +982,7 @@ class FieldMapData(object):
             measurement_axes.append(1)
 
         if len(measurement_axes) > 2 or len(measurement_axes) == 0:
-            raise MeasurementDataError('Invalid field map file: %s' % filename)
+            raise MeasurementDataError('Invalid fieldmap file: %s' % filename)
 
         self._map = data
 
@@ -969,15 +1018,28 @@ class FieldMapData(object):
         Args:
             filename (str): fieldmap file path.
         """
+        magnet_name = (
+            self.magnet_name if self.magnet_name is not None else _empty_str)
+        gap = (
+            self.gap if self.gap is not None else _empty_str)
+        control_gap = (
+            self.control_gap if self.control_gap is not None else _empty_str)
+        magnet_length = (
+            self.magnet_length if self.magnet_length is not None
+            else _empty_str)
+
+        if self._timestamp is None:
+            self._timestamp = _utils.get_timestamp()
+
         header_info = []
-        header_info.append(['fieldmap_name', self.magnet_name])
-        header_info.append(['timestamp', _utils.get_timestamp()])
+        header_info.append(['fieldmap_name', magnet_name])
+        header_info.append(['timestamp', self._timestamp])
         header_info.append(['filename', filename])
         header_info.append(['nr_magnets', 1])
-        header_info.append(['magnet_name', self.magnet_name])
-        header_info.append(['gap[mm]', self.gap])
-        header_info.append(['control_gap[mm]', self.control_gap])
-        header_info.append(['magnet_length[mm]', self.magnet_length])
+        header_info.append(['magnet_name', magnet_name])
+        header_info.append(['gap[mm]', gap])
+        header_info.append(['control_gap[mm]', control_gap])
+        header_info.append(['magnet_length[mm]', magnet_length])
 
         for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
             current = getattr(self, 'current_' + coil)
@@ -1018,9 +1080,11 @@ class FieldMapData(object):
             raise MeasurementDataError('Failed to save fieldmap to database.')
             return None
 
-        timestamp = _utils.get_timestamp().split('_')
-        date = timestamp[0]
-        hour = timestamp[1].replace('-', ':')
+        if self._timestamp is None:
+            self._timestamp = _utils.get_timestamp()
+
+        date = self._timestamp.split('_')[0]
+        hour = self._timestamp.split('_')[1].replace('-', ':')
 
         db_values = []
         for key in self._db_dict.keys():
@@ -1036,7 +1100,9 @@ class FieldMapData(object):
                 elif attr_name is None:
                     db_values.append(locals()[key])
                 elif attr_name in self._db_json_str:
-                    _l = getattr(self, attr_name).tolist()
+                    _l = getattr(self, attr_name)
+                    if not isinstance(_l, list):
+                        _l = _l.tolist()
                     db_values.append(_json.dumps(_l))
                 else:
                     db_values.append(getattr(self, attr_name))
@@ -1211,6 +1277,9 @@ def _get_fieldmap_position_and_field_values(
     if len(columns_axis) == 1:
         columns_axis = columns_axis[0]
 
+    if len(columns_axis) == 0:
+        columns_axis = None
+
     dfx = []
     dfy = []
     dfz = []
@@ -1223,6 +1292,7 @@ def _get_fieldmap_position_and_field_values(
 
         index = _pd.Index(index, float)
         columns = _pd.Index(columns, float)
+
         dfx.append(_pd.DataFrame(
             fd.avgx, index=index, columns=columns))
         dfy.append(_pd.DataFrame(
@@ -1292,10 +1362,6 @@ def _get_fieldmap_position_and_field_values(
     field3, field2, field1 = (
         probe_calibration.field_in_bench_coordinate_system(
             fieldx, fieldy, fieldz))
-
-    field1 = field1
-    field2 = field2
-    field3 = field3
 
     return [pos1, pos2, pos3, field1, field2, field3, index_axis, columns_axis]
 

@@ -98,7 +98,7 @@ class ConfigurationWidget(_QWidget):
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.calibration_dialog.close()
+            self.calibration_dialog.accept()
         except Exception:
             pass
 

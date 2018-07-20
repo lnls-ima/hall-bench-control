@@ -14,7 +14,7 @@ import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 import hallbench.data.magnets_info as _magnets_info
-from hallbench.data.measurement import FieldMapData as _FieldMapData
+from hallbench.data.measurement import Fieldmap as _Fieldmap
 
 
 class FieldMapDialog(_QDialog):
@@ -126,7 +126,7 @@ class FieldMapDialog(_QDialog):
         self.blockSignals(True)
         _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
-        fieldmap = _FieldMapData()
+        fieldmap = _Fieldmap()
         fieldmap.magnet_name = self.ui.magnet_name_le.text()
         fieldmap.gap = self.ui.gap_le.text()
         fieldmap.control_gap = self.ui.control_gap_le.text()
@@ -137,7 +137,7 @@ class FieldMapDialog(_QDialog):
             if getattr(self.ui, coil + '_chb').isChecked():
                 current = getattr(self.ui, 'current_' + coil + '_le').text()
                 setattr(fieldmap, 'current_' + coil, current)
-                turns = getattr(self.ui, 'nr_turns' + coil + '_le').text()
+                turns = getattr(self.ui, 'nr_turns_' + coil + '_le').text()
                 setattr(fieldmap, 'nr_turns_' + coil, turns)
 
         center_pos3 = self.ui.centerpos3_sb.value()
@@ -269,7 +269,7 @@ class FieldMapDialog(_QDialog):
 
         try:
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
-                filename = filename + '.txt'
+                filename = filename + '.dat'
             fieldmap.save_file(filename)
             message = 'Fieldmap data saved to file: \n%s' % filename
             _QMessageBox.information(

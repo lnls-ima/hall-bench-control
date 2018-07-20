@@ -112,7 +112,8 @@ class MeasurementWidget(_QWidget):
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.fieldmap_dialog.close()
+            self.fieldmap_dialog.accept()
+            self.configuration_widget.closeDialogs()
         except Exception:
             pass
 

@@ -22,11 +22,14 @@ from hallbench.gui.calibrationdialog import CalibrationDialog \
     as _CalibrationDialog
 from hallbench.gui.configurationwidgets import ConfigurationDialog \
     as _ConfigurationDialog
+from hallbench.gui.fieldmapdialog import FieldMapDialog \
+    as _FieldMapDialog
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
+from hallbench.data.measurement import VoltageData as _VoltageData
 from hallbench.data.measurement import FieldData as _FieldData
-from hallbench.data.measurement import FieldMapData as _FieldMapData
+from hallbench.data.measurement import Fieldmap as _Fieldmap
 
 
 _max_number_rows = 1000
@@ -38,8 +41,9 @@ class DatabaseWidget(_QWidget):
 
     _calibration_table_name = _ProbeCalibration.database_table_name()
     _configuration_table_name = _MeasurementConfig.database_table_name()
+    _raw_data_table_name = _VoltageData.database_table_name()
     _scan_table_name = _FieldData.database_table_name()
-    _fieldmap_table_name = _FieldMapData.database_table_name()
+    _fieldmap_table_name = _Fieldmap.database_table_name()
 
     def __init__(self, parent=None):
         """Set up the ui."""
@@ -52,6 +56,7 @@ class DatabaseWidget(_QWidget):
         # create dialogs
         self.calibration_dialog = _CalibrationDialog(load_enabled=False)
         self.configuration_dialog = _ConfigurationDialog(load_enabled=False)
+        self.fieldmap_dialog = _FieldMapDialog()
 
         self.tables = []
         self.ui.database_tab.clear()
@@ -72,10 +77,38 @@ class DatabaseWidget(_QWidget):
         self.tables = []
         self.ui.database_tab.clear()
 
+    def clearRawDataTable(self):
+        """Clear raw data table."""
+        con = _sqlite3.connect(self.database)
+        cur = con.cursor()
+
+        cmd = 'SELECT * FROM {0}'.format(self._raw_data_table_name)
+        if len(cur.execute(cmd).fetchall()) == 0:
+            con.close()
+            return
+
+        msg = (
+            'Are you sure you want to delete all rows in the ' +
+            self._raw_data_table_name + ' table?')
+        reply = _QMessageBox.question(
+            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
+
+        if reply == _QMessageBox.Yes:
+            cmd = 'DELETE FROM {0}'.format(self._raw_data_table_name)
+            cur.execute(cmd)
+            con.commit()
+            con.close()
+            self.updateDatabaseTables()
+        else:
+            con.close()
+            return
+
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.calibration_dialog.close()
+            self.calibration_dialog.accept()
+            self.configuration_dialog.accept()
+            self.fieldmap_dialog.accept()
         except Exception:
             pass
 
@@ -87,7 +120,67 @@ class DatabaseWidget(_QWidget):
         self.ui.save_calibration_btn.clicked.connect(self.saveCalibration)
         self.ui.view_configuration_btn.clicked.connect(self.viewConfiguration)
         self.ui.save_configuration_btn.clicked.connect(self.saveConfiguration)
+        self.ui.save_raw_data_btn.clicked.connect(self.saveRawData)
+        self.ui.clear_raw_data_btn.clicked.connect(self.clearRawDataTable)
         self.ui.save_scan_btn.clicked.connect(self.saveScan)
+        self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
+
+    def createFieldmap(self):
+        """Create fieldmap from scan records."""
+        self.fieldmap_dialog.accept()
+        current_table = self.getCurrentTable()
+        if current_table is None:
+            return
+
+        if current_table.table_name != self._scan_table_name:
+            return
+
+        idns = self.getSelectedIDs()
+        if len(idns) == 0:
+            return
+
+        field_data_list = []
+        configuration_ids = []
+        try:
+            for idn in idns:
+                fd = _FieldData(database=self.database, idn=idn)
+                cid = _FieldData.get_configuration_id_from_database(
+                    self.database, idn)
+                field_data_list.append(fd)
+                configuration_ids.append(cid)
+
+            if (any([c is None for c in configuration_ids]) or not all(
+                    [c == configuration_ids[0] for c in configuration_ids])):
+                msg = 'Invalid configuration ID list.'
+                _QMessageBox.critical(
+                    self, 'Failure', msg, _QMessageBox.Ok)
+                return
+
+            probe_name = _MeasurementConfig.get_probe_name_from_database(
+                self.database, configuration_ids[0])
+            if probe_name is None or len(probe_name) == 0:
+                msg = 'Invalid probe calibration.'
+                _QMessageBox.critical(
+                    self, 'Failure', msg, _QMessageBox.Ok)
+                return
+
+            idn = _ProbeCalibration.get_probe_calibration_id(
+                self.database, probe_name)
+            if idn is None:
+                msg = 'Probe calibration data not found in database.'
+                _QMessageBox.critical(
+                    self, 'Failure', msg, _QMessageBox.Ok)
+                return
+
+            probe_calibration = _ProbeCalibration(
+                database=self.database, idn=idn)
+
+            self.fieldmap_dialog.show(
+                field_data_list, probe_calibration, self.database, idns)
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def disableInvalidButtons(self):
         """Disable invalid buttons."""
@@ -95,6 +188,7 @@ class DatabaseWidget(_QWidget):
         if current_table is None:
             self.ui.calibration_gb.setEnabled(False)
             self.ui.configuration_gb.setEnabled(False)
+            self.ui.raw_data_gb.setEnabled(False)
             self.ui.scan_gb.setEnabled(False)
             self.ui.fieldmap_gb.setEnabled(False)
             return
@@ -104,6 +198,9 @@ class DatabaseWidget(_QWidget):
 
         _enable = current_table.table_name == self._configuration_table_name
         self.ui.configuration_gb.setEnabled(_enable)
+
+        _enable = current_table.table_name == self._raw_data_table_name
+        self.ui.raw_data_gb.setEnabled(_enable)
 
         _enable = current_table.table_name == self._scan_table_name
         self.ui.scan_gb.setEnabled(_enable)
@@ -250,6 +347,45 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
+    def saveRawData(self):
+        """Save raw data to file."""
+        current_table = self.getCurrentTable()
+        if current_table is None:
+            return
+
+        if current_table.table_name != self._scan_table_name:
+            return
+
+        idn = self.getSelectedID()
+        if idn is None:
+            return
+
+        try:
+            raw_data = _VoltageData()
+            raw_data.read_from_database(self.database, idn)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
+        filename = _QFileDialog.getSaveFileName(
+            self, caption='Save configuration file',
+            directory=raw_data.default_filename,
+            filter="Text files (*.txt *.dat)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            if not filename.endswith('.txt') and not filename.endswith('.dat'):
+                filename = filename + '.dat'
+            raw_data.save_file(filename)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
     def saveScan(self):
         """Save scan data to file."""
         current_table = self.getCurrentTable()
@@ -283,7 +419,7 @@ class DatabaseWidget(_QWidget):
 
         try:
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
-                filename = filename + '.txt'
+                filename = filename + '.dat'
             scan.save_file(filename)
         except Exception as e:
             _QMessageBox.critical(
@@ -426,15 +562,15 @@ class DatabaseTable(_QTableWidget):
 
         con = _sqlite3.connect(self.database)
         cur = con.cursor()
-        command = 'SELECT * FROM ' + self.table_name
-        cur.execute(command)
+        cmd = 'SELECT * FROM ' + self.table_name
+        cur.execute(cmd)
 
         self.column_names = [description[0] for description in cur.description]
         self.setColumnCount(len(self.column_names))
         self.setHorizontalHeaderLabels(self.column_names)
 
-        command = 'SELECT * FROM ' + self.table_name
-        data = cur.execute(command).fetchall()
+        cmd = 'SELECT * FROM ' + self.table_name
+        data = cur.execute(cmd).fetchall()
 
         self.data_types = []
         cur.execute("PRAGMA TABLE_INFO({0})".format(self.table_name))
@@ -525,7 +661,7 @@ class DatabaseTable(_QTableWidget):
 
         con = _sqlite3.connect(self.database)
         cur = con.cursor()
-        command = 'SELECT * FROM ' + self.table_name
+        cmd = 'SELECT * FROM ' + self.table_name
 
         and_flag = False
         filters = []
@@ -533,7 +669,7 @@ class DatabaseTable(_QTableWidget):
             filters.append(self.item(0, idx).text())
 
         if any(filt != '' for filt in filters):
-            command = command + ' WHERE '
+            cmd = cmd + ' WHERE '
 
         for idx in range(len(self.column_names)):
             column = self.column_names[idx]
@@ -543,27 +679,27 @@ class DatabaseTable(_QTableWidget):
             if filt != '':
 
                 if and_flag:
-                    command = command + ' AND '
+                    cmd = cmd + ' AND '
                 and_flag = True
 
                 if data_type == str:
-                    command = command + column + ' LIKE "%' + filt + '%"'
+                    cmd = cmd + column + ' LIKE "%' + filt + '%"'
                 else:
                     if '~' in filt:
                         fs = filt.split('~')
                         if len(fs) == 2:
-                            command = command + column + ' >= ' + fs[0]
-                            command = command + ' AND '
-                            command = command + column + ' <= ' + fs[1]
+                            cmd = cmd + column + ' >= ' + fs[0]
+                            cmd = cmd + ' AND '
+                            cmd = cmd + column + ' <= ' + fs[1]
                     else:
                         try:
                             value = data_type(filt)
-                            command = command + column + ' = ' + str(value)
+                            cmd = cmd + column + ' = ' + str(value)
                         except ValueError:
-                            command = command + column + ' ' + filt
+                            cmd = cmd + column + ' ' + filt
 
         try:
-            cur.execute(command)
+            cur.execute(cmd)
         except Exception:
             pass
 

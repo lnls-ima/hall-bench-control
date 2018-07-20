@@ -81,10 +81,10 @@ class CalibrationDialog(_QDialog):
         except Exception:
             pass
 
-    def closeEvent(self, event):
-        """Close dialog."""
+    def accept(self):
+        """Close calibration dialog."""
         self.closeDialogs()
-        super().closeEvent(event)
+        super().accept()
 
     def configureGraph(self, symbol=False):
         """Configure calibration data plots."""
@@ -306,10 +306,10 @@ class CalibrationDialog(_QDialog):
             return
 
         if self._probe_calibration.function_type == 'interpolation':
-            self.polynomial_dialog.close()
+            self.polynomial_dialog.accept()
             self.interpolation_dialog.show(self._probe_calibration)
         elif self._probe_calibration.function_type == 'polynomial':
-            self.interpolation_dialog.close()
+            self.interpolation_dialog.accept()
             self.polynomial_dialog.show(self._probe_calibration)
         else:
             return

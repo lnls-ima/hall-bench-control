@@ -22,8 +22,10 @@ from hallbench.gui.calibrationdialog import CalibrationDialog \
     as _CalibrationDialog
 from hallbench.gui.configurationwidgets import ConfigurationDialog \
     as _ConfigurationDialog
+from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
 from hallbench.gui.fieldmapdialog import FieldMapDialog \
     as _FieldMapDialog
+
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
@@ -56,6 +58,7 @@ class DatabaseWidget(_QWidget):
         # create dialogs
         self.calibration_dialog = _CalibrationDialog(load_enabled=False)
         self.configuration_dialog = _ConfigurationDialog(load_enabled=False)
+        self.view_data_dialog = _ViewDataDialog()
         self.fieldmap_dialog = _FieldMapDialog()
 
         self.tables = []
@@ -68,8 +71,8 @@ class DatabaseWidget(_QWidget):
         """Database filename."""
         return self.window().database
 
-    def clearDatabase(self):
-        """Clear database."""
+    def clear(self):
+        """Clear."""
         ntabs = self.ui.database_tab.count()
         for idx in range(ntabs):
             self.ui.database_tab.removeTab(idx)
@@ -108,6 +111,7 @@ class DatabaseWidget(_QWidget):
         try:
             self.calibration_dialog.accept()
             self.configuration_dialog.accept()
+            self.view_data_dialog.accept()
             self.fieldmap_dialog.accept()
         except Exception:
             pass
@@ -116,26 +120,27 @@ class DatabaseWidget(_QWidget):
         """Create signal/slot connections."""
         self.ui.refresh_btn.clicked.connect(self.updateDatabaseTables)
         self.ui.database_tab.currentChanged.connect(self.disableInvalidButtons)
+
         self.ui.view_calibration_btn.clicked.connect(self.viewCalibration)
         self.ui.save_calibration_btn.clicked.connect(self.saveCalibration)
+
         self.ui.view_configuration_btn.clicked.connect(self.viewConfiguration)
         self.ui.save_configuration_btn.clicked.connect(self.saveConfiguration)
+
+        self.ui.view_raw_data_btn.clicked.connect(self.viewRawData)
         self.ui.save_raw_data_btn.clicked.connect(self.saveRawData)
         self.ui.clear_raw_data_btn.clicked.connect(self.clearRawDataTable)
+
+        self.ui.view_scan_btn.clicked.connect(self.viewScan)
         self.ui.save_scan_btn.clicked.connect(self.saveScan)
         self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
+
+        self.ui.save_fieldmap_btn.clicked.connect(self.saveFieldmap)
 
     def createFieldmap(self):
         """Create fieldmap from scan records."""
         self.fieldmap_dialog.accept()
-        current_table = self.getCurrentTable()
-        if current_table is None:
-            return
-
-        if current_table.table_name != self._scan_table_name:
-            return
-
-        idns = self.getSelectedIDs()
+        idns = self.getTableSelectedIDs(self._scan_table_name)
         if len(idns) == 0:
             return
 
@@ -217,11 +222,14 @@ class DatabaseWidget(_QWidget):
         else:
             return None
 
-    def getSelectedID(self):
-        """Get selected ID from current table."""
+    def getTableSelectedID(self, table_name):
+        """Get table selected ID."""
         current_table = self.getCurrentTable()
         if current_table is None:
-            return
+            return None
+
+        if current_table.table_name != table_name:
+            return None
 
         idns = current_table.getSelectedIDs()
 
@@ -236,10 +244,13 @@ class DatabaseWidget(_QWidget):
         idn = idns[0]
         return idn
 
-    def getSelectedIDs(self):
-        """Get selected IDs from current table."""
+    def getTableSelectedIDs(self, table_name):
+        """Get table selected IDs."""
         current_table = self.getCurrentTable()
         if current_table is None:
+            return []
+
+        if current_table.table_name != table_name:
             return []
 
         return current_table.getSelectedIDs()
@@ -283,14 +294,7 @@ class DatabaseWidget(_QWidget):
 
     def saveCalibration(self):
         """Save probe calibration data to file."""
-        current_table = self.getCurrentTable()
-        if current_table is None:
-            return
-
-        if current_table.table_name != self._calibration_table_name:
-            return
-
-        idn = self.getSelectedID()
+        idn = self.getTableSelectedID(self._calibration_table_name)
         if idn is None:
             return
 
@@ -307,8 +311,7 @@ class DatabaseWidget(_QWidget):
         try:
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
                 filename = filename + '.txt'
-            calibration = _ProbeCalibration()
-            calibration.read_from_database(self.database, idn)
+            calibration = _ProbeCalibration(database=self.database, idn=idn)
             calibration.save_file(filename)
         except Exception as e:
             _QMessageBox.critical(
@@ -316,14 +319,7 @@ class DatabaseWidget(_QWidget):
 
     def saveConfiguration(self):
         """Save configuration data to file."""
-        current_table = self.getCurrentTable()
-        if current_table is None:
-            return
-
-        if current_table.table_name != self._configuration_table_name:
-            return
-
-        idn = self.getSelectedID()
+        idn = self.getTableSelectedID(self._configuration_table_name)
         if idn is None:
             return
 
@@ -340,8 +336,7 @@ class DatabaseWidget(_QWidget):
         try:
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
                 filename = filename + '.txt'
-            configuration = _MeasurementConfig()
-            configuration.read_from_database(self.database, idn)
+            configuration = _MeasurementConfig(database=self.database, idn=idn)
             configuration.save_file(filename)
         except Exception as e:
             _QMessageBox.critical(
@@ -349,20 +344,12 @@ class DatabaseWidget(_QWidget):
 
     def saveRawData(self):
         """Save raw data to file."""
-        current_table = self.getCurrentTable()
-        if current_table is None:
-            return
-
-        if current_table.table_name != self._scan_table_name:
-            return
-
-        idn = self.getSelectedID()
+        idn = self.getTableSelectedID(self._raw_data_table_name)
         if idn is None:
             return
 
         try:
-            raw_data = _VoltageData()
-            raw_data.read_from_database(self.database, idn)
+            raw_data = _VoltageData(database=self.database, idn=idn)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -388,20 +375,12 @@ class DatabaseWidget(_QWidget):
 
     def saveScan(self):
         """Save scan data to file."""
-        current_table = self.getCurrentTable()
-        if current_table is None:
-            return
-
-        if current_table.table_name != self._scan_table_name:
-            return
-
-        idn = self.getSelectedID()
+        idn = self.getTableSelectedID(self._scan_table_name)
         if idn is None:
             return
 
         try:
-            scan = _FieldData()
-            scan.read_from_database(self.database, idn)
+            scan = _FieldData(database=self.database, idn=idn)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -425,6 +404,37 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
+    def saveFieldmap(self):
+        """Save fieldmap to file."""
+        idn = self.getTableSelectedID(self._fieldmap_table_name)
+        if idn is None:
+            return
+
+        try:
+            fieldmap = _Fieldmap(database=self.database, idn=idn)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
+        filename = _QFileDialog.getSaveFileName(
+            self, caption='Save fieldmap file',
+            directory=fieldmap.default_filename,
+            filter="Text files (*.txt *.dat)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            if not filename.endswith('.txt') and not filename.endswith('.dat'):
+                filename = filename + '.dat'
+            fieldmap.save_file(filename)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
     def scrollDownTables(self):
         """Scroll down all tables."""
         for idx in range(len(self.tables)):
@@ -438,7 +448,7 @@ class DatabaseWidget(_QWidget):
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
             idx = self.ui.database_tab.currentIndex()
-            self.clearDatabase()
+            self.clear()
             self.loadDatabase()
             self.scrollDownTables()
             self.ui.database_tab.setCurrentIndex(idx)
@@ -454,14 +464,7 @@ class DatabaseWidget(_QWidget):
 
     def viewCalibration(self):
         """Open calibration dialog."""
-        current_table = self.getCurrentTable()
-        if current_table is None:
-            return
-
-        if current_table.table_name != self._calibration_table_name:
-            return
-
-        idn = self.getSelectedID()
+        idn = self.getTableSelectedID(self._calibration_table_name)
         if idn is None:
             return
 
@@ -471,20 +474,39 @@ class DatabaseWidget(_QWidget):
 
     def viewConfiguration(self):
         """Open configuration dialog."""
-        current_table = self.getCurrentTable()
-        if current_table is None:
-            return
-
-        if current_table.table_name != self._configuration_table_name:
-            return
-
-        idn = self.getSelectedID()
+        idn = self.getTableSelectedID(self._configuration_table_name)
         if idn is None:
             return
 
         self.configuration_dialog.show(self.database)
         self.configuration_dialog.main_wg.setDatabaseID(idn)
         self.configuration_dialog.main_wg.loadDB()
+
+    def viewRawData(self):
+        """Open view data dialog."""
+        idns = self.getTableSelectedIDs(self._raw_data_table_name)
+        if len(idns) == 0:
+            return
+
+        data_list = []
+        for idn in idns:
+            data_list.append(_VoltageData(database=self.database, idn=idn))
+        data_label = 'Voltage [V]'
+        self.view_data_dialog.accept()
+        self.view_data_dialog.show(data_list, data_label)
+
+    def viewScan(self):
+        """Open view data dialog."""
+        idns = self.getTableSelectedIDs(self._scan_table_name)
+        if len(idns) == 0:
+            return
+
+        data_list = []
+        for idn in idns:
+            data_list.append(_FieldData(database=self.database, idn=idn))
+        data_label = 'Magnetic Field [T]'
+        self.view_data_dialog.accept()
+        self.view_data_dialog.show(data_list, data_label)
 
 
 class DatabaseTable(_QTableWidget):

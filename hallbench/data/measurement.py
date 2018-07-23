@@ -44,11 +44,13 @@ class Data(object):
     _db_json_str = []
     _data_label = ''
 
-    def __init__(self, filename=None, data_unit="V"):
+    def __init__(self, filename=None, database=None, idn=None, data_unit=""):
         """Initialize variables.
 
         Args:
             filename (str, optional): file full path.
+            database (str): database file path.
+            idn (int): id in database table.
             data_unit (str, optional): data unit.
         """
         self._magnet_name = None
@@ -69,6 +71,13 @@ class Data(object):
         self._stdy = _np.array([])
         self._stdz = _np.array([])
         self._data_unit = data_unit
+
+        if filename is not None and idn is not None:
+            raise ValueError('Invalid arguments for FieldData.')
+
+        if idn is not None and database is not None:
+            self.read_from_database(database, idn)
+
         if filename is not None:
             self.read_file(filename)
 
@@ -157,6 +166,76 @@ class Data(object):
         self._main_current = value
 
     @property
+    def pos1(self):
+        """Position 1 (Axis +Z) [mm]."""
+        return self._pos1
+
+    @property
+    def pos2(self):
+        """Position 2 (Axis +Y) [mm]."""
+        return self._pos2
+
+    @property
+    def pos3(self):
+        """Position 3 (Axis +X) [mm]."""
+        return self._pos3
+
+    @property
+    def pos5(self):
+        """Position 5 (Axis +A) [deg]."""
+        return self._pos5
+
+    @property
+    def pos6(self):
+        """Position 6 (Axis +W) [mm]."""
+        return self._pos6
+
+    @property
+    def pos7(self):
+        """Position 7 (Axis +V) [mm]."""
+        return self._pos7
+
+    @property
+    def pos8(self):
+        """Position 8 (Axis +B) [deg]."""
+        return self._pos8
+
+    @property
+    def pos9(self):
+        """Position 9 (Axis +C) [deg]."""
+        return self._pos9
+
+    @property
+    def avgx(self):
+        """Probe X Average Values."""
+        return self._avgx
+
+    @property
+    def avgy(self):
+        """Probe Y Average Values."""
+        return self._avgy
+
+    @property
+    def avgz(self):
+        """Probe Z Average Values."""
+        return self._avgz
+
+    @property
+    def stdx(self):
+        """Probe X STD Values."""
+        return self._stdx
+
+    @property
+    def stdy(self):
+        """Probe Y STD Values."""
+        return self._stdy
+
+    @property
+    def stdz(self):
+        """Probe Z STD Values."""
+        return self._stdz
+
+    @property
     def axis_list(self):
         """List of all bench axes."""
         return self._axis_list
@@ -201,7 +280,7 @@ class Data(object):
     def default_filename(self):
         """Return the default filename."""
         label = self._data_label + '_' + _measurements_label
-        if self.magnet_name is not None:
+        if self.magnet_name is not None and len(self.magnet_name) != 0:
             name = self.magnet_name + '_' + label
         else:
             name = label
@@ -478,138 +557,85 @@ class VoltageData(Data):
         '_stdx', '_stdy', '_stdz']
     _data_label = 'RawData'
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
 
         Args:
             filename (str, optional): file full path.
+            database (str): database file path.
+            idn (int): id in database table.
         """
-        super().__init__(filename=filename, data_unit='V')
+        super().__init__(
+            filename=filename, database=database, idn=idn, data_unit='V')
 
-    @property
-    def pos1(self):
-        """Position 1 (Axis +Z) [mm]."""
-        return self._pos1
-
-    @pos1.setter
+    @Data.pos1.setter
     def pos1(self, value):
+        """Set pos1 value."""
         self._pos1 = _np.around(_to_array(value), decimals=_position_precision)
 
-    @property
-    def pos2(self):
-        """Position 2 (Axis +Y) [mm]."""
-        return self._pos2
-
-    @pos2.setter
+    @Data.pos2.setter
     def pos2(self, value):
+        """Set pos2 value."""
         self._pos2 = _np.around(_to_array(value), decimals=_position_precision)
 
-    @property
-    def pos3(self):
-        """Position 3 (Axis +X) [mm]."""
-        return self._pos3
-
-    @pos3.setter
+    @Data.pos3.setter
     def pos3(self, value):
+        """Set pos3 value."""
         self._pos3 = _np.around(_to_array(value), decimals=_position_precision)
 
-    @property
-    def pos5(self):
-        """Position 5 (Axis +A) [deg]."""
-        return self._pos5
-
-    @pos5.setter
+    @Data.pos5.setter
     def pos5(self, value):
+        """Set pos5 value."""
         self._pos5 = _np.around(_to_array(value), decimals=_position_precision)
 
-    @property
-    def pos6(self):
-        """Position 6 (Axis +W) [mm]."""
-        return self._pos6
-
-    @pos6.setter
+    @Data.pos6.setter
     def pos6(self, value):
+        """Set pos6 value."""
         self._pos6 = _np.around(_to_array(value), decimals=_position_precision)
 
-    @property
-    def pos7(self):
-        """Position 7 (Axis +V) [mm]."""
-        return self._pos7
-
-    @pos7.setter
+    @Data.pos7.setter
     def pos7(self, value):
+        """Set pos7 value."""
         self._pos7 = _np.around(_to_array(value), decimals=_position_precision)
 
-    @property
-    def pos8(self):
-        """Position 8 (Axis +B) [deg]."""
-        return self._pos8
-
-    @pos8.setter
+    @Data.pos8.setter
     def pos8(self, value):
+        """Set pos8 value."""
         self._pos8 = _np.around(_to_array(value), decimals=_position_precision)
 
-    @property
-    def pos9(self):
-        """Position 9 (Axis +C) [deg]."""
-        return self._pos9
-
-    @pos9.setter
+    @Data.pos9.setter
     def pos9(self, value):
+        """Set pos9 value."""
         self._pos9 = _np.around(_to_array(value), decimals=_position_precision)
 
-    @property
-    def avgx(self):
-        """Probe X Average Voltage [V]."""
-        return self._avgx
-
-    @avgx.setter
+    @Data.avgx.setter
     def avgx(self, value):
+        """Set avgx value."""
         self._avgx = _to_array(value)
 
-    @property
-    def avgy(self):
-        """Probe Y Average Voltage [V]."""
-        return self._avgy
-
-    @avgy.setter
+    @Data.avgy.setter
     def avgy(self, value):
+        """Set avgy value."""
         self._avgy = _to_array(value)
 
-    @property
-    def avgz(self):
-        """Probe Z Average Voltage [V]."""
-        return self._avgz
-
-    @avgz.setter
+    @Data.avgz.setter
     def avgz(self, value):
+        """Set avgz value."""
         self._avgz = _to_array(value)
 
-    @property
-    def stdx(self):
-        """Probe X Voltage STD [V]."""
-        return self._stdx
-
-    @stdx.setter
+    @Data.stdx.setter
     def stdx(self, value):
+        """Set stdx value."""
         self._stdx = _to_array(value)
 
-    @property
-    def stdy(self):
-        """Probe Y Voltage STD [V]."""
-        return self._stdy
-
-    @stdy.setter
+    @Data.stdy.setter
     def stdy(self, value):
+        """Set stdy value."""
         self._stdy = _to_array(value)
 
-    @property
-    def stdz(self):
-        """Probe Z Voltage STD [V]."""
-        return self._stdz
-
-    @stdz.setter
+    @Data.stdz.setter
     def stdz(self, value):
+        """Set stdz value."""
         self._stdz = _to_array(value)
 
 
@@ -652,88 +678,11 @@ class FieldData(Data):
 
         Args:
             filename (str, optional): file full path.
-            id (int): id in database table.
             database (str): database file path.
+            idn (int): id in database table.
         """
-        if filename is not None and idn is not None:
-            raise ValueError('Invalid arguments for FieldData.')
-
-        if idn is not None and database is not None:
-            super().__init__(filename=None, data_unit='T')
-            self.read_from_database(database, idn)
-
-        else:
-            super().__init__(filename=filename, data_unit='T')
-
-    @property
-    def pos1(self):
-        """Position 1 (Axis +Z) [mm]."""
-        return self._pos1
-
-    @property
-    def pos2(self):
-        """Position 2 (Axis +Y) [mm]."""
-        return self._pos2
-
-    @property
-    def pos3(self):
-        """Position 3 (Axis +X) [mm]."""
-        return self._pos3
-
-    @property
-    def pos5(self):
-        """Position 5 (Axis +A) [deg]."""
-        return self._pos5
-
-    @property
-    def pos6(self):
-        """Position 6 (Axis +W) [mm]."""
-        return self._pos6
-
-    @property
-    def pos7(self):
-        """Position 7 (Axis +V) [mm]."""
-        return self._pos7
-
-    @property
-    def pos8(self):
-        """Position 8 (Axis +B) [deg]."""
-        return self._pos8
-
-    @property
-    def pos9(self):
-        """Position 9 (Axis +C) [deg]."""
-        return self._pos9
-
-    @property
-    def avgx(self):
-        """Probe X Average Field [T]."""
-        return self._avgx
-
-    @property
-    def avgy(self):
-        """Probe Y Average Field [T]."""
-        return self._avgy
-
-    @property
-    def avgz(self):
-        """Probe Z Average Field [T]."""
-        return self._avgz
-
-    @property
-    def stdx(self):
-        """Probe X Field STD [T]."""
-        return self._stdx
-
-    @property
-    def stdy(self):
-        """Probe Y Field STD [T]."""
-        return self._stdy
-
-    @property
-    def stdz(self):
-        """Probe Z Field STD [T]."""
-        return self._stdz
+        super().__init__(
+            filename=filename, database=database, idn=idn, data_unit='T')
 
     def set_field_data(self, voltage_data_list, probe_calibration):
         """Convert average voltage values to magnetic field."""
@@ -875,7 +824,7 @@ class Fieldmap(object):
     def default_filename(self):
         """Return the default filename."""
         label = self._data_label + '_' + _measurements_label
-        if len(self.magnet_name) != 0:
+        if self.magnet_name is not None and len(self.magnet_name) != 0:
             name = self.magnet_name + '_' + label
         else:
             name = label
@@ -910,6 +859,7 @@ class Fieldmap(object):
         self.gap = None
         self.control_gap = None
         self.magnet_length = None
+        self.comments = None
         self.current_main = None
         self.nr_turns_main = None
         self.current_trim = None

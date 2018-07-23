@@ -63,14 +63,14 @@ class MeasurementWidget(_QWidget):
         self.config = None
         self.config_id = None
         self.probe_calibration = None
+        self.voltage_data = None
+        self.field_data = None
+        self.field_data_list = []
+        self.position_list = []
+        self.scan_id_list = []
         self.graphx = []
         self.graphy = []
         self.graphz = []
-        self.position_list = []
-        self.scan_id_list = []
-        self.field_data_list = []
-        self.field_data = None
-        self.voltage_data = None
         self.stop = False
 
         self.connectSignalSlots()
@@ -93,11 +93,11 @@ class MeasurementWidget(_QWidget):
         self.config = None
         self.config_id = None
         self.probe_calibration = None
+        self.voltage_data = None
+        self.field_data = None
+        self.field_data_list = []
         self.position_list = []
         self.scan_id_list = []
-        self.field_data_list = []
-        self.field_data = None
-        self.voltage_data = None
         self.stop = False
         self.clearGraph()
 
@@ -127,8 +127,7 @@ class MeasurementWidget(_QWidget):
         """Configure devices and start measurement."""
         self.clear()
 
-        if (self.devices is None
-           or not self.updateProbeCalibration()
+        if (not self.updateProbeCalibration()
            or not self.updateConfiguration()
            or not self.configureDevices()
            or not self.validDatabase()
@@ -237,7 +236,8 @@ class MeasurementWidget(_QWidget):
                     pen=(255, 0, 0),
                     symbol='o',
                     symbolPen=(255, 0, 0),
-                    symbolSize=4))
+                    symbolSize=4,
+                    symbolBrush=(255, 0, 0)))
 
             self.graphy.append(
                 self.ui.graph_pw.plotItem.plot(
@@ -246,7 +246,8 @@ class MeasurementWidget(_QWidget):
                     pen=(0, 255, 0),
                     symbol='o',
                     symbolPen=(0, 255, 0),
-                    symbolSize=4))
+                    symbolSize=4,
+                    symbolBrush=(0, 255, 0)))
 
             self.graphz.append(
                 self.ui.graph_pw.plotItem.plot(
@@ -255,7 +256,8 @@ class MeasurementWidget(_QWidget):
                     pen=(0, 0, 255),
                     symbol='o',
                     symbolPen=(0, 0, 255),
-                    symbolSize=4))
+                    symbolSize=4,
+                    symbolBrush=(0, 0, 255)))
 
         self.ui.graph_pw.setLabel('bottom', 'Scan Position [mm]')
         self.ui.graph_pw.setLabel('left', label)
@@ -317,9 +319,9 @@ class MeasurementWidget(_QWidget):
 
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
-            for i in len(nr_curves):
+            for i in range(nr_curves):
                 fd = self.field_data_list[i]
-                positions = fd.scan_positions
+                positions = fd.scan_pos
                 self.graphx[i].setData(positions, fd.avgx)
                 self.graphy[i].setData(positions, fd.avgy)
                 self.graphz[i].setData(positions, fd.avgz)
@@ -348,6 +350,23 @@ class MeasurementWidget(_QWidget):
         try:
             self.config_id = self.config.save_to_database(self.database)
             return True
+        except Exception as e:
+            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+            return False
+
+    def saveRawData(self):
+        """Save raw data to database table."""
+        if self.voltage_data is None:
+            message = 'Invalid voltage data.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return False
+
+        try:
+            self.voltage_data.save_to_database(
+                self.database, self.config_id)
+            return True
+
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return False
@@ -390,7 +409,7 @@ class MeasurementWidget(_QWidget):
         self.configureGraph(nr_measurements, 'Voltage [V]')
 
         voltage_data_list = []
-        for idx in range(nr_measurements):
+        for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
 
@@ -425,10 +444,8 @@ class MeasurementWidget(_QWidget):
             if self.stop is True:
                 return False
 
-            # start threads
             self.startReadingThreads()
 
-            # start firstger measurement
             if self.stop is False:
                 if to_pos:
                     self.devices.pmac.set_trigger(
@@ -439,7 +456,6 @@ class MeasurementWidget(_QWidget):
                         first_axis, end, step*(-1), 10, npts, 1)
                     self.moveAxisAndUpdateGraph(first_axis, start - extra, idx)
 
-            # stop trigger and copy voltage values to voltage data
             self.stopTrigger()
             self.waitReadingThreads()
             self.voltage_data.sensorx = self.devices.voltx.voltage
@@ -452,6 +468,11 @@ class MeasurementWidget(_QWidget):
 
             if not to_pos:
                 self.voltage_data.reverse()
+
+            if self.ui.save_raw_data_chb.isChecked():
+                if not self.saveRawData():
+                    return False
+
             voltage_data_list.append(self.voltage_data.copy())
 
         self.field_data.set_field_data(

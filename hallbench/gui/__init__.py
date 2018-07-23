@@ -11,4 +11,5 @@ from . import hallbenchwindow
 from . import measurementwidget
 from . import motorswidget
 from . import utils
+from . import viewdatadialog
 from . import voltageoffsetwidget

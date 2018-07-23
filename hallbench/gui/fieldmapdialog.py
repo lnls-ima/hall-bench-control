@@ -126,12 +126,18 @@ class FieldMapDialog(_QDialog):
         self.blockSignals(True)
         _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
+        magnet_name = self.ui.magnet_name_le.text()
+        gap = self.ui.gap_le.text()
+        control_gap = self.ui.control_gap_le.text()
+        magnet_len = self.ui.magnet_length_le.text()
+        comments = self.ui.comments_te.toPlainText()
+
         fieldmap = _Fieldmap()
-        fieldmap.magnet_name = self.ui.magnet_name_le.text()
-        fieldmap.gap = self.ui.gap_le.text()
-        fieldmap.control_gap = self.ui.control_gap_le.text()
-        fieldmap.magnet_length = self.ui.magnet_length_le.text()
-        fieldmap.comments = self.ui.comments_te.toPlainText()
+        fieldmap.magnet_name = magnet_name if len(magnet_name) != 0 else None
+        fieldmap.gap = gap if len(gap) != 0 else None
+        fieldmap.control_gap = control_gap if len(control_gap) != 0 else None
+        fieldmap.magnet_length = magnet_len if len(magnet_len) != 0 else None
+        fieldmap.comments = comments if len(comments) != 0 else None
 
         for coil in self._coil_list:
             if getattr(self.ui, coil + '_chb').isChecked():
@@ -160,9 +166,11 @@ class FieldMapDialog(_QDialog):
             _QApplication.restoreOverrideCursor()
             return fieldmap
 
-        except Exception:
+        except Exception as e:
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
             return None
 
     def loadMagnetInfo(self):
@@ -227,9 +235,6 @@ class FieldMapDialog(_QDialog):
 
         fieldmap = self.getFieldMap()
         if fieldmap is None:
-            message = 'Failed to save fieldmap to database.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         nr_scans = len(self.scan_id_list)
@@ -251,9 +256,6 @@ class FieldMapDialog(_QDialog):
         """Save fieldmap to database."""
         fieldmap = self.getFieldMap()
         if fieldmap is None:
-            message = 'Failed to save fieldmap to file.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
             return
 
         filename = _QFileDialog.getSaveFileName(

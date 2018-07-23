@@ -100,25 +100,46 @@ class CalibrationDialog(_QDialog):
 
         if symbol:
             plot_item_x = self.ui.viewdata_pw.plotItem.plot(
-                _np.array([]), _np.array([]), pen=penx,
-                symbol='o', symbolPen=penx, symbolSize=4, symbolBrush=penx)
+                _np.array([]),
+                _np.array([]),
+                pen=penx,
+                symbol='o',
+                symbolPen=penx,
+                symbolSize=4,
+                symbolBrush=penx)
 
             plot_item_y = self.ui.viewdata_pw.plotItem.plot(
-                _np.array([]), _np.array([]), pen=peny,
-                symbol='o', symbolPen=peny, symbolSize=4, symbolBrush=peny)
+                _np.array([]),
+                _np.array([]),
+                pen=peny,
+                symbol='o',
+                symbolPen=peny,
+                symbolSize=4,
+                symbolBrush=peny)
 
             plot_item_z = self.ui.viewdata_pw.plotItem.plot(
-                _np.array([]), _np.array([]), pen=penz,
-                symbol='o', symbolPen=penz, symbolSize=4, symbolBrush=penz)
+                _np.array([]),
+                _np.array([]),
+                pen=penz,
+                symbol='o',
+                symbolPen=penz,
+                symbolSize=4,
+                symbolBrush=penz)
         else:
             plot_item_x = self.ui.viewdata_pw.plotItem.plot(
-                _np.array([]), _np.array([]), pen=penx)
+                _np.array([]),
+                _np.array([]),
+                pen=penx)
 
             plot_item_y = self.ui.viewdata_pw.plotItem.plot(
-                _np.array([]), _np.array([]), pen=peny)
+                _np.array([]),
+                _np.array([]),
+                pen=peny)
 
             plot_item_z = self.ui.viewdata_pw.plotItem.plot(
-                _np.array([]), _np.array([]), pen=penz)
+                _np.array([]),
+                _np.array([]),
+                pen=penz)
 
         self.graphx.append(plot_item_x)
         self.graphy.append(plot_item_y)

@@ -1,8 +1,10 @@
 
+import os
 from setuptools import setup
 
 
-with open('.VERSION', 'r') as _f:
+basedir = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(basedir, 'VERSION'), 'r') as _f:
     __version__ = _f.read().strip()
 
 

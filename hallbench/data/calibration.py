@@ -309,7 +309,12 @@ class ProbeCalibration(object):
     @sensorx.setter
     def sensorx(self, value):
         if isinstance(value, CalibrationCurve):
-            self._sensorx = value
+            if (self._function_type is None or
+               self._function_type == value.function_type):
+                self._sensorx = value
+                self._function_type = value.function_type
+            else:
+                raise CalibrationError('Inconsistent function type.')
         else:
             raise TypeError('sensorx must be a CalibrationCurve object.')
 
@@ -321,7 +326,12 @@ class ProbeCalibration(object):
     @sensory.setter
     def sensory(self, value):
         if isinstance(value, CalibrationCurve):
-            self._sensory = value
+            if (self._function_type is None or
+               self._function_type == value.function_type):
+                self._sensory = value
+                self._function_type = value.function_type
+            else:
+                raise CalibrationError('Inconsistent function type.')
         else:
             raise TypeError('sensory must be a CalibrationCurve object.')
 
@@ -333,7 +343,12 @@ class ProbeCalibration(object):
     @sensorz.setter
     def sensorz(self, value):
         if isinstance(value, CalibrationCurve):
-            self._sensorz = value
+            if (self._function_type is None or
+               self._function_type == value.function_type):
+                self._sensorz = value
+                self._function_type = value.function_type
+            else:
+                raise CalibrationError('Inconsistent function type.')
         else:
             raise TypeError('sensorz must be a CalibrationCurve object.')
 

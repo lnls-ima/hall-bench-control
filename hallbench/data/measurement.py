@@ -1366,14 +1366,6 @@ def _interpolate_data_frames(dfx, dfy, dfz, axis=0):
 
 
 def _valid_field_data_list(field_data_list):
-    """Check if the field data list is valid.
-
-    Args:
-        field_data_list (list): list of FieldData objects.
-
-    Returns:
-        True is the list is valid, False otherwise.
-    """
     if isinstance(field_data_list, FieldData):
         field_data_list = [field_data_list]
 
@@ -1394,14 +1386,6 @@ def _valid_field_data_list(field_data_list):
 
 
 def _valid_voltage_data_list(voltage_data_list):
-    """Check if the voltage data list is valid.
-
-    Args:
-        voltage_data_list (list): list of VoltageData objects.
-
-    Returns:
-        True is the list is valid, False otherwise.
-    """
     if isinstance(voltage_data_list, VoltageData):
         voltage_data_list = [voltage_data_list]
 

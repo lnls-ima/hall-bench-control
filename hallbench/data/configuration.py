@@ -218,9 +218,9 @@ class MeasurementConfig(Configuration):
         self.voltx_enable = None
         self.volty_enable = None
         self.voltz_enable = None
+        self.integration_time = None
         self.voltage_precision = None
         self.nr_measurements = None
-        self.integration_time = None
         self.first_axis = None
         self.second_axis = None
         self.start_ax1 = None

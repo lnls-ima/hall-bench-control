@@ -216,7 +216,8 @@ class Pmac(object):
             self._pmacdll = _ctypes.windll.LoadLibrary('PComm32W.dll')
             return True
         except Exception:
-            self.logger.error('Fail to connect to dll')
+            if self.logger is not None:
+                self.logger.error('Fail to connect to dll')
             return False
 
     def connect(self):
@@ -303,7 +304,9 @@ class Pmac(object):
             else:
                 return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
+            return None
 
     def read_response(self, str_command):
         """
@@ -317,7 +320,8 @@ class Pmac(object):
             else:
                 return ''
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def activate_bench(self):
@@ -334,7 +338,8 @@ class Pmac(object):
                         return True
             return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def axis_status(self, axis):
@@ -346,7 +351,8 @@ class Pmac(object):
                 return status
             return None
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def align_bench(self, axis_mask):
@@ -359,12 +365,15 @@ class Pmac(object):
                         if self.get_response(self.commands.rp_align_axis):
                             return True
                         else:
-                            self.logger.warning('Fail to set P_axis_mask')
+                            if self.logger is not None:
+                                self.logger.warning('Fail to set P_axis_mask')
                     else:
-                        self.logger.warning('Fail to set P_axis_mask')
+                        if self.logger is not None:
+                            self.logger.warning('Fail to set P_axis_mask')
             return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def get_position(self, axis):
@@ -377,7 +386,8 @@ class Pmac(object):
             else:
                 return None
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def get_velocity(self, axis):
@@ -391,7 +401,8 @@ class Pmac(object):
             else:
                 return None
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def set_axis_speed(self, axis, value):
@@ -407,7 +418,8 @@ class Pmac(object):
                     return True
             return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def move_axis(self, axis, value):
@@ -421,7 +433,8 @@ class Pmac(object):
                 return True
             return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def stop_axis(self, axis):
@@ -431,7 +444,8 @@ class Pmac(object):
                 return True
             return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def stop_all_axis(self):
@@ -441,7 +455,8 @@ class Pmac(object):
                 return True
             return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def kill_all_axis(self):
@@ -451,7 +466,8 @@ class Pmac(object):
                 return True
             return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def set_trigger(
@@ -502,7 +518,8 @@ class Pmac(object):
             return True
 
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def stop_trigger(self):
@@ -514,5 +531,6 @@ class Pmac(object):
                 return True
             return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None

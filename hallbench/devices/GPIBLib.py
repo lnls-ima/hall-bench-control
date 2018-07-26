@@ -74,7 +74,8 @@ class GPIB(object):
                 self._connected = False
                 return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def disconnect(self):
@@ -85,7 +86,8 @@ class GPIB(object):
             self._connected = False
             return True
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def send_command(self, command):
@@ -103,7 +105,8 @@ class GPIB(object):
             else:
                 return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def read_from_device(self):

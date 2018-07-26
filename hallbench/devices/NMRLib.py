@@ -122,7 +122,8 @@ class NMR(object):
                 self.ser.open()
             return True
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def disconnect(self):
@@ -142,7 +143,8 @@ class NMR(object):
             self.ser.close()
             return True
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def configure(
@@ -164,40 +166,41 @@ class NMR(object):
             True if successful, False otherwise.
         """
         try:
-            self.rlock.acquire()
-            self.send_command(self.commands.remote)
-            _time.sleep(0.01)
+            with self.rlock:
+                self.send_command(self.commands.remote)
+                _time.sleep(0.01)
 
-            self.send_command(self.commands.channel + str(channel))
-            _time.sleep(0.01)
+                self.send_command(self.commands.channel + str(channel))
+                _time.sleep(0.01)
 
-            self.send_command(self.commands.nr_channels + str(nr_channels))
-            _time.sleep(0.01)
+                self.send_command(self.commands.nr_channels + str(nr_channels))
+                _time.sleep(0.01)
 
-            self.send_command(self.commands.frequency+str(frequency)+'\r\n')
-            _time.sleep(0.01)
+                self.send_command(self.commands.frequency+str(frequency))
+                _time.sleep(0.01)
 
-            self.send_command(self.commands.aquisition + str(aquisition))
-            _time.sleep(0.01)
+                self.send_command(self.commands.aquisition + str(aquisition))
+                _time.sleep(0.01)
 
-            self.send_command(self.commands.field_sense + str(field_sense))
-            _time.sleep(0.01)
+                self.send_command(self.commands.field_sense + str(field_sense))
+                _time.sleep(0.01)
 
-            self.send_command(self.commands.display_mode + str(display_mode))
-            _time.sleep(0.01)
+                self.send_command(
+                    self.commands.display_mode + str(display_mode))
+                _time.sleep(0.01)
 
-            self.send_command(self.commands.display_vel + str(display_vel))
-            _time.sleep(0.01)
+                self.send_command(self.commands.display_vel + str(display_vel))
+                _time.sleep(0.01)
 
-            self.send_command(self.commands.search_time + str(search_time))
-            _time.sleep(0.01)
+                self.send_command(self.commands.search_time + str(search_time))
+                _time.sleep(0.01)
 
-            self.rlock.release()
             return True
 
         except Exception:
             self.rlock.release()
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return False
 
     def send_command(self, command):
@@ -210,12 +213,13 @@ class NMR(object):
             True if successful, False otherwise.
         """
         try:
-            if self.ser.write(command.encode('utf-8')) == len(command):
+            if self.ser.write((command+'\r').encode('utf-8')) == len(command):
                 return True
             else:
                 return False
         except Exception:
-            self.logger.error('exception', exc_info=True)
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
             return None
 
     def read_from_device(self):
@@ -228,7 +232,7 @@ class NMR(object):
         """
         try:
             self.ser.write(self.commands.read.encode('utf-8'))
-            _reading = self.ser.read(20).decode('utf-8')
+            _reading = self.ser.read_all().decode('utf-8')
             return _reading
         except Exception:
             return ''

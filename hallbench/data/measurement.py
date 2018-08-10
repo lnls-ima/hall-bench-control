@@ -1085,7 +1085,7 @@ class Fieldmap(object):
             field_data_list, probe_calibration, correct_displacements)
         pos1, pos2, pos3 = _r[0], _r[1], _r[2]
         field1, field2, field3 = _r[3], _r[4], _r[5]
-        index_axis, columns_axis = _r[6], _r[7]
+        first_axis, second_axis = _r[6], _r[7]
 
         def _get_field_at_point(pos):
             pos = _np.around(pos, decimals=_position_precision)
@@ -1094,9 +1094,9 @@ class Fieldmap(object):
                 return [_np.nan, _np.nan, _np.nan]
 
             psorted = [p1, p2, p3]
-            loc_idx = psorted[index_axis-1]
-            if columns_axis is not None:
-                loc_col = psorted[columns_axis-1]
+            loc_idx = psorted[first_axis-1]
+            if second_axis is not None:
+                loc_col = psorted[first_axis-1]
             else:
                 loc_col = 0
             b3 = field3.loc[loc_idx, loc_col]
@@ -1155,6 +1155,9 @@ def _cut_data_frames(dfx, dfy, dfz, nbeg, nend, axis=0):
 
 def _get_avg_voltage(voltage_data_list):
     """Get average voltage and position values."""
+    if isinstance(voltage_data_list, VoltageData):
+        voltage_data_list = [voltage_data_list]
+
     if not _valid_voltage_data_list(voltage_data_list):
         raise MeasurementDataError('Invalid voltage data list.')
 
@@ -1202,41 +1205,26 @@ def _get_avg_voltage(voltage_data_list):
 
 def _get_fieldmap_position_and_field_values(
         field_data_list, probe_calibration, correct_displacements):
-    if not _valid_field_data_list(field_data_list):
+    if isinstance(field_data_list, FieldData):
+        field_data_list = [field_data_list]
+
+    axes = _get_fieldmap_axes(field_data_list)
+    if len(axes) == 0:
         raise MeasurementDataError('Invalid field data list.')
-
-    index_axis = field_data_list[0].scan_axis
-
-    _dict = {}
-    for axis in field_data_list[0].axis_list:
-        pos = set()
-        for field_data in field_data_list:
-            p = _np.around(getattr(field_data, 'pos' + str(axis)),
-                           decimals=_check_position_precision)
-            pos.update(p)
-        _dict[axis] = sorted(list(pos))
-
-    columns_axis = []
-    for key, value in _dict.items():
-        if key != index_axis and len(value) > 1:
-            columns_axis.append(key)
-
-    if len(columns_axis) > 1:
-        raise MeasurementDataError('Invalid number of measurement axes.')
-
-    if len(columns_axis) == 1:
-        columns_axis = columns_axis[0]
-
-    if len(columns_axis) == 0:
-        columns_axis = None
+    elif len(axes) == 1:
+        first_axis = axes[0]
+        second_axis = None
+    else:
+        first_axis = axes[0]
+        second_axis = axes[1]
 
     dfx = []
     dfy = []
     dfz = []
     for fd in field_data_list:
-        index = getattr(fd, 'pos' + str(index_axis))
-        if columns_axis is not None:
-            columns = getattr(fd, 'pos' + str(columns_axis))
+        index = getattr(fd, 'pos' + str(first_axis))
+        if second_axis is not None:
+            columns = getattr(fd, 'pos' + str(second_axis))
         else:
             columns = [0]
 
@@ -1254,21 +1242,13 @@ def _get_fieldmap_position_and_field_values(
     fieldy = _pd.concat(dfy, axis=1)
     fieldz = _pd.concat(dfz, axis=1)
 
-    index = fieldx.index
-    columns = fieldx.columns
-    if (len(columns) != len(columns.drop_duplicates())):
-        message = 'Duplicate position found in field data list.'
-        raise MeasurementDataError(message)
-
     if correct_displacements:
-        index = fieldy.index
-        columns = fieldy.columns
-
         # shift field data
         fieldx.index = probe_calibration.corrected_position(
-            index_axis, index, 'x')
+            first_axis, fieldx.index, 'x')
         fieldz.index = probe_calibration.corrected_position(
-            index_axis, index, 'z')
+            first_axis, fieldz.index, 'z')
+
         nbeg, nend = _get_number_of_cuts(
             fieldx.index, fieldy.index, fieldz.index)
 
@@ -1280,12 +1260,13 @@ def _get_fieldmap_position_and_field_values(
         fieldx, fieldy, fieldz = _cut_data_frames(
             fieldx, fieldy, fieldz, nbeg, nend)
 
-        if columns_axis is not None:
+        if second_axis is not None:
             # shift field data
             fieldx.columns = probe_calibration.corrected_position(
-                columns_axis, columns, 'x')
+                second_axis, fieldx.columns, 'x')
             fieldz.columns = probe_calibration.corrected_position(
-                columns_axis, columns, 'z')
+                second_axis, fieldz.columns, 'z')
+
             nbeg, nend = _get_number_of_cuts(
                 fieldx.columns, fieldy.columns, fieldz.columns)
 
@@ -1297,23 +1278,68 @@ def _get_fieldmap_position_and_field_values(
             fieldx, fieldy, fieldz = _cut_data_frames(
                 fieldx, fieldy, fieldz, nbeg, nend, axis=1)
 
-    # update position values
-    index = fieldx.index
-    columns = fieldx.columns
-    pos_sorted = [_dict[1], _dict[2], _dict[3]]
-    pos_sorted[index_axis - 1] = index.values
-    if columns_axis is not None:
-        pos_sorted[columns_axis - 1] = columns.values
-
-    pos3 = _np.array(pos_sorted[2])  # x-axis
-    pos2 = _np.array(pos_sorted[1])  # y-axis
-    pos1 = _np.array(pos_sorted[0])  # z-axis
+    pos_dict = _get_fieldmap_position_dict(field_data_list)
+    pos3 = _np.array(pos_dict[3])  # x-axis
+    pos2 = _np.array(pos_dict[2])  # y-axis
+    pos1 = _np.array(pos_dict[1])  # z-axis
 
     field3, field2, field1 = (
         probe_calibration.field_in_bench_coordinate_system(
             fieldx, fieldy, fieldz))
 
-    return [pos1, pos2, pos3, field1, field2, field3, index_axis, columns_axis]
+    return [pos1, pos2, pos3, field1, field2, field3, first_axis, second_axis]
+
+
+def _get_fieldmap_position_dict(field_data_list):
+    _dict = {}
+    for axis in field_data_list[0].axis_list:
+        pos = set()
+        for fd in field_data_list:
+            p = _np.around(getattr(fd, 'pos' + str(axis)),
+                           decimals=_check_position_precision)
+            pos.update(p)
+        _dict[axis] = sorted(list(pos))
+    return _dict
+
+
+def _get_fieldmap_axes(field_data_list):
+    if (len(field_data_list) == 0
+       or not all([isinstance(fd, FieldData) for fd in field_data_list])):
+        return []
+
+    if any([fd.scan_axis is None or fd.npts == 0 for fd in field_data_list]):
+        return []
+
+    if not all([fd.scan_axis == field_data_list[0].scan_axis
+                for fd in field_data_list]):
+        return []
+
+    _dict = _get_fieldmap_position_dict(field_data_list)
+    first_axis = field_data_list[0].scan_axis
+
+    axes = [first_axis]
+
+    second_axis_list = []
+    for key, value in _dict.items():
+        if key != first_axis and len(value) > 1:
+            second_axis_list.append(key)
+
+    second_axis = second_axis_list[0] if len(second_axis_list) == 1 else None
+    second_axis_pos = []
+
+    if second_axis is not None:
+        axes.append(second_axis)
+        for fd in field_data_list:
+            pos = getattr(fd, 'pos' + str(second_axis))
+            second_axis_pos.append(pos)
+    else:
+        if len(field_data_list) > 1:
+            return []
+
+    if len(second_axis_pos) != len(_np.unique(second_axis_pos)):
+        return []
+
+    return axes
 
 
 def _get_number_of_cuts(px, py, pz):
@@ -1365,30 +1391,7 @@ def _interpolate_data_frames(dfx, dfy, dfz, axis=0):
     return interp_dfx, dfy, interp_dfz
 
 
-def _valid_field_data_list(field_data_list):
-    if isinstance(field_data_list, FieldData):
-        field_data_list = [field_data_list]
-
-    if not all([isinstance(fd, FieldData) for fd in field_data_list]):
-        return False
-
-    if len(field_data_list) == 0:
-        return False
-
-    if any([fd.scan_axis is None or fd.npts == 0 for fd in field_data_list]):
-        return False
-
-    if not all([fd.scan_axis == field_data_list[0].scan_axis
-                for fd in field_data_list]):
-        return False
-
-    return True
-
-
 def _valid_voltage_data_list(voltage_data_list):
-    if isinstance(voltage_data_list, VoltageData):
-        voltage_data_list = [voltage_data_list]
-
     if not all([isinstance(vd, VoltageData) for vd in voltage_data_list]):
         return False
 

@@ -97,11 +97,11 @@ class CalibrationCurve(object):
             value = value.tolist()
 
         if isinstance(value, (list, tuple)):
-            if len(value) == 1 and not isinstance(value[0], (list, tuple)):
-                self._data = [value]
-                self._set_conversion_function()
-            elif all(isinstance(item, list) for item in value):
+            if all(isinstance(item, list) for item in value):
                 self._data = value
+                self._set_conversion_function()
+            elif not any(isinstance(item, list) for item in value):
+                self._data = [value]
                 self._set_conversion_function()
             else:
                 raise ValueError('Invalid value for calibration data.')

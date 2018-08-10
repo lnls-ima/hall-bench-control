@@ -30,6 +30,29 @@ class TestFunctions(TestCase):
         vd.avgz = [0, 0]
         self.vd = vd
 
+        fd = measurement.FieldData()
+        fd._pos1 = measurement._to_array([1, 2])
+        fd._pos2 = measurement._to_array(1)
+        fd._pos3 = measurement._to_array(1)
+        fd._pos5 = measurement._to_array(1)
+        fd._pos6 = measurement._to_array(1)
+        fd._pos7 = measurement._to_array(1)
+        fd._pos8 = measurement._to_array(1)
+        fd._pos9 = measurement._to_array(1)
+        fd._avgx = measurement._to_array([1, 2])
+        fd._avgy = measurement._to_array([3, 4])
+        fd._avgz = measurement._to_array([0, 0])
+        self.fd = fd
+
+        sc = calibration.CalibrationCurve()
+        sc.function_type = 'polynomial'
+        sc.data = [-1000, 1000, 0, 1]
+        pc = calibration.ProbeCalibration()
+        pc.sensorx = sc
+        pc.sensory = sc
+        pc.sensorz = sc
+        self.pc = pc
+
     def tearDown(self):
         """Tear down."""
         pass
@@ -163,7 +186,7 @@ class TestFunctions(TestCase):
 
     def test_valid_voltage_data_list(self):
         vd = measurement.VoltageData()
-        valid = measurement._valid_voltage_data_list(vd)
+        valid = measurement._valid_voltage_data_list([vd])
         self.assertFalse(valid)
 
         valid = measurement._valid_voltage_data_list([vd, None])
@@ -171,9 +194,6 @@ class TestFunctions(TestCase):
 
         valid = measurement._valid_voltage_data_list([])
         self.assertFalse(valid)
-
-        valid = measurement._valid_voltage_data_list(self.vd)
-        self.assertTrue(valid)
 
         valid = measurement._valid_voltage_data_list([self.vd])
         self.assertTrue(valid)
@@ -198,12 +218,6 @@ class TestFunctions(TestCase):
         valid = measurement._valid_voltage_data_list([self.vd, vdc])
         self.assertFalse(valid)
 
-    def test_valid_field_data_list(self):
-        self.assertTrue(False)
-
-    def test_get_fieldmap_position_and_field_values(self):
-        self.assertTrue(False)
-
     def test_get_avg_voltage(self):
         vdc = self.vd.copy()
         vdc.avgx = vdc.avgx + 2
@@ -214,9 +228,78 @@ class TestFunctions(TestCase):
         np.testing.assert_array_almost_equal(
             avg.avgx, (self.vd.avgx + vdc.avgx)/2)
         np.testing.assert_array_almost_equal(
-            avg.avgx, (self.vd.avgx + vdc.avgx)/2)
+            avg.avgy, (self.vd.avgy + vdc.avgy)/2)
         np.testing.assert_array_almost_equal(
-            avg.avgx, (self.vd.avgx + vdc.avgx)/2)
+            avg.avgz, (self.vd.avgz + vdc.avgz)/2)
+
+        vdc.avgz = []
+        avg = measurement._get_avg_voltage([self.vd, vdc])
+        np.testing.assert_array_almost_equal(
+            avg.avgz, (self.vd.avgz + [0, 0])/2)
+
+        vd = measurement.VoltageData()
+        with self.assertRaises(measurement.MeasurementDataError):
+            avg = measurement._get_avg_voltage(vd)
+
+        vdc = self.vd.copy()
+        vdc.pos1 = vdc.pos1 + 2
+        vdc.avgx = vdc.avgx + 2
+        vdc.avgy = vdc.avgy + 2
+        vdc.avgz = vdc.avgz + 2
+        avg = measurement._get_avg_voltage([self.vd, vdc])
+
+        np.testing.assert_array_almost_equal(
+            avg.pos1, self.vd.pos1 + 1)
+        np.testing.assert_array_almost_equal(
+            avg.avgx, self.vd.avgx + 1)
+        np.testing.assert_array_almost_equal(
+            avg.avgy, self.vd.avgy + 1)
+        np.testing.assert_array_almost_equal(
+            avg.avgz, self.vd.avgz + 1)
+
+    def test_get_fieldmap_axes(self):
+        fd = measurement.FieldData()
+        axes = measurement._get_fieldmap_axes([fd])
+        self.assertEqual(len(axes), 0)
+
+        axes = measurement._get_fieldmap_axes([fd, None])
+        self.assertEqual(len(axes), 0)
+
+        axes = measurement._get_fieldmap_axes([])
+        self.assertEqual(len(axes), 0)
+
+        axes = measurement._get_fieldmap_axes([self.fd])
+        self.assertEqual(len(axes), 1)
+
+        axes = measurement._get_fieldmap_axes([self.fd, self.fd])
+        self.assertEqual(len(axes), 0)
+
+        fdc = self.fd.copy()
+        fdc._pos1 = self.fd.pos2
+        fdc._pos2 = self.fd.pos1
+        self.assertNotEqual(self.fd.scan_axis, fdc.scan_axis)
+        axes = measurement._get_fieldmap_axes([self.fd, fdc])
+        self.assertEqual(len(axes), 0)
+
+        fdc = self.fd.copy()
+        fdc._pos2 = fdc.pos2 + 1
+        axes = measurement._get_fieldmap_axes([self.fd, fdc])
+        self.assertEqual(len(axes), 2)
+
+        fdc = self.fd.copy()
+        fdc._pos1 = np.append(fdc.pos1, 3)
+        fdc._avgx = np.append(fdc.avgx, 3)
+        fdc._avgy = np.append(fdc.avgy, 3)
+        fdc._avgz = np.append(fdc.avgz, 3)
+        fdc._pos2 = fdc.pos2 + 1
+        axes = measurement._get_fieldmap_axes([self.fd, fdc])
+        self.assertEqual(len(axes), 2)
+
+    def test_get_fieldmap_position_and_field_values(self):
+        voltage = [1, 2, 3, 4]
+        field = self.pc.sensorx.convert_voltage(voltage)
+        np.testing.assert_array_almost_equal(field, voltage)
+
 
 # class TestData(TestCase):
 #     """Test Data."""

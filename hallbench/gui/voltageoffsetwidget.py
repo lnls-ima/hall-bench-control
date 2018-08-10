@@ -7,13 +7,13 @@ import time as _time
 import datetime as _datetime
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
     )
-from PyQt5.QtCore import QTimer as _QTimer
-import PyQt5.uic as _uic
+from PyQt4.QtCore import QTimer as _QTimer
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
@@ -273,7 +273,7 @@ class VoltageOffsetWidget(_QWidget):
 
     def updateTableValues(self, scrollDown=True):
         """Update table values."""
-        n = len(self.timestamp)
+        n = _np.min([len(self.voltx_values), len(self.volty_values), len(self.voltz_values)])
         self.ui.voltoffset_ta.clearContents()
         self.ui.voltoffset_ta.setRowCount(n)
 

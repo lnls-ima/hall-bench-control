@@ -4,17 +4,17 @@
 
 import sys as _sys
 import threading as _threading
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QApplication as _QApplication,
     QDesktopWidget as _QDesktopWidget,
     )
-from PyQt5.QtGui import QFont as _QFont
+from PyQt4.QtGui import QFont as _QFont
 
 # Style: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]
-_style = 'motif'
-_fontsize = 10
+_style = 'plastique'
+_fontsize = 12
 _window_width = 1200
-_window_height = 900
+_window_height = 700
 
 
 class GUIThread(_threading.Thread):

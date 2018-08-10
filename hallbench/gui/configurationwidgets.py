@@ -3,14 +3,14 @@
 """Configuration widget for the Hall Bench Control application."""
 
 import numpy as _np
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QWidget as _QWidget,
     QDialog as _QDialog,
     QFileDialog as _QFileDialog,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
     )
-import PyQt5.uic as _uic
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.calibrationdialog import CalibrationDialog \

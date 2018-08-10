@@ -2,12 +2,12 @@
 
 """Main window for the Hall probe calibration application."""
 
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QMainWindow as _QMainWindow,
     QApplication as _QApplication,
     )
-from PyQt5.QtCore import QTimer as _QTimer
-import PyQt5.uic as _uic
+from PyQt4.QtCore import QTimer as _QTimer
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.connectionwidget import ConnectionWidget \

@@ -4,11 +4,11 @@
 
 import numpy as _np
 import warnings as _warnings
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QDialog as _QDialog,
     QMessageBox as _QMessageBox,
     )
-import PyQt5.uic as _uic
+import PyQt4.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.utils import getUiFile as _getUiFile

@@ -2,12 +2,12 @@
 
 """Connection widget for the Hall Bench Control application."""
 
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     )
-import PyQt5.uic as _uic
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.data.configuration import ConnectionConfig as _ConnectionConfig

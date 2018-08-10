@@ -2,11 +2,11 @@
 
 """Current Position widget for the Hall Bench Control application."""
 
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QWidget as _QWidget,
     QApplication as _QApplication,
     )
-import PyQt5.uic as _uic
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 

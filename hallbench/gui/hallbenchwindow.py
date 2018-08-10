@@ -3,12 +3,12 @@
 """Main window for the Hall Bench Control application."""
 
 import os as _os
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QMainWindow as _QMainWindow,
     QApplication as _QApplication,
     )
-from PyQt5.QtCore import QTimer as _QTimer
-import PyQt5.uic as _uic
+from PyQt4.QtCore import QTimer as _QTimer
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.connectionwidget import ConnectionWidget \
@@ -18,8 +18,16 @@ from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
 from hallbench.gui.databasewidget import DatabaseWidget \
     as _DatabaseWidget
+from hallbench.gui.voltageoffsetwidget import VoltageOffsetWidget \
+    as _VoltageOffsetWidget
 from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
-from hallbench.data.database import create_database as _create_database
+from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
+from hallbench.data.configuration import MeasurementConfig as _MeasurementConfig
+from hallbench.data.measurement import (
+    VoltageData as _VoltageData,
+    FieldData as _FieldData,
+    Fieldmap as _Fieldmap,
+    )
 
 
 _database_filename = 'hall_bench_measurements.db'
@@ -57,12 +65,15 @@ class HallBenchWindow(_QMainWindow):
         self.measurement_tab = _MeasurementWidget(self)
         self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')
 
+        self.voltageoffset_tab = _VoltageOffsetWidget(self)
+        self.ui.main_tab.addTab(self.voltageoffset_tab, 'Voltage Offset')
+
         self.database_tab = _DatabaseWidget(self)
         self.ui.main_tab.addTab(self.database_tab, 'Database')
 
         self.timer = _QTimer()
 
-        _create_database(self.database)
+        self.create_database(self.database)
         self.ui.database_le.setText(self.database)
 
         self.updateMainTabStatus()
@@ -82,6 +93,32 @@ class HallBenchWindow(_QMainWindow):
     def fieldmap(self):
         """Measurement fieldmap."""
         return self.measurement_tab.fieldmap
+
+    def create_database(self, database):
+        """Create database and tables.
+
+        Args:
+            database (str): full file path to database.
+        """
+        success = _ProbeCalibration.create_database_table(database)
+        if not success:
+            raise DataBaseError('Fail to create database table')
+
+        success = _MeasurementConfig.create_database_table(database)
+        if not success:
+            raise DataBaseError('Fail to create database table')
+
+        success = _VoltageData.create_database_table(database)
+        if not success:
+            raise DataBaseError('Fail to create database table')
+
+        success = _FieldData.create_database_table(database)
+        if not success:
+            raise DataBaseError('Fail to create database table')
+
+        success = _Fieldmap.create_database_table(database)
+        if not success:
+            raise DataBaseError('Fail to create database table')
 
     def closeEvent(self, event):
         """Close main window and dialogs."""

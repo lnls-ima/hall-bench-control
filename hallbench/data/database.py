@@ -5,10 +5,6 @@
 import os as _os
 import sqlite3 as _sqlite
 
-from . import calibration as _calibration
-from . import configuration as _configuration
-from . import measurement as _measurement
-
 
 class DataBaseError(Exception):
     """DataBase exception."""

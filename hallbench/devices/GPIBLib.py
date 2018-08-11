@@ -60,18 +60,23 @@ class GPIB(object):
             # connects to the device
             _cmd = 'GPIB0::'+str(address)+'::INSTR'
             # instrument
-            _inst = _rm.open_resource(_cmd)
-
+            self.inst = _rm.open_resource(_cmd)
+            
+            # set a default timeout to 1
+            self.inst.timeout = 1000  # ms
+                
             # check if connected
-            if _inst.__str__() == ('GPIBInstrument at ' + _cmd):
-                # copy reference to global variable
-                self.inst = _inst
-                # set a default timeout to 1
-                self.inst.timeout = 1000  # ms
-                self._connected = True
-                return True
+            if self.inst.__str__() == ('GPIBInstrument at ' + _cmd):
+                try:
+                    r = self.inst.read()
+                    self._connected = True
+                    return True
+                except Exception:
+                    self.inst.close()
+                    return False
             else:
                 self._connected = False
+                self.inst.close()
                 return False
         except Exception:
             if self.logger is not None:
@@ -472,9 +477,6 @@ class Agilent3458A(GPIB):
         Args:
             logfile (str): log file path.
         """
-        if not isinstance(logfile, str):
-            raise TypeError('logfile must be a string.')
-
         self.commands = Agilent3458ACommands()
         self.logfile = logfile
         self.end_measurement = False

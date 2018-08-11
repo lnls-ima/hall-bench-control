@@ -6,7 +6,9 @@ from PyQt4.QtGui import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
+    QApplication as _QApplication,
     )
+from PyQt4.QtCore import Qt as _Qt
 import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
@@ -43,10 +45,16 @@ class ConnectionWidget(_QWidget):
         if not self.updateConfiguration():
             return
 
+        self.blockSignals(True)
+        _QApplication.setOverrideCursor(_Qt.WaitCursor)
+
         try:
             self.devices.connect(self.config)
             self.updateLedStatus()
             connected = self.connectionStatus()
+
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
 
             if not connected:
                 message = 'Fail to connect devices.'
@@ -54,6 +62,8 @@ class ConnectionWidget(_QWidget):
                     self, 'Failure', message, _QMessageBox.Ok)
 
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             message = 'Fail to connect devices.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)

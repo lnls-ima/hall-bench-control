@@ -87,7 +87,11 @@ class NMR(object):
         if self.ser is None:
             return False
         else:
-            return self.ser.isOpen()
+            if self.ser.isOpen():
+                if any([self.ser.getCTS(), self.ser.getDSR(), self.ser.getRI(), self.ser.getCD()]):
+                    return True
+                else:
+                    return False
 
     def log_events(self):
         """Prepare log file to save info, warning and error status."""
@@ -120,7 +124,10 @@ class NMR(object):
             self.ser.timeout = self._timeout
             if not self.ser.isOpen():
                 self.ser.open()
-            return True
+                if any([self.ser.getCTS(), self.ser.getDSR(), self.ser.getRI(), self.ser.getCD()]):
+                    return True
+                else:
+                    return False
         except Exception:
             if self.logger is not None:
                 self.logger.error('exception', exc_info=True)

@@ -223,7 +223,7 @@ class Pmac(object):
     def connect(self):
         """Connect to Pmac device - OpenPmacDevice(0)."""
         if self._pmacdll is None:
-            if self.load_dll():
+            if not self.load_dll():
                 return False
 
         try:

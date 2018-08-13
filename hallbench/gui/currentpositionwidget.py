@@ -33,7 +33,7 @@ class CurrentPositionWidget(_QWidget):
             return
 
         try:
-            for axis in self.pmac.commandslist_of_axis:
+            for axis in self.pmac.commands.list_of_axis:
                 pos = self.pmac.get_position(axis)
                 le = getattr(self.ui, 'posax' + str(axis) + '_le')
                 le.setText('{0:0.4f}'.format(pos))

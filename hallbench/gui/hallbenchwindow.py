@@ -74,6 +74,7 @@ class HallBenchWindow(_QMainWindow):
         self.ui.main_tab.addTab(self.database_tab, 'Database')
 
         self.timer = _QTimer()
+        self.startTimer()
 
         self.create_database(self.database)
         self.ui.database_le.setText(self.database)
@@ -173,16 +174,15 @@ class HallBenchWindow(_QMainWindow):
 
     def updateMainTabStatus(self):
         """Enable or disable main tabs."""
-        pass
-        # try:
-        #     _idx = self.ui.main_tab.indexOf(self.motors_tab)
-        #     if _idx != -1:
-        #         self.ui.main_tab.setTabEnabled(
-        #             _idx, self.devices.pmac.connected)
-        #
-        #     _idx = self.ui.main_tab.indexOf(self.measurement_tab)
-        #     if _idx != -1:
-        #         self.ui.main_tab.setTabEnabled(
-        #             _idx, self.ui.motors_tab.homing)
-        # except Exception:
-        #     pass
+        try:
+            _idx = self.ui.main_tab.indexOf(self.motors_tab)
+            if _idx != -1:
+                self.ui.main_tab.setTabEnabled(
+                    _idx, self.devices.pmac.connected)
+
+            _idx = self.ui.main_tab.indexOf(self.measurement_tab)
+            if _idx != -1:
+                self.ui.main_tab.setTabEnabled(
+                    _idx, self.ui.motors_tab.homing)
+        except Exception:
+            pass

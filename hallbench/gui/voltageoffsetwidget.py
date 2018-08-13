@@ -48,7 +48,7 @@ class VoltageOffsetWidget(_QWidget):
             lambda: self.setPositionStrFormat(self.ui.posax3_le))
 
         self.ui.move_btn.clicked.connect(self.moveToChamberPosition)
-        self.ui.readvolt_btn.clicked.connect(self.readVoltage)
+        self.ui.readvolt_btn.clicked.connect(lambda: self.readVoltage(msgbox=True))
         self.ui.monitorvolt_btn.toggled.connect(self.monitorVoltage)
         self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
         self.ui.monitorunit_cmb.currentIndexChanged.connect(
@@ -59,7 +59,7 @@ class VoltageOffsetWidget(_QWidget):
         # create timer to monitor voltage
         self.timer = _QTimer(self)
         self.updateMonitorInterval()
-        self.timer.timeout.connect(self.readVoltage)
+        self.timer.timeout.connect(lambda: self.readVoltage(msgbox=False))
 
         # configure plot and table
         self.ui.voltoffset_ta.setAlternatingRowColors(True)
@@ -158,43 +158,32 @@ class VoltageOffsetWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', 'Failed to move probe.', _QMessageBox.Ok)
 
-    def readVoltage(self):
+    def readVoltage(self, msgbox=True):
         """Read voltage value."""
         self.timestamp.append(_time.time())
 
-        if self.devices.voltx.connected:
-            self.devices.voltx.send_command(
-                self.devices.voltx.commands.end_gpib_always)
-            voltx = float(self.devices.voltx.read_from_device()[:-2])
-            self.voltx_values.append(voltx)
-        else:
-            _QMessageBox.critical(
-                self, 'Failure',
-                'Voltimeter X not connected.', _QMessageBox.Ok)
+        if not self.devices.voltx.connected or not self.devices.volty.connected or not self.devices.voltz.connected:
+            if msgbox:
+                _QMessageBox.critical(
+                    self, 'Failure',
+                    'Voltimeters not connected.', _QMessageBox.Ok)
             return
 
-        if self.devices.volty.connected:
-            self.devices.volty.send_command(
-                self.devices.volty.commands.end_gpib_always)
-            volty = float(self.devices.volty.read_from_device()[:-2])
-            self.volty_values.append(volty)
-        else:
-            _QMessageBox.critical(
-                self, 'Failure',
-                'Voltimeter Y not connected.', _QMessageBox.Ok)
-            return
+        self.devices.voltx.send_command(
+            self.devices.voltx.commands.end_gpib_always)
+        voltx = float(self.devices.voltx.read_from_device()[:-2])
+        self.voltx_values.append(voltx)
 
-        if self.devices.voltz.connected:
-            self.devices.voltz.send_command(
-                self.devices.voltz.commands.end_gpib_always)
-            voltz = float(self.devices.voltz.read_from_device()[:-2])
-            self.voltz_values.append(voltz)
-        else:
-            _QMessageBox.critical(
-                self, 'Failure',
-                'Voltimeter Z not connected.', _QMessageBox.Ok)
-            return
+        self.devices.volty.send_command(
+            self.devices.volty.commands.end_gpib_always)
+        volty = float(self.devices.volty.read_from_device()[:-2])
+        self.volty_values.append(volty)
 
+        self.devices.voltz.send_command(
+            self.devices.voltz.commands.end_gpib_always)
+        voltz = float(self.devices.voltz.read_from_device()[:-2])
+        self.voltz_values.append(voltz)
+        
         self.updateTableValues()
         self.updatePlot()
 
@@ -290,9 +279,9 @@ class VoltageOffsetWidget(_QWidget):
             vx = _np.array(self.voltx_values)*self._voltage_mult_factor
             vy = _np.array(self.volty_values)*self._voltage_mult_factor
             vz = _np.array(self.voltz_values)*self._voltage_mult_factor
-            self.graphx.setData(timeinterval, vx)
-            self.graphy.setData(timeinterval, vy)
-            self.graphz.setData(timeinterval, vz)
+            self.graphx.setData(timeinterval[:len(vx)], vx)
+            self.graphy.setData(timeinterval[:len(vx)], vy)
+            self.graphz.setData(timeinterval[:len(vx)], vz)
 
     def updateTableValues(self, scrollDown=True):
         """Update table values."""

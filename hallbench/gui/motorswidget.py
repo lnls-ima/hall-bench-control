@@ -110,6 +110,9 @@ class MotorsWidget(_QWidget):
         """Kill all axis."""
         try:
             self.pmac.kill_all_axis()
+            self.setHomingEnabled(False)
+            self.setAxisLimitsEnabled(False)
+            self.setMovementEnabled(False)
 
         except Exception as e:
             _QMessageBox.critical(
@@ -118,12 +121,13 @@ class MotorsWidget(_QWidget):
     def moveToTarget(self, axis):
         """Move Hall probe to target position."""
         try:
+            targetpos = float(self.ui.targetpos_le.text())
+            targetvel = float(self.ui.targetvel_le.text())
+
             axis = self.selectedAxis()
             if axis is None:
                 return
 
-            targetvel = float(self.ui.targetvel_le.text())
-            targetpos = float(self.ui.targetpos_le.text())
             velocity = self.pmac.get_velocity(axis)
 
             if targetvel != velocity:
@@ -137,17 +141,23 @@ class MotorsWidget(_QWidget):
 
     def releaseAccessToMovement(self):
         """Check homing status and enable movement."""
+        if not self.pmac.connected:
+            return
+        
         try:
             list_of_axis = self.pmac.commands.list_of_axis
 
             item = 0
             homing_status = []
             for axis in list_of_axis:
+                axis_led = getattr(self.ui, 'ledax' + str(axis) + '_la')
                 if (self.pmac.axis_status(axis) & 1024) != 0:
-                    self.ui.selectaxis_cmb.model().item(item).setEnabled(True)
+                    self.ui.selectaxis_cmb.model().item(item+1).setEnabled(True)
+                    axis_led.setEnabled(True)
                     homing_status.append(True)
                 else:
-                    self.ui.selectaxis_cmb.model().item(item).setEnabled(False)
+                    self.ui.selectaxis_cmb.model().item(item+1).setEnabled(False)
+                    axis_led.setEnabled(False)
                     homing_status.append(False)
                 item += 1
 
@@ -215,20 +225,23 @@ class MotorsWidget(_QWidget):
             pos_list = self.pmac.commands.i_softlimit_pos_list
             cts_mm_axis = self.pmac.commands.CTS_MM_AXIS
 
-            minax1 = float(self.ui.minax1_le.text())*cts_mm_axis[0]
-            maxax1 = float(self.ui.maxax1_le.text())*cts_mm_axis[0]
-            self.pmac.get_response(self.pmac.set_par(neg_list[0], minax1))
-            self.pmac.get_response(self.pmac.set_par(pos_list[0], maxax1))
+            if len(self.ui.minax1_le.text()) != 0 and len(self.ui.maxax1_le.text()) != 0:
+                minax1 = float(self.ui.minax1_le.text())*cts_mm_axis[0]
+                maxax1 = float(self.ui.maxax1_le.text())*cts_mm_axis[0]
+                self.pmac.get_response(self.pmac.set_par(neg_list[0], minax1))
+                self.pmac.get_response(self.pmac.set_par(pos_list[0], maxax1))
 
-            minax2 = float(self.ui.minax1_le.text())*cts_mm_axis[1]
-            maxax2 = float(self.ui.maxax1_le.text())*cts_mm_axis[1]
-            self.pmac.get_response(self.pmac.set_par(neg_list[1], minax2))
-            self.pmac.get_response(self.pmac.set_par(pos_list[1], maxax2))
+            if len(self.ui.minax2_le.text()) != 0 and len(self.ui.maxax2_le.text()) != 0:
+                minax2 = float(self.ui.minax2_le.text())*cts_mm_axis[1]
+                maxax2 = float(self.ui.maxax2_le.text())*cts_mm_axis[1]
+                self.pmac.get_response(self.pmac.set_par(neg_list[1], minax2))
+                self.pmac.get_response(self.pmac.set_par(pos_list[1], maxax2))
 
-            minax3 = float(self.ui.minax1_le.text())*cts_mm_axis[2]
-            maxax3 = float(self.ui.maxax1_le.text())*cts_mm_axis[2]
-            self.pmac.get_response(self.pmac.set_par(neg_list[2], minax3))
-            self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
+            if len(self.ui.minax3_le.text()) != 0 and len(self.ui.maxax3_le.text()) != 0:
+                minax3 = float(self.ui.minax3_le.text())*cts_mm_axis[2]
+                maxax3 = float(self.ui.maxax3_le.text())*cts_mm_axis[2]
+                self.pmac.get_response(self.pmac.set_par(neg_list[2], minax3))
+                self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
 
         except Exception:
             _QMessageBox.critical(

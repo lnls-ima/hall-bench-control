@@ -297,7 +297,7 @@
         </property>
         <item>
          <property name="text">
-          <string>s</string>
+          <string>sec</string>
          </property>
         </item>
         <item>
@@ -307,7 +307,7 @@
         </item>
         <item>
          <property name="text">
-          <string>h</string>
+          <string>hour</string>
          </property>
         </item>
        </widget>

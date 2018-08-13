@@ -191,27 +191,37 @@ class DatabaseWidget(_QWidget):
         """Disable invalid buttons."""
         current_table = self.getCurrentTable()
         if current_table is None:
-            self.ui.calibration_gb.setEnabled(False)
-            self.ui.configuration_gb.setEnabled(False)
-            self.ui.raw_data_gb.setEnabled(False)
-            self.ui.scan_gb.setEnabled(False)
-            self.ui.fieldmap_gb.setEnabled(False)
+            self.ui.calibration_pg.setEnabled(False)
+            self.ui.configuration_pg.setEnabled(False)
+            self.ui.raw_data_pg.setEnabled(False)
+            self.ui.scan_pg.setEnabled(False)
+            self.ui.fieldmap_pg.setEnabled(False)
             return
 
         _enable = current_table.table_name == self._calibration_table_name
-        self.ui.calibration_gb.setEnabled(_enable)
+        self.ui.calibration_pg.setEnabled(_enable)
+        if _enable:
+            self.ui.buttons_tbx.setCurrentWidget(self.ui.calibration_pg)
 
         _enable = current_table.table_name == self._configuration_table_name
-        self.ui.configuration_gb.setEnabled(_enable)
+        self.ui.configuration_pg.setEnabled(_enable)
+        if _enable:
+            self.ui.buttons_tbx.setCurrentWidget(self.ui.configuration_pg)
 
         _enable = current_table.table_name == self._raw_data_table_name
-        self.ui.raw_data_gb.setEnabled(_enable)
+        self.ui.raw_data_pg.setEnabled(_enable)
+        if _enable:
+            self.ui.buttons_tbx.setCurrentWidget(self.ui.raw_data_pg)
 
         _enable = current_table.table_name == self._scan_table_name
-        self.ui.scan_gb.setEnabled(_enable)
+        self.ui.scan_pg.setEnabled(_enable)
+        if _enable:
+            self.ui.buttons_tbx.setCurrentWidget(self.ui.scan_pg)
 
         _enable = current_table.table_name == self._fieldmap_table_name
-        self.ui.fieldmap_gb.setEnabled(_enable)
+        self.ui.fieldmap_pg.setEnabled(_enable)
+        if _enable:
+            self.ui.buttons_tbx.setCurrentWidget(self.ui.fieldmap_pg)
 
     def getCurrentTable(self):
         """Get current table."""

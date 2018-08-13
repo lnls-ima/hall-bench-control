@@ -61,14 +61,14 @@ class GPIB(object):
             _cmd = 'GPIB0::'+str(address)+'::INSTR'
             # instrument
             self.inst = _rm.open_resource(_cmd)
-            
+
             # set a default timeout to 1
             self.inst.timeout = 1000  # ms
-                
+
             # check if connected
             if self.inst.__str__() == ('GPIBInstrument at ' + _cmd):
                 try:
-                    r = self.inst.read()
+                    self.inst.read()
                     self._connected = True
                     return True
                 except Exception:

@@ -140,6 +140,11 @@ class VoltageOffsetWidget(_QWidget):
                 self, 'Failure', 'Invalid position.', _QMessageBox.Ok)
             return
 
+        if not self.devices.pmac.connected:
+            _QMessageBox.critical(
+                self, 'Failure', 'Pmac not connected.', _QMessageBox.Ok)
+            return
+
         try:
             posax1 = float(self.ui.posax1_le.text())
             posax2 = float(self.ui.posax2_le.text())
@@ -157,20 +162,38 @@ class VoltageOffsetWidget(_QWidget):
         """Read voltage value."""
         self.timestamp.append(_time.time())
 
-        self.devices.voltx.send_command(
-            self.devices.voltx.commands.end_gpib_always)
-        voltx = float(self.devices.voltx.read_from_device()[:-2])
-        self.voltx_values.append(voltx)
+        if self.devices.voltx.connected:
+            self.devices.voltx.send_command(
+                self.devices.voltx.commands.end_gpib_always)
+            voltx = float(self.devices.voltx.read_from_device()[:-2])
+            self.voltx_values.append(voltx)
+        else:
+            _QMessageBox.critical(
+                self, 'Failure',
+                'Voltimeter X not connected.', _QMessageBox.Ok)
+            return
 
-        self.devices.volty.send_command(
-            self.devices.volty.commands.end_gpib_always)
-        volty = float(self.devices.volty.read_from_device()[:-2])
-        self.volty_values.append(volty)
+        if self.devices.volty.connected:
+            self.devices.volty.send_command(
+                self.devices.volty.commands.end_gpib_always)
+            volty = float(self.devices.volty.read_from_device()[:-2])
+            self.volty_values.append(volty)
+        else:
+            _QMessageBox.critical(
+                self, 'Failure',
+                'Voltimeter Y not connected.', _QMessageBox.Ok)
+            return
 
-        self.devices.voltz.send_command(
-            self.devices.voltz.commands.end_gpib_always)
-        voltz = float(self.devices.voltz.read_from_device()[:-2])
-        self.voltz_values.append(voltz)
+        if self.devices.voltz.connected:
+            self.devices.voltz.send_command(
+                self.devices.voltz.commands.end_gpib_always)
+            voltz = float(self.devices.voltz.read_from_device()[:-2])
+            self.voltz_values.append(voltz)
+        else:
+            _QMessageBox.critical(
+                self, 'Failure',
+                'Voltimeter Z not connected.', _QMessageBox.Ok)
+            return
 
         self.updateTableValues()
         self.updatePlot()
@@ -273,7 +296,10 @@ class VoltageOffsetWidget(_QWidget):
 
     def updateTableValues(self, scrollDown=True):
         """Update table values."""
-        n = _np.min([len(self.voltx_values), len(self.volty_values), len(self.voltz_values)])
+        n = _np.min([
+            len(self.voltx_values),
+            len(self.volty_values),
+            len(self.voltz_values)])
         self.ui.voltoffset_ta.clearContents()
         self.ui.voltoffset_ta.setRowCount(n)
 

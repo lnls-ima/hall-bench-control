@@ -23,7 +23,8 @@ from hallbench.gui.voltageoffsetwidget import VoltageOffsetWidget \
     as _VoltageOffsetWidget
 from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
-from hallbench.data.configuration import MeasurementConfig as _MeasurementConfig
+from hallbench.data.configuration import (
+    MeasurementConfig as _MeasurementConfig)
 from hallbench.data.measurement import (
     VoltageData as _VoltageData,
     FieldData as _FieldData,
@@ -172,15 +173,16 @@ class HallBenchWindow(_QMainWindow):
 
     def updateMainTabStatus(self):
         """Enable or disable main tabs."""
-        try:
-            _idx = self.ui.main_tab.indexOf(self.motors_tab)
-            if _idx != -1:
-                self.ui.main_tab.setTabEnabled(
-                    _idx, self.devices.pmac.connected)
-
-            _idx = self.ui.main_tab.indexOf(self.measurement_tab)
-            if _idx != -1:
-                self.ui.main_tab.setTabEnabled(
-                    _idx, self.ui.motors_tab.homing)
-        except Exception:
-            pass
+        pass
+        # try:
+        #     _idx = self.ui.main_tab.indexOf(self.motors_tab)
+        #     if _idx != -1:
+        #         self.ui.main_tab.setTabEnabled(
+        #             _idx, self.devices.pmac.connected)
+        #
+        #     _idx = self.ui.main_tab.indexOf(self.measurement_tab)
+        #     if _idx != -1:
+        #         self.ui.main_tab.setTabEnabled(
+        #             _idx, self.ui.motors_tab.homing)
+        # except Exception:
+        #     pass

@@ -88,7 +88,9 @@ class NMR(object):
             return False
         else:
             if self.ser.isOpen():
-                if any([self.ser.getCTS(), self.ser.getDSR(), self.ser.getRI(), self.ser.getCD()]):
+                if any(
+                    [self.ser.getCTS(), self.ser.getDSR(),
+                     self.ser.getRI(), self.ser.getCD()]):
                     return True
                 else:
                     return False
@@ -124,7 +126,9 @@ class NMR(object):
             self.ser.timeout = self._timeout
             if not self.ser.isOpen():
                 self.ser.open()
-                if any([self.ser.getCTS(), self.ser.getDSR(), self.ser.getRI(), self.ser.getCD()]):
+                if any(
+                    [self.ser.getCTS(), self.ser.getDSR(),
+                     self.ser.getRI(), self.ser.getCD()]):
                     return True
                 else:
                     return False

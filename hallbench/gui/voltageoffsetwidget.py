@@ -3,6 +3,7 @@
 """Voltage offset widget for the Hall Bench Control application."""
 
 import numpy as _np
+import pandas as _pd
 import time as _time
 import datetime as _datetime
 import warnings as _warnings
@@ -55,6 +56,7 @@ class VoltageOffsetWidget(_QWidget):
             self.updateMonitorInterval)
         self.ui.clear_btn.clicked.connect(self.clearVoltageValues)
         self.ui.remove_btn.clicked.connect(self.removeVoltageValue)
+        self.ui.copy_btn.clicked.connect(self.copyToClipboard)
 
         # create timer to monitor voltage
         self.timer = _QTimer(self)
@@ -122,6 +124,19 @@ class VoltageOffsetWidget(_QWidget):
         self.legend.addItem(self.graphy, 'Y')
         self.legend.addItem(self.graphz, 'Z')
 
+    def copyToClipboard(self):
+        """Copy table data to clipboard."""
+        dtime = [_datetime.datetime.fromtimestamp(ts) for ts in self.timestamp]
+        date = [dt.strftime("%d/%m/%Y") for dt in dtime]
+        hour = [dt.strftime("%H:%M:%S") for dt in dtime]      
+        vx = list(_np.array(self.voltx_values)*self._voltage_mult_factor)
+        vy = list(_np.array(self.volty_values)*self._voltage_mult_factor)
+        vz = list(_np.array(self.voltz_values)*self._voltage_mult_factor)
+        _df =_pd.DataFrame(
+            _np.transpose([date, hour, vx, vy, vz]),
+            columns=['date', 'hour', 'ProbeX [mV]', 'ProbeY [mV]', 'ProbeZ [mV]'])
+        _df.to_clipboard(excel=True)                        
+
     def monitorVoltage(self, checked):
         """Monitor voltage value."""
         if checked:
@@ -160,14 +175,14 @@ class VoltageOffsetWidget(_QWidget):
 
     def readVoltage(self, msgbox=True):
         """Read voltage value."""
-        self.timestamp.append(_time.time())
-
         if not self.devices.voltx.connected or not self.devices.volty.connected or not self.devices.voltz.connected:
             if msgbox:
                 _QMessageBox.critical(
                     self, 'Failure',
                     'Voltimeters not connected.', _QMessageBox.Ok)
             return
+
+        self.timestamp.append(_time.time())
 
         self.devices.voltx.send_command(
             self.devices.voltx.commands.end_gpib_always)

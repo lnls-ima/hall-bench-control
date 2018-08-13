@@ -11,8 +11,8 @@ from PyQt4.QtGui import (
 from PyQt4.QtGui import QFont as _QFont
 
 # Style: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]
-_style = 'plastique'
-_fontsize = 12
+_style = 'windows'
+_fontsize = 11
 _window_width = 1200
 _window_height = 700
 

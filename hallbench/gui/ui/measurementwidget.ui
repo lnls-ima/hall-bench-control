@@ -7,13 +7,21 @@
     <x>0</x>
     <y>0</y>
     <width>1218</width>
-    <height>881</height>
+    <height>886</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>11</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Measurement</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="margin">
+    <number>6</number>
+   </property>
    <item row="0" column="0" colspan="2">
     <widget class="QWidget" name="configuration_wg" native="true">
      <property name="sizePolicy">
@@ -25,7 +33,7 @@
      <property name="minimumSize">
       <size>
        <width>1200</width>
-       <height>330</height>
+       <height>310</height>
       </size>
      </property>
     </widget>
@@ -33,17 +41,37 @@
    <item row="1" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <property name="spacing">
-      <number>20</number>
+      <number>6</number>
      </property>
      <property name="topMargin">
       <number>9</number>
      </property>
      <item>
-      <widget class="QCheckBox" name="save_raw_data_chb">
-       <property name="text">
-        <string>Save Raw Voltage Data</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>15</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="save_raw_data_chb">
+         <property name="text">
+          <string>Save Raw Voltage Data</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="QPushButton" name="measure_btn">
@@ -69,6 +97,22 @@
         <string>Configure and Measure</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>10</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
       <widget class="QPushButton" name="stop_btn">
@@ -97,6 +141,22 @@
         <string>Stop Measurement</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>10</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
       <widget class="QPushButton" name="savefieldmap_btn">

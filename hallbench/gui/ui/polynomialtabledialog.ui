@@ -7,8 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>844</width>
-    <height>786</height>
+    <height>731</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>11</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Calibration Data Table</string>

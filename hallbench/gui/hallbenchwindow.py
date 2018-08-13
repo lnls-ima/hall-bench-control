@@ -6,6 +6,7 @@ import os as _os
 from PyQt4.QtGui import (
     QMainWindow as _QMainWindow,
     QApplication as _QApplication,
+    QMessageBox as _QMessageBox,
     )
 from PyQt4.QtCore import QTimer as _QTimer
 import PyQt4.uic as _uic
@@ -102,23 +103,38 @@ class HallBenchWindow(_QMainWindow):
         """
         success = _ProbeCalibration.create_database_table(database)
         if not success:
-            raise DataBaseError('Fail to create database table')
+            message = 'Fail to create database table'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
 
         success = _MeasurementConfig.create_database_table(database)
         if not success:
-            raise DataBaseError('Fail to create database table')
+            message = 'Fail to create database table'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
 
         success = _VoltageData.create_database_table(database)
         if not success:
-            raise DataBaseError('Fail to create database table')
+            message = 'Fail to create database table'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
 
         success = _FieldData.create_database_table(database)
         if not success:
-            raise DataBaseError('Fail to create database table')
+            message = 'Fail to create database table'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
 
         success = _Fieldmap.create_database_table(database)
         if not success:
-            raise DataBaseError('Fail to create database table')
+            message = 'Fail to create database table'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
 
     def closeEvent(self, event):
         """Close main window and dialogs."""

@@ -1,0 +1,36 @@
+Measurement Setup
+
+Hall probes (X, Y, Z)
+##meas_probeX	1
+##meas_probeY	1
+##meas_probeZ	1
+
+Digital Multimeter (aper [ms])
+#meas_aper_ms	0.032000
+
+Digital Multimeter (precision [single=0 or double=1])
+#meas_precision	1
+
+Triggering Axis
+#meas_trig_axis	1
+
+Axis Parameters (StartPos, EndPos, Incr, Velocity) - Ax1, Ax2, Ax3, Ax5
+#meas_startpos_ax1	-516.6850
+#meas_endpos_ax1	483.3150
+#meas_incr_ax1	2.000000
+#meas_vel_ax1	50.000000
+
+#meas_startpos_ax2	-200.5000
+#meas_endpos_ax2	-200.5000
+#meas_incr_ax2	1.000000
+#meas_vel_ax2	5.000000
+
+#meas_startpos_ax3	-9.6950
+#meas_endpos_ax3	142.3050
+#meas_incr_ax3	2.000000
+#meas_vel_ax3	5.000000
+
+#meas_startpos_ax5	0.0500
+#meas_endpos_ax5	0.0500
+#meas_incr_ax5	1.000000
+#meas_vel_ax5	5.000000

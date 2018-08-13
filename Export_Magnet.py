@@ -5,7 +5,6 @@ Created on 1 Nov 2016
 '''
 import numpy as np
 import math
-import os
 
 class dados(object):
     def __init__(self):
@@ -21,12 +20,13 @@ class load(object):
     def __init__(self):
         self.results = dict()
 
-        self.namedir = 'C:\\Arq\\Work_At_LNLS\\Softwares\\workspace\\Kugler_Bench\\Data\\Dipolos Anel\\B120_Med3_Mapa\\'
-        self.basename = 'Average_B_field_Data_Y=-135.7_X='
+#         self.namedir = 'C:\\Arq\\Work_At_LNLS\\Softwares\\workspace\\Kugler_Bench\\Data\\'
+        self.namedir = 'C:\\Arq\\Work_At_LNLS\\Softwares\\workspace\\Kugler_Bench\\Data\\BOMA-BD\BOMA-BD_Producao\\BD-042\\17 - Med_Z=-677.45_a_1242.55_s=2.0mm_Y=-143.55_X=17.616_a_117.616_I=50.386A_Aper=0.032_VelZ=50.0 - Realinhado\\'
+        self.basename = 'Average_B_field_Data_Y=-143.55_X='
 
-        self.startx = 12.1
-        self.endx = 102.1
-        self.stepx = 3
+        self.startx = 17.616
+        self.endx = 117.616
+        self.stepx = 2
         
         self.npointsx = int(math.ceil(((self.endx - self.startx)/self.stepx) + 1))
         

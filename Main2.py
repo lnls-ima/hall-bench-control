@@ -1501,6 +1501,7 @@ class MyForm(QtGui.QWidget):
         file.write('X[mm]\tY[mm]\tZ[mm]\tBx\tBy\tBz [T]\n')
         file.write('---------------------------------------------------------------------------------------------\n')
 
+
         list_meas_ax3_inv = self.list_meas_ax3[::-1]
 
         dictname = 'Y=' + str(self.list_meas_ax2[0]) + '_X=' + str(list_meas_ax3_inv[0])

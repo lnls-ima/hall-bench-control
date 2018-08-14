@@ -179,7 +179,7 @@ class VoltageOffsetWidget(_QWidget):
             if msgbox:
                 _QMessageBox.critical(
                     self, 'Failure',
-                    'Voltimeters not connected.', _QMessageBox.Ok)
+                    'Multimeters not connected.', _QMessageBox.Ok)
             return
 
         self.timestamp.append(_time.time())

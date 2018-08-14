@@ -163,6 +163,7 @@ class DatabaseWidget(_QWidget):
 
             probe_name = _MeasurementConfig.get_probe_name_from_database(
                 self.database, configuration_ids[0])
+
             if probe_name is None or len(probe_name) == 0:
                 msg = 'Invalid probe calibration.'
                 _QMessageBox.critical(

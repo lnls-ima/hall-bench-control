@@ -182,7 +182,10 @@ class MeasurementWidget(_QWidget):
             self.moveAxis(first_axis, first_axis_start)
             self.plotField()
             self.ui.stop_btn.setEnabled(False)
-            self.ui.savefieldmap_btn.setEnabled(True)
+            self.resetMultimeters()
+            
+            if self.probe_calibration is not None:
+                self.ui.savefieldmap_btn.setEnabled(True)
 
             message = 'End of measurements.'
             _QMessageBox.information(
@@ -191,22 +194,19 @@ class MeasurementWidget(_QWidget):
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
 
+    def resetMultimeters(self):
+        if self.devices.voltx.connected:
+            self.devices.voltx.reset()
+
+        if self.devices.volty.connected:
+            self.devices.volty.reset()
+            
+        if self.devices.voltz.connected:
+            self.devices.voltz.reset()            
+
     def configureDevices(self):
         """Configure devices."""
         try:
-            if self.config.voltx_enable:
-                self.devices.voltx.config(
-                    self.config.integration_time,
-                    self.config.voltage_precision)
-            if self.config.volty_enable:
-                self.devices.volty.config(
-                    self.config.integration_time,
-                    self.config.voltage_precision)
-            if self.config.voltz_enable:
-                self.devices.voltz.config(
-                    self.config.integration_time,
-                    self.config.voltage_precision)
-
             self.devices.pmac.set_axis_speed(1, self.config.vel_ax1)
             self.devices.pmac.set_axis_speed(2, self.config.vel_ax2)
             self.devices.pmac.set_axis_speed(3, self.config.vel_ax3)
@@ -313,6 +313,9 @@ class MeasurementWidget(_QWidget):
 
     def plotField(self):
         """Plot field data."""
+        if self.probe_calibration is None:
+            return
+
         self.clearGraph()
         nr_curves = len(self.field_data_list)
         self.configureGraph(nr_curves, 'Magnetic Field [T]')
@@ -406,12 +409,14 @@ class MeasurementWidget(_QWidget):
         to_neg_scan_list = (scan_list - aper_displacement/2)[::-1]
 
         nr_measurements = self.config.nr_measurements
-        self.configureGraph(nr_measurements, 'Voltage [V]')
-
+        self.clearGraph()
+        self.configureGraph(2*nr_measurements, 'Voltage [V]')
+        
         voltage_data_list = []
         for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
+
 
             self.voltage_data = _VoltageData()
             self.devices.voltx.end_measurement = False
@@ -420,7 +425,7 @@ class MeasurementWidget(_QWidget):
             self.devices.voltx.clear()
             self.devices.volty.clear()
             self.devices.voltz.clear()
-            self.ui.nr_measurements_la.setText(str(idx + 1))
+            self.configuration_widget.nr_measurements_sb.setValue(_np.ceil((idx + 1)/2))
 
             # flag to check if sensor is going or returning
             to_pos = not(bool(idx % 2))
@@ -443,24 +448,40 @@ class MeasurementWidget(_QWidget):
 
             if self.stop is True:
                 return False
+            else:
+                if to_pos:
+                    self.devices.pmac.set_trigger(
+                        first_axis, start, step, 10, npts, 1)
+                else:
+                    self.devices.pmac.set_trigger(
+                        first_axis, end, step*(-1), 10, npts, 1)
+
+            if self.config.voltx_enable:
+                self.devices.voltx.config(
+                    self.config.integration_time,
+                    self.config.voltage_precision)
+            if self.config.volty_enable:
+                self.devices.volty.config(
+                    self.config.integration_time,
+                    self.config.voltage_precision)
+            if self.config.voltz_enable:
+                self.devices.voltz.config(
+                    self.config.integration_time,
+                    self.config.voltage_precision)
 
             self.startReadingThreads()
 
             if self.stop is False:
                 if to_pos:
-                    self.devices.pmac.set_trigger(
-                        first_axis, start, step, 10, npts, 1)
                     self.moveAxisAndUpdateGraph(first_axis, end + extra, idx)
                 else:
-                    self.devices.pmac.set_trigger(
-                        first_axis, end, step*(-1), 10, npts, 1)
                     self.moveAxisAndUpdateGraph(first_axis, start - extra, idx)
 
             self.stopTrigger()
             self.waitReadingThreads()
-            self.voltage_data.sensorx = self.devices.voltx.voltage
-            self.voltage_data.sensory = self.devices.volty.voltage
-            self.voltage_data.sensorz = self.devices.voltz.voltage
+            self.voltage_data.avgx = self.devices.voltx.voltage
+            self.voltage_data.avgy = self.devices.volty.voltage
+            self.voltage_data.avgz = self.devices.voltz.voltage
             self.killReadingThreads()
 
             if self.stop is True:
@@ -475,16 +496,20 @@ class MeasurementWidget(_QWidget):
 
             voltage_data_list.append(self.voltage_data.copy())
 
-        self.field_data.set_field_data(
-            voltage_data_list, self.measurement_probe_calibration)
-        success = self.saveScan()
+        if self.probe_calibration is not None:
+            self.field_data.set_field_data(
+                voltage_data_list, self.probe_calibration)
+            success = self.saveScan()
+        else:
+            success = True
+        
         return success
 
     def showFieldMapDialog(self):
         """Open fieldmap dialog."""
         self.fieldmap_dialog.show(
             self.field_data_list,
-            self.measurement_probe_calibration,
+            self.probe_calibration,
             self.database,
             self.scan_id_list)
 
@@ -492,19 +517,19 @@ class MeasurementWidget(_QWidget):
         """Start threads to read voltage values."""
         if self.config.voltx_enable:
             self.threadx = _threading.Thread(
-                target=self.devices.voltx.read,
+                target=self.devices.voltx.read_voltage,
                 args=(self.config.voltage_precision,))
             self.threadx.start()
 
         if self.config.volty_enable:
             self.thready = _threading.Thread(
-                target=self.devices.volty.read,
+                target=self.devices.volty.read_voltage,
                 args=(self.config.voltage_precision,))
             self.thready.start()
 
         if self.config.voltz_enable:
             self.threadz = _threading.Thread(
-                target=self.devices.voltz.read,
+                target=self.devices.voltz.read_voltage,
                 args=(self.config.voltage_precision,))
             self.threadz.start()
 
@@ -532,8 +557,15 @@ class MeasurementWidget(_QWidget):
         """Update measurement configuration."""
         success = self.configuration_widget.updateConfiguration()
         if success:
-            self.config = self.configuration_widget.config
-            return True
+            config = self.configuration_widget.config
+            if not any([config.voltx_enable, config.volty_enable, config.voltz_enable]):
+                message = 'Multimeters not connected.'
+                _QMessageBox.critical(
+                    self, 'Failure', message, _QMessageBox.Ok)
+                return False            
+            else:
+                self.config = config
+                return True
         else:
             self.config = None
             return False
@@ -548,10 +580,14 @@ class MeasurementWidget(_QWidget):
         if self.probe_calibration is not None:
             return True
         else:
-            message = 'Invalid probe calibration.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return False
+            message = 'Invalid probe calibration. Measure only voltage data?'
+            reply = _QMessageBox.question(
+                self, 'Message', message, _QMessageBox.Yes, _QMessageBox.No)
+            if reply == _QMessageBox.Yes:
+                self.ui.save_raw_data_chb.setChecked(True)
+                return True
+            else:
+                return False
 
     def validDatabase(self):
         """Check if the database filename is valid."""

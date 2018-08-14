@@ -571,7 +571,7 @@ class ConfigurationWidget(_QWidget):
             self.config.main_current = _s if len(_s) != 0 else None
 
             _s = self.ui.probe_name_le.text()
-            self.config.probe_name = _s if len(_s) != 0 else None
+            self.config.probe_name = _s if len(_s) != 0 else 'None'
 
             _s = self.ui.temperature_le.text()
             self.config.temperature = _s if len(_s) != 0 else None
@@ -579,14 +579,26 @@ class ConfigurationWidget(_QWidget):
             _s = self.ui.operator_le.text()
             self.config.operator = _s if len(_s) != 0 else None
 
-            _voltx_enable = self.ui.voltx_enable_chb.isChecked()
-            self.config.voltx_enable = _voltx_enable
+            if self.devices.voltx.connected:
+                _voltx_enable = self.ui.voltx_enable_chb.isChecked()
+                self.config.voltx_enable = _voltx_enable
+            else:
+                self.ui.voltx_enable_chb.setChecked(False)
+                self.config.voltx_enable = 0
 
-            _volty_enable = self.ui.volty_enable_chb.isChecked()
-            self.config.volty_enable = _volty_enable
+            if self.devices.volty.connected:
+                _volty_enable = self.ui.volty_enable_chb.isChecked()
+                self.config.volty_enable = _volty_enable
+            else:
+                self.ui.volty_enable_chb.setChecked(False)
+                self.config.volty_enable = 0
 
-            _voltz_enable = self.ui.voltz_enable_chb.isChecked()
-            self.config.voltz_enable = _voltz_enable
+            if self.devices.voltz.connected:
+                _voltz_enable = self.ui.voltz_enable_chb.isChecked()
+                self.config.voltz_enable = _voltz_enable
+            else:
+                self.ui.voltz_enable_chb.setChecked(False)
+                self.config.voltz_enable = 0
 
             idx = self.ui.voltage_precision_cmb.currentIndex()
             self.config.voltage_precision = idx

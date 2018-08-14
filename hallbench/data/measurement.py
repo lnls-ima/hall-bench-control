@@ -1087,6 +1087,10 @@ class Fieldmap(object):
         field1, field2, field3 = _r[3], _r[4], _r[5]
         first_axis, second_axis = _r[6], _r[7]
 
+        pos1 = _np.around(pos1, decimals=_position_precision)
+        pos2 = _np.around(pos2, decimals=_position_precision)
+        pos3 = _np.around(pos3, decimals=_position_precision)
+
         def _get_field_at_point(pos):
             pos = _np.around(pos, decimals=_position_precision)
             p1, p2, p3 = pos[2], pos[1], pos[0]
@@ -1125,9 +1129,9 @@ class Fieldmap(object):
 
 
 def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
-    vector = _np.array(vector)
+    vector_array = _np.array(vector)
     center = _np.array(center)
-    transf_vector = _np.dot(transf_matrix, vector - center)
+    transf_vector = _np.dot(transf_matrix, vector_array - center)
     return transf_vector
 
 

@@ -143,6 +143,7 @@ class HallBenchWindow(_QMainWindow):
         try:
             self.measurement_tab.closeDialogs()
             self.database_tab.closeDialogs()
+            self.devices.disconnect()
             self.stopTimer()
             event.accept()
         except Exception:

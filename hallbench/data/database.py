@@ -99,8 +99,7 @@ def search_database_str(database, table, parameter, value):
     try:
         con = _sqlite.connect(database)
         cur = con.cursor()
-        cmd = 'SELECT * FROM {0} WHERE {1}'.format(table, parameter)
-        cmd = cmd + ' = ' + str(value)
+        cmd = 'SELECT * FROM {0} WHERE {1}="{2}"'.format(table, parameter, str(value))
         cur.execute(cmd)
         entries = cur.fetchall()
         con.close()

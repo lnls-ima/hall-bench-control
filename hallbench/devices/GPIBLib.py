@@ -58,17 +58,19 @@ class GPIB(object):
             # resource manager
             _rm = _visa.ResourceManager()
             # connects to the device
-            _cmd = 'GPIB0::'+str(address)+'::INSTR'
+            _cmd = 'GPIB1::'+str(address)+'::INSTR'
             # instrument
-            self.inst = _rm.open_resource(_cmd)
-
-            # set a default timeout to 1
-            self.inst.timeout = 1000  # ms
+            _inst = _rm.open_resource(_cmd)
 
             # check if connected
-            if self.inst.__str__() == ('GPIBInstrument at ' + _cmd):
+            if _inst.__str__() == ('GPIBInstrument at ' + _cmd):
                 try:
-                    self.inst.read()
+                    self.inst = _inst
+                    
+                    # set a default timeout to 1
+                    self.inst.timeout = 1000  # ms
+                    
+#                     self.inst.read()
                     self._connected = True
                     return True
                 except Exception:
@@ -76,7 +78,6 @@ class GPIB(object):
                     return False
             else:
                 self._connected = False
-                self.inst.close()
                 return False
         except Exception:
             if self.logger is not None:
@@ -216,6 +217,7 @@ class Agilent3458ACommands(object):
         self._output_format()
         self._memory_format()
         self._input_buffer()
+        self._status_query()
 
     def _reset(self):
         """Reset function."""
@@ -377,7 +379,7 @@ class Agilent3458ACommands(object):
         LIFO - clears reading memory and stores new, last-in-first-out
         FIFO - clears reading memory and stores new, first-in-first-out
         CONT - keeps memory intact and selects previous mode,
-               otherwiser selects FIFO.
+               otherwise selects FIFO.
         """
         self.mem_off = 'MEM OFF'
         self.mem_lifo = 'MEM LIFO'
@@ -461,11 +463,15 @@ class Agilent3458ACommands(object):
 
         When enabled, the input buffer temporarily stores the commands it
         receives over the GPIB bus. This releases the bus immediately after
-        a command is received, allowing thecontroller to perform other tasks
-        while the multimeter executes the storedcommand.
+        a command is received, allowing the controller to perform other tasks
+        while the multimeter executes the stored command.
         """
         self.inbuf_on = 'INBUF ON'
         self.inbuf_off = 'INBUF OFF'
+
+    def _status_query(self):
+        self.beep = 'BEEP?'
+        self.idn = 'ID?'
 
 
 class Agilent3458A(GPIB):
@@ -510,11 +516,11 @@ class Agilent3458A(GPIB):
                 self._voltage = _np.append(self._voltage, dataset)
         else:
             # check memory
-            self.send_command(self.mcount)
+            self.send_command(self.commands.mcount)
             npoints = int(self.read_from_device())
             if npoints > 0:
                 # ask data from memory
-                self.send_command(self.rmem + str(npoints))
+                self.send_command(self.commands.rmem + str(npoints))
 
                 for idx in range(npoints):
                     # read data from memory
@@ -534,32 +540,33 @@ class Agilent3458A(GPIB):
             aper (float): A/D converter integration time in seconds?
             formtype (int): format type [single=0 or double=1].
         """
-        self.send_command(self.reset)
-        self.send_command(self.func_volt)
-        self.send_command(self.tarm_auto)
-        self.send_command(self.trig_auto)
-        self.send_command(self.nrdgs_ext)
-        self.send_command(self.arange_off)
-        self.send_command(self.range + '15')
-        self.send_command(self.math_off)
-        self.send_command(self.azero_once)
-        self.send_command(self.trig_buffer_off)
-        self.send_command(self.delay_0)
-        self.send_command(self.aper + '{0:0.3f}'.format(aper))
-        self.send_command(self.disp_off)
-        self.send_command(self.scratch)
-        self.send_command(self.end_gpib_always)
-        self.send_command(self.mem_fifo)
+        self.send_command(self.commands.reset)
+        self.send_command(self.commands.func_volt)
+        self.send_command(self.commands.tarm_auto)
+        self.send_command(self.commands.trig_auto)
+        self.send_command(self.commands.nrdgs_ext)
+        self.send_command(self.commands.arange_off)
+        self.send_command(self.commands.range + '10')
+        self.send_command(self.commands.math_off)
+        self.send_command(self.commands.azero_once)
+        self.send_command(self.commands.trig_buffer_off)
+        self.send_command(self.commands.delay_0)
+        self.send_command(self.commands.aper + '{0:0.3f}'.format(aper))
+        self.send_command(self.commands.disp_off)
+        self.send_command(self.commands.scratch)
+        self.send_command(self.commands.end_gpib_always)
+        self.send_command(self.commands.mem_fifo)
         if formtype == 0:
-            self.send_command(self.oformat_sreal)
-            self.send_command(self.mformat_sreal)
+            self.send_command(self.commands.oformat_sreal)
+            self.send_command(self.commands.mformat_sreal)
         else:
-            self.send_command(self.oformat_dreal)
-            self.send_command(self.mformat_dreal)
+            self.send_command(self.commands.oformat_dreal)
+            self.send_command(self.commands.mformat_dreal)
 
     def reset(self):
         """Reset device."""
         self.send_command(self.commands.reset)
+        self.send_command(self.commands.end_gpib_always)
 
 
 class Agilent34970A(GPIB):

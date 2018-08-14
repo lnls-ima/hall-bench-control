@@ -2,6 +2,7 @@
 
 """Implementation of classes to store and analyse measurement data."""
 
+import os as _os
 import json as _json
 import numpy as _np
 import pandas as _pd
@@ -843,7 +844,12 @@ class Fieldmap(object):
         for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
             current = getattr(self, 'current_' + coil)
             if current is not None and len(current) != 0:
-                ac = coil if coil != 'trim' else 'tc'
+                if coil == 'trim':
+                    ac = 'tc'
+                elif coil == 'main':
+                    ac = 'mc'
+                else:
+                    ac = coil
                 name = name + '_I' + ac + '=' + current + 'A'
 
         self._timestamp = _utils.get_timestamp()
@@ -984,7 +990,7 @@ class Fieldmap(object):
         header_info = []
         header_info.append(['fieldmap_name', magnet_name])
         header_info.append(['timestamp', self._timestamp])
-        header_info.append(['filename', filename])
+        header_info.append(['filename', _os.path.split(filename)[1]])
         header_info.append(['nr_magnets', 1])
         header_info.append(['magnet_name', magnet_name])
         header_info.append(['gap[mm]', gap])
@@ -1087,10 +1093,6 @@ class Fieldmap(object):
         field1, field2, field3 = _r[3], _r[4], _r[5]
         first_axis, second_axis = _r[6], _r[7]
 
-        pos1 = _np.around(pos1, decimals=_position_precision)
-        pos2 = _np.around(pos2, decimals=_position_precision)
-        pos3 = _np.around(pos3, decimals=_position_precision)
-
         def _get_field_at_point(pos):
             pos = _np.around(pos, decimals=_position_precision)
             p1, p2, p3 = pos[2], pos[1], pos[0]
@@ -1100,7 +1102,7 @@ class Fieldmap(object):
             psorted = [p1, p2, p3]
             loc_idx = psorted[first_axis-1]
             if second_axis is not None:
-                loc_col = psorted[first_axis-1]
+                loc_col = psorted[second_axis-1]
             else:
                 loc_col = 0
             b3 = field3.loc[loc_idx, loc_col]
@@ -1282,10 +1284,18 @@ def _get_fieldmap_position_and_field_values(
             fieldx, fieldy, fieldz = _cut_data_frames(
                 fieldx, fieldy, fieldz, nbeg, nend, axis=1)
 
+    # update position values
     pos_dict = _get_fieldmap_position_dict(field_data_list)
-    pos3 = _np.array(pos_dict[3])  # x-axis
-    pos2 = _np.array(pos_dict[2])  # y-axis
-    pos1 = _np.array(pos_dict[1])  # z-axis
+    index = fieldy.index
+    columns = fieldy.columns
+    pos_sorted = [pos_dict[1], pos_dict[2], pos_dict[3]]
+    pos_sorted[first_axis - 1] = index.values
+    if second_axis is not None:
+        pos_sorted[second_axis - 1] = columns.values
+    
+    pos3 = _np.array(pos_sorted[2])  # x-axis
+    pos2 = _np.array(pos_sorted[1])  # y-axis
+    pos1 = _np.array(pos_sorted[0]) # z-axis
 
     field3, field2, field1 = (
         probe_calibration.field_in_bench_coordinate_system(

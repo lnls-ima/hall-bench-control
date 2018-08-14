@@ -1,5 +1,7 @@
 # Database files
 *.db
+*.txt
+*.dat
 
 # --------------- Default lnls-ima ---------------
 *~

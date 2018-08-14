@@ -214,7 +214,12 @@ class FieldMapDialog(_QDialog):
     def magnetYAxis(self):
         """Get magnet y-axis value."""
         axis_str = self.ui.magnet_y_axis_cmb.currentText()
-        axis = int(axis_str[8])
+        if '1' in axis_str:
+            axis = 1
+        elif '2' in axis_str:
+            axis = 2
+        elif '3' in axis_str:
+            axis = 3
         if axis_str.startswith('-'):
             axis = axis*(-1)
         return axis

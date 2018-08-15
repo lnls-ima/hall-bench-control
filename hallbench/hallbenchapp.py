@@ -20,9 +20,9 @@ _window_height = 700
 class GUIThread(_threading.Thread):
     """GUI Thread."""
 
-    def __init__(self):
+    def __init__(self, daemon=True):
         """Start thread."""
-        _threading.Thread.__init__(self)
+        _threading.Thread.__init__(self, daemon=daemon)
         self.app = None
         self.window = None
         self.start()
@@ -77,4 +77,4 @@ def run():
 
 def run_in_thread():
     """Run hallbench application in a thread."""
-    return GUIThread()
+    return GUIThread(daemon=True)

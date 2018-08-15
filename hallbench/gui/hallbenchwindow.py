@@ -21,6 +21,8 @@ from hallbench.gui.databasewidget import DatabaseWidget \
     as _DatabaseWidget
 from hallbench.gui.voltageoffsetwidget import VoltageOffsetWidget \
     as _VoltageOffsetWidget
+from hallbench.gui.temperaturewidget import TemperatureWidget \
+    as _TemperatureWidget    
 from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
 from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
 from hallbench.data.configuration import (
@@ -69,6 +71,9 @@ class HallBenchWindow(_QMainWindow):
 
         self.voltageoffset_tab = _VoltageOffsetWidget(self)
         self.ui.main_tab.addTab(self.voltageoffset_tab, 'Voltage Offset')
+
+        self.temperature_tab = _TemperatureWidget(self)
+        self.ui.main_tab.addTab(self.temperature_tab, 'Temperature')
 
         self.database_tab = _DatabaseWidget(self)
         self.ui.main_tab.addTab(self.database_tab, 'Database')

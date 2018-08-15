@@ -366,7 +366,7 @@
         </column>
         <column>
          <property name="text">
-          <string>Hour</string>
+          <string>Time</string>
          </property>
         </column>
         <column>
@@ -726,7 +726,7 @@
   <customwidget>
    <class>PlotWidget</class>
    <extends>QGraphicsView</extends>
-   <header location="global">pyqtgraph</header>
+   <header>pyqtgraph</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -22,8 +22,8 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 class VoltageOffsetWidget(_QWidget):
     """Voltage Offset Widget class for the Hall Bench Control application."""
 
-    _position_format = '{0:0.4f}'
-    _voltage_format = '{0:0.6f}'
+    _position_format = '{0:.4f}'
+    _voltage_format = '{0:.6f}'
     _voltage_mult_factor = 1000  # [V] -> [mV]
 
     def __init__(self, parent=None):
@@ -126,16 +126,22 @@ class VoltageOffsetWidget(_QWidget):
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""
-        dtime = [_datetime.datetime.fromtimestamp(ts) for ts in self.timestamp]
-        date = [dt.strftime("%d/%m/%Y") for dt in dtime]
-        hour = [dt.strftime("%H:%M:%S") for dt in dtime]      
-        vx = list(_np.array(self.voltx_values)*self._voltage_mult_factor)
-        vy = list(_np.array(self.volty_values)*self._voltage_mult_factor)
-        vz = list(_np.array(self.voltz_values)*self._voltage_mult_factor)
-        _df =_pd.DataFrame(
-            _np.transpose([date, hour, vx, vy, vz]),
-            columns=['date', 'hour', 'ProbeX [mV]', 'ProbeY [mV]', 'ProbeZ [mV]'])
-        _df.to_clipboard(excel=True)                        
+        nr = self.ui.voltoffset_ta.rowCount()
+        nc = self.ui.voltoffset_ta.columnCount()
+        col_labels = [
+            'Date', 'Time', 'ProbeX [mV]', 'ProbeY [mV]', 'ProbeZ [mV]']
+  
+        tdata = []
+        for i in range(nr):
+            ldata = []
+            for j in range(nc):
+                value = self.ui.voltoffset_ta.item(i, j).text()
+                if j >= 2:
+                    value = float(value)
+                ldata.append(value)
+            tdata.append(ldata)
+        _df =_pd.DataFrame(_np.array(tdata), columns=col_labels)
+        _df.to_clipboard(excel=True)        
 
     def monitorVoltage(self, checked):
         """Monitor voltage value."""

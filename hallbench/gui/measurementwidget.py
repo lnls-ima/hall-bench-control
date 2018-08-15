@@ -129,7 +129,7 @@ class MeasurementWidget(_QWidget):
 
         if (not self.updateProbeCalibration()
            or not self.updateConfiguration()
-           or not self.configureDevices()
+           or not self.configurePmac()
            or not self.validDatabase()
            or not self.saveConfiguration()):
             return
@@ -151,7 +151,7 @@ class MeasurementWidget(_QWidget):
                 start = self.config.get_start(second_axis)
                 end = self.config.get_end(second_axis)
                 step = self.config.get_step(second_axis)
-                npts = _np.ceil(round((end - start) / step, 4) + 1)
+                npts = _np.abs(_np.ceil(round((end - start) / step, 4) + 1))
                 pos_list = _np.linspace(start, end, npts)
 
                 for pos in pos_list:
@@ -205,8 +205,14 @@ class MeasurementWidget(_QWidget):
         if self.devices.voltz.connected:
             self.devices.voltz.reset()
 
-    def configureDevices(self):
+    def configurePmac(self):
         """Configure devices."""
+        if not self.devices.pmac.connected:
+            message = 'Pmac not connected.'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return False
+            
         try:
             self.devices.pmac.set_axis_speed(1, self.config.vel_ax1)
             self.devices.pmac.set_axis_speed(2, self.config.vel_ax2)

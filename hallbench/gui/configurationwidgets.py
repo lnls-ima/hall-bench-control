@@ -123,13 +123,13 @@ class ConfigurationWidget(_QWidget):
             lambda: self.setStrFormatFloat(self.ui.end_ax5_le))
 
         self.ui.step_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatNonZeroFloat(self.ui.step_ax1_le))
+            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax1_le))
         self.ui.step_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatNonZeroFloat(self.ui.step_ax2_le))
+            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax2_le))
         self.ui.step_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatNonZeroFloat(self.ui.step_ax3_le))
+            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax3_le))
         self.ui.step_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatNonZeroFloat(self.ui.step_ax5_le))
+            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax5_le))
 
         self.ui.extra_ax1_le.editingFinished.connect(
             lambda: self.setStrFormatPositiveFloat(self.ui.extra_ax1_le))
@@ -296,7 +296,10 @@ class ConfigurationWidget(_QWidget):
 
         if start is not None and step is not None and end is not None:
             npts = _np.round(round((end - start) / step, 4) + 1)
-            corrected_end = start + (npts-1)*step
+            if start <= end:
+                corrected_end = start + (npts-1)*step
+            else:
+                corrected_end = start
             end_le.setText('{0:0.4f}'.format(corrected_end))
 
     def getAxisParam(self, param, axis):
@@ -342,7 +345,7 @@ class ConfigurationWidget(_QWidget):
             first_rb.setChecked(True)
 
             self.disableSecondAxisButton()
-
+            
             second_axis = self.config.second_axis
             if second_axis != -1:
                 second_rb = getattr(
@@ -351,7 +354,7 @@ class ConfigurationWidget(_QWidget):
                 self.uncheckRadioButtons(second_axis)
             else:
                 self.uncheckRadioButtons(second_axis)
-
+           
             for axis in self._measurement_axes:
                 start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
                 value = self.config.get_start(axis)
@@ -476,6 +479,10 @@ class ConfigurationWidget(_QWidget):
             else:
                 first_rb.setEnabled(self._load_enabled)
                 second_rb.setEnabled(self._load_enabled)
+            
+            if first_rb.isChecked():
+                second_rb.setChecked(False)
+                second_rb.setEnabled(False)
 
             start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
             start_le.setReadOnly(read_only)

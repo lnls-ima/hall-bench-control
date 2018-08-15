@@ -5,6 +5,7 @@ import time as _time
 import serial as _serial
 import logging as _logging
 import threading as _threading
+from builtins import property
 
 
 class NMRCommands(object):
@@ -49,7 +50,7 @@ class NMRCommands(object):
         self.reset_time = 'T'  # Reset NMR time-base
 
     def _display(self):
-        self.display_mode = 'D'  # displayed value given in MHz(0) or Tesla(1)
+        self.display_unit = 'D'  # displayed value given in MHz(0) or Tesla(1)
         self.display_vel = 'V'  # Normal(0) or Fast(1)
 
     def _status(self):
@@ -65,7 +66,8 @@ class NMR(object):
     _bytesize = _serial.EIGHTBITS
     _stopbits = _serial.STOPBITS_ONE
     _parity = _serial.PARITY_NONE
-    _timeout = 0.015  # [s]
+    _timeout = 0.3 # [s]
+    _delay = 0.05
 
     def __init__(self, logfile=None):
         """Initiate all variables and prepare log file.
@@ -87,13 +89,15 @@ class NMR(object):
         if self.ser is None:
             return False
         else:
-            if self.ser.isOpen():
-                if any(
-                    [self.ser.getCTS(), self.ser.getDSR(),
-                     self.ser.getRI(), self.ser.getCD()]):
-                    return True
-                else:
-                    return False
+            return self.ser.isOpen()
+
+    @property
+    def locked(self):
+        _ans = self.read_status(1)
+        if _ans is not None:
+            return int(_ans[-6])
+        else:
+            return None
 
     def log_events(self):
         """Prepare log file to save info, warning and error status."""
@@ -108,7 +112,7 @@ class NMR(object):
             self.logger.addHandler(fileHandler)
             self.logger.setLevel(_logging.ERROR)
 
-    def connect(self, port, baudrate):
+    def connect(self, port='COM4', baudrate=19200):
         """Connect to a serial port.
 
         Args:
@@ -126,14 +130,10 @@ class NMR(object):
             self.ser.timeout = self._timeout
             if not self.ser.isOpen():
                 self.ser.open()
-                if any(
-                    [self.ser.getCTS(), self.ser.getDSR(),
-                     self.ser.getRI(), self.ser.getCD()]):
-                    return True
-                else:
-                    return False
+            self.send_command(self.commands.remote)
+            return True
         except Exception:
-            if self.logger is not None:
+            if self.logfile is not None:
                 self.logger.error('exception', exc_info=True)
             return None
 
@@ -150,16 +150,16 @@ class NMR(object):
             self.send_command(self.commands.quit_search)
             _time.sleep(0.5)
             self.send_command(self.commands.local)
-            _time.sleep(0.05)
+            _time.sleep(self._delay)
             self.ser.close()
             return True
         except Exception:
-            if self.logger is not None:
+            if self.logfile is not None:
                 self.logger.error('exception', exc_info=True)
             return None
 
     def configure(
-            self, frequency, aquisition, field_sense, display_mode,
+            self, frequency, aquisition, field_sense, display_unit,
             display_vel, search_time, channel, nr_channels=1):
         """Configure NMR.
 
@@ -167,7 +167,7 @@ class NMR(object):
             frequency (int or str): initial search frequency,
             aquisition (int or str): aquisition mode [Manual(0) or Auto(1)],
             field_sense (int or str): field sense [Negative(0) or Positive(1)],
-            display_mode (int or str): display mode [MHz(0) or Tesla(1)],
+            display_unit (int or str): display unit [MHz(0) or Tesla(1)],
             display_vel (int or str): display velocity [Normal(0) or Fast(1)],
             search_time (int or str): search time [n=1 -> 9s per probe],
             channel (str or str): initial search channel,
@@ -178,39 +178,40 @@ class NMR(object):
         """
         try:
             with self.rlock:
+                self.rlock.acquire()
                 self.send_command(self.commands.remote)
-                _time.sleep(0.01)
+                _time.sleep(self._delay)
 
                 self.send_command(self.commands.channel + str(channel))
-                _time.sleep(0.01)
+                _time.sleep(self._delay)
 
                 self.send_command(self.commands.nr_channels + str(nr_channels))
-                _time.sleep(0.01)
+                _time.sleep(self._delay)
 
                 self.send_command(self.commands.frequency+str(frequency))
-                _time.sleep(0.01)
+                _time.sleep(self._delay)
 
                 self.send_command(self.commands.aquisition + str(aquisition))
-                _time.sleep(0.01)
+                _time.sleep(self._delay)
 
                 self.send_command(self.commands.field_sense + str(field_sense))
-                _time.sleep(0.01)
+                _time.sleep(self._delay)
 
-                self.send_command(
-                    self.commands.display_mode + str(display_mode))
-                _time.sleep(0.01)
+                self.send_command(self.commands.display_unit +
+                                                             str(display_unit))
+                _time.sleep(self._delay)
 
                 self.send_command(self.commands.display_vel + str(display_vel))
-                _time.sleep(0.01)
+                _time.sleep(self._delay)
 
                 self.send_command(self.commands.search_time + str(search_time))
-                _time.sleep(0.01)
+                _time.sleep(self._delay)
 
             return True
 
         except Exception:
             self.rlock.release()
-            if self.logger is not None:
+            if self.logfile is not None:
                 self.logger.error('exception', exc_info=True)
             return False
 
@@ -224,26 +225,122 @@ class NMR(object):
             True if successful, False otherwise.
         """
         try:
-            if self.ser.write((command+'\r').encode('utf-8')) == len(command):
+            self.ser.flushInput()
+            self.ser.flushOutput()
+            command = command + '\r\n'
+            if self.ser.write(command.encode('utf-8')) == len(command):
                 return True
             else:
                 return False
         except Exception:
-            if self.logger is not None:
+            if self.logfile is not None:
                 self.logger.error('exception', exc_info=True)
             return None
 
-    def read_from_device(self):
-        """Read a string from the device.
-
-        Tries to read from device, if timeout occurs, returns empty string.
+    def read_b_value(self):
+        """Read magnetic field value from the device. Iif timeout occurs,
+         returns empty string.
 
         Returns:
-            the string read from the device.
+            B value (str): string read from the device. First character
+        indicates lock state ('L' for locked, 'N' for not locked and 'S' to
+        NMR signal seen. The last character indicates the unit ('T' for Tesla
+        and 'F' for MHz).
         """
         try:
-            self.ser.write(self.commands.read.encode('utf-8'))
+            self.send_command(self.commands.read)
+            _time.sleep(self._delay)
             _reading = self.ser.read_all().decode('utf-8')
             return _reading
         except Exception:
+            if self.logfile is not None:
+                self.logger.error('exception', exc_info=True)
             return ''
+
+    def read_status(self, register=1):
+        """Read a status register from PT2025 NMR.
+
+        Args:
+            register (int): register number (from 1 to 4)
+
+        Returns:
+            string of register bits"""
+
+        try:
+            if 0 < register < 5:
+                self.send_command(self.commands.status + str(register))
+                _time.sleep(self._delay)
+                _ans = self.ser.read_all().decode().strip('S\r\n')
+                if _ans == '':
+                    return None
+                _ans = bin(int(_ans, 16))[2:]
+                return '{0:>8}'.format(_ans).replace(' ', '0')
+            else:
+                print('Register number out of range.')
+                return None
+        except Exception:
+            raise
+            if self.logfile is not None:
+                self.logger.error('exception', exc_info=True)
+            return None
+
+    def read_dac_value(self):
+        """Returns current internal 12-bit DAC value (from 0 to 4095)"""
+        try:
+            self.send_command(self.commands.status + '4')
+            _time.sleep(self._delay)
+            _ans = self.ser.read_all().decode().strip('S\r\n')
+            _ans = int(_ans, 16)
+            return _ans
+        except Exception:
+            if self.logfile is not None:
+                self.logger.error('exception', exc_info=True)
+            return None
+
+    def scan(self, channel='D', dac=0, speed=3):
+        """Scans the selected probe to determine the magnetic field value.
+        Times out after 30 seconds if the probe does not lock.
+
+        Args:
+            channel (str): selects the probe channel (from 'A' to 'H').
+            dac (int): selects intial 12 bits DAC value (from 0 to 4095).
+            speed (int): search time (from 1 to 6). 1 is the fastest value
+        (9 seconds to scan over the entire probe range). Each unit increase
+        in the speed increases the search time by 3 seconds.
+
+        Returns:
+            (B value, DAC value, dt)
+            B value (str): measured magnetic field in Tesla.
+            DAC value (int): current DAC value.
+            dt (float): measurement duration in seconds or -1 if timed out."""
+
+        self.send_command(self.commands.channel + channel)
+        _time.sleep(self._delay)
+
+        self.send_command(self.commands.aquisition + '1')
+        _time.sleep(self._delay)
+
+        self.send_command(self.commands.display_unit + '1')
+        _time.sleep(self._delay)
+
+        self.send_command(self.commands.search_time + str(speed))
+        _time.sleep(self._delay)
+
+        self.send_command(self.commands.search + str(dac))
+        _t0 = _time.time()
+        _time.sleep(self._delay)
+
+        _dt = 0
+        while not self.locked:
+            _time.sleep(0.1)
+            _dt = _time.time() - _t0
+            if _dt > 30:
+                _dt = -1
+                break
+
+        _b = float(self.read_b_value().strip('LNST\r\n'))
+        _dac = self.read_dac_value()
+
+        self.send_command(self.commands.quit_search)
+
+        return _b, _dac, _dt

@@ -552,47 +552,49 @@ class PolynomialTableDialog(_QDialog):
         self.updateTableSensorY()
         self.updateTableSensorZ()
 
+    def _updateTable(self, table, data, precision):
+        table.setRowCount(0)
+
+        if len(data) == 0:
+            return
+
+        nc = len(data[0])
+        table.setColumnCount(nc)
+        labels = ['Initial Voltage [V]', 'Final Voltage [V]']
+        for j in range(nc-2):
+            labels.append('C' + str(j))
+        table.setHorizontalHeaderLabels(labels)
+
+        vformatstr = '{0:0.%if}' % precision
+        cformatstr = '{0:0.%ie}' % precision
+        for i in range(len(data)):
+            table.setRowCount(i+1)
+            row = data[i]
+            for j in range(len(row)):
+                if j < 2:
+                    table.setItem(i, j, _QTableWidgetItem(
+                        vformatstr.format(row[j])))
+                else:
+                    table.setItem(i, j, _QTableWidgetItem(
+                        cformatstr.format(row[j])))
+
     def updateTableSensorX(self):
         """Update sensor x table values."""
         precision = self.sensorxprec_sb.value()
         table = self.ui.sensorx_ta
         data = self.probe_calibration.sensorx.data
-
-        formatstr = '{0:0.%if}' % precision
-        table.setRowCount(0)
-        for i in range(len(data)):
-            table.setRowCount(i+1)
-            row = data[i]
-            for j in range(len(row)):
-                table.setItem(i, j, _QTableWidgetItem(
-                    formatstr.format(row[j])))
+        self._updateTable(table, data, precision)
 
     def updateTableSensorY(self):
         """Update sensor y table values."""
         precision = self.sensoryprec_sb.value()
         table = self.ui.sensory_ta
         data = self.probe_calibration.sensory.data
-
-        formatstr = '{0:0.%if}' % precision
-        table.setRowCount(0)
-        for i in range(len(data)):
-            table.setRowCount(i+1)
-            row = data[i]
-            for j in range(len(row)):
-                table.setItem(i, j, _QTableWidgetItem(
-                    formatstr.format(row[j])))
+        self._updateTable(table, data, precision)
 
     def updateTableSensorZ(self):
         """Update sensor z table values."""
         precision = self.sensorzprec_sb.value()
         table = self.ui.sensorz_ta
         data = self.probe_calibration.sensorz.data
-
-        formatstr = '{0:0.%if}' % precision
-        table.setRowCount(0)
-        for i in range(len(data)):
-            table.setRowCount(i+1)
-            row = data[i]
-            for j in range(len(row)):
-                table.setItem(i, j, _QTableWidgetItem(
-                    formatstr.format(row[j])))
+        self._updateTable(table, data, precision)

@@ -1292,10 +1292,10 @@ def _get_fieldmap_position_and_field_values(
     pos_sorted[first_axis - 1] = index.values
     if second_axis is not None:
         pos_sorted[second_axis - 1] = columns.values
-    
+
     pos3 = _np.array(pos_sorted[2])  # x-axis
     pos2 = _np.array(pos_sorted[1])  # y-axis
-    pos1 = _np.array(pos_sorted[0]) # z-axis
+    pos1 = _np.array(pos_sorted[0])  # z-axis
 
     field3, field2, field1 = (
         probe_calibration.field_in_bench_coordinate_system(

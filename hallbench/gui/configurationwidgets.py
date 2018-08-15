@@ -123,13 +123,13 @@ class ConfigurationWidget(_QWidget):
             lambda: self.setStrFormatFloat(self.ui.end_ax5_le))
 
         self.ui.step_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax1_le))
+            lambda: self.setStrFormatNonZeroFloat(self.ui.step_ax1_le))
         self.ui.step_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax2_le))
+            lambda: self.setStrFormatNonZeroFloat(self.ui.step_ax2_le))
         self.ui.step_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax3_le))
+            lambda: self.setStrFormatNonZeroFloat(self.ui.step_ax3_le))
         self.ui.step_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax5_le))
+            lambda: self.setStrFormatNonZeroFloat(self.ui.step_ax5_le))
 
         self.ui.extra_ax1_le.editingFinished.connect(
             lambda: self.setStrFormatPositiveFloat(self.ui.extra_ax1_le))
@@ -518,6 +518,14 @@ class ConfigurationWidget(_QWidget):
         except Exception:
             obj.setText('')
 
+    def setStrFormatInteger(self, obj):
+        """Set the line edit string format for integer value."""
+        try:
+            value = int(obj.text())
+            obj.setText('{0:d}'.format(value))
+        except Exception:
+            obj.setText('')
+
     def setStrFormatPositiveFloat(self, obj):
         """Set the line edit string format for positive float value."""
         try:
@@ -540,11 +548,14 @@ class ConfigurationWidget(_QWidget):
         except Exception:
             obj.setText('')
 
-    def setStrFormatInteger(self, obj):
-        """Set the line edit string format for integer value."""
+    def setStrFormatNonZeroFloat(self, obj):
+        """Set the line edit string format for positive float value."""
         try:
-            value = int(obj.text())
-            obj.setText('{0:d}'.format(value))
+            value = float(obj.text())
+            if value != 0:
+                obj.setText('{0:0.4f}'.format(value))
+            else:
+                obj.setText('')
         except Exception:
             obj.setText('')
 

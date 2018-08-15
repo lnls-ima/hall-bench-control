@@ -183,7 +183,7 @@ class MeasurementWidget(_QWidget):
             self.plotField()
             self.ui.stop_btn.setEnabled(False)
             self.resetMultimeters()
-            
+
             if self.probe_calibration is not None:
                 self.ui.savefieldmap_btn.setEnabled(True)
 
@@ -195,14 +195,15 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
 
     def resetMultimeters(self):
+        """Reset connected multimeters."""
         if self.devices.voltx.connected:
             self.devices.voltx.reset()
 
         if self.devices.volty.connected:
             self.devices.volty.reset()
-            
+
         if self.devices.voltz.connected:
-            self.devices.voltz.reset()            
+            self.devices.voltz.reset()
 
     def configureDevices(self):
         """Configure devices."""
@@ -411,12 +412,11 @@ class MeasurementWidget(_QWidget):
         nr_measurements = self.config.nr_measurements
         self.clearGraph()
         self.configureGraph(2*nr_measurements, 'Voltage [V]')
-        
+
         voltage_data_list = []
         for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
-
 
             self.voltage_data = _VoltageData()
             self.devices.voltx.end_measurement = False
@@ -425,7 +425,8 @@ class MeasurementWidget(_QWidget):
             self.devices.voltx.clear()
             self.devices.volty.clear()
             self.devices.voltz.clear()
-            self.configuration_widget.nr_measurements_sb.setValue(_np.ceil((idx + 1)/2))
+            self.configuration_widget.nr_measurements_sb.setValue(
+                _np.ceil((idx + 1)/2))
 
             # flag to check if sensor is going or returning
             to_pos = not(bool(idx % 2))
@@ -502,7 +503,7 @@ class MeasurementWidget(_QWidget):
             success = self.saveScan()
         else:
             success = True
-        
+
         return success
 
     def showFieldMapDialog(self):
@@ -558,11 +559,14 @@ class MeasurementWidget(_QWidget):
         success = self.configuration_widget.updateConfiguration()
         if success:
             config = self.configuration_widget.config
-            if not any([config.voltx_enable, config.volty_enable, config.voltz_enable]):
+            if not any([
+                    config.voltx_enable,
+                    config.volty_enable,
+                    config.voltz_enable]):
                 message = 'Multimeters not connected.'
                 _QMessageBox.critical(
                     self, 'Failure', message, _QMessageBox.Ok)
-                return False            
+                return False
             else:
                 self.config = config
                 return True

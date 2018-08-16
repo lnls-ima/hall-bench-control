@@ -37,6 +37,12 @@
       <string>Temperature [°C]</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <property name="topMargin">
+       <number>6</number>
+      </property>
+      <property name="bottomMargin">
+       <number>6</number>
+      </property>
       <property name="verticalSpacing">
        <number>9</number>
       </property>
@@ -410,6 +416,63 @@
       <string/>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <property name="verticalSpacing">
+       <number>15</number>
+      </property>
+      <item row="0" column="0" colspan="3">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="configure_btn">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Configure Channels</string>
+          </property>
+          <property name="autoExclusive">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="configureled_la">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap>../../resources/img/led.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item row="1" column="0" colspan="3">
        <widget class="QPushButton" name="read_btn">
         <property name="minimumSize">
@@ -530,28 +593,6 @@
           <string>hour</string>
          </property>
         </item>
-       </widget>
-      </item>
-      <item row="0" column="0" colspan="3">
-       <widget class="QPushButton" name="read_btn_2">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Configure Channels</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
        </widget>
       </item>
      </layout>

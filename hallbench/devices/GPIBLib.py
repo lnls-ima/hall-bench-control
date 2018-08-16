@@ -58,7 +58,7 @@ class GPIB(object):
             # resource manager
             _rm = _visa.ResourceManager()
             # connects to the device
-            _cmd = 'GPIB1::'+str(address)+'::INSTR'
+            _cmd = 'GPIB0::'+str(address)+'::INSTR'
             # instrument
             _inst = _rm.open_resource(_cmd)
 

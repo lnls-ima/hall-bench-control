@@ -51,6 +51,9 @@ class TemperatureWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
+        self._channels_configured = False
+        self._selected_channels = []
+        self._legend_items = []
         self.timestamp = []
         self.channel_readings = _collections.OrderedDict([
             ('01', []),
@@ -77,34 +80,43 @@ class TemperatureWidget(_QWidget):
             ('10', None),
         ])
 
-        # create connections
-        self.ui.read_btn.clicked.connect(
-            lambda: self.readTemperature(msgbox=True))
-        self.ui.monitor_btn.toggled.connect(self.monitorTemperature)
-        self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
-        self.ui.monitorunit_cmb.currentIndexChanged.connect(
-            self.updateMonitorInterval)
-        self.ui.clear_btn.clicked.connect(self.clearTemperatureValues)
-        self.ui.remove_btn.clicked.connect(self.removeTemperatureValue)
-        self.ui.copy_btn.clicked.connect(self.copyToClipboard)
-
         # create timer to monitor temperature
         self.timer = _QTimer(self)
         self.updateMonitorInterval()
-        self.timer.timeout.connect(lambda: self.readTemperature(msgbox=False))
+        self.timer.timeout.connect(lambda: self.readTemperature(monitor=True))
 
-        # configure plot and table
+        self.ui.configureled_la.setEnabled(False)
         self.ui.temperature_ta.setAlternatingRowColors(True)
-        self.configureGraph()
 
         dt = _QDateTime()
         dt.setTime_t(_time.time())
         self.ui.time_dte.setDateTime(dt)
 
+        self.configureGraph()
+        self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
+        self.legend.setParentItem(self.ui.temperature_pw.graphicsItem())
+        self.legend.setAutoFillBackground(1)
+
+        self.connectSignalSlots()
+
     @property
     def devices(self):
         """Hall Bench devices."""
         return self.window().devices
+
+    def updateLegendItems(self):
+        """Updated legend items."""
+        self.clearLegendItems()
+        self._legend_items = []
+        for channel in self._selected_channels:
+            label = 'CH' + channel
+            self._legend_items.append(label)
+            self.legend.addItem(self.channel_graphs[channel], label)
+
+    def clearLegendItems(self):
+        """Clear plot legend."""
+        for label in self._legend_items:
+            self.legend.removeItem(label)
 
     def clearTemperatureValues(self):
         """Clear all temperature values."""
@@ -114,13 +126,40 @@ class TemperatureWidget(_QWidget):
         self.updateTableValues()
         self.updatePlot()
 
+    def configureChannels(self):
+        """Configure channels for temperature measurement."""
+        self._selected_channels = []
+        for channel in self._channels:
+            chb = getattr(self.ui, 'channel' + channel + '_chb')
+            if chb.isChecked():
+                self._selected_channels.append(channel)
+            else:
+                le = getattr(self.ui, 'channel' + channel + '_le')
+                le.setText('') 
+        
+        self.updateLegendItems()
+                            
+        if not self.devices.multich.connected:
+            self._channels_configured = False
+            return
+        
+        chanlist = []
+        for channel in self._selected_channels:
+            chanlist.append(self._slot + channel)          
+        
+        wait = self.ui.delay_sb.value()
+        if self.devices.multich.configure_temperature(
+                chanlist, wait=wait):
+            self._channels_configured = True
+            self.ui.configureled_la.setEnabled(True)
+            return
+        else:
+            self._channels_configured = False
+            return     
+
     def configureGraph(self):
         """Configure data plots."""
         self.ui.temperature_pw.clear()
-
-        self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
-        self.legend.setParentItem(self.ui.temperature_pw.graphicsItem())
-        self.legend.setAutoFillBackground(1)
 
         for channel in self._channels:
             pen = self._channel_colors[channel]
@@ -133,10 +172,30 @@ class TemperatureWidget(_QWidget):
         self.ui.temperature_pw.setLabel('bottom', 'Time interval [s]')
         self.ui.temperature_pw.setLabel('left', 'Temperature [deg C]')
         self.ui.temperature_pw.showGrid(x=True, y=True)
+        self.updateLegendItems()
 
-        for channel in self._channels:
-            self.legend.addItem(
-                self.channel_graphs[channel], 'CH' + channel)
+    def connectSignalSlots(self):
+        """Create signal/slot connections."""
+        self.ui.configure_btn.clicked.connect(self.configureChannels)
+        self.ui.read_btn.clicked.connect(
+            lambda: self.readTemperature(monitor=False))
+        self.ui.monitor_btn.toggled.connect(self.monitorTemperature)
+        self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
+        self.ui.monitorunit_cmb.currentIndexChanged.connect(
+            self.updateMonitorInterval)
+        self.ui.clear_btn.clicked.connect(self.clearTemperatureValues)
+        self.ui.remove_btn.clicked.connect(self.removeTemperatureValue)
+        self.ui.copy_btn.clicked.connect(self.copyToClipboard)   
+        self.ui.channel01_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel02_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel03_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel04_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel05_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel06_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel07_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel08_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel09_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel10_chb.stateChanged.connect(self.disableLed)
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""
@@ -156,6 +215,10 @@ class TemperatureWidget(_QWidget):
             tdata.append(ldata)
         _df =_pd.DataFrame(_np.array(tdata), columns=col_labels)
         _df.to_clipboard(excel=True)                        
+                    
+    def disableLed(self):
+        """Disable configuration led."""
+        self.ui.configureled_la.setEnabled(False)
                        
     def monitorTemperature(self, checked):
         """Monitor temperature values."""
@@ -166,35 +229,58 @@ class TemperatureWidget(_QWidget):
             self.timer.stop()
             self.ui.read_btn.setEnabled(True)
 
-    def readTemperature(self, msgbox=True):
+    def readTemperature(self, monitor=False):
         """Read temperature value."""
+        if len(self._selected_channels) == 0:
+            return
+
         if not self.devices.multich.connected:
-            if msgbox:
+            if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure',
                     'Multichannel not connected.', _QMessageBox.Ok)
             return
- 
-        ts = _time.time()
-        self.timestamp.append(ts)
-
-        dt = _QDateTime()
-        dt.setTime_t(ts)
-        self.ui.time_dte.setDateTime(dt)
         
-        for channel in self._channels:
-            chb = getattr(self.ui, 'channel' + channel + '_chb')
-            if chb.isChecked():         
-                temperature = float(self.devices.multich.read_channel(
-                    self._slot + channel))
-                le = getattr(self.ui, 'channel' + channel + '_le')
-                le.setText(self._temperature_format.format(temperature))
-            else:
-                temperature = _np.nan
-            self.channel_readings[channel].append(temperature)
+        if not self._channels_configured:
+            if not monitor:
+                _QMessageBox.critical(
+                    self, 'Failure',
+                    'Channels not configured.', _QMessageBox.Ok)
+            return       
+    
+        ts = _time.time()
+        wait = self.ui.delay_sb.value()
+        rl = self.devices.multich.get_reading_list(wait=wait)
+        if len(rl) != len(self._selected_channels):
+            return
+        
+        readings = [r if r < 1e37 else _np.nan for r in rl]
 
-        self.updateTableValues()
-        self.updatePlot()
+        try:
+            for i in range(len(self._selected_channels)):
+                channel = self._selected_channels[i]
+                chb = getattr(self.ui, 'channel' + channel + '_chb')
+                le = getattr(self.ui, 'channel' + channel + '_le')
+                temperature = readings[i]
+                le.setText(self._temperature_format.format(temperature))         
+                self.channel_readings[channel].append(temperature)
+            
+            for channel in self._channels:
+                if channel not in self._selected_channels:
+                    le = getattr(self.ui, 'channel' + channel + '_le')
+                    le.setText('') 
+                    self.channel_readings[channel].append(_np.nan)
+    
+            self.timestamp.append(ts)
+            dt = _QDateTime()
+            dt.setTime_t(ts)
+            self.ui.time_dte.setDateTime(dt)   
+    
+            self.updateTableValues()
+            self.updatePlot()
+        
+        except Exception:
+            pass
 
     def removeTemperatureValue(self):
         """Remove temperature value from list."""

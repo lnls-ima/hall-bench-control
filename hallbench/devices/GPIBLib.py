@@ -6,6 +6,7 @@ Created on 10/02/2015
 """
 
 import visa as _visa
+import time as _time
 import logging as _logging
 import numpy as _np
 import struct as _struct
@@ -68,9 +69,8 @@ class GPIB(object):
                     self.inst = _inst
                     
                     # set a default timeout to 1
-                    self.inst.timeout = 1000  # ms
+                    self.inst.timeout = 5 # s
                     
-#                     self.inst.read()
                     self._connected = True
                     return True
                 except Exception:
@@ -144,47 +144,6 @@ class GPIB(object):
             return _reading
         except Exception:
             return ''
-
-
-class Agilent34970ACommands(object):
-    """Commands of Agilent 34970 Data Acquisition/Switch Unit."""
-
-    def __init__(self):
-        """Load commands."""
-        self._reset()
-        self._clean()
-        self._lock()
-        self._remote_access()
-        self._set_multichannel()
-
-    def _reset(self):
-        """Reset function."""
-        self.reset = '*RST'
-
-    def _clean(self):
-        """Clean error function."""
-        self.clean = '*CLS'
-
-    def _lock(self):
-        """Lock function."""
-        self.lock = ':SYST:LOC'
-
-    def _remote_access(self):
-        """Remote access function."""
-        self.remote = ':SYST:REM;:SYST:RWL'
-
-    def _set_multichannel(self):
-        """List of commands to set the multichannel."""
-        self.route = ':ROUT:SCAN (@101:107)'
-        self.conf_temp = ':CONF:TEMP RTD,85,(@101:107)'
-        self.monitor_on = 'ROUT:MON:STATE ON'
-        self.sense_ch1 = ':SENS:TEMP:TRAN:FRTD:RES 100.42,(@101)'
-        self.sense_ch2 = ':SENS:TEMP:TRAN:FRTD:RES 100.38,(@102)'
-        self.sense_ch3 = ':SENS:TEMP:TRAN:FRTD:RES 100.24,(@103)'
-        self.sense_ch4 = ':SENS:TEMP:TRAN:FRTD:RES 100.20,(@104)'
-        self.sense_ch5 = ':SENS:TEMP:TRAN:FRTD:RES 100.16,(@105)'
-        self.sense_ch6 = ':SENS:TEMP:TRAN:FRTD:RES 102.82,(@106)'
-        self.sense_ch7 = ':SENS:TEMP:TRAN:FRTD:RES 100.40,(@107)'
 
 
 class Agilent3458ACommands(object):
@@ -498,6 +457,16 @@ class Agilent3458A(GPIB):
         """Clear voltage data."""
         self._voltage = _np.array([])
 
+    def connect(self, address):
+        if super().connect(address):
+            self.send_command(self.commands.beep)
+            if self.inst.read():
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def read_voltage(self, formtype=0):
         """Read voltage from the device.
 
@@ -569,6 +538,53 @@ class Agilent3458A(GPIB):
         self.send_command(self.commands.end_gpib_always)
 
 
+class Agilent34970ACommands(object):
+    """Commands of Agilent 34970 Data Acquisition/Switch Unit."""
+
+    def __init__(self):
+        """Load commands."""
+        self._reset()
+        self._clean()
+        self._lock()
+        self._remote_access()
+        self._measure()
+        self._configure()
+        self._route()
+        self._read()
+
+    def _reset(self):
+        """Reset function."""
+        self.reset = '*RST'
+
+    def _clean(self):
+        """Clean error function."""
+        self.clean = '*CLS'
+
+    def _lock(self):
+        """Lock function."""
+        self.lock = ':SYST:LOC'
+
+    def _remote_access(self):
+        """Remote access function."""
+        self.remote = ':SYST:REM;:SYST:RWL'
+
+    def _measure(self):
+        """Measure commands."""
+        self.meas_temp = 'MEAS:TEMP?'
+        
+    def _configure(self):
+        """Configure commands."""
+        self.conf_temp = 'CONF:TEMP RTD'
+        
+    def _route(self):
+        """Route commands."""
+        self.rout_scan = 'ROUT:SCAN'
+        
+    def _read(self):
+        """Read command."""
+        self.read = 'READ?'
+
+
 class Agilent34970A(GPIB):
     """Agilent 34970A multichannel for temperatures readings."""
 
@@ -582,3 +598,44 @@ class Agilent34970A(GPIB):
         self.commands = Agilent34970ACommands()
         self.logfile = logfile
         super().__init__(self.logfile)
+        
+    def configure_temperature(self, chanlist, wait=0.5):
+        """Configure temperature readings.
+                
+        Args:
+            channellist (list): list of channels to measure.
+        
+        Returns:
+            True is successful, False otherwise.
+        """
+        try:
+            self.send_command(self.commands.clean)
+            self.send_command(self.commands.reset) 
+            if len(chanlist) != 0:
+                scanlist = '(@' + ','.join(chanlist) + ')'
+                self.send_command(
+                    self.commands.conf_temp + ',' + scanlist)
+                _time.sleep(wait)
+            else:
+                scanlist = '(@)'
+
+            self.send_command(
+                self.commands.rout_scan + ' ' + scanlist)
+            _time.sleep(wait)
+            return True           
+        except Exception:
+            return False
+ 
+    def get_reading_list(self, wait=0.5):
+        """Get reading list."""
+        try:
+            self.send_command(self.commands.read)
+            _time.sleep(wait)
+            rstr = self.read_from_device()
+            if len(rstr) != 0:
+                rlist = [float(r) for r in rstr.split(',')]
+                return rlist
+            else:
+                return []
+        except Exception:
+            return []        

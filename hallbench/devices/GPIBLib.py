@@ -69,7 +69,7 @@ class GPIB(object):
                     self.inst = _inst
                     
                     # set a default timeout to 1
-                    self.inst.timeout = 5 # s
+                    self.inst.timeout = 1000 # ms
                     
                     self._connected = True
                     return True
@@ -458,13 +458,17 @@ class Agilent3458A(GPIB):
         self._voltage = _np.array([])
 
     def connect(self, address):
+        """Connect device."""
         if super().connect(address):
-            self.send_command(self.commands.beep)
-            if self.inst.read():
+            try:
+                self.inst.write(self.commands.beep)
+                self._connected = True
                 return True
-            else:
+            except Exception:
+                self._connected = False
                 return False
         else:
+            self._connected = False
             return False
 
     def read_voltage(self, formtype=0):
@@ -623,6 +627,7 @@ class Agilent34970A(GPIB):
                 self.commands.rout_scan + ' ' + scanlist)
             _time.sleep(wait)
             return True           
+        
         except Exception:
             return False
  

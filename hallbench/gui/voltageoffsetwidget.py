@@ -125,9 +125,13 @@ class VoltageOffsetWidget(_QWidget):
         self.legend.addItem(self.graphz, 'Z')
 
     def copyToClipboard(self):
-        """Copy table data to clipboard."""
+        """Copy table data to clipboard."""       
         nr = self.ui.voltoffset_ta.rowCount()
         nc = self.ui.voltoffset_ta.columnCount()
+        
+        if len(nr) == 0:
+            return
+
         col_labels = [
             'Date', 'Time', 'ProbeX [mV]', 'ProbeY [mV]', 'ProbeZ [mV]']
   
@@ -188,7 +192,7 @@ class VoltageOffsetWidget(_QWidget):
                     'Multimeters not connected.', _QMessageBox.Ok)
             return
 
-        self.timestamp.append(_time.time())
+        ts = _time.time()
 
         self.devices.voltx.send_command(
             self.devices.voltx.commands.end_gpib_always)
@@ -204,7 +208,9 @@ class VoltageOffsetWidget(_QWidget):
             self.devices.voltz.commands.end_gpib_always)
         voltz = float(self.devices.voltz.read_from_device()[:-2])
         self.voltz_values.append(voltz)
-        
+       
+        self.timestamp.append(ts)
+                 
         self.updateTableValues()
         self.updatePlot()
 

@@ -201,6 +201,10 @@ class TemperatureWidget(_QWidget):
         """Copy table data to clipboard."""
         nr = self.ui.temperature_ta.rowCount()
         nc = self.ui.temperature_ta.columnCount()
+        
+        if len(nr) == 0:
+            return
+
         col_labels = ['Date', 'Time']
         for channel in self._channels:
             col_labels.append('CH ' + channel)      

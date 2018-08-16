@@ -459,12 +459,15 @@ class Agilent3458A(GPIB):
 
     def connect(self, address):
         if super().connect(address):
-            self.send_command(self.commands.beep)
-            if self.inst.read():
+            try:
+                self.inst.read()
+                self._connected = True
                 return True
-            else:
+            except Exception:
+                self._connected = False
                 return False
         else:
+            self._connected = False
             return False
 
     def read_voltage(self, formtype=0):
@@ -623,6 +626,7 @@ class Agilent34970A(GPIB):
                 self.commands.rout_scan + ' ' + scanlist)
             _time.sleep(wait)
             return True           
+        
         except Exception:
             return False
  

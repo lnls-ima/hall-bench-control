@@ -70,7 +70,9 @@ class GPIB(object):
                     
                     # set a default timeout to 1
                     self.inst.timeout = 1000 # ms
-                    
+              
+                    self.inst.write(self.commands.idn)
+
                     self._connected = True
                     return True
                 except Exception:
@@ -457,20 +459,6 @@ class Agilent3458A(GPIB):
         """Clear voltage data."""
         self._voltage = _np.array([])
 
-    def connect(self, address):
-        """Connect device."""
-        if super().connect(address):
-            try:
-                self.inst.write(self.commands.beep)
-                self._connected = True
-                return True
-            except Exception:
-                self._connected = False
-                return False
-        else:
-            self._connected = False
-            return False
-
     def read_voltage(self, formtype=0):
         """Read voltage from the device.
 
@@ -587,6 +575,9 @@ class Agilent34970ACommands(object):
     def _read(self):
         """Read command."""
         self.read = 'READ?'
+        
+    def _idn(self):
+        self.idn = '*IDN?'
 
 
 class Agilent34970A(GPIB):
@@ -602,7 +593,7 @@ class Agilent34970A(GPIB):
         self.commands = Agilent34970ACommands()
         self.logfile = logfile
         super().__init__(self.logfile)
-        
+ 
     def configure_temperature(self, chanlist, wait=0.5):
         """Configure temperature readings.
                 

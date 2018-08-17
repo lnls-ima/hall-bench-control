@@ -146,6 +146,12 @@ class ConnectionWidget(_QWidget):
 
             self.ui.multich_enable_chb.setChecked(self.config.multich_enable)
             self.ui.multich_address_sb.setValue(self.config.multich_address)
+            if self.config.dcct_head == 0:
+                dcct_head = 'None'
+            else:
+                dcct_head = self.config.dcct_head
+            self.ui.dcct_head_cmb.setCurrentIndex(
+                self.ui.dcct_head_cmb.findText(str(dcct_head)))
 
             self.ui.nmr_enable_chb.setChecked(self.config.nmr_enable)
             self.ui.nmr_port_cmb.setCurrentIndex(
@@ -206,6 +212,11 @@ class ConnectionWidget(_QWidget):
 
             self.config.multich_enable = self.ui.multich_enable_chb.isChecked()
             self.config.multich_address = self.ui.multich_address_sb.value()
+            if self.ui.nmr_baudrate_cmb.currentText() == 'None':
+                self.config.dcct_head = 0
+            else:                  
+                self.config.dcct_head = int(
+                    self.ui.dcct_head_cmb.currentText())
 
             self.config.nmr_enable = self.ui.nmr_enable_chb.isChecked()
             self.config.nmr_port = self.ui.nmr_port_cmb.currentText()

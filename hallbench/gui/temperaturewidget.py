@@ -27,19 +27,25 @@ class TemperatureWidget(_QWidget):
     """Temperature Widget class for the Hall Bench Control application."""
 
     _temperature_format = '{0:.2f}'
-    _slot = '1'
-    _channels = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']
+    _probe_channels = ['101', '102', '103']
+    _channels = [
+        '101', '102', '103', '201', '202', '203', '204',
+        '205', '206', '207', '208', '209', '210',
+    ]
     _channel_colors = _collections.OrderedDict([
-        ('01', (230, 25, 75)),
-        ('02', (60, 180, 75)),
-        ('03', (0, 130, 200)),
-        ('04', (245, 130, 48)),
-        ('05', (145, 30, 180)),
-        ('06', (255, 225, 25)),
-        ('07', (70, 240, 240)),
-        ('08', (240, 50, 230)),
-        ('09', (170, 110, 40)),
-        ('10', (0, 0, 0)),
+        ('101', (230, 25, 75)),
+        ('102', (60, 180, 75)),
+        ('103', (0, 130, 200)),
+        ('201', (245, 130, 48)),
+        ('202', (145, 30, 180)),
+        ('203', (255, 225, 25)),
+        ('204', (70, 240, 240)),
+        ('205', (240, 50, 230)),
+        ('206', (170, 110, 40)),
+        ('207', (128, 0, 0)),
+        ('208', (170, 255, 195)),
+        ('209', (128, 128, 128)),
+        ('210', (0, 0, 0)),        
     ])        
 
     def __init__(self, parent=None):
@@ -56,28 +62,34 @@ class TemperatureWidget(_QWidget):
         self._legend_items = []
         self.timestamp = []
         self.channel_readings = _collections.OrderedDict([
-            ('01', []),
-            ('02', []),
-            ('03', []),
-            ('04', []),
-            ('05', []),
-            ('06', []),
-            ('07', []),
-            ('08', []),
-            ('09', []),
-            ('10', []),
+            ('101', []),
+            ('102', []),
+            ('103', []),
+            ('201', []),
+            ('202', []),
+            ('203', []),
+            ('204', []),
+            ('205', []),
+            ('206', []),
+            ('207', []),
+            ('208', []),
+            ('209', []),
+            ('210', []),            
         ])
         self.channel_graphs = _collections.OrderedDict([
-            ('01', None),
-            ('02', None),
-            ('03', None),
-            ('04', None),
-            ('05', None),
-            ('06', None),
-            ('07', None),
-            ('08', None),
-            ('09', None),
-            ('10', None),
+            ('101', None),
+            ('102', None),
+            ('103', None),
+            ('201', None),
+            ('202', None),
+            ('203', None),
+            ('204', None),
+            ('205', None),
+            ('206', None),
+            ('207', None),
+            ('208', None),
+            ('209', None),
+            ('210', None),            
         ])
 
         # create timer to monitor temperature
@@ -92,11 +104,11 @@ class TemperatureWidget(_QWidget):
         dt.setTime_t(_time.time())
         self.ui.time_dte.setDateTime(dt)
 
-        self.configureGraph()
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.temperature_pw.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
+        self.configureGraph()
         self.connectSignalSlots()
 
     @property
@@ -109,7 +121,7 @@ class TemperatureWidget(_QWidget):
         self.clearLegendItems()
         self._legend_items = []
         for channel in self._selected_channels:
-            label = 'CH' + channel
+            label = 'Ch' + channel
             self._legend_items.append(label)
             self.legend.addItem(self.channel_graphs[channel], label)
 
@@ -141,15 +153,13 @@ class TemperatureWidget(_QWidget):
                             
         if not self.devices.multich.connected:
             self._channels_configured = False
-            return
-        
-        chanlist = []
-        for channel in self._selected_channels:
-            chanlist.append(self._slot + channel)          
+            _QMessageBox.critical(
+                self, 'Failure',
+                'Multichannel not connected.', _QMessageBox.Ok)            
+            return       
         
         wait = self.ui.delay_sb.value()
-        if self.devices.multich.configure_temperature(
-                chanlist, wait=wait):
+        if self.devices.multich.configure(self._selected_channels, wait=wait):
             self._channels_configured = True
             self.ui.configureled_la.setEnabled(True)
             return
@@ -186,16 +196,19 @@ class TemperatureWidget(_QWidget):
         self.ui.clear_btn.clicked.connect(self.clearTemperatureValues)
         self.ui.remove_btn.clicked.connect(self.removeTemperatureValue)
         self.ui.copy_btn.clicked.connect(self.copyToClipboard)   
-        self.ui.channel01_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel02_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel03_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel04_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel05_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel06_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel07_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel08_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel09_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel10_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel101_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel102_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel103_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel201_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel202_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel203_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel204_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel205_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel206_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel207_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel208_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel209_chb.stateChanged.connect(self.disableLed)
+        self.ui.channel210_chb.stateChanged.connect(self.disableLed)
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""
@@ -207,7 +220,7 @@ class TemperatureWidget(_QWidget):
 
         col_labels = ['Date', 'Time']
         for channel in self._channels:
-            col_labels.append('CH ' + channel)      
+            col_labels.append(channel)      
         tdata = []
         for i in range(nr):
             ldata = []
@@ -254,7 +267,7 @@ class TemperatureWidget(_QWidget):
     
         ts = _time.time()
         wait = self.ui.delay_sb.value()
-        rl = self.devices.multich.get_reading_list(wait=wait)
+        rl = self.devices.multich.get_converted_readings(wait=wait)
         if len(rl) != len(self._selected_channels):
             return
         

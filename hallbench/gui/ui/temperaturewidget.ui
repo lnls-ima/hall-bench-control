@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1174</width>
+    <width>1231</width>
     <height>887</height>
    </rect>
   </property>
@@ -37,6 +37,9 @@
       <string>Temperature [°C]</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <property name="verticalSpacing">
+       <number>6</number>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="sizePolicy">
@@ -52,7 +55,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Date and Time:</string>
+         <string>Time:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -93,7 +96,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QCheckBox" name="channel01_chb">
+       <widget class="QCheckBox" name="channel101_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -101,15 +104,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 01</string>
+         <string>Ch 101 (Probe X)</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="1" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel01_le">
+       <widget class="QLineEdit" name="channel101_le">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -125,7 +128,7 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QCheckBox" name="channel02_chb">
+       <widget class="QCheckBox" name="channel102_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -133,15 +136,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 02</string>
+         <string>Ch 102 (Probe Y)</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="2" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel02_le">
+       <widget class="QLineEdit" name="channel102_le">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -157,7 +160,7 @@
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QCheckBox" name="channel03_chb">
+       <widget class="QCheckBox" name="channel103_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -165,15 +168,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 03</string>
+         <string>Ch 103 (Probe Z)</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="3" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel03_le">
+       <widget class="QLineEdit" name="channel103_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -183,7 +186,7 @@
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QCheckBox" name="channel04_chb">
+       <widget class="QCheckBox" name="channel201_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -191,15 +194,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 04</string>
+         <string>Ch 201</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="4" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel04_le">
+       <widget class="QLineEdit" name="channel201_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -209,7 +212,7 @@
        </widget>
       </item>
       <item row="5" column="0">
-       <widget class="QCheckBox" name="channel05_chb">
+       <widget class="QCheckBox" name="channel202_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -217,15 +220,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 05</string>
+         <string>Ch 202</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="5" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel05_le">
+       <widget class="QLineEdit" name="channel202_le">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -241,7 +244,7 @@
        </widget>
       </item>
       <item row="6" column="0">
-       <widget class="QCheckBox" name="channel06_chb">
+       <widget class="QCheckBox" name="channel203_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -249,15 +252,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 06</string>
+         <string>Ch 203</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="6" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel06_le">
+       <widget class="QLineEdit" name="channel203_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -267,7 +270,7 @@
        </widget>
       </item>
       <item row="7" column="0">
-       <widget class="QCheckBox" name="channel07_chb">
+       <widget class="QCheckBox" name="channel204_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -275,15 +278,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 07</string>
+         <string>Ch 204</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="7" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel07_le">
+       <widget class="QLineEdit" name="channel204_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -293,7 +296,7 @@
        </widget>
       </item>
       <item row="8" column="0">
-       <widget class="QCheckBox" name="channel08_chb">
+       <widget class="QCheckBox" name="channel205_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -301,15 +304,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 08</string>
+         <string>Ch 205</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="8" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel08_le">
+       <widget class="QLineEdit" name="channel205_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -319,7 +322,7 @@
        </widget>
       </item>
       <item row="9" column="0">
-       <widget class="QCheckBox" name="channel09_chb">
+       <widget class="QCheckBox" name="channel206_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -327,15 +330,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 09</string>
+         <string>Ch 206</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="9" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel09_le">
+       <widget class="QLineEdit" name="channel206_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -345,7 +348,7 @@
        </widget>
       </item>
       <item row="10" column="0">
-       <widget class="QCheckBox" name="channel10_chb">
+       <widget class="QCheckBox" name="channel207_chb">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -353,15 +356,15 @@
          </font>
         </property>
         <property name="text">
-         <string>Channel 10</string>
+         <string>Ch 207</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="10" column="1" colspan="2">
-       <widget class="QLineEdit" name="channel10_le">
+       <widget class="QLineEdit" name="channel207_le">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -370,7 +373,85 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="0" colspan="2">
+      <item row="11" column="0">
+       <widget class="QCheckBox" name="channel208_chb">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Ch 208</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1" colspan="2">
+       <widget class="QLineEdit" name="channel208_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QCheckBox" name="channel209_chb">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Ch 209</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="1" colspan="2">
+       <widget class="QLineEdit" name="channel209_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0">
+       <widget class="QCheckBox" name="channel210_chb">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Ch 210</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="1" colspan="2">
+       <widget class="QLineEdit" name="channel210_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="14" column="0" colspan="2">
        <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
@@ -386,7 +467,7 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="2">
+      <item row="14" column="2">
        <widget class="QDoubleSpinBox" name="delay_sb">
         <property name="font">
          <font>
@@ -405,7 +486,7 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="1" rowspan="2">
+   <item row="0" column="1">
     <widget class="PlotWidget" name="temperature_pw">
      <property name="backgroundBrush">
       <brush brushstyle="NoBrush">
@@ -440,7 +521,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="verticalSpacing">
-       <number>15</number>
+       <number>20</number>
       </property>
       <item row="0" column="0" colspan="3">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -452,7 +533,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>40</height>
+            <height>45</height>
            </size>
           </property>
           <property name="font">
@@ -471,6 +552,9 @@
         </item>
         <item>
          <widget class="QLabel" name="configureled_la">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -501,7 +585,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>40</height>
+          <height>45</height>
          </size>
         </property>
         <property name="font">
@@ -523,7 +607,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>40</height>
+          <height>45</height>
          </size>
         </property>
         <property name="font">
@@ -621,7 +705,7 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="0" colspan="2">
+   <item row="1" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QTableWidget" name="temperature_ta">
@@ -659,13 +743,13 @@
         <bool>false</bool>
        </attribute>
        <attribute name="horizontalHeaderDefaultSectionSize">
-        <number>90</number>
+        <number>80</number>
        </attribute>
        <attribute name="horizontalHeaderHighlightSections">
         <bool>true</bool>
        </attribute>
        <attribute name="horizontalHeaderMinimumSectionSize">
-        <number>90</number>
+        <number>80</number>
        </attribute>
        <attribute name="horizontalHeaderStretchLastSection">
         <bool>true</bool>
@@ -685,52 +769,67 @@
        </column>
        <column>
         <property name="text">
-         <string>CH 01 [°C]</string>
+         <string>101 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 02 [°C]</string>
+         <string>102 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 03 [°C]</string>
+         <string>103 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 04 [°C]</string>
+         <string>201 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 05 [°C]</string>
+         <string>202 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 06 [°C]</string>
+         <string>203 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 07 [°C]</string>
+         <string>204 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 08 [°C]</string>
+         <string>205 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 09 [°C]</string>
+         <string>206 [°C]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>CH 10 [°C]</string>
+         <string>207 [°C]</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>208 [°C]</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>209 [°C]</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>210 [°C]</string>
         </property>
        </column>
       </widget>

@@ -34,29 +34,12 @@ class VoltageOffsetWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        # variables initialization
         self.timestamp = []
         self.voltx_values = []
         self.volty_values = []
         self.voltz_values = []
 
-        # create connections
-        self.ui.posax1_le.editingFinished.connect(
-            lambda: self.setPositionStrFormat(self.ui.posax1_le))
-        self.ui.posax2_le.editingFinished.connect(
-            lambda: self.setPositionStrFormat(self.ui.posax2_le))
-        self.ui.posax3_le.editingFinished.connect(
-            lambda: self.setPositionStrFormat(self.ui.posax3_le))
-
-        self.ui.move_btn.clicked.connect(self.moveToChamberPosition)
-        self.ui.readvolt_btn.clicked.connect(lambda: self.readVoltage(msgbox=True))
-        self.ui.monitorvolt_btn.toggled.connect(self.monitorVoltage)
-        self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
-        self.ui.monitorunit_cmb.currentIndexChanged.connect(
-            self.updateMonitorInterval)
-        self.ui.clear_btn.clicked.connect(self.clearVoltageValues)
-        self.ui.remove_btn.clicked.connect(self.removeVoltageValue)
-        self.ui.copy_btn.clicked.connect(self.copyToClipboard)
+        self.connectSignalSlots()
 
         # create timer to monitor voltage
         self.timer = _QTimer(self)
@@ -82,6 +65,40 @@ class VoltageOffsetWidget(_QWidget):
             return False
         else:
             return True
+
+    def connectSignalSlots(self):
+        """Create signal/slot connections."""
+        self.ui.posax1_le.editingFinished.connect(
+            lambda: self.setPositionStrFormat(self.ui.posax1_le))
+        self.ui.posax2_le.editingFinished.connect(
+            lambda: self.setPositionStrFormat(self.ui.posax2_le))
+        self.ui.posax3_le.editingFinished.connect(
+            lambda: self.setPositionStrFormat(self.ui.posax3_le))
+
+        self.ui.move_btn.clicked.connect(self.moveToChamberPosition)
+        self.ui.reset_btn.clicked.connect(self.resetMultimeters)
+        self.ui.readvolt_btn.clicked.connect(
+            lambda: self.readVoltage(msgbox=True))
+        self.ui.monitorvolt_btn.toggled.connect(self.monitorVoltage)
+        self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
+        self.ui.monitorunit_cmb.currentIndexChanged.connect(
+            self.updateMonitorInterval)
+        self.ui.clear_btn.clicked.connect(self.clearVoltageValues)
+        self.ui.remove_btn.clicked.connect(self.removeVoltageValue)
+        self.ui.copy_btn.clicked.connect(self.copyToClipboard)
+
+    def resetMultimeters(self):
+        """Reset multimeters."""
+        if not self.devices.voltx.connected or not self.devices.volty.connected or not self.devices.voltz.connected:
+            if msgbox:
+                _QMessageBox.critical(
+                    self, 'Failure',
+                    'Multimeters not connected.', _QMessageBox.Ok)
+            return
+   
+        self.devices.voltx.reset()
+        self.devices.volty.reset()
+        self.devices.voltz.reset()
 
     def clearVoltageValues(self):
         """Clear all voltage values."""
@@ -192,25 +209,29 @@ class VoltageOffsetWidget(_QWidget):
                     'Multimeters not connected.', _QMessageBox.Ok)
             return
 
-        ts = _time.time()
+        try:
+            ts = _time.time()
+    
+            self.devices.voltx.send_command(
+                self.devices.voltx.commands.end_gpib_always)
+            voltx = float(self.devices.voltx.read_from_device()[:-2])
+            self.voltx_values.append(voltx)
+    
+            self.devices.volty.send_command(
+                self.devices.volty.commands.end_gpib_always)
+            volty = float(self.devices.volty.read_from_device()[:-2])
+            self.volty_values.append(volty)
+    
+            self.devices.voltz.send_command(
+                self.devices.voltz.commands.end_gpib_always)
+            voltz = float(self.devices.voltz.read_from_device()[:-2])
+            self.voltz_values.append(voltz)
+           
+            self.timestamp.append(ts)
+                     
+        except Exception:
+            pass
 
-        self.devices.voltx.send_command(
-            self.devices.voltx.commands.end_gpib_always)
-        voltx = float(self.devices.voltx.read_from_device()[:-2])
-        self.voltx_values.append(voltx)
-
-        self.devices.volty.send_command(
-            self.devices.volty.commands.end_gpib_always)
-        volty = float(self.devices.volty.read_from_device()[:-2])
-        self.volty_values.append(volty)
-
-        self.devices.voltz.send_command(
-            self.devices.voltz.commands.end_gpib_always)
-        voltz = float(self.devices.voltz.read_from_device()[:-2])
-        self.voltz_values.append(voltz)
-       
-        self.timestamp.append(ts)
-                 
         self.updateTableValues()
         self.updatePlot()
 

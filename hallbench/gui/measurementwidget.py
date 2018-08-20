@@ -22,6 +22,7 @@ from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
 from hallbench.gui.fieldmapdialog import FieldMapDialog \
     as _FieldMapDialog
+from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog    
 from hallbench.data.measurement import VoltageData as _VoltageData
 from hallbench.data.measurement import FieldData as _FieldData
 
@@ -55,8 +56,8 @@ class MeasurementWidget(_QWidget):
 
         # create dialog
         self.fieldmap_dialog = _FieldMapDialog()
+        self.viewdata_dialog = _ViewDataDialog()
 
-        # variables initialization
         self.threadx = None
         self.thready = None
         self.threadz = None
@@ -65,6 +66,7 @@ class MeasurementWidget(_QWidget):
         self.probe_calibration = None
         self.voltage_data = None
         self.field_data = None
+        self.voltage_data_list = []
         self.field_data_list = []
         self.position_list = []
         self.scan_id_list = []
@@ -95,11 +97,14 @@ class MeasurementWidget(_QWidget):
         self.probe_calibration = None
         self.voltage_data = None
         self.field_data = None
+        self.voltage_data_list = []
         self.field_data_list = []
         self.position_list = []
         self.scan_id_list = []
         self.stop = False
         self.clearGraph()
+        self.ui.viewdata_btn.setEnabled(False)
+        self.ui.savefieldmap_btn.setEnabled(False)
 
     def clearGraph(self):
         """Clear plots."""
@@ -113,6 +118,7 @@ class MeasurementWidget(_QWidget):
         """Close dialogs."""
         try:
             self.fieldmap_dialog.accept()
+            self.viewdata_dialog.accept()
             self.configuration_widget.closeDialogs()
         except Exception:
             pass
@@ -122,6 +128,7 @@ class MeasurementWidget(_QWidget):
         self.ui.measure_btn.clicked.connect(self.configureAndMeasure)
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
         self.ui.savefieldmap_btn.clicked.connect(self.showFieldMapDialog)
+        self.ui.viewdata_btn.clicked.connect(self.showViewDataDialog)
 
     def configureAndMeasure(self):
         """Configure devices and start measurement."""
@@ -184,6 +191,7 @@ class MeasurementWidget(_QWidget):
             self.ui.stop_btn.setEnabled(False)
             self.resetMultimeters()
 
+            self.ui.viewdata_btn.setEnabled(True)
             if self.probe_calibration is not None:
                 self.ui.savefieldmap_btn.setEnabled(True)
 
@@ -503,6 +511,9 @@ class MeasurementWidget(_QWidget):
 
             voltage_data_list.append(self.voltage_data.copy())
 
+        for vd in voltage_data_list:
+            self.voltage_data_list.append(vd)
+
         if self.probe_calibration is not None:
             self.field_data.set_field_data(
                 voltage_data_list, self.probe_calibration)
@@ -519,6 +530,14 @@ class MeasurementWidget(_QWidget):
             self.probe_calibration,
             self.database,
             self.scan_id_list)
+
+    def showViewDataDialog(self):
+        """Open view data dialog."""
+        if self.probe_calibration is None:
+            self.viewdata_dialog.show(self.voltage_data_list, 'Voltage [V]')
+        else:
+            self.viewdata_dialog.show(
+                self.field_data_list, 'Magnetic Field [T]')
 
     def startReadingThreads(self):
         """Start threads to read voltage values."""

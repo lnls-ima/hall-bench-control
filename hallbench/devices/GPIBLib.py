@@ -10,6 +10,7 @@ import time as _time
 import logging as _logging
 import numpy as _np
 import struct as _struct
+from sympy.physics.units import voltage
 
 
 class GPIB(object):
@@ -61,22 +62,24 @@ class GPIB(object):
             # connects to the device
             _cmd = 'GPIB0::'+str(address)+'::INSTR'
             # instrument
-            _inst = _rm.open_resource(_cmd)
+            _inst = _rm.open_resource(_cmd.encode('utf-8'))
 
             # check if connected
             if _inst.__str__() == ('GPIBInstrument at ' + _cmd):
                 try:
                     self.inst = _inst
-                    
                     # set a default timeout to 1
                     self.inst.timeout = 1000 # ms
               
-                    self.inst.write(self.commands.idn)
+                    self.inst.write(self.commands.qid)
+                    self.inst.read()
 
                     self._connected = True
                     return True
                 except Exception:
                     self.inst.close()
+                    if self.logger is not None:
+                        self.logger.error('exception', exc_info=True)                    
                     return False
             else:
                 self._connected = False
@@ -178,7 +181,7 @@ class Agilent3458ACommands(object):
         self._output_format()
         self._memory_format()
         self._input_buffer()
-        self._status_query()
+        self._query()
 
     def _reset(self):
         """Reset function."""
@@ -430,9 +433,9 @@ class Agilent3458ACommands(object):
         self.inbuf_on = 'INBUF ON'
         self.inbuf_off = 'INBUF OFF'
 
-    def _status_query(self):
-        self.beep = 'BEEP?'
-        self.idn = 'ID?'
+    def _query(self):
+        self.qbeep = 'BEEP?'
+        self.qid = 'ID?'
 
 
 class Agilent3458A(GPIB):
@@ -539,10 +542,8 @@ class Agilent34970ACommands(object):
         self._clean()
         self._lock()
         self._remote_access()
-        self._measure()
         self._configure()
-        self._route()
-        self._read()
+        self._query()
 
     def _reset(self):
         """Reset function."""
@@ -559,29 +560,27 @@ class Agilent34970ACommands(object):
     def _remote_access(self):
         """Remote access function."""
         self.remote = ':SYST:REM;:SYST:RWL'
-
-    def _measure(self):
-        """Measure commands."""
-        self.meas_temp = 'MEAS:TEMP?'
-        
+       
     def _configure(self):
         """Configure commands."""
-        self.conf_temp = 'CONF:TEMP RTD'
-        
-    def _route(self):
-        """Route commands."""
         self.rout_scan = 'ROUT:SCAN'
+        self.conf_temp = 'CONF:TEMP FRTD,'
+        self.conf_volt = 'CONF:VOLT:DC'
         
-    def _read(self):
-        """Read command."""
-        self.read = 'READ?'
+    def _query(self):
+        """Query commands."""
+        self.qid = '*IDN?'
+        self.qread = 'READ?'
+        self.qscan = 'ROUT:SCAN?'
+        self.qscan_size = 'ROUT:SCAN:SIZE?'
         
-    def _idn(self):
-        self.idn = '*IDN?'
-
 
 class Agilent34970A(GPIB):
     """Agilent 34970A multichannel for temperatures readings."""
+    
+    _probe_channels = ['101', '102', '103']
+    _dcct_channels = ['104']
+    _temp_channels = []
 
     def __init__(self, logfile=None):
         """Initiate variables and prepare logging file.
@@ -593,39 +592,73 @@ class Agilent34970A(GPIB):
         self.commands = Agilent34970ACommands()
         self.logfile = logfile
         super().__init__(self.logfile)
- 
-    def configure_temperature(self, chanlist, wait=0.5):
-        """Configure temperature readings.
-                
-        Args:
-            channellist (list): list of channels to measure.
+    
+    def configure(self, channel_list='all', wait=0.5):
+        """Configure channels."""
+        if channel_list == 'all':
+            volt_channel_list = self._probe_channels + self._dcct_channels
+            temp_channel_list = self._temp_channels
         
-        Returns:
-            True is successful, False otherwise.
-        """
+        else:
+            volt_channel_list = []
+            temp_channel_list = []
+            channel_list = [str(ch) for ch in channel_list]
+            for ch in channel_list:
+                if ch in self._probe_channels or ch in self._dcct_channels:
+                    volt_channel_list.append(ch)
+                else:
+                    temp_channel_list.append(ch)
+
+        all_channels = volt_channel_list + temp_channel_list
+        if len(all_channels) == 0:
+            return False
+
         try:
             self.send_command(self.commands.clean)
-            self.send_command(self.commands.reset) 
-            if len(chanlist) != 0:
-                scanlist = '(@' + ','.join(chanlist) + ')'
-                self.send_command(
-                    self.commands.conf_temp + ',' + scanlist)
-                _time.sleep(wait)
-            else:
-                scanlist = '(@)'
+            self.send_command(self.commands.reset)
+                                    
+            _cmd = ''
+            if len(volt_channel_list) != 0:
+                volt_scanlist = '(@' + ','.join(volt_channel_list) + ')'
+                _cmd = _cmd + self.commands.conf_volt + ' ' + volt_scanlist
 
-            self.send_command(
-                self.commands.rout_scan + ' ' + scanlist)
+            if len(temp_channel_list) != 0:
+                if len(_cmd) != 0:
+                    _cmd = _cmd + '; '
+                temp_scanlist = '(@' + ','.join(temp_channel_list) + ')'
+                _cmd = _cmd + self.commands.conf_temp  + ' ' + temp_scanlist
+            
+            self.send_command(_cmd)
             _time.sleep(wait)
-            return True           
+            scanlist = '(@' + ','.join(all_channels) + ')'
+            self.send_command(self.commands.rout_scan + ' ' + scanlist)
+            _time.sleep(wait)
+            return True
         
         except Exception:
-            return False
+            return False    
  
-    def get_reading_list(self, wait=0.5):
+    def convert_voltage_to_temperature(self, voltage):
+        """Convert probe voltage to temperature value."""
+        temperature = (voltage + 70e-3)/20e-3
+        return temperature
+    
+    def convert_voltage_to_current(self, voltage, dcct_head):
+        """Convert dcct voltage to current value."""
+        if dcct_head == 40:
+            current = voltage*4
+        elif dcct_head == 160:
+            current = voltage*16
+        elif dcct_head == 320:
+            current = voltage*32
+        else:
+            current = 0
+        return current
+ 
+    def get_readings(self, wait=0.5):
         """Get reading list."""
         try:
-            self.send_command(self.commands.read)
+            self.send_command(self.commands.qread)
             _time.sleep(wait)
             rstr = self.read_from_device()
             if len(rstr) != 0:
@@ -635,3 +668,46 @@ class Agilent34970A(GPIB):
                 return []
         except Exception:
             return []        
+
+    def get_converted_readings(self, dcct_head=None, wait=0.5):
+        """Get reading list and convert voltage values."""
+        try:
+            self.send_command(self.commands.qread)
+            _time.sleep(wait)
+            rstr = self.read_from_device()
+            
+            if len(rstr) != 0:
+                rlist = [float(r) for r in rstr.split(',')]
+                channel_list = self.get_scan_channels()
+                conv_rlist = []
+                for i in range(len(rlist)):
+                    ch = channel_list[i]
+                    rd = rlist[i]
+                    if ch in self._probe_channels:
+                        conv_rlist.append(
+                            self.convert_voltage_to_temperature(rd))
+                    elif ch in self._dcct_channels:
+                        conv_rlist.append(
+                            self.convert_voltage_to_current(rd, dcct_head))
+                    else:
+                        conv_rlist.append(rd)
+                return conv_rlist
+            else:
+                return []
+        except Exception:
+            return []    
+
+    def get_scan_channels(self, wait=0.1):
+        """Return the scan channel list."""
+        try:
+            self.send_command(self.commands.qscan)
+            _time.sleep(wait)
+            rstr = self.read_from_device()
+            cstr = rstr.split('(@')[1].replace(')', '').replace('\n', '')
+            if len(cstr) == 0:
+                return []
+            else:
+                channel_list = cstr.split(',')            
+                return channel_list
+        except Exception:
+            return []

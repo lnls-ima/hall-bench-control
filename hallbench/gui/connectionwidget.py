@@ -212,11 +212,11 @@ class ConnectionWidget(_QWidget):
 
             self.config.multich_enable = self.ui.multich_enable_chb.isChecked()
             self.config.multich_address = self.ui.multich_address_sb.value()
-            if self.ui.nmr_baudrate_cmb.currentText() == 'None':
+            if self.ui.dcct_head_cmb.currentText() == 'None':
                 self.config.dcct_head = 0
             else:                  
                 self.config.dcct_head = int(
-                    self.ui.dcct_head_cmb.currentText())
+                    self.ui.dcct_head_cmb.currentText().replace('A', ''))
 
             self.config.nmr_enable = self.ui.nmr_enable_chb.isChecked()
             self.config.nmr_port = self.ui.nmr_port_cmb.currentText()

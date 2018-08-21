@@ -133,6 +133,10 @@
            <property name="text">
             <string>View Calibration</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
+           </property>
           </widget>
          </item>
          <item row="1" column="0">
@@ -152,6 +156,10 @@
            <property name="text">
             <string>Save Calibration to File</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/save.png</normaloff>../../resources/img/save.png</iconset>
+           </property>
           </widget>
          </item>
         </layout>
@@ -163,8 +171,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>150</width>
-          <height>124</height>
+          <width>250</width>
+          <height>311</height>
          </rect>
         </property>
         <attribute name="label">
@@ -188,6 +196,10 @@
            <property name="text">
             <string>View Configuration</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
+           </property>
           </widget>
          </item>
          <item row="1" column="0">
@@ -207,6 +219,10 @@
            <property name="text">
             <string>Save Configuration to File</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/save.png</normaloff>../../resources/img/save.png</iconset>
+           </property>
           </widget>
          </item>
         </layout>
@@ -216,8 +232,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>132</width>
-          <height>180</height>
+          <width>250</width>
+          <height>311</height>
          </rect>
         </property>
         <attribute name="label">
@@ -241,6 +257,10 @@
            <property name="text">
             <string>View Raw Data</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
+           </property>
           </widget>
          </item>
          <item row="1" column="0">
@@ -259,6 +279,10 @@
            </property>
            <property name="text">
             <string>Save Raw Data to File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/save.png</normaloff>../../resources/img/save.png</iconset>
            </property>
           </widget>
          </item>
@@ -279,6 +303,10 @@
            <property name="text">
             <string>Clear Raw Data Table</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
+           </property>
           </widget>
          </item>
         </layout>
@@ -288,8 +316,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>108</width>
-          <height>180</height>
+          <width>250</width>
+          <height>311</height>
          </rect>
         </property>
         <attribute name="label">
@@ -313,6 +341,10 @@
            <property name="text">
             <string>View Scan</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
+           </property>
           </widget>
          </item>
          <item row="1" column="0">
@@ -331,6 +363,10 @@
            </property>
            <property name="text">
             <string>Save Scan to File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/save.png</normaloff>../../resources/img/save.png</iconset>
            </property>
           </widget>
          </item>
@@ -360,8 +396,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>127</width>
-          <height>124</height>
+          <width>250</width>
+          <height>311</height>
          </rect>
         </property>
         <attribute name="label">
@@ -388,6 +424,10 @@
            <property name="text">
             <string>View Fieldmap</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
+           </property>
           </widget>
          </item>
          <item row="1" column="0">
@@ -409,6 +449,10 @@
            </property>
            <property name="text">
             <string>Save Fieldmap to File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/save.png</normaloff>../../resources/img/save.png</iconset>
            </property>
           </widget>
          </item>

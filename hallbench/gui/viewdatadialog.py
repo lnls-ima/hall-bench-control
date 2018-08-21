@@ -457,11 +457,16 @@ def _linear_fit(x, y):
             p = _np.polyfit(x, y, 1)
             xfit = _np.linspace(x[0], x[-1], 100)
             yfit = _np.polyval(p, xfit)
-            
+                        
             prev = p[::-1]
+            if prev[1] != 0:
+                x0 = -prev[0]/prev[1]
+            else:
+                x0 = _np.nan
             param = _collections.OrderedDict([
-                ('K0', p[0]),
-                ('K1', p[1]),
+                ('K0', prev[0]),
+                ('K1', prev[1]),
+                ('x (y=0)', x0),
             ])
         except Exception:
             xfit = []
@@ -487,7 +492,7 @@ def _polynomial_fit(x, y, order):
             prev = p[::-1]
             _dict = {}
             for i in range(len(prev)):
-                _dict['K' + str(i)] = p[i]
+                _dict['K' + str(i)] = prev[i]
             param = _collections.OrderedDict(_dict)
         except Exception:
             xfit = []

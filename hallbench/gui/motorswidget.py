@@ -151,7 +151,7 @@ class MotorsWidget(_QWidget):
             homing_status = []
             for axis in list_of_axis:
                 axis_led = getattr(self.ui, 'ledax' + str(axis) + '_la')
-                if (self.pmac.axis_status(axis) & 1024) != 0:
+                if self.pmac.axis_homing_status:
                     self.ui.selectaxis_cmb.model().item(item+1).setEnabled(True)
                     axis_led.setEnabled(True)
                     homing_status.append(True)

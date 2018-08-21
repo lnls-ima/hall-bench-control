@@ -355,6 +355,22 @@ class Pmac(object):
                 self.logger.error('exception', exc_info=True)
             return None
 
+    def axis_homing_status(self, axis):
+        """Get axis homing status."""
+        try:
+            status = self.axis_status(axis)
+            if status is None:
+                return None
+            
+            if (status & 1024) != 0:
+                return True
+            else:
+                return False
+        except Exception:
+            if self.logger is not None:
+                self.logger.error('exception', exc_info=True)
+            return None        
+
     def align_bench(self, axis_mask):
         """Set the mask of the axis to be aligned and run plc script."""
         try:
@@ -374,7 +390,7 @@ class Pmac(object):
         except Exception:
             if self.logger is not None:
                 self.logger.error('exception', exc_info=True)
-            return None
+            return None 
 
     def get_position(self, axis):
         """Read the current position in counter and convert to mm."""

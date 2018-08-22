@@ -121,6 +121,7 @@ class MotorsWidget(_QWidget):
     def moveToTarget(self, axis):
         """Move Hall probe to target position."""
         try:
+            self.ui.reldisp_le.setEnabled(False)
             targetpos = float(self.ui.targetpos_le.text())
             targetvel = float(self.ui.targetvel_le.text())
 
@@ -134,8 +135,10 @@ class MotorsWidget(_QWidget):
                 self.pmac.set_axis_speed(axis, targetvel)
 
             self.pmac.move_axis(axis, targetpos)
-
+            self.ui.reldisp_le.setEnabled(True)
+        
         except Exception as e:
+            self.ui.reldisp_le.setEnabled(True)
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 

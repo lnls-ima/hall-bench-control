@@ -541,7 +541,6 @@ class Agilent34970ACommands(object):
         self._reset()
         self._clean()
         self._lock()
-        self._remote_access()
         self._configure()
         self._query()
 
@@ -557,22 +556,18 @@ class Agilent34970ACommands(object):
         """Lock function."""
         self.lock = ':SYST:LOC'
 
-    def _remote_access(self):
-        """Remote access function."""
-        self.remote = ':SYST:REM;:SYST:RWL'
-       
     def _configure(self):
         """Configure commands."""
-        self.rout_scan = 'ROUT:SCAN'
-        self.conf_temp = 'CONF:TEMP FRTD,'
-        self.conf_volt = 'CONF:VOLT:DC'
+        self.rout_scan = ':ROUT:SCAN'
+        self.conf_temp = ':CONF:TEMP FRTD,'
+        self.conf_volt = ':CONF:VOLT:DC'
         
     def _query(self):
         """Query commands."""
         self.qid = '*IDN?'
-        self.qread = 'READ?'
-        self.qscan = 'ROUT:SCAN?'
-        self.qscan_size = 'ROUT:SCAN:SIZE?'
+        self.qread = ':READ?'
+        self.qscan = ':ROUT:SCAN?'
+        self.qscan_size = ':ROUT:SCAN:SIZE?'
         
 
 class Agilent34970A(GPIB):
@@ -627,7 +622,7 @@ class Agilent34970A(GPIB):
                     _cmd = _cmd + '; '
                 temp_scanlist = '(@' + ','.join(temp_channel_list) + ')'
                 _cmd = _cmd + self.commands.conf_temp  + ' ' + temp_scanlist
-            
+
             self.send_command(_cmd)
             _time.sleep(wait)
             scanlist = '(@' + ','.join(all_channels) + ')'

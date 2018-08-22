@@ -534,10 +534,9 @@ class MeasurementWidget(_QWidget):
     def showViewDataDialog(self):
         """Open view data dialog."""
         if self.probe_calibration is None:
-            self.viewdata_dialog.show(self.voltage_data_list, 'Voltage [V]')
+            self.viewdata_dialog.show(self.voltage_data_list, 'voltage')
         else:
-            self.viewdata_dialog.show(
-                self.field_data_list, 'Magnetic Field [T]')
+            self.viewdata_dialog.show(self.field_data_list, 'field')
 
     def startReadingThreads(self):
         """Start threads to read voltage values."""

@@ -502,9 +502,9 @@ class DatabaseWidget(_QWidget):
         data_list = []
         for idn in idns:
             data_list.append(_VoltageData(database=self.database, idn=idn))
-        data_label = 'Voltage [V]'
+        data_type = 'voltage'
         self.view_data_dialog.accept()
-        self.view_data_dialog.show(data_list, data_label)
+        self.view_data_dialog.show(data_list, data_type)
 
     def viewScan(self):
         """Open view data dialog."""
@@ -515,9 +515,9 @@ class DatabaseWidget(_QWidget):
         data_list = []
         for idn in idns:
             data_list.append(_FieldData(database=self.database, idn=idn))
-        data_label = 'Magnetic Field [T]'
+        data_type = 'field'
         self.view_data_dialog.accept()
-        self.view_data_dialog.show(data_list, data_label)
+        self.view_data_dialog.show(data_list, data_type)
 
 
 class DatabaseTable(_QTableWidget):

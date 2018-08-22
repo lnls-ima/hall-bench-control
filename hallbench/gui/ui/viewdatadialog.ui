@@ -380,7 +380,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="poly_la">
+       <widget class="QLabel" name="polyorder_la">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -399,7 +399,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QSpinBox" name="poly_sb">
+       <widget class="QSpinBox" name="polyorder_sb">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>

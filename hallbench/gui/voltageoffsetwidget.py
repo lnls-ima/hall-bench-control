@@ -146,7 +146,7 @@ class VoltageOffsetWidget(_QWidget):
         nr = self.ui.voltoffset_ta.rowCount()
         nc = self.ui.voltoffset_ta.columnCount()
         
-        if len(nr) == 0:
+        if nr == 0:
             return
 
         col_labels = [

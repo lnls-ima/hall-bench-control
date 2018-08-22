@@ -215,7 +215,7 @@ class TemperatureWidget(_QWidget):
         nr = self.ui.temperature_ta.rowCount()
         nc = self.ui.temperature_ta.columnCount()
         
-        if len(nr) == 0:
+        if nr == 0:
             return
 
         col_labels = ['Date', 'Time']

@@ -167,6 +167,11 @@ class Data(object):
         self._main_current = value
 
     @property
+    def timestamp(self):
+        """Return the timestamp."""
+        return self._timestamp
+
+    @property
     def pos1(self):
         """Position 1 (Axis +Z) [mm]."""
         return self._pos1
@@ -324,6 +329,7 @@ class Data(object):
             filename (str): file full path.
         """
         flines = _utils.read_file(filename)
+        self._timestamp = _utils.find_value(flines, 'timestamp')
         self.magnet_name = _utils.find_value(flines, 'magnet_name')
         self.main_current = _utils.find_value(flines, 'main_current')
 
@@ -392,6 +398,10 @@ class Data(object):
                         setattr(self, attr_name, _to_array(_l))
                     else:
                         setattr(self, attr_name, db_entry[idx])
+        
+        idx_date = db_column_names.index('date')
+        idx_hour = db_column_names.index('hour')
+        self._timestamp = '_'.join([db_entry[idx_date], db_entry[idx_hour]])
 
     def reverse(self):
         """Reverse Data."""
@@ -411,7 +421,7 @@ class Data(object):
             raise MeasurementDataError('Invalid scan axis.')
 
         if self.npts == 0:
-            raise MeasurementDataError('Empty data.')
+            raise MeasurementDataError('Invalid scan data.')
 
         scan_axis = self.scan_axis
         pos1_str = '%f' % self._pos1[0] if self._pos1.size == 1 else '--'
@@ -747,7 +757,6 @@ class Fieldmap(object):
         ('map', ['_map', 'TEXT NOT NULL']),
     ])
     _db_json_str = ['_magnet_center', '_map']
-    _data_label = 'Fieldmap'
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -822,9 +831,14 @@ class Fieldmap(object):
         return self._magnet_y_axis
 
     @property
+    def timestamp(self):
+        """Return the timestamp."""
+        return self._timestamp
+
+    @property
     def default_filename(self):
         """Return the default filename."""
-        label = self._data_label + '_' + _measurements_label
+        label = _measurements_label
         if self.magnet_name is not None and len(self.magnet_name) != 0:
             name = self.magnet_name + '_' + label
         else:
@@ -888,7 +902,9 @@ class Fieldmap(object):
             filename (str): fieldmap file path.
         """
         flines = _utils.read_file(filename)
-
+        
+        _s = _utils.find_value(flines, 'timestamp')
+        self._timestamp = _s if _s != _empty_str else None       
         _s = _utils.find_value(flines, 'magnet_name')
         self.magnet_name = _s if _s != _empty_str else None
         _s = _utils.find_value(flines, 'gap')
@@ -967,6 +983,10 @@ class Fieldmap(object):
                         setattr(self, attr_name, _to_array(_l))
                     else:
                         setattr(self, attr_name, db_entry[idx])
+
+        idx_date = db_column_names.index('date')
+        idx_hour = db_column_names.index('hour')
+        self._timestamp = '_'.join([db_entry[idx_date], db_entry[idx_hour]])
 
     def save_file(self, filename):
         """Save fieldmap file.

@@ -259,7 +259,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
+             <normaloff>../../resources/img/curve.png</normaloff>../../resources/img/curve.png</iconset>
            </property>
           </widget>
          </item>
@@ -343,7 +343,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
+             <normaloff>../../resources/img/curve.png</normaloff>../../resources/img/curve.png</iconset>
            </property>
           </widget>
          </item>

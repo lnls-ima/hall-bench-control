@@ -22,6 +22,7 @@ class MotorsWidget(_QWidget):
         1: 'mm', 2: 'mm', 3: 'mm', 5: 'deg',
         6: 'mm', 7: 'mm', 8: 'deg', 9: 'deg',
     }
+    _position_format = '{0:0.3f}'
 
     def __init__(self, parent=None):
         """Set up the ui, add position widget and create connections."""
@@ -265,7 +266,7 @@ class MotorsWidget(_QWidget):
         """Set the axis limit string format."""
         try:
             value = float(obj.text())
-            obj.setText('{0:0.4f}'.format(value))
+            obj.setText(self._position_format.format(value))
         except Exception:
             obj.setText('')
 
@@ -284,7 +285,7 @@ class MotorsWidget(_QWidget):
         """Set the velocity and position string format."""
         try:
             value = float(obj.text())
-            obj.setText('{0:0.4f}'.format(value))
+            obj.setText(self._position_format.format(value))
         except Exception:
             self.updateVelocityAndPosition()
 
@@ -349,7 +350,7 @@ class MotorsWidget(_QWidget):
             position = self.pmac.get_position(axis)
             targetpos = float(self.ui.targetpos_le.text())
             reldisp = targetpos - position
-            self.ui.reldisp_le.setText('{0:0.4f}'.format(reldisp))
+            self.ui.reldisp_le.setText(self._position_format.format(reldisp))
 
         except Exception:
             pass
@@ -364,7 +365,8 @@ class MotorsWidget(_QWidget):
             position = self.pmac.get_position(axis)
             reldisp = float(self.ui.reldisp_le.text())
             targetpos = position + reldisp
-            self.ui.targetpos_le.setText('{0:0.4f}'.format(targetpos))
+            self.ui.targetpos_le.setText(self._position_format.format(
+                targetpos))
 
         except Exception:
             pass
@@ -378,9 +380,11 @@ class MotorsWidget(_QWidget):
 
             velocity = self.pmac.get_velocity(axis)
             position = self.pmac.get_position(axis)
-            self.ui.targetvel_le.setText('{0:0.4f}'.format(velocity))
-            self.ui.reldisp_le.setText('{0:0.4f}'.format(0))
-            self.ui.targetpos_le.setText('{0:0.4f}'.format(position))
+            self.ui.targetvel_le.setText(self._position_format.format(
+                velocity))
+            self.ui.reldisp_le.setText(self._position_format.format(0))
+            self.ui.targetpos_le.setText(self._position_format.format(
+                position))
 
             self.ui.targetvelunit_la.setText(self._axis_unit[axis] + '/s')
             self.ui.reldispunit_la.setText(self._axis_unit[axis])

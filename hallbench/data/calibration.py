@@ -2,7 +2,6 @@
 
 """Implementation of classes to handle calibration files."""
 
-import json as _json
 import numpy as _np
 import collections as _collections
 from scipy import interpolate as _interpolate
@@ -15,19 +14,35 @@ class CalibrationError(Exception):
     """Calibration exception."""
 
     def __init__(self, message, *args):
-        """Initialization method."""
+        """Initialize object."""
         self.message = message
 
 
-class CalibrationCurve(object):
+class HallSensor(_database.DatabaseObject):
     """Voltage to magnetic field conversion data."""
 
-    def __init__(self, filename=None):
+    _db_table = 'hall_sensors'
+    _db_dict = _collections.OrderedDict([
+        ('id', [None, 'INTEGER NOT NULL']),
+        ('date', [None, 'TEXT NOT NULL']),
+        ('hour', [None, 'TEXT NOT NULL']),
+        ('sensor_name', ['sensor_name', 'TEXT NOT NULL UNIQUE']),
+        ('calibration_magnet', ['calibration_magnet', 'TEXT NOT NULL']),
+        ('function_type', ['function_type', 'TEXT NOT NULL']),
+        ('data', ['data', 'TEXT NOT NULL']),
+    ])
+    _db_json_str = ['data']
+
+    def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
 
         Args:
-            filename (str): calibration curve file path.
+            filename (str): hall sensor file path.
+            database (str): database file path.
+            idn (int): id in database table.
         """
+        self.sensor_name = None
+        self.calibration_magnet = None
         self._function_type = None
         self._function = None
         self._data = []
@@ -73,7 +88,7 @@ class CalibrationCurve(object):
 
     @property
     def function_type(self):
-        """Function type."""
+        """Return the function type."""
         return self._function_type
 
     @function_type.setter
@@ -88,7 +103,7 @@ class CalibrationCurve(object):
 
     @property
     def data(self):
-        """Calibration curve data."""
+        """Hall sensor calibration data."""
         return self._data
 
     @data.setter
@@ -120,9 +135,11 @@ class CalibrationCurve(object):
             self._function = None
 
     def clear(self):
-        """Clear calibration curve data."""
+        """Clear hall sensor data."""
         self._function_type = None
         self._function = None
+        self.sensor_name = None
+        self.calibration_magnet = None
         self._data = []
 
     def convert_voltage(self, voltage_array):
@@ -131,7 +148,7 @@ class CalibrationCurve(object):
         Args:
             voltage_array (array): array with voltage values.
 
-        Returns:
+        Return:
             array with magnetic field values.
         """
         if self._function is not None:
@@ -146,6 +163,9 @@ class CalibrationCurve(object):
             filename (str): calibration file path.
         """
         flines = _utils.read_file(filename)
+        self.sensor_name = _utils.find_value(flines, 'sensor_name')
+        self.calibration_magnet = _utils.find_value(
+            flines, 'calibration_magnet')
         self.function_type = _utils.find_value(flines, 'function_type')
 
         _data = []
@@ -166,9 +186,13 @@ class CalibrationCurve(object):
         timestamp = _utils.get_timestamp()
 
         with open(filename, mode='w') as f:
-            f.write('timestamp:                     \t{0:1s}\n'.format(
+            f.write('timestamp:           \t{0:1s}\n'.format(
                 timestamp))
-            f.write('function_type:                 \t{0:1s}\n'.format(
+            f.write('sensor_name:         \t{0:1s}\n'.format(
+                self.sensor_name))
+            f.write('calibration_magnet:  \t{0:1s}\n'.format(
+                self.calibration_magnet))
+            f.write('function_type:       \t{0:1s}\n'.format(
                 self.function_type))
             f.write('\n')
 
@@ -189,26 +213,24 @@ class CalibrationCurve(object):
                 f.write('\n')
 
 
-class ProbeCalibration(object):
-    """Hall probe calibration data."""
+class HallProbe(_database.DatabaseObject):
+    """Hall probe data."""
 
-    _db_table = 'probe_calibrations'
+    _db_table = 'hall_probes'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
         ('probe_name', ['probe_name', 'TEXT NOT NULL UNIQUE']),
-        ('calibration_magnet', ['calibration_magnet', 'TEXT NOT NULL']),
-        ('function_type', ['function_type', 'TEXT NOT NULL']),
+        ('sensorx_name', ['sensorx_name', 'TEXT NOT NULL']),
+        ('sensory_name', ['sensory_name', 'TEXT NOT NULL']),
+        ('sensorz_name', ['sensorz_name', 'TEXT NOT NULL']),
+        ('probe_axis', ['probe_axis', 'INTEGER NOT NULL']),
         ('distance_xy', ['distance_xy', 'REAL NOT NULL']),
         ('distance_zy', ['distance_zy', 'REAL NOT NULL']),
         ('angle_xy', ['angle_xy', 'REAL NOT NULL']),
         ('angle_yz', ['angle_yz', 'REAL NOT NULL']),
         ('angle_xz', ['angle_xz', 'REAL NOT NULL']),
-        ('probe_axis', ['probe_axis', 'INTEGER NOT NULL']),
-        ('sensorx', ['sensorx', 'TEXT NOT NULL']),
-        ('sensory', ['sensory', 'TEXT NOT NULL']),
-        ('sensorz', ['sensorz', 'TEXT NOT NULL']),
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -216,13 +238,16 @@ class ProbeCalibration(object):
 
         Args:
             filename (str): calibration file path.
+            database (str): database file path.
+            idn (int): id in database table.
         """
         self.probe_name = None
-        self.calibration_magnet = None
-        self._sensorx = CalibrationCurve()
-        self._sensory = CalibrationCurve()
-        self._sensorz = CalibrationCurve()
-        self._function_type = None
+        self._sensorx_name = None
+        self._sensory_name = None
+        self._sensorz_name = None
+        self._sensorx = None
+        self._sensory = None
+        self._sensorz = None
         self._probe_axis = None
         self._distance_xy = None
         self._distance_zy = None
@@ -231,7 +256,7 @@ class ProbeCalibration(object):
         self._angle_xz = None
 
         if filename is not None and idn is not None:
-            raise ValueError('Invalid arguments for ProbeCalibration.')
+            raise ValueError('Invalid arguments for HallProbe.')
 
         if idn is not None and database is not None:
             self.read_from_database(database, idn)
@@ -277,95 +302,15 @@ class ProbeCalibration(object):
         return NotImplemented
 
     @classmethod
-    def create_database_table(cls, database):
-        """Create database table."""
-        variables = []
-        for key in cls._db_dict.keys():
-            variables.append((key, cls._db_dict[key][1]))
-        success = _database.create_table(database, cls._db_table, variables)
-        return success
-
-    @classmethod
-    def database_table_name(cls):
-        """Return the database table name."""
-        return cls._db_table
-
-    @classmethod
-    def get_probe_calibration_id(cls, database, probe_name):
+    def get_hall_probe_id(cls, database, probe_name):
         """Search probe name in database and return table ID."""
-        entries = _database.search_database_str(
+        idns = _database.get_database_id(
             database, cls._db_table, 'probe_name', probe_name)
-        if len(entries) != 0:
-            idn = entries[0][0]
+        if len(idns) != 0:
+            idn = idns[0]
         else:
             idn = None
         return idn
-
-    @property
-    def sensorx(self):
-        """Sensor X CalibrationCurve object."""
-        return self._sensorx
-
-    @sensorx.setter
-    def sensorx(self, value):
-        if isinstance(value, CalibrationCurve):
-            if (self._function_type is None or
-               self._function_type == value.function_type):
-                self._sensorx = value
-                self._function_type = value.function_type
-            else:
-                raise CalibrationError('Inconsistent function type.')
-        else:
-            raise TypeError('sensorx must be a CalibrationCurve object.')
-
-    @property
-    def sensory(self):
-        """Sensor Y CalibrationCurve object."""
-        return self._sensory
-
-    @sensory.setter
-    def sensory(self, value):
-        if isinstance(value, CalibrationCurve):
-            if (self._function_type is None or
-               self._function_type == value.function_type):
-                self._sensory = value
-                self._function_type = value.function_type
-            else:
-                raise CalibrationError('Inconsistent function type.')
-        else:
-            raise TypeError('sensory must be a CalibrationCurve object.')
-
-    @property
-    def sensorz(self):
-        """Sensor Z CalibrationCurve object."""
-        return self._sensorz
-
-    @sensorz.setter
-    def sensorz(self, value):
-        if isinstance(value, CalibrationCurve):
-            if (self._function_type is None or
-               self._function_type == value.function_type):
-                self._sensorz = value
-                self._function_type = value.function_type
-            else:
-                raise CalibrationError('Inconsistent function type.')
-        else:
-            raise TypeError('sensorz must be a CalibrationCurve object.')
-
-    @property
-    def function_type(self):
-        """Function type."""
-        return self._function_type
-
-    @function_type.setter
-    def function_type(self, value):
-        if isinstance(value, str):
-            if value in ('interpolation', 'polynomial'):
-                self._function_type = value
-            else:
-                raise ValueError('Invalid value for function_type.')
-        else:
-            raise TypeError('function_type must be a string.')
 
     @property
     def distance_xy(self):
@@ -439,14 +384,93 @@ class ProbeCalibration(object):
         else:
             raise ValueError('Invalid value for probe axis.')
 
+    @property
+    def sensorx_name(self):
+        """Hall Sensor X name."""
+        return self._sensorx_name
+
+    @sensorx_name.setter
+    def sensorx_name(self, value):
+        if isinstance(value, str):
+            self._sensorx = None
+            self._sensorx_name = value
+        else:
+            raise ValueError('Invalid value for sensor X name.')
+
+    @property
+    def sensory_name(self):
+        """Hall Sensor Y name."""
+        return self._sensory_name
+
+    @sensory_name.setter
+    def sensory_name(self, value):
+        if isinstance(value, str):
+            self._sensory = None
+            self._sensory_name = value
+        else:
+            raise ValueError('Invalid value for sensor Y name.')
+
+    @property
+    def sensorz_name(self):
+        """Hall Sensor Z name."""
+        return self._sensorz_name
+
+    @sensorz_name.setter
+    def sensorz_name(self, value):
+        if isinstance(value, str):
+            self._sensorz = None
+            self._sensorz_name = value
+        else:
+            raise ValueError('Invalid value for sensor Z name.')
+
+    @property
+    def sensorx(self):
+        """Hall Sensor X."""
+        return self._sensorx
+
+    @sensorx.setter
+    def sensorx(self, value):
+        if isinstance(value, HallSensor):
+            self._sensorx = value
+            self._sensorx_name = value.sensor_name
+        else:
+            raise ValueError('Invalid value for sensor X.')
+
+    @property
+    def sensory(self):
+        """Hall Sensor Y."""
+        return self._sensory
+
+    @sensory.setter
+    def sensory(self, value):
+        if isinstance(value, HallSensor):
+            self._sensory = value
+            self._sensory_name = value.sensor_name
+        else:
+            raise ValueError('Invalid value for sensor Y.')
+
+    @property
+    def sensorz(self):
+        """Hall Sensor Z."""
+        return self._sensorz
+
+    @sensorz.setter
+    def sensorz(self, value):
+        if isinstance(value, HallSensor):
+            self._sensorz = value
+            self._sensorz_name = value.sensor_name
+        else:
+            raise ValueError('Invalid value for sensor Z.')
+
     def clear(self):
         """Clear calibration data."""
         self.probe_name = None
-        self.calibration_magnet = None
-        self._sensorx = CalibrationCurve()
-        self._sensory = CalibrationCurve()
-        self._sensorz = CalibrationCurve()
-        self._function_type = None
+        self._sensorx_name = None
+        self._sensory_name = None
+        self._sensorz_name = None
+        self._sensorx = None
+        self._sensory = None
+        self._sensorz = None
         self._probe_axis = None
         self._distance_xy = None
         self._distance_zy = None
@@ -472,7 +496,7 @@ class ProbeCalibration(object):
     def field_in_bench_coordinate_system(self, fieldx, fieldy, fieldz):
         """Return field components transform to the bench coordinate system.
 
-        Returns:
+        Return:
             [field3 (+X Axis), field2 (+Y Axis), field1 (+Z Axis)]
 
         """
@@ -492,6 +516,60 @@ class ProbeCalibration(object):
 
         return field3, field2, field1
 
+    def load_sensors_data(self, database):
+        """Load Hall sensors data from database."""
+        db_table = HallSensor.database_table_name()
+
+        if self.sensorx_name is not None:
+            idns = _database.get_database_id(
+                database, db_table, 'sensor_name', self.sensorx_name)
+            if len(idns) != 0:
+                idn = idns[0][0]
+                sensorx = HallSensor()
+                sensorx.read_from_database(database, idn)
+            else:
+                return False
+
+        if self.sensory_name is not None:
+            idns = _database.get_database_id(
+                database, db_table, 'sensor_name', self.sensory_name)
+            if len(idns) != 0:
+                idn = idns[0][0]
+                sensory = HallSensor()
+                sensory.read_from_database(database, idn)
+            else:
+                return False
+
+        if self.sensory_name is not None:
+            idns = _database.get_database_id(
+                database, db_table, 'sensor_name', self.sensorz_name)
+            if len(idns) != 0:
+                idn = idns[0][0]
+                sensorz = HallSensor()
+                sensorz.read_from_database(database, idn)
+            else:
+                return False
+
+        return True
+
+    def get_probe_name_from_database(cls, database, idn):
+        """Return the probe name of the database record."""
+        if len(cls._db_table) == 0:
+            return None
+
+        db_column_names = _database.get_table_column_names(
+            database, cls._db_table)
+        if len(db_column_names) == 0:
+            return None
+
+        db_entry = _database.read_from_database(database, cls._db_table, idn)
+        if db_entry is None:
+            return None
+
+        idx = db_column_names.index('probe_name')
+        probe_name = db_entry[idx]
+        return probe_name
+
     def read_file(self, filename):
         """Read calibration parameters from file.
 
@@ -500,80 +578,23 @@ class ProbeCalibration(object):
         """
         flines = _utils.read_file(filename)
         self.probe_name = _utils.find_value(flines, 'probe_name')
-        self.calibration_magnet = _utils.find_value(
-            flines, 'calibration_magnet')
-        self.function_type = _utils.find_value(flines, 'function_type')
-        self.probe_axis = _utils.find_value(
-            flines, 'probe_axis', vtype=int)
-
-        sensorx_data = []
-        sensory_data = []
-        sensorz_data = []
-
-        idx = _utils.find_index(flines, '----------')
-        for line in flines[idx+1:]:
-            sensor = line.split()[0].lower()
-            if sensor == 'x':
-                sensorx_data.append([float(v) for v in line.split()[1:]])
-            elif sensor == 'y':
-                sensory_data.append([float(v) for v in line.split()[1:]])
-            elif sensor == 'z':
-                sensorz_data.append([float(v) for v in line.split()[1:]])
-            else:
-                raise ValueError('Invalid sensor value.')
-
-        if (len(sensorx_data) == 0 and
-           len(sensory_data) == 0 and len(sensorz_data) == 0):
-            raise ValueError('Invalid calibration data.')
-
-        if len(sensorx_data) != 0:
-            self.sensorx.function_type = self.function_type
-            self.sensorx.data = sensorx_data
-            self.distance_xy = _utils.find_value(
-                flines, 'distance_xy', vtype=float)
-            self.angle_xy = _utils.find_value(flines, 'angle_xy', vtype=float)
-
-        if len(sensory_data) != 0:
-            self.sensory.function_type = self.function_type
-            self.sensory.data = sensory_data
-
-        if len(sensorz_data) != 0:
-            self.sensorz.function_type = self.function_type
-            self.sensorz.data = sensorz_data
-            self.distance_zy = _utils.find_value(
-                flines, 'distance_zy', vtype=float)
-            self.angle_yz = _utils.find_value(flines, 'angle_yz', vtype=float)
-
-        if len(sensorz_data) != 0 and len(sensorx_data) != 0:
-            self.angle_xz = _utils.find_value(flines, 'angle_xz', vtype=float)
+        self.sensorx_name = _utils.find_value(flines, 'sensorx_name')
+        self.sensory_name = _utils.find_value(flines, 'sensory_name')
+        self.sensorz_name = _utils.find_value(flines, 'sensorz_name')
+        self.probe_axis = _utils.find_value(flines, 'probe_axis', vtype=int)
+        self.distance_xy = _utils.find_value(
+            flines, 'distance_xy', vtype=float)
+        self.distance_zy = _utils.find_value(
+            flines, 'distance_zy', vtype=float)
+        self.angle_xy = _utils.find_value(flines, 'angle_xy', vtype=float)
+        self.angle_yz = _utils.find_value(flines, 'angle_yz', vtype=float)
+        self.angle_xz = _utils.find_value(flines, 'angle_xz', vtype=float)
 
     def read_from_database(self, database, idn):
-        """Read field data from database entry."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise CalibrationError(
-                'Failed to read probe calibration from database.')
-
-        db_entry = _database.read_from_database(database, self._db_table, idn)
-        if db_entry is None:
-            raise ValueError('Invalid database ID.')
-
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise CalibrationError(
-                    'Failed to read probe calibration from database.')
-            else:
-                if attr_name is not None:
-                    idx = db_column_names.index(key)
-                    if attr_name in ['sensorx', 'sensory', 'sensorz']:
-                        sensor = CalibrationCurve()
-                        sensor.function_type = self.function_type
-                        sensor.data = _json.loads(db_entry[idx])
-                        setattr(self, attr_name, sensor)
-                    else:
-                        setattr(self, attr_name, db_entry[idx])
+        """Read data from database entry."""
+        super().read_from_database(database, idn)
+        if not self.load_sensors_data(database):
+            raise CalibrationError('Fail to load sensors data from database.')
 
     def save_file(self, filename):
         """Save calibration data to file.
@@ -581,92 +602,20 @@ class ProbeCalibration(object):
         Args:
             filename (str): calibration file path.
         """
-        if self.function_type is None:
-            raise ValueError('Invalid calibration data.')
-
         timestamp = _utils.get_timestamp()
 
         with open(filename, mode='w') as f:
-            f.write('timestamp:         \t{0:1s}\n'.format(timestamp))
-            f.write('probe_name:        \t{0:1s}\n'.format(self.probe_name))
-            f.write('calibration_magnet:\t{0:1s}\n'.format(
-                self.calibration_magnet))
-            f.write('function_type:     \t{0:1s}\n'.format(self.function_type))
-            f.write('distance_xy[mm]:   \t{0:1s}\n'.format(
-                str(self.distance_xy)))
-            f.write('distance_zy[mm]:   \t{0:1s}\n'.format(
-                str(self.distance_zy)))
-            f.write('angle_xy[deg]:     \t{0:1s}\n'.format(str(self.angle_xy)))
-            f.write('angle_yz[deg]:     \t{0:1s}\n'.format(str(self.angle_yz)))
-            f.write('angle_xz[deg]:     \t{0:1s}\n'.format(str(self.angle_xz)))
-            f.write('probe_axis:        \t{0:1d}\n'.format(self.probe_axis))
-            f.write('\n')
-
-            if self.function_type == 'interpolation':
-                f.write('sensor'.ljust(8)+'\t')
-                f.write('voltage[V]'.ljust(15)+'\t')
-                f.write('field[T]'.ljust(15)+'\n')
-            elif self.function_type == 'polynomial':
-                f.write('sensor'.ljust(8)+'\t')
-                f.write('v_min[V]'.ljust(15)+'\t')
-                f.write('v_max[V]'.ljust(15)+'\t')
-                f.write('polynomial_coefficients\n')
-
-            f.write('---------------------------------------------------' +
-                    '---------------------------------------------------\n')
-
-            for d in self.sensorx.data:
-                f.write('x'.ljust(8)+'\t')
-                for value in d:
-                    f.write('{0:+14.7e}\t'.format(value))
-                f.write('\n')
-
-            for d in self.sensory.data:
-                f.write('y'.ljust(8)+'\t')
-                for value in d:
-                    f.write('{0:+14.7e}\t'.format(value))
-                f.write('\n')
-
-            for d in self.sensorz.data:
-                f.write('z'.ljust(8)+'\t')
-                for value in d:
-                    f.write('{0:+14.7e}\t'.format(value))
-                f.write('\n')
-
-    def save_to_database(self, database):
-        """Insert field data into database table."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise CalibrationError(
-                'Failed to save probe calibration to database.')
-            return None
-
-        timestamp = _utils.get_timestamp().split('_')
-        date = timestamp[0]
-        hour = timestamp[1].replace('-', ':')
-
-        db_values = []
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise CalibrationError(
-                    'Failed to save probe calibration to database.')
-                return None
-            else:
-                if key == "id":
-                    db_values.append(None)
-                elif attr_name is None:
-                    db_values.append(locals()[key])
-                elif attr_name in ['sensorx', 'sensory', 'sensorz']:
-                    sensor = getattr(self, attr_name)
-                    db_values.append(_json.dumps(sensor.data))
-                else:
-                    db_values.append(getattr(self, attr_name))
-
-        idn = _database.insert_into_database(
-            database, self._db_table, db_values)
-        return idn
+            f.write('timestamp:      \t{0:1s}\n'.format(timestamp))
+            f.write('probe_name:     \t{0:1s}\n'.format(self.probe_name))
+            f.write('sensorx_name:   \t{0:1s}\n'.format(self.sensorx_name))
+            f.write('sensory_name:   \t{0:1s}\n'.format(self.sensory_name))
+            f.write('sensorz_name:   \t{0:1s}\n'.format(self.sensorz_name))
+            f.write('probe_axis:     \t{0:1d}\n'.format(self.probe_axis))
+            f.write('distance_xy[mm]:\t{0:1s}\n'.format(str(self.distance_xy)))
+            f.write('distance_zy[mm]:\t{0:1s}\n'.format(str(self.distance_zy)))
+            f.write('angle_xy[deg]:  \t{0:1s}\n'.format(str(self.angle_xy)))
+            f.write('angle_yz[deg]:  \t{0:1s}\n'.format(str(self.angle_yz)))
+            f.write('angle_xz[deg]:  \t{0:1s}\n'.format(str(self.angle_xz)))
 
 
 def _polynomial_conversion(data, voltage_array):
@@ -690,7 +639,7 @@ def _interpolation_conversion(data, voltage_array):
     return field_array
 
 
-def _updated_hall_sensor_calibration_curve(voltage_array):
+def _updated_hall_sensor_calibration(voltage_array):
     field_array = _np.zeros(len(voltage_array))
 
     for i in range(len(voltage_array)):
@@ -710,7 +659,7 @@ def _updated_hall_sensor_calibration_curve(voltage_array):
     return field_array
 
 
-def _old_hall_sensor_calibration_curve(voltage_array):
+def _old_hall_sensor_calibration(voltage_array):
     field_array = _np.zeros(len(voltage_array))
 
     for i in range(len(voltage_array)):

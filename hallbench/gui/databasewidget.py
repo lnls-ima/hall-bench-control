@@ -18,33 +18,37 @@ from PyQt4.QtGui import (
     )
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.calibrationdialog import CalibrationDialog \
-    as _CalibrationDialog
+from hallbench.gui.hallprobedialog import HallProbeDialog \
+    as _HallProbeDialog
 from hallbench.gui.configurationwidgets import ConfigurationDialog \
     as _ConfigurationDialog
 from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
 from hallbench.gui.fieldmapdialog import FieldMapDialog \
     as _FieldMapDialog
-
-from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
-from hallbench.data.configuration import MeasurementConfig \
-    as _MeasurementConfig
-from hallbench.data.measurement import VoltageData as _VoltageData
-from hallbench.data.measurement import FieldData as _FieldData
-from hallbench.data.measurement import Fieldmap as _Fieldmap
+import hallbench.data as _data
 
 
 _max_number_rows = 1000
 _max_str_size = 1000
 
+_ConnectionConfig = _data.configuration.ConnectionConfig
+_MeasurementConfig = _data.configuration.MeasurementConfig
+_HallSensor = _data.calibration.HallSensor
+_HallProbe = _data.calibration.HallProbe
+_VoltageData = _data.measurement.VoltageData
+_FieldData = _data.measurement.FieldData
+_Fieldmap = _data.measurement.Fieldmap
+
 
 class DatabaseWidget(_QWidget):
     """Database widget class for the Hall Bench Control application."""
 
-    _calibration_table_name = _ProbeCalibration.database_table_name()
+    _connection_table_name = _ConnectionConfig.database_table_name()
+    _hall_sensor_table_name = _HallSensor.database_table_name()
+    _hall_probe_table_name = _HallProbe.database_table_name()
     _configuration_table_name = _MeasurementConfig.database_table_name()
-    _raw_data_table_name = _VoltageData.database_table_name()
-    _scan_table_name = _FieldData.database_table_name()
+    _voltage_scan_table_name = _VoltageData.database_table_name()
+    _field_scan_table_name = _FieldData.database_table_name()
     _fieldmap_table_name = _Fieldmap.database_table_name()
 
     def __init__(self, parent=None):
@@ -56,7 +60,7 @@ class DatabaseWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # create dialogs
-        self.calibration_dialog = _CalibrationDialog(load_enabled=False)
+        self.hall_probe_dialog = _HallProbeDialog(load_enabled=False)
         self.configuration_dialog = _ConfigurationDialog(load_enabled=False)
         self.view_data_dialog = _ViewDataDialog()
         self.fieldmap_dialog = _FieldMapDialog()
@@ -81,23 +85,23 @@ class DatabaseWidget(_QWidget):
         self.ui.database_tab.clear()
 
     def clearRawDataTable(self):
-        """Clear raw data table."""
+        """Clear voltage scan table."""
         con = _sqlite3.connect(self.database)
         cur = con.cursor()
 
-        cmd = 'SELECT * FROM {0}'.format(self._raw_data_table_name)
+        cmd = 'SELECT * FROM {0}'.format(self._voltage_scan_table_name)
         if len(cur.execute(cmd).fetchall()) == 0:
             con.close()
             return
 
         msg = (
             'Are you sure you want to delete all rows in the ' +
-            self._raw_data_table_name + ' table?')
+            self._voltage_scan_table_name + ' table?')
         reply = _QMessageBox.question(
             self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
 
         if reply == _QMessageBox.Yes:
-            cmd = 'DELETE FROM {0}'.format(self._raw_data_table_name)
+            cmd = 'DELETE FROM {0}'.format(self._voltage_scan_table_name)
             cur.execute(cmd)
             con.commit()
             con.close()
@@ -109,7 +113,7 @@ class DatabaseWidget(_QWidget):
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.calibration_dialog.accept()
+            self.hall_probe_dialog.accept()
             self.configuration_dialog.accept()
             self.view_data_dialog.accept()
             self.fieldmap_dialog.accept()
@@ -121,26 +125,26 @@ class DatabaseWidget(_QWidget):
         self.ui.refresh_btn.clicked.connect(self.updateDatabaseTables)
         self.ui.database_tab.currentChanged.connect(self.disableInvalidButtons)
 
-        self.ui.view_calibration_btn.clicked.connect(self.viewCalibration)
-        self.ui.save_calibration_btn.clicked.connect(self.saveCalibration)
+        self.ui.view_hall_probe_btn.clicked.connect(self.viewHallProbe)
+        self.ui.save_hall_probe_btn.clicked.connect(self.saveHallProbe)
 
         self.ui.view_configuration_btn.clicked.connect(self.viewConfiguration)
         self.ui.save_configuration_btn.clicked.connect(self.saveConfiguration)
 
-        self.ui.view_raw_data_btn.clicked.connect(self.viewRawData)
-        self.ui.save_raw_data_btn.clicked.connect(self.saveRawData)
-        self.ui.clear_raw_data_btn.clicked.connect(self.clearRawDataTable)
+        self.ui.view_voltage_scan_btn.clicked.connect(self.viewRawData)
+        self.ui.save_voltage_scan_btn.clicked.connect(self.saveRawData)
+        self.ui.clear_voltage_scan_btn.clicked.connect(self.clearRawDataTable)
 
-        self.ui.view_scan_btn.clicked.connect(self.viewScan)
-        self.ui.save_scan_btn.clicked.connect(self.saveScan)
+        self.ui.view_field_scan_btn.clicked.connect(self.viewScan)
+        self.ui.save_field_scan_btn.clicked.connect(self.saveScan)
         self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
 
         self.ui.save_fieldmap_btn.clicked.connect(self.saveFieldmap)
 
     def createFieldmap(self):
-        """Create fieldmap from scan records."""
+        """Create fieldmap from field scan records."""
         self.fieldmap_dialog.accept()
-        idns = self.getTableSelectedIDs(self._scan_table_name)
+        idns = self.getTableSelectedIDs(self._field_scan_table_name)
         if len(idns) == 0:
             return
 
@@ -165,24 +169,24 @@ class DatabaseWidget(_QWidget):
                 self.database, configuration_ids[0])
 
             if probe_name is None or len(probe_name) == 0:
-                msg = 'Invalid probe calibration.'
+                msg = 'Invalid hall probe.'
                 _QMessageBox.critical(
                     self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
-            idn = _ProbeCalibration.get_probe_calibration_id(
+            idn = _HallProbe.get_hall_probe_id(
                 self.database, probe_name)
             if idn is None:
-                msg = 'Probe calibration data not found in database.'
+                msg = 'Hall probe data not found in database.'
                 _QMessageBox.critical(
                     self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
-            probe_calibration = _ProbeCalibration(
+            hall_probe = _HallProbe(
                 database=self.database, idn=idn)
 
             self.fieldmap_dialog.show(
-                field_data_list, probe_calibration, self.database, idns)
+                field_data_list, hall_probe, self.database, idns)
 
         except Exception as e:
             _QMessageBox.critical(
@@ -191,38 +195,41 @@ class DatabaseWidget(_QWidget):
     def disableInvalidButtons(self):
         """Disable invalid buttons."""
         current_table = self.getCurrentTable()
-        if current_table is None:
-            self.ui.calibration_pg.setEnabled(False)
-            self.ui.configuration_pg.setEnabled(False)
-            self.ui.raw_data_pg.setEnabled(False)
-            self.ui.scan_pg.setEnabled(False)
-            self.ui.fieldmap_pg.setEnabled(False)
-            return
+        if current_table is not None:
+            self.ui.buttons_tbx.setEnabled(True)
+            table_name = current_table.table_name
 
-        _enable = current_table.table_name == self._calibration_table_name
-        self.ui.calibration_pg.setEnabled(_enable)
-        if _enable:
-            self.ui.buttons_tbx.setCurrentWidget(self.ui.calibration_pg)
+            no_buttons_tables = [
+                self._connection_table_name, self._hall_sensor_table_name]
+            if table_name in no_buttons_tables:
+                self.ui.buttons_tbx.setCurrentWidget(self.ui.empty_pg)
 
-        _enable = current_table.table_name == self._configuration_table_name
-        self.ui.configuration_pg.setEnabled(_enable)
-        if _enable:
-            self.ui.buttons_tbx.setCurrentWidget(self.ui.configuration_pg)
+            _enable = table_name == self._hall_probe_table_name
+            self.ui.hall_probe_pg.setEnabled(_enable)
+            if _enable:
+                self.ui.buttons_tbx.setCurrentWidget(self.ui.hall_probe_pg)
 
-        _enable = current_table.table_name == self._raw_data_table_name
-        self.ui.raw_data_pg.setEnabled(_enable)
-        if _enable:
-            self.ui.buttons_tbx.setCurrentWidget(self.ui.raw_data_pg)
+            _enable = table_name == self._configuration_table_name
+            self.ui.configuration_pg.setEnabled(_enable)
+            if _enable:
+                self.ui.buttons_tbx.setCurrentWidget(self.ui.configuration_pg)
 
-        _enable = current_table.table_name == self._scan_table_name
-        self.ui.scan_pg.setEnabled(_enable)
-        if _enable:
-            self.ui.buttons_tbx.setCurrentWidget(self.ui.scan_pg)
+            _enable = table_name == self._voltage_scan_table_name
+            self.ui.voltage_scan_pg.setEnabled(_enable)
+            if _enable:
+                self.ui.buttons_tbx.setCurrentWidget(self.ui.voltage_scan_pg)
 
-        _enable = current_table.table_name == self._fieldmap_table_name
-        self.ui.fieldmap_pg.setEnabled(_enable)
-        if _enable:
-            self.ui.buttons_tbx.setCurrentWidget(self.ui.fieldmap_pg)
+            _enable = table_name == self._field_scan_table_name
+            self.ui.field_scan_pg.setEnabled(_enable)
+            if _enable:
+                self.ui.buttons_tbx.setCurrentWidget(self.ui.field_scan_pg)
+
+            _enable = table_name == self._fieldmap_table_name
+            self.ui.fieldmap_pg.setEnabled(_enable)
+            if _enable:
+                self.ui.buttons_tbx.setCurrentWidget(self.ui.fieldmap_pg)
+        else:
+            self.ui.buttons_tbx.setEnabled(False)
 
     def getCurrentTable(self):
         """Get current table."""
@@ -303,14 +310,14 @@ class DatabaseWidget(_QWidget):
             self.tables.append(table)
             self.ui.database_tab.addTab(tab, table_name)
 
-    def saveCalibration(self):
-        """Save probe calibration data to file."""
-        idn = self.getTableSelectedID(self._calibration_table_name)
+    def saveHallProbe(self):
+        """Save hall probe data to file."""
+        idn = self.getTableSelectedID(self._hall_probe_table_name)
         if idn is None:
             return
 
         filename = _QFileDialog.getSaveFileName(
-            self, caption='Save probe calibration file',
+            self, caption='Save hall probe file',
             filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
@@ -322,8 +329,8 @@ class DatabaseWidget(_QWidget):
         try:
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
                 filename = filename + '.txt'
-            calibration = _ProbeCalibration(database=self.database, idn=idn)
-            calibration.save_file(filename)
+            hall_probe = _HallProbe(database=self.database, idn=idn)
+            hall_probe.save_file(filename)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -354,20 +361,20 @@ class DatabaseWidget(_QWidget):
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
     def saveRawData(self):
-        """Save raw data to file."""
-        idn = self.getTableSelectedID(self._raw_data_table_name)
+        """Save voltage scan to file."""
+        idn = self.getTableSelectedID(self._voltage_scan_table_name)
         if idn is None:
             return
 
         try:
-            raw_data = _VoltageData(database=self.database, idn=idn)
+            voltage_scan = _VoltageData(database=self.database, idn=idn)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
         filename = _QFileDialog.getSaveFileName(
             self, caption='Save configuration file',
-            directory=raw_data.default_filename,
+            directory=voltage_scan.default_filename,
             filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
@@ -379,26 +386,26 @@ class DatabaseWidget(_QWidget):
         try:
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
                 filename = filename + '.dat'
-            raw_data.save_file(filename)
+            voltage_scan.save_file(filename)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
     def saveScan(self):
-        """Save scan data to file."""
-        idn = self.getTableSelectedID(self._scan_table_name)
+        """Save field scan data to file."""
+        idn = self.getTableSelectedID(self._field_scan_table_name)
         if idn is None:
             return
 
         try:
-            scan = _FieldData(database=self.database, idn=idn)
+            field_scan = _FieldData(database=self.database, idn=idn)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
         filename = _QFileDialog.getSaveFileName(
             self, caption='Save configuration file',
-            directory=scan.default_filename,
+            directory=field_scan.default_filename,
             filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
@@ -410,7 +417,7 @@ class DatabaseWidget(_QWidget):
         try:
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
                 filename = filename + '.dat'
-            scan.save_file(filename)
+            field_scan.save_file(filename)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -473,15 +480,15 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', 'Failed to update database.', _QMessageBox.Ok)
 
-    def viewCalibration(self):
-        """Open calibration dialog."""
-        idn = self.getTableSelectedID(self._calibration_table_name)
+    def viewHallProbe(self):
+        """Open hall probe dialog."""
+        idn = self.getTableSelectedID(self._hall_probe_table_name)
         if idn is None:
             return
 
-        self.calibration_dialog.show(self.database)
-        self.calibration_dialog.setDatabaseID(idn)
-        self.calibration_dialog.loadDB()
+        self.hall_probe_dialog.show(self.database)
+        self.hall_probe_dialog.setDatabaseID(idn)
+        self.hall_probe_dialog.loadDB()
 
     def viewConfiguration(self):
         """Open configuration dialog."""
@@ -495,7 +502,7 @@ class DatabaseWidget(_QWidget):
 
     def viewRawData(self):
         """Open view data dialog."""
-        idns = self.getTableSelectedIDs(self._raw_data_table_name)
+        idns = self.getTableSelectedIDs(self._voltage_scan_table_name)
         if len(idns) == 0:
             return
 
@@ -508,7 +515,7 @@ class DatabaseWidget(_QWidget):
 
     def viewScan(self):
         """Open view data dialog."""
-        idns = self.getTableSelectedIDs(self._scan_table_name)
+        idns = self.getTableSelectedIDs(self._field_scan_table_name)
         if len(idns) == 0:
             return
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Calibration dialog for the Hall Bench Control application."""
+"""Hall probe dialog for the Hall Bench Control application."""
 
 import numpy as _np
 import warnings as _warnings
@@ -16,13 +16,13 @@ import PyQt4.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
+from hallbench.data.calibration import HallProbe as _HallProbe
 
 
-class CalibrationDialog(_QDialog):
-    """Calibration dialog class for Hall Bench Control application."""
+class HallProbeDialog(_QDialog):
+    """Hall probe dialog class for Hall Bench Control application."""
 
-    probeCalibrationChanged = _pyqtSignal(_ProbeCalibration)
+    hallProbeChanged = _pyqtSignal(_HallProbe)
 
     _axis_str_dict = {
         1: '+ Axis #1 (+Z)', 2: '+ Axis #2 (+Y)', 3: '+ Axis #3 (+X)'}
@@ -38,7 +38,7 @@ class CalibrationDialog(_QDialog):
         self.interpolation_dialog = InterpolationTableDialog()
         self.polynomial_dialog = PolynomialTableDialog()
 
-        self._probe_calibration = None
+        self._hall_probe = None
         self._load_enabled = load_enabled
         self.database = None
         self.graphx = []
@@ -63,14 +63,14 @@ class CalibrationDialog(_QDialog):
         self.ui.idn_le.setReadOnly(not self._load_enabled)
 
     @property
-    def probe_calibration(self):
-        """Calibration data object."""
-        return self._probe_calibration
+    def hall_probe(self):
+        """Hall probe object."""
+        return self._hall_probe
 
-    @probe_calibration.setter
-    def probe_calibration(self, value):
-        self._probe_calibration = value
-        self.probeCalibrationChanged.emit(self.probe_calibration)
+    @hall_probe.setter
+    def hall_probe(self, value):
+        self._hall_probe = value
+        self.hallProbeChanged.emit(self.hall_probe)
         self.closeDialogs()
 
     def closeDialogs(self):
@@ -82,12 +82,12 @@ class CalibrationDialog(_QDialog):
             pass
 
     def accept(self):
-        """Close calibration dialog."""
+        """Close dialog."""
         self.closeDialogs()
         super().accept()
 
     def configureGraph(self, symbol=False):
-        """Configure calibration data plots."""
+        """Configure data plots."""
         self.ui.viewdata_pw.clear()
 
         self.graphx = []
@@ -150,15 +150,17 @@ class CalibrationDialog(_QDialog):
         self.ui.viewdata_pw.showGrid(x=True, y=True)
 
     def load(self):
-        """Load probe calibration parameters."""
+        """Load hall probe parameters."""
         try:
-            self.ui.probe_name_le.setText(self._probe_calibration.probe_name)
-            self.ui.calibration_magnet_le.setText(
-                self._probe_calibration.calibration_magnet)
-            self.ui.function_type_le.setText(
-                self._probe_calibration.function_type.capitalize())
+            self.ui.probe_name_le.setText(self._hall_probe.probe_name)
+            self.ui.sensorx_name_le.setText(
+                self._hall_probe.sensorx_name)
+            self.ui.sensory_name_le.setText(
+                self._hall_probe.sensory_name)
+            self.ui.sensorz_name_le.setText(
+                self._hall_probe.sensorz_name)
 
-            probe_axis = self._probe_calibration.probe_axis
+            probe_axis = self._hall_probe.probe_axis
             if probe_axis in self._axis_str_dict.keys():
                 self.ui.probe_axis_le.setText(self._axis_str_dict[probe_axis])
                 self.ui.probe_axis_le.setEnabled(True)
@@ -166,7 +168,7 @@ class CalibrationDialog(_QDialog):
                 self.ui.probe_axis_le.setText('')
                 self.ui.probe_axis_le.setEnabled(False)
 
-            distance_xy = self._probe_calibration.distance_xy
+            distance_xy = self._hall_probe.distance_xy
             if distance_xy is not None:
                 self.ui.distance_xy_le.setText('{0:0.4f}'.format(distance_xy))
                 self.ui.distance_xy_le.setEnabled(True)
@@ -174,7 +176,7 @@ class CalibrationDialog(_QDialog):
                 self.ui.distance_xy_le.setText('')
                 self.ui.distance_xy_le.setEnabled(False)
 
-            distance_zy = self._probe_calibration.distance_zy
+            distance_zy = self._hall_probe.distance_zy
             if distance_zy is not None:
                 self.ui.distance_zy_le.setText('{0:0.4f}'.format(distance_zy))
                 self.ui.distance_zy_le.setEnabled(True)
@@ -182,7 +184,7 @@ class CalibrationDialog(_QDialog):
                 self.ui.distance_zy_le.setText('')
                 self.ui.distance_zy_le.setEnabled(False)
 
-            angle_xy = self._probe_calibration.angle_xy
+            angle_xy = self._hall_probe.angle_xy
             if angle_xy is not None:
                 self.ui.angle_xy_le.setText('{0:0.4f}'.format(angle_xy))
                 self.ui.angle_xy_le.setEnabled(True)
@@ -190,7 +192,7 @@ class CalibrationDialog(_QDialog):
                 self.ui.angle_xy_le.setText('')
                 self.ui.angle_xy_le.setEnabled(False)
 
-            angle_yz = self._probe_calibration.angle_yz
+            angle_yz = self._hall_probe.angle_yz
             if angle_yz is not None:
                 self.ui.angle_yz_le.setText('{0:0.4f}'.format(angle_yz))
                 self.ui.angle_yz_le.setEnabled(True)
@@ -198,7 +200,7 @@ class CalibrationDialog(_QDialog):
                 self.ui.angle_yz_le.setText('')
                 self.ui.angle_yz_le.setEnabled(False)
 
-            angle_xz = self._probe_calibration.angle_xz
+            angle_xz = self._hall_probe.angle_xz
             if angle_xz is not None:
                 self.ui.angle_xz_le.setText('{0:0.4f}'.format(angle_xz))
                 self.ui.angle_xz_le.setEnabled(True)
@@ -215,13 +217,13 @@ class CalibrationDialog(_QDialog):
         except Exception:
             self.setDataEnabled(False)
             self.updateGraph()
-            message = 'Failed to load calibration data.'
+            message = 'Failed to load hall probe data.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
     def loadDB(self):
-        """Load probe calibration from database."""
+        """Load hall probe from database."""
         self.ui.filename_le.setText('')
         self.setDataEnabled(False)
         self.updateGraph()
@@ -234,7 +236,7 @@ class CalibrationDialog(_QDialog):
             return
 
         try:
-            self.probe_calibration = _ProbeCalibration(
+            self.hall_probe = _HallProbe(
                 database=self.database, idn=idn)
         except Exception as e:
             _QMessageBox.critical(
@@ -244,14 +246,14 @@ class CalibrationDialog(_QDialog):
         self.load()
 
     def loadFile(self):
-        """Load probe calibration file."""
+        """Load hall probe file."""
         self.setDatabaseID('')
         self.setDataEnabled(False)
         self.updateGraph()
 
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getOpenFileName(
-            self, caption='Load probe calibration file',
+            self, caption='Load hall probe file',
             directory=default_filename, filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
@@ -261,7 +263,7 @@ class CalibrationDialog(_QDialog):
             return
 
         try:
-            self.probe_calibration = _ProbeCalibration(filename)
+            self.hall_probe = _HallProbe(filename)
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return
@@ -270,9 +272,9 @@ class CalibrationDialog(_QDialog):
         self.load()
 
     def searchDB(self, probe_name):
-        """Search probe calibration in database."""
-        if (self.probe_calibration is not None and
-           self.probe_calibration.probe_name == probe_name):
+        """Search hall probe in database."""
+        if (self.hall_probe is not None and
+           self.hall_probe.probe_name == probe_name):
             return
 
         if probe_name is None or len(probe_name) == 0:
@@ -282,7 +284,7 @@ class CalibrationDialog(_QDialog):
             return
 
         try:
-            idn = _ProbeCalibration.get_probe_calibration_id(
+            idn = _HallProbe.get_hall_probe_id(
                 self.database, probe_name)
             if idn is not None:
                 self.setDatabaseID(idn)
@@ -299,7 +301,7 @@ class CalibrationDialog(_QDialog):
 
     def setDataEnabled(self, enabled):
         """Enable or disable controls."""
-        self.ui.calibrationdata_gb.setEnabled(enabled)
+        self.ui.probedata_gb.setEnabled(enabled)
         self.ui.showtable_btn.setEnabled(enabled)
         self.ui.plotoptions_gb.setEnabled(enabled)
         self.ui.updategraph_btn.setEnabled(enabled)
@@ -322,16 +324,33 @@ class CalibrationDialog(_QDialog):
         super().show()
 
     def showTable(self):
-        """Show calibration data table."""
-        if self._probe_calibration is None:
+        """Show probe data table."""
+        if self._hall_probe is None:
             return
 
-        if self._probe_calibration.function_type == 'interpolation':
+        if self._hall_probe.sensorx is not None:
+            function_type_x = self._hall_probe.sensorx.function_type
+        else:
+            function_type_x = None
+
+        if self._hall_probe.sensory is not None:
+            function_type_y = self._hall_probe.sensory.function_type
+        else:
+            function_type_y = None
+
+        if self._hall_probe.sensorz is not None:
+            function_type_z = self._hall_probe.sensorz.function_type
+        else:
+            function_type_z = None
+
+        func_type = [function_type_x, function_type_y, function_type_z]
+
+        if all([f == 'interpolation' for f in func_type if f is not None]):
             self.polynomial_dialog.accept()
-            self.interpolation_dialog.show(self._probe_calibration)
-        elif self._probe_calibration.function_type == 'polynomial':
+            self.interpolation_dialog.show(self._hall_probe)
+        elif all([f == 'polynomial' for f in func_type if f is not None]):
             self.interpolation_dialog.accept()
-            self.polynomial_dialog.show(self._probe_calibration)
+            self.polynomial_dialog.show(self._hall_probe)
         else:
             return
 
@@ -341,14 +360,14 @@ class CalibrationDialog(_QDialog):
         self.ui.fieldy_le.setText('')
         self.ui.fieldz_le.setText('')
 
-        if self._probe_calibration is None:
+        if self._hall_probe is None:
             return
 
         try:
             volt = [self.ui.voltage_sb.value()]
-            fieldx = self._probe_calibration.sensorx.convert_voltage(volt)[0]
-            fieldy = self._probe_calibration.sensory.convert_voltage(volt)[0]
-            fieldz = self._probe_calibration.sensorz.convert_voltage(volt)[0]
+            fieldx = self._hall_probe.sensorx.convert_voltage(volt)[0]
+            fieldy = self._hall_probe.sensory.convert_voltage(volt)[0]
+            fieldz = self._hall_probe.sensorz.convert_voltage(volt)[0]
 
             if not _np.isnan(fieldx):
                 self.ui.fieldx_le.setText('{0:0.4f}'.format(fieldx))
@@ -363,7 +382,7 @@ class CalibrationDialog(_QDialog):
             return
 
     def updateGraph(self):
-        """Update calibration data plots."""
+        """Update data plots."""
         try:
             vmin = self.ui.voltagemin_sb.value()
             vmax = self.ui.voltagemax_sb.value()
@@ -375,12 +394,12 @@ class CalibrationDialog(_QDialog):
             self.legend.removeItem('Y')
             self.legend.removeItem('Z')
 
-            if self._probe_calibration is None or len(voltage) == 0:
+            if self._hall_probe is None or len(voltage) == 0:
                 return
 
-            fieldx = self._probe_calibration.sensorx.convert_voltage(voltage)
-            fieldy = self._probe_calibration.sensory.convert_voltage(voltage)
-            fieldz = self._probe_calibration.sensorz.convert_voltage(voltage)
+            fieldx = self._hall_probe.sensorx.convert_voltage(voltage)
+            fieldy = self._hall_probe.sensory.convert_voltage(voltage)
+            fieldz = self._hall_probe.sensorz.convert_voltage(voltage)
 
             symbol = self.ui.addmarkers_chb.isChecked()
             self.configureGraph(symbol=symbol)
@@ -417,7 +436,7 @@ class InterpolationTableDialog(_QDialog):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.probe_calibration = None
+        self.hall_probe = None
         self.clip = _QApplication.clipboard()
 
         # create connections
@@ -442,15 +461,15 @@ class InterpolationTableDialog(_QDialog):
             text = text[:-1] + "\n"
         self.clip.setText(text)
 
-    def show(self, probe_calibration):
-        """Update calibration data object and show dialog."""
-        self.probe_calibration = probe_calibration
+    def show(self, hall_probe):
+        """Update hall probe object and show dialog."""
+        self.hall_probe = hall_probe
         self.updateTables()
         super(InterpolationTableDialog, self).show()
 
     def updateTables(self):
         """Update table values."""
-        if self.probe_calibration is None:
+        if self.hall_probe is None:
             return
         self.updateTablesensorX()
         self.updateTablesensorY()
@@ -460,7 +479,7 @@ class InterpolationTableDialog(_QDialog):
         """Update sensor x table values."""
         precision = self.sensorxprec_sb.value()
         table = self.ui.sensorx_ta
-        data = self.probe_calibration.sensorx.data
+        data = self.hall_probe.sensorx.data
 
         formatstr = '{0:0.%if}' % precision
         table.setRowCount(0)
@@ -475,7 +494,7 @@ class InterpolationTableDialog(_QDialog):
         """Update sensor y table values."""
         precision = self.sensoryprec_sb.value()
         table = self.ui.sensory_ta
-        data = self.probe_calibration.sensory.data
+        data = self.hall_probe.sensory.data
 
         formatstr = '{0:0.%if}' % precision
         table.setRowCount(0)
@@ -490,7 +509,7 @@ class InterpolationTableDialog(_QDialog):
         """Update sensor z table values."""
         precision = self.sensorzprec_sb.value()
         table = self.ui.sensorz_ta
-        data = self.probe_calibration.sensorz.data
+        data = self.hall_probe.sensorz.data
 
         formatstr = '{0:0.%if}' % precision
         table.setRowCount(0)
@@ -513,7 +532,7 @@ class PolynomialTableDialog(_QDialog):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.probe_calibration = None
+        self.hall_probe = None
         self.clip = _QApplication.clipboard()
 
         # create connections
@@ -538,15 +557,15 @@ class PolynomialTableDialog(_QDialog):
             text = text[:-1] + "\n"
         self.clip.setText(text)
 
-    def show(self, probe_calibration):
-        """Update calibration data object and show dialog."""
-        self.probe_calibration = probe_calibration
+    def show(self, hall_probe):
+        """Update hall probe object and show dialog."""
+        self.hall_probe = hall_probe
         self.updateTables()
         super(PolynomialTableDialog, self).show()
 
     def updateTables(self):
         """Update table values."""
-        if self.probe_calibration is None:
+        if self.hall_probe is None:
             return
         self.updateTableSensorX()
         self.updateTableSensorY()
@@ -582,19 +601,19 @@ class PolynomialTableDialog(_QDialog):
         """Update sensor x table values."""
         precision = self.sensorxprec_sb.value()
         table = self.ui.sensorx_ta
-        data = self.probe_calibration.sensorx.data
+        data = self.hall_probe.sensorx.data
         self._updateTable(table, data, precision)
 
     def updateTableSensorY(self):
         """Update sensor y table values."""
         precision = self.sensoryprec_sb.value()
         table = self.ui.sensory_ta
-        data = self.probe_calibration.sensory.data
+        data = self.hall_probe.sensory.data
         self._updateTable(table, data, precision)
 
     def updateTableSensorZ(self):
         """Update sensor z table values."""
         precision = self.sensorzprec_sb.value()
         table = self.ui.sensorz_ta
-        data = self.probe_calibration.sensorz.data
+        data = self.hall_probe.sensorz.data
         self._updateTable(table, data, precision)

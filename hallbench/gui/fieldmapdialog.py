@@ -33,7 +33,7 @@ class FieldMapDialog(_QDialog):
         # variables initialization
         self.database = None
         self.field_data_list = None
-        self.probe_calibration = None
+        self.hall_probe = None
         self.scan_id_list = None
 
         # add predefined magnet names
@@ -120,7 +120,7 @@ class FieldMapDialog(_QDialog):
 
     def getFieldMap(self):
         """Get fieldmap data."""
-        if self.field_data_list is None or self.probe_calibration is None:
+        if self.field_data_list is None or self.hall_probe is None:
             return None
 
         self.blockSignals(True)
@@ -158,7 +158,7 @@ class FieldMapDialog(_QDialog):
 
         try:
             fieldmap.set_fieldmap_data(
-                self.field_data_list, self.probe_calibration,
+                self.field_data_list, self.hall_probe,
                 correct_displacements, magnet_center,
                 magnet_x_axis, magnet_y_axis)
 
@@ -296,7 +296,7 @@ class FieldMapDialog(_QDialog):
             for le in lineedits:
                 le.clear()
 
-    def show(self, field_data_list, probe_calibration, database, scan_id_list):
+    def show(self, field_data_list, hall_probe, database, scan_id_list):
         """Update fieldmap variable and show dialog."""
         if field_data_list is None or len(field_data_list) == 0:
             message = 'Invalid field data list.'
@@ -304,14 +304,14 @@ class FieldMapDialog(_QDialog):
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        if probe_calibration is None:
-            message = 'Invalid probe calibration data.'
+        if hall_probe is None:
+            message = 'Invalid hall probe data.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
         self.field_data_list = field_data_list
-        self.probe_calibration = probe_calibration
+        self.hall_probe = hall_probe
         self.database = database
         self.scan_id_list = scan_id_list
         super().show()

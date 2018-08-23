@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>calibration_dl</class>
- <widget class="QDialog" name="calibration_dl">
+ <class>hallprobe_dl</class>
+ <widget class="QDialog" name="hallprobe_dl">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>1077</width>
-    <height>839</height>
+    <height>915</height>
    </rect>
   </property>
   <property name="font">
@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Calibration Dialog</string>
+   <string>Hall Probe Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0" colspan="2">
@@ -34,7 +34,7 @@
       </font>
      </property>
      <property name="title">
-      <string>Load Probe Calibration</string>
+      <string>Load Hall Probe</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="0">
@@ -46,7 +46,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Probe Calibration ID:</string>
+         <string>Hall Probe ID:</string>
         </property>
        </widget>
       </item>
@@ -165,6 +165,31 @@
      </layout>
     </widget>
    </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>320</width>
+       <height>150</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="text">
+      <string>Image</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="1" rowspan="3">
     <widget class="PlotWidget" name="viewdata_pw">
      <property name="minimumSize">
@@ -197,7 +222,7 @@
     </widget>
    </item>
    <item row="2" column="0">
-    <widget class="QGroupBox" name="calibrationdata_gb">
+    <widget class="QGroupBox" name="probedata_gb">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -208,17 +233,11 @@
       </font>
      </property>
      <property name="title">
-      <string>Probe Calibration Data</string>
+      <string>Hall Probe Data</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <property name="horizontalSpacing">
-       <number>6</number>
-      </property>
-      <property name="verticalSpacing">
-       <number>9</number>
-      </property>
-      <item row="8" column="0" colspan="2">
-       <widget class="QLabel" name="label_15">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_19">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -226,12 +245,22 @@
          </font>
         </property>
         <property name="text">
-         <string>Angle XZ [deg]:</string>
+         <string>Probe Name:</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="0" colspan="2">
-       <widget class="QLabel" name="label_14">
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="probe_name_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -239,20 +268,17 @@
          </font>
         </property>
         <property name="text">
-         <string>Angle YZ [deg]:</string>
+         <string>Sensor X Name:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="2">
-       <widget class="QLineEdit" name="distance_zy_le">
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="sensorx_name_le">
         <property name="font">
          <font>
           <weight>50</weight>
           <bold>false</bold>
          </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -265,11 +291,76 @@
          </font>
         </property>
         <property name="text">
-         <string>Function Type:</string>
+         <string>Sensor Y Name:</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="0" colspan="2">
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="sensory_name_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_20">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Sensor Z Name:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="sensorz_name_2">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Probe Axis:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="probe_axis_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
        <widget class="QLabel" name="label_3">
         <property name="font">
          <font>
@@ -285,7 +376,49 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0" colspan="2">
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="distance_xy_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Distance ZY [mm]:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="distance_zy_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
        <widget class="QLabel" name="label_13">
         <property name="font">
          <font>
@@ -298,7 +431,72 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="0" colspan="3">
+      <item row="7" column="1">
+       <widget class="QLineEdit" name="angle_xy_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Angle YZ [deg]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLineEdit" name="angle_yz_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="label_15">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Angle XZ [deg]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QLineEdit" name="angle_xz_le">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0" colspan="2">
        <widget class="QPushButton" name="showtable_btn">
         <property name="enabled">
          <bool>false</bool>
@@ -327,159 +525,6 @@
           <width>16</width>
           <height>16</height>
          </size>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="2">
-       <widget class="QLineEdit" name="angle_xz_le">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="2">
-       <widget class="QLineEdit" name="angle_xy_le">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Calibration Magnet:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_11">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Probe Axis:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0" colspan="2">
-       <widget class="QLabel" name="label_4">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Distance ZY [mm]:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QLineEdit" name="distance_xy_le">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="2">
-       <widget class="QLineEdit" name="angle_yz_le">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_19">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Probe Name:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QLineEdit" name="probe_axis_le">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLineEdit" name="function_type_le">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLineEdit" name="calibration_magnet_le">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="probe_name_le">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
         </property>
        </widget>
       </item>
@@ -809,31 +854,6 @@
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-    <widget class="QLabel" name="label_5">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>320</width>
-       <height>150</height>
-      </size>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Box</enum>
-     </property>
-     <property name="text">
-      <string>Image</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
     </widget>
    </item>
   </layout>

@@ -3,7 +3,6 @@
 """Implementation of classes to store and analyse measurement data."""
 
 import os as _os
-import json as _json
 import numpy as _np
 import pandas as _pd
 import collections as _collections
@@ -28,7 +27,7 @@ class MeasurementDataError(Exception):
         self.message = message
 
 
-class Data(object):
+class Data(_database.DatabaseObject):
     """Position and data values."""
 
     _axis_list = [1, 2, 3, 5, 6, 7, 8, 9]
@@ -40,10 +39,10 @@ class Data(object):
     _pos7_unit = 'mm'
     _pos8_unit = 'deg'
     _pos9_unit = 'deg'
+    _data_label = ''
     _db_table = ''
     _db_dict = {}
     _db_json_str = []
-    _data_label = ''
 
     def __init__(self, filename=None, database=None, idn=None, data_unit=""):
         """Initialize variables.
@@ -107,39 +106,13 @@ class Data(object):
         return r
 
     @classmethod
-    def create_database_table(cls, database):
-        """Create database table."""
-        if len(cls._db_table) == 0:
-            return False
-
-        variables = []
-        for key in cls._db_dict.keys():
-            variables.append((key, cls._db_dict[key][1]))
-        success = _database.create_table(database, cls._db_table, variables)
-        return success
-
-    @classmethod
-    def database_table_name(cls):
-        """Return the database table name."""
-        return cls._db_table
-
-    @classmethod
     def get_configuration_id_from_database(cls, database, idn):
         """Return the configuration ID of the database record."""
         if len(cls._db_table) == 0:
             return None
 
-        db_column_names = _database.get_table_column_names(
-            database, cls._db_table)
-        if len(db_column_names) == 0:
-            return None
-
-        db_entry = _database.read_from_database(database, cls._db_table, idn)
-        if db_entry is None:
-            return None
-
-        idx = db_column_names.index('configuration_id')
-        configuration_id = db_entry[idx]
+        configuration_id = _database.get_database_param(
+            database, cls._db_table, idn, 'configuration_id')
         return configuration_id
 
     @property
@@ -341,7 +314,8 @@ class Data(object):
                     pos = _utils.find_value(flines, pos_str, float)
                 except ValueError:
                     pos = None
-                pos = _np.around(_to_array(pos), decimals=_position_precision)
+                pos = _np.around(
+                    _utils.to_array(pos), decimals=_position_precision)
                 setattr(self, '_' + pos_str, pos)
 
         idx = _utils.find_index(flines, '---------------------')
@@ -354,15 +328,15 @@ class Data(object):
         dshape = data.shape[1]
         if dshape in [4, 7]:
             scan_positions = _np.around(
-                _to_array(data[:, 0]), decimals=_position_precision)
+                _utils.to_array(data[:, 0]), decimals=_position_precision)
             setattr(self, '_pos' + str(scan_axis), scan_positions)
-            self._avgx = _to_array(data[:, 1])
-            self._avgy = _to_array(data[:, 2])
-            self._avgz = _to_array(data[:, 3])
+            self._avgx = _utils.to_array(data[:, 1])
+            self._avgy = _utils.to_array(data[:, 2])
+            self._avgz = _utils.to_array(data[:, 3])
             if dshape == 7:
-                self._stdx = _to_array(data[:, 4])
-                self._stdy = _to_array(data[:, 5])
-                self._stdz = _to_array(data[:, 6])
+                self._stdx = _utils.to_array(data[:, 4])
+                self._stdy = _utils.to_array(data[:, 5])
+                self._stdz = _utils.to_array(data[:, 6])
             else:
                 self._stdx = _np.zeros(len(scan_positions))
                 self._stdy = _np.zeros(len(scan_positions))
@@ -370,38 +344,6 @@ class Data(object):
         else:
             message = 'Inconsistent number of columns in file: %s' % filename
             raise MeasurementDataError(message)
-
-    def read_from_database(self, database, idn):
-        """Read data from database entry."""
-        if len(self._db_table) == 0:
-            return
-
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise MeasurementDataError('Failed to read data from database.')
-
-        db_entry = _database.read_from_database(database, self._db_table, idn)
-        if db_entry is None:
-            raise ValueError('Invalid database ID.')
-
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise MeasurementDataError(
-                    'Failed to read data from database.')
-            else:
-                if attr_name is not None and key != 'scan_axis':
-                    idx = db_column_names.index(key)
-                    if attr_name in self._db_json_str:
-                        _l = _json.loads(db_entry[idx])
-                        setattr(self, attr_name, _to_array(_l))
-                    else:
-                        setattr(self, attr_name, db_entry[idx])
-        
-        idx_date = db_column_names.index('date')
-        idx_hour = db_column_names.index('hour')
-        self._timestamp = '_'.join([db_entry[idx_date], db_entry[idx_hour]])
 
     def reverse(self):
         """Reverse Data."""
@@ -494,50 +436,17 @@ class Data(object):
                     line = line + '\t' + '{0:+0.10e}'.format(columns[i, j])
                 f.write(line + '\n')
 
-    def save_to_database(self, database, configuration_id):
-        """Insert data into database table."""
-        if len(self._db_table) == 0:
-            return None
-
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise MeasurementDataError('Failed to save data to database.')
-            return None
-
-        if self._timestamp is None:
-            self._timestamp = _utils.get_timestamp()
-
-        date = self._timestamp.split('_')[0]
-        hour = self._timestamp.split('_')[1].replace('-', ':')
-
-        db_values = []
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise MeasurementDataError(
-                    'Failed to save data to database.')
-                return None
-            else:
-                if key == "id":
-                    db_values.append(None)
-                elif attr_name is None:
-                    db_values.append(locals()[key])
-                elif attr_name in self._db_json_str:
-                    _l = getattr(self, attr_name).tolist()
-                    db_values.append(_json.dumps(_l))
-                else:
-                    db_values.append(getattr(self, attr_name))
-
-        idn = _database.insert_into_database(
-            database, self._db_table, db_values)
-        return idn
+        def save_to_database(self, database, configuration_id=None):
+            """Insert data into database table."""
+            super().save_to_database(
+                database, configuration_id=configuration_id)
 
 
 class VoltageData(Data):
     """Position and voltage values."""
 
-    _db_table = 'raw_data'
+    _data_label = 'Voltage'
+    _db_table = 'voltage_scans'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
@@ -566,7 +475,6 @@ class VoltageData(Data):
         '_pos6', '_pos7', '_pos8', '_pos9',
         '_avgx', '_avgy', '_avgz',
         '_stdx', '_stdy', '_stdz']
-    _data_label = 'RawData'
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -582,78 +490,87 @@ class VoltageData(Data):
     @Data.pos1.setter
     def pos1(self, value):
         """Set pos1 value."""
-        self._pos1 = _np.around(_to_array(value), decimals=_position_precision)
+        self._pos1 = _np.around(
+            _utils.to_array(value), decimals=_position_precision)
 
     @Data.pos2.setter
     def pos2(self, value):
         """Set pos2 value."""
-        self._pos2 = _np.around(_to_array(value), decimals=_position_precision)
+        self._pos2 = _np.around(
+            _utils.to_array(value), decimals=_position_precision)
 
     @Data.pos3.setter
     def pos3(self, value):
         """Set pos3 value."""
-        self._pos3 = _np.around(_to_array(value), decimals=_position_precision)
+        self._pos3 = _np.around(
+            _utils.to_array(value), decimals=_position_precision)
 
     @Data.pos5.setter
     def pos5(self, value):
         """Set pos5 value."""
-        self._pos5 = _np.around(_to_array(value), decimals=_position_precision)
+        self._pos5 = _np.around(
+            _utils.to_array(value), decimals=_position_precision)
 
     @Data.pos6.setter
     def pos6(self, value):
         """Set pos6 value."""
-        self._pos6 = _np.around(_to_array(value), decimals=_position_precision)
+        self._pos6 = _np.around(
+            _utils.to_array(value), decimals=_position_precision)
 
     @Data.pos7.setter
     def pos7(self, value):
         """Set pos7 value."""
-        self._pos7 = _np.around(_to_array(value), decimals=_position_precision)
+        self._pos7 = _np.around(
+            _utils.to_array(value), decimals=_position_precision)
 
     @Data.pos8.setter
     def pos8(self, value):
         """Set pos8 value."""
-        self._pos8 = _np.around(_to_array(value), decimals=_position_precision)
+        self._pos8 = _np.around(
+            _utils.to_array(value), decimals=_position_precision)
 
     @Data.pos9.setter
     def pos9(self, value):
         """Set pos9 value."""
-        self._pos9 = _np.around(_to_array(value), decimals=_position_precision)
+        self._pos9 = _np.around(
+            _utils.to_array(value), decimals=_position_precision)
 
     @Data.avgx.setter
     def avgx(self, value):
         """Set avgx value."""
-        self._avgx = _to_array(value)
+        self._avgx = _utils.to_array(value)
 
     @Data.avgy.setter
     def avgy(self, value):
         """Set avgy value."""
-        self._avgy = _to_array(value)
+        self._avgy = _utils.to_array(value)
 
     @Data.avgz.setter
     def avgz(self, value):
         """Set avgz value."""
-        self._avgz = _to_array(value)
+        self._avgz = _utils.to_array(value)
 
     @Data.stdx.setter
     def stdx(self, value):
         """Set stdx value."""
-        self._stdx = _to_array(value)
+        self._stdx = _utils.to_array(value)
 
     @Data.stdy.setter
     def stdy(self, value):
         """Set stdy value."""
-        self._stdy = _to_array(value)
+        self._stdy = _utils.to_array(value)
 
     @Data.stdz.setter
     def stdz(self, value):
         """Set stdz value."""
-        self._stdz = _to_array(value)
+        self._stdz = _utils.to_array(value)
 
 
 class FieldData(Data):
     """Position and magnetic field values."""
 
-    _db_table = 'scans'
+    _data_label = 'Field'
+    _db_table = 'field_scans'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
@@ -682,7 +599,6 @@ class FieldData(Data):
         '_pos6', '_pos7', '_pos8', '_pos9',
         '_avgx', '_avgy', '_avgz',
         '_stdx', '_stdy', '_stdz']
-    _data_label = 'Scan'
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -695,11 +611,11 @@ class FieldData(Data):
         super().__init__(
             filename=filename, database=database, idn=idn, data_unit='T')
 
-    def set_field_data(self, voltage_data_list, probe_calibration):
+    def set_field_data(self, voltage_data_list, hall_probe):
         """Convert average voltage values to magnetic field."""
-        if not isinstance(probe_calibration, _calibration.ProbeCalibration):
+        if not isinstance(hall_probe, _calibration.HallProbe):
             raise TypeError(
-                'probe_calibration must be a ProbeCalibration object.')
+                'hall_probe must be a HallProbe object.')
 
         vd = _get_avg_voltage(voltage_data_list)
 
@@ -707,13 +623,13 @@ class FieldData(Data):
             pos = getattr(vd, 'pos' + str(axis))
             setattr(self, '_pos' + str(axis), pos)
 
-        bx_avg = probe_calibration.sensorx.convert_voltage(vd.avgx)
-        by_avg = probe_calibration.sensory.convert_voltage(vd.avgy)
-        bz_avg = probe_calibration.sensorz.convert_voltage(vd.avgz)
+        bx_avg = hall_probe.sensorx.convert_voltage(vd.avgx)
+        by_avg = hall_probe.sensory.convert_voltage(vd.avgy)
+        bz_avg = hall_probe.sensorz.convert_voltage(vd.avgz)
 
-        bx_std = probe_calibration.sensorx.convert_voltage(vd.stdx)
-        by_std = probe_calibration.sensory.convert_voltage(vd.stdy)
-        bz_std = probe_calibration.sensorz.convert_voltage(vd.stdz)
+        bx_std = hall_probe.sensorx.convert_voltage(vd.stdx)
+        by_std = hall_probe.sensory.convert_voltage(vd.stdy)
+        bz_std = hall_probe.sensorz.convert_voltage(vd.stdz)
 
         self._avgx = bx_avg
         self._avgy = by_avg
@@ -724,7 +640,7 @@ class FieldData(Data):
         self._stdz = bz_std
 
 
-class Fieldmap(object):
+class Fieldmap(_database.DatabaseObject):
     """Map for position and magnetic field values."""
 
     _db_table = 'fieldmaps'
@@ -795,20 +711,6 @@ class Fieldmap(object):
 
         if filename is not None:
             self.read_file(filename)
-
-    @classmethod
-    def database_table_name(cls):
-        """Return the database table name."""
-        return cls._db_table
-
-    @classmethod
-    def create_database_table(cls, database):
-        """Create database table."""
-        variables = []
-        for key in cls._db_dict.keys():
-            variables.append((key, cls._db_dict[key][1]))
-        success = _database.create_table(database, cls._db_table, variables)
-        return success
 
     @property
     def map(self):
@@ -902,9 +804,9 @@ class Fieldmap(object):
             filename (str): fieldmap file path.
         """
         flines = _utils.read_file(filename)
-        
+
         _s = _utils.find_value(flines, 'timestamp')
-        self._timestamp = _s if _s != _empty_str else None       
+        self._timestamp = _s if _s != _empty_str else None
         _s = _utils.find_value(flines, 'magnet_name')
         self.magnet_name = _s if _s != _empty_str else None
         _s = _utils.find_value(flines, 'gap')
@@ -957,36 +859,6 @@ class Fieldmap(object):
             raise MeasurementDataError('Invalid fieldmap file: %s' % filename)
 
         self._map = data
-
-    def read_from_database(self, database, idn):
-        """Read fieldmap from database entry."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise MeasurementDataError(
-                'Failed to read fieldmap from database.')
-
-        db_entry = _database.read_from_database(database, self._db_table, idn)
-        if db_entry is None:
-            raise ValueError('Invalid database ID.')
-
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise MeasurementDataError(
-                    'Failed to read fieldmap from database.')
-            else:
-                if attr_name is not None:
-                    idx = db_column_names.index(key)
-                    if attr_name in self._db_json_str:
-                        _l = _json.loads(db_entry[idx])
-                        setattr(self, attr_name, _to_array(_l))
-                    else:
-                        setattr(self, attr_name, db_entry[idx])
-
-        idx_date = db_column_names.index('date')
-        idx_hour = db_column_names.index('hour')
-        self._timestamp = '_'.join([db_entry[idx_date], db_entry[idx_hour]])
 
     def save_file(self, filename):
         """Save fieldmap file.
@@ -1047,55 +919,15 @@ class Fieldmap(object):
                 f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
                     self._map[i, 3], self._map[i, 4], self._map[i, 5]))
 
-    def save_to_database(self, database, nr_scans, initial_scan, final_scan):
-        """Insert field data into database table."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-
-        if len(db_column_names) == 0:
-            raise MeasurementDataError('Failed to save fieldmap to database.')
-            return None
-
-        if self._timestamp is None:
-            self._timestamp = _utils.get_timestamp()
-
-        date = self._timestamp.split('_')[0]
-        hour = self._timestamp.split('_')[1].replace('-', ':')
-
-        db_values = []
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise MeasurementDataError(
-                    'Failed to save fieldmap to database.')
-                return None
-
-            else:
-                if key == "id":
-                    db_values.append(None)
-                elif attr_name is None:
-                    db_values.append(locals()[key])
-                elif attr_name in self._db_json_str:
-                    _l = getattr(self, attr_name)
-                    if not isinstance(_l, list):
-                        _l = _l.tolist()
-                    db_values.append(_json.dumps(_l))
-                else:
-                    db_values.append(getattr(self, attr_name))
-
-        idn = _database.insert_into_database(
-            database, self._db_table, db_values)
-        return idn
-
     def set_fieldmap_data(
-            self, field_data_list, probe_calibration,
+            self, field_data_list, hall_probe,
             correct_displacements, magnet_center,
             magnet_x_axis, magnet_y_axis):
         """Set fieldmap from list of FieldData objects.
 
         Args:
             field_data_list (list): list of FieldData objects.
-            probe_calibration (ProbeCalibration): probe calibration data.
+            hall_probe (HallProbe): hall probe data.
             correct_displacements (bool): correct sensor displacements flag.
             magnet_center (list): magnet center position.
             magnet_x_axis (int): magnet x-axis direction.
@@ -1103,12 +935,12 @@ class Fieldmap(object):
             magnet_y_axis (int): magnet y-axis direction.
                                  [3, -3, 2, -2, 1 or -1]
         """
-        if not isinstance(probe_calibration, _calibration.ProbeCalibration):
+        if not isinstance(hall_probe, _calibration.HallProbe):
             raise TypeError(
-                'probe_calibration must be a ProbeCalibration object.')
+                'hall_probe must be a HallProbe object.')
 
         _r = _get_fieldmap_position_and_field_values(
-            field_data_list, probe_calibration, correct_displacements)
+            field_data_list, hall_probe, correct_displacements)
         pos1, pos2, pos3 = _r[0], _r[1], _r[2]
         field1, field2, field3 = _r[3], _r[4], _r[5]
         first_axis, second_axis = _r[6], _r[7]
@@ -1230,7 +1062,7 @@ def _get_avg_voltage(voltage_data_list):
 
 
 def _get_fieldmap_position_and_field_values(
-        field_data_list, probe_calibration, correct_displacements):
+        field_data_list, hall_probe, correct_displacements):
     if isinstance(field_data_list, FieldData):
         field_data_list = [field_data_list]
 
@@ -1270,9 +1102,9 @@ def _get_fieldmap_position_and_field_values(
 
     if correct_displacements:
         # shift field data
-        fieldx.index = probe_calibration.corrected_position(
+        fieldx.index = hall_probe.corrected_position(
             first_axis, fieldx.index, 'x')
-        fieldz.index = probe_calibration.corrected_position(
+        fieldz.index = hall_probe.corrected_position(
             first_axis, fieldz.index, 'z')
 
         nbeg, nend = _get_number_of_cuts(
@@ -1288,9 +1120,9 @@ def _get_fieldmap_position_and_field_values(
 
         if second_axis is not None:
             # shift field data
-            fieldx.columns = probe_calibration.corrected_position(
+            fieldx.columns = hall_probe.corrected_position(
                 second_axis, fieldx.columns, 'x')
-            fieldz.columns = probe_calibration.corrected_position(
+            fieldz.columns = hall_probe.corrected_position(
                 second_axis, fieldz.columns, 'z')
 
             nbeg, nend = _get_number_of_cuts(
@@ -1318,7 +1150,7 @@ def _get_fieldmap_position_and_field_values(
     pos1 = _np.array(pos_sorted[0])  # z-axis
 
     field3, field2, field1 = (
-        probe_calibration.field_in_bench_coordinate_system(
+        hall_probe.field_in_bench_coordinate_system(
             fieldx, fieldy, fieldz))
 
     return [pos1, pos2, pos3, field1, field2, field3, first_axis, second_axis]
@@ -1459,14 +1291,3 @@ def _valid_voltage_data_list(voltage_data_list):
             return False
 
     return True
-
-
-def _to_array(value):
-    if value is not None:
-        if not isinstance(value, _np.ndarray):
-            value = _np.array(value)
-        if len(value.shape) == 0:
-            value = _np.array([value])
-    else:
-        value = _np.array([])
-    return value

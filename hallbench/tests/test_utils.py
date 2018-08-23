@@ -1,6 +1,7 @@
 """Utils test."""
 
 import os
+import numpy as np
 from unittest import TestCase
 from hallbench.data import utils
 from hallbench.data import configuration
@@ -71,6 +72,25 @@ class TestUtils(TestCase):
         ]
         for i in range(len(read_flines)):
             self.assertEqual(read_flines[i], flines[i])
+
+    def test_to_array(self):
+        value = utils.to_array(None)
+        self.assertTrue(isinstance(value, np.ndarray))
+        self.assertEqual(value.size, 0)
+
+        value = utils.to_array(1)
+        self.assertTrue(isinstance(value, np.ndarray))
+        self.assertEqual(value, np.array(1))
+
+        value = utils.to_array([1])
+        self.assertTrue(isinstance(value, np.ndarray))
+        self.assertEqual(value, np.array(1))
+
+        value = utils.to_array([1, 1])
+        self.assertTrue(isinstance(value, np.ndarray))
+
+        value = utils.to_array(np.array([1, 1]))
+        self.assertTrue(isinstance(value, np.ndarray))
 
     def test_find_value(self):
         flines = utils.read_file(self.filename)

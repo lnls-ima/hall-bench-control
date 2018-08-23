@@ -5,7 +5,6 @@ import time as _time
 import serial as _serial
 import logging as _logging
 import threading as _threading
-from builtins import property
 
 
 class NMRCommands(object):
@@ -66,11 +65,11 @@ class NMR(object):
     _bytesize = _serial.EIGHTBITS
     _stopbits = _serial.STOPBITS_ONE
     _parity = _serial.PARITY_NONE
-    _timeout = 0.3 # [s]
+    _timeout = 0.3  # [s]
     _delay = 0.05
 
     def __init__(self, logfile=None):
-        """Initiate all variables and prepare log file.
+        """Initiaze all variables and prepare log file.
 
         Args:
             logfile (str): log file path.
@@ -93,6 +92,7 @@ class NMR(object):
 
     @property
     def locked(self):
+        """Return lock status."""
         _ans = self.read_status(1)
         if _ans is not None:
             return int(_ans[-6])
@@ -119,7 +119,7 @@ class NMR(object):
             port (str): device port,
             baudrate (int): baud rate.
 
-        Returns:
+        Return:
             True if successful.
         """
         try:
@@ -140,7 +140,7 @@ class NMR(object):
     def disconnect(self):
         """Disconnect the NMR device.
 
-        Returns:
+        Return:
             True if successful.
         """
         if self.ser is None:
@@ -173,7 +173,7 @@ class NMR(object):
             channel (str or str): initial search channel,
             nr_channels (int or str): number of channels.
 
-        Returns:
+        Return:
             True if successful, False otherwise.
         """
         try:
@@ -197,8 +197,8 @@ class NMR(object):
                 self.send_command(self.commands.field_sense + str(field_sense))
                 _time.sleep(self._delay)
 
-                self.send_command(self.commands.display_unit +
-                                                             str(display_unit))
+                self.send_command(
+                    self.commands.display_unit + str(display_unit))
                 _time.sleep(self._delay)
 
                 self.send_command(self.commands.display_vel + str(display_vel))
@@ -221,7 +221,7 @@ class NMR(object):
         Args:
             command (str): command to be executed by the device.
 
-        Returns:
+        Return:
             True if successful, False otherwise.
         """
         try:
@@ -238,14 +238,13 @@ class NMR(object):
             return None
 
     def read_b_value(self):
-        """Read magnetic field value from the device. Iif timeout occurs,
-         returns empty string.
+        """Read magnetic field value from the device.
 
-        Returns:
+        Return:
             B value (str): string read from the device. First character
         indicates lock state ('L' for locked, 'N' for not locked and 'S' to
         NMR signal seen. The last character indicates the unit ('T' for Tesla
-        and 'F' for MHz).
+        and 'F' for MHz). Iif timeout occurs, returns empty string.
         """
         try:
             self.send_command(self.commands.read)
@@ -263,9 +262,9 @@ class NMR(object):
         Args:
             register (int): register number (from 1 to 4)
 
-        Returns:
-            string of register bits"""
-
+        Return:
+            string of register bits
+        """
         try:
             if 0 < register < 5:
                 self.send_command(self.commands.status + str(register))
@@ -285,7 +284,7 @@ class NMR(object):
             return None
 
     def read_dac_value(self):
-        """Returns current internal 12-bit DAC value (from 0 to 4095)"""
+        """Return current internal 12-bit DAC value (from 0 to 4095)."""
         try:
             self.send_command(self.commands.status + '4')
             _time.sleep(self._delay)
@@ -298,7 +297,8 @@ class NMR(object):
             return None
 
     def scan(self, channel='D', dac=0, speed=3):
-        """Scans the selected probe to determine the magnetic field value.
+        """Scan the selected probe to determine the magnetic field value.
+
         Times out after 30 seconds if the probe does not lock.
 
         Args:
@@ -308,12 +308,12 @@ class NMR(object):
         (9 seconds to scan over the entire probe range). Each unit increase
         in the speed increases the search time by 3 seconds.
 
-        Returns:
+        Return:
             (B value, DAC value, dt)
             B value (str): measured magnetic field in Tesla.
             DAC value (int): current DAC value.
-            dt (float): measurement duration in seconds or -1 if timed out."""
-
+            dt (float): measurement duration in seconds or -1 if timed out.
+        """
         self.send_command(self.commands.channel + channel)
         _time.sleep(self._delay)
 

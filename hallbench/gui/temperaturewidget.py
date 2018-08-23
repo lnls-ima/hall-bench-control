@@ -45,8 +45,8 @@ class TemperatureWidget(_QWidget):
         ('207', (128, 0, 0)),
         ('208', (170, 255, 195)),
         ('209', (128, 128, 128)),
-        ('210', (0, 0, 0)),        
-    ])        
+        ('210', (0, 0, 0)),
+    ])
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
@@ -74,7 +74,7 @@ class TemperatureWidget(_QWidget):
             ('207', []),
             ('208', []),
             ('209', []),
-            ('210', []),            
+            ('210', []),
         ])
         self.channel_graphs = _collections.OrderedDict([
             ('101', None),
@@ -89,7 +89,7 @@ class TemperatureWidget(_QWidget):
             ('207', None),
             ('208', None),
             ('209', None),
-            ('210', None),            
+            ('210', None),
         ])
 
         # create timer to monitor temperature
@@ -117,7 +117,7 @@ class TemperatureWidget(_QWidget):
         return self.window().devices
 
     def updateLegendItems(self):
-        """Updated legend items."""
+        """Update legend items."""
         self.clearLegendItems()
         self._legend_items = []
         for channel in self._selected_channels:
@@ -147,17 +147,17 @@ class TemperatureWidget(_QWidget):
                 self._selected_channels.append(channel)
             else:
                 le = getattr(self.ui, 'channel' + channel + '_le')
-                le.setText('') 
-        
+                le.setText('')
+
         self.updateLegendItems()
-                            
+
         if not self.devices.multich.connected:
             self._channels_configured = False
             _QMessageBox.critical(
                 self, 'Failure',
-                'Multichannel not connected.', _QMessageBox.Ok)            
-            return       
-        
+                'Multichannel not connected.', _QMessageBox.Ok)
+            return
+
         wait = self.ui.delay_sb.value()
         if self.devices.multich.configure(self._selected_channels, wait=wait):
             self._channels_configured = True
@@ -165,7 +165,7 @@ class TemperatureWidget(_QWidget):
             return
         else:
             self._channels_configured = False
-            return     
+            return
 
     def configureGraph(self):
         """Configure data plots."""
@@ -173,7 +173,6 @@ class TemperatureWidget(_QWidget):
 
         for channel in self._channels:
             pen = self._channel_colors[channel]
-            readings = self.channel_readings[channel]
             graph = self.ui.temperature_pw.plotItem.plot(
                 _np.array([]), _np.array([]), pen=pen,
                 symbol='o', symbolPen=pen, symbolSize=3, symbolBrush=pen)
@@ -195,7 +194,7 @@ class TemperatureWidget(_QWidget):
             self.updateMonitorInterval)
         self.ui.clear_btn.clicked.connect(self.clearTemperatureValues)
         self.ui.remove_btn.clicked.connect(self.removeTemperatureValue)
-        self.ui.copy_btn.clicked.connect(self.copyToClipboard)   
+        self.ui.copy_btn.clicked.connect(self.copyToClipboard)
         self.ui.channel101_chb.stateChanged.connect(self.disableLed)
         self.ui.channel102_chb.stateChanged.connect(self.disableLed)
         self.ui.channel103_chb.stateChanged.connect(self.disableLed)
@@ -214,13 +213,13 @@ class TemperatureWidget(_QWidget):
         """Copy table data to clipboard."""
         nr = self.ui.temperature_ta.rowCount()
         nc = self.ui.temperature_ta.columnCount()
-        
+
         if nr == 0:
             return
 
         col_labels = ['Date', 'Time']
         for channel in self._channels:
-            col_labels.append(channel)      
+            col_labels.append(channel)
         tdata = []
         for i in range(nr):
             ldata = []
@@ -230,13 +229,13 @@ class TemperatureWidget(_QWidget):
                     value = float(value)
                 ldata.append(value)
             tdata.append(ldata)
-        _df =_pd.DataFrame(_np.array(tdata), columns=col_labels)
-        _df.to_clipboard(excel=True)                        
-                    
+        _df = _pd.DataFrame(_np.array(tdata), columns=col_labels)
+        _df.to_clipboard(excel=True)
+
     def disableLed(self):
         """Disable configuration led."""
         self.ui.configureled_la.setEnabled(False)
-                       
+
     def monitorTemperature(self, checked):
         """Monitor temperature values."""
         if checked:
@@ -257,45 +256,44 @@ class TemperatureWidget(_QWidget):
                     self, 'Failure',
                     'Multichannel not connected.', _QMessageBox.Ok)
             return
-        
+
         if not self._channels_configured:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure',
                     'Channels not configured.', _QMessageBox.Ok)
-            return       
-    
+            return
+
         ts = _time.time()
         wait = self.ui.delay_sb.value()
         rl = self.devices.multich.get_converted_readings(wait=wait)
         if len(rl) != len(self._selected_channels):
             return
-        
+
         readings = [r if r < 1e37 else _np.nan for r in rl]
 
         try:
             for i in range(len(self._selected_channels)):
                 channel = self._selected_channels[i]
-                chb = getattr(self.ui, 'channel' + channel + '_chb')
                 le = getattr(self.ui, 'channel' + channel + '_le')
                 temperature = readings[i]
-                le.setText(self._temperature_format.format(temperature))         
+                le.setText(self._temperature_format.format(temperature))
                 self.channel_readings[channel].append(temperature)
-            
+
             for channel in self._channels:
                 if channel not in self._selected_channels:
                     le = getattr(self.ui, 'channel' + channel + '_le')
-                    le.setText('') 
+                    le.setText('')
                     self.channel_readings[channel].append(_np.nan)
-    
+
             self.timestamp.append(ts)
             dt = _QDateTime()
             dt.setTime_t(ts)
-            self.ui.time_dte.setDateTime(dt)   
-    
+            self.ui.time_dte.setDateTime(dt)
+
             self.updateTableValues()
             self.updatePlot()
-        
+
         except Exception:
             pass
 

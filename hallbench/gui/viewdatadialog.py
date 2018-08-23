@@ -36,7 +36,7 @@ class ViewDataDialog(_QDialog):
         self.data_dict = {}
         self.xmin_line = None
         self.xmax_line = None
-    
+
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.graph_pw.graphicsItem())
         self.legend.setAutoFillBackground(1)
@@ -47,7 +47,7 @@ class ViewDataDialog(_QDialog):
         selected_idx = self.ui.selectcurve_cmb.currentIndex()
         if selected_idx == -1:
             return
-              
+
         sel = self.data_dict[selected_idx]
         pos = sel['pos']
         data = sel['data']
@@ -57,12 +57,12 @@ class ViewDataDialog(_QDialog):
         ymult = sel['ymult']
         xmin = self.ui.xmin_sb.value()
         xmax = self.ui.xmax_sb.value()
-        
+
         x = _np.array((pos + xoff)*xmult)
         y = _np.array((data + yoff)*ymult)
-        
-        y = y[(x >= xmin) & (x <=xmax)]       
-        x = x[(x >= xmin) & (x <=xmax)]
+
+        y = y[(x >= xmin) & (x <= xmax)]
+        x = x[(x >= xmin) & (x <= xmax)]
 
         func = self.ui.fitfunction_cmb.currentText()
         if func.lower() == 'linear':
@@ -77,17 +77,17 @@ class ViewDataDialog(_QDialog):
             yfit = []
             param = {}
             label = ''
-        
+
         self.ui.fitfunction_la.setText(label)
         self.ui.fit_ta.clearContents()
         self.ui.fit_ta.setRowCount(len(param))
         rcount = 0
         for key, value in param.items():
             self.ui.fit_ta.setItem(
-                rcount, 0, _QTableWidgetItem(str(key)))                        
+                rcount, 0, _QTableWidgetItem(str(key)))
             self.ui.fit_ta.setItem(
                 rcount, 1, _QTableWidgetItem(str(value)))
-            rcount = rcount + 1                        
+            rcount = rcount + 1
 
         self.updatePlot()
         self.ui.graph_pw.plotItem.plot(xfit, yfit, pen=(0, 0, 0))
@@ -196,9 +196,9 @@ class ViewDataDialog(_QDialog):
             return
         else:
             self.data_dict[selected_idx]['fit_function'] = func
-            
+
     def polyOrderChanged(self):
-        "Update dict value"
+        """Update dict value."""
         order = self.ui.polyorder_sb.value()
         selected_idx = self.ui.selectcurve_cmb.currentIndex()
         if selected_idx == -1:
@@ -214,9 +214,7 @@ class ViewDataDialog(_QDialog):
         else:
             pos = self.data_dict[selected_idx]['pos']
             xoff = self.data_dict[selected_idx]['xoff']
-            yoff = self.data_dict[selected_idx]['yoff']
             xmult = self.data_dict[selected_idx]['xmult']
-            ymult = self.data_dict[selected_idx]['ymult']
 
             if len(pos) > 0:
                 xmin = (pos[0] + xoff)*xmult
@@ -224,17 +222,17 @@ class ViewDataDialog(_QDialog):
             else:
                 xmin = 0
                 xmax = 0
-            
+
             self.data_dict[selected_idx]['xmin'] = xmin
             self.ui.xmin_sb.setValue(xmin)
-            
+
             self.data_dict[selected_idx]['xmax'] = xmax
             self.ui.xmax_sb.setValue(xmax)
-            
+
             self.updatePlot()
 
     def setCurveLabels(self):
-        """Set curve labels"""
+        """Set curve labels."""
         self.ui.selectcurve_cmb.clear()
 
         p1 = set()
@@ -245,21 +243,21 @@ class ViewDataDialog(_QDialog):
             p2.update(data.pos2)
             p3.update(data.pos3)
 
-        curve_labels = []    
+        curve_labels = []
         for data in self.data_list:
             pos = ''
             if data.pos1.size == 1 and len(p1) != 1:
                 pos = pos + 'pos1={0:.0f}mm'.format(data.pos1[0])
-            if data.pos2.size == 1  and len(p2) != 1:
+            if data.pos2.size == 1 and len(p2) != 1:
                 pos = pos + 'pos2={0:.0f}mm'.format(data.pos2[0])
             if data.pos3.size == 1 and len(p3) != 1:
                 pos = pos + 'pos3={0:.0f}mm'.format(data.pos3[0])
-            
+
             if data.timestamp is not None and self.data_type == 'voltage':
                 ts = ' ({0:s})'.format(data.timestamp.split('_')[1])
             else:
                 ts = ''
-            
+
             if len(pos) == 0:
                 curve_labels.append('X' + ts)
                 curve_labels.append('Y' + ts)
@@ -268,7 +266,7 @@ class ViewDataDialog(_QDialog):
                 curve_labels.append('X: ' + pos + ts)
                 curve_labels.append('Y: ' + pos + ts)
                 curve_labels.append('Z: ' + pos + ts)
-                
+
         self.ui.selectcurve_cmb.addItems(curve_labels)
         self.ui.selectcurve_cmb.setEnabled(True)
 
@@ -289,15 +287,16 @@ class ViewDataDialog(_QDialog):
             self.data_label == 'Magnetic Field [T]'
         else:
             self.data_label = ''
-        
+
         try:
-            idx = 0           
+            idx = 0
             for i in range(len(self.data_list)):
                 data = self.data_list[i]
-                
+
                 if data.npts == 0:
                     msg = 'Invalid scan found.'
-                    _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)                               
+                    _QMessageBox.critical(
+                        self, 'Failure', msg, _QMessageBox.Ok)
                     return
 
                 pos = data.scan_pos
@@ -307,10 +306,10 @@ class ViewDataDialog(_QDialog):
                     data.avgy = _np.zeros(len(pos))
                 if len(data.avgz) == 0:
                     data.avgz = _np.zeros(len(pos))
-                
+
                 xmin = pos[0]
                 xmax = pos[-1]
-                
+
                 self.data_dict[idx] = {
                     'component': 'x',
                     'pos': pos,
@@ -324,7 +323,7 @@ class ViewDataDialog(_QDialog):
                     'fit_function': None,
                     'fit_polyorder': None,
                     }
-                
+
                 self.data_dict[idx+1] = {
                     'component': 'y',
                     'pos': pos,
@@ -338,7 +337,7 @@ class ViewDataDialog(_QDialog):
                     'fit_function': None,
                     'fit_polyorder': None,
                     }
-                
+
                 self.data_dict[idx+2] = {
                     'component': 'z',
                     'pos': pos,
@@ -351,17 +350,17 @@ class ViewDataDialog(_QDialog):
                     'xmax': xmax,
                     'fit_function': None,
                     'fit_polyorder': None,
-                    }                                
-                
+                    }
+
                 idx = idx + 3
 
-            self.updateXLimits() 
+            self.updateXLimits()
             self.updatePlot()
             self.setCurveLabels()
             self.ui.polyorder_la.hide()
             self.ui.polyorder_sb.hide()
-            super().show()     
-        
+            super().show()
+
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return
@@ -369,7 +368,7 @@ class ViewDataDialog(_QDialog):
     def updateControls(self):
         """Enable offset and fit group box and update offset values."""
         self.clearFit()
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()       
+        selected_idx = self.ui.selectcurve_cmb.currentIndex()
         if selected_idx == -1:
             self.ui.offset_gb.setEnabled(False)
             self.ui.offsetled_la.setEnabled(False)
@@ -385,22 +384,22 @@ class ViewDataDialog(_QDialog):
             self.ui.xoff_sb.setValue(self.data_dict[selected_idx]['xoff'])
             self.ui.yoff_sb.setValue(self.data_dict[selected_idx]['yoff'])
             self.ui.xmult_sb.setValue(self.data_dict[selected_idx]['xmult'])
-            self.ui.ymult_sb.setValue(self.data_dict[selected_idx]['ymult'])       
+            self.ui.ymult_sb.setValue(self.data_dict[selected_idx]['ymult'])
             self.ui.fit_gb.setEnabled(True)
-            
+
             func = self.data_dict[selected_idx]['fit_function']
             if func is None:
                 self.ui.fitfunction_cmb.setCurrentIndex(-1)
             else:
                 idx = self.ui.fitfunction_cmb.findText(func)
                 self.ui.fitfunction_cmb.setCurrentIndex(idx)
-            
+
             order = self.data_dict[selected_idx]['fit_polyorder']
             if order is not None:
                 self.ui.polyorder_sb.setValue(order)
 
-            self.updateXLimits()  
-            self.updatePlot()            
+            self.updateXLimits()
+            self.updatePlot()
 
     def updateOffset(self):
         """Update curve offset."""
@@ -409,14 +408,14 @@ class ViewDataDialog(_QDialog):
         if selected_idx == -1:
             self.ui.offsetled_la.setEnabled(False)
             return
-        
+
         xoff = self.ui.xoff_sb.value()
         yoff = self.ui.yoff_sb.value()
         xmult = self.ui.xmult_sb.value()
         ymult = self.ui.ymult_sb.value()
-        xmin = self.data_dict[selected_idx]['xmin'] 
+        xmin = self.data_dict[selected_idx]['xmin']
         xmax = self.data_dict[selected_idx]['xmax']
-        
+
         self.data_dict[selected_idx]['xoff'] = xoff
         self.data_dict[selected_idx]['yoff'] = yoff
         self.data_dict[selected_idx]['xmult'] = xmult
@@ -439,10 +438,10 @@ class ViewDataDialog(_QDialog):
             if selected_idx == -1:
                 return
             nr_curves = 1
-            data_dict = {selected_idx : self.data_dict[selected_idx]}
-            show_xlines = True 
-        
-        self.configureGraph(nr_curves, self.data_label)       
+            data_dict = {selected_idx: self.data_dict[selected_idx]}
+            show_xlines = True
+
+        self.configureGraph(nr_curves, self.data_label)
 
         try:
             with _warnings.catch_warnings():
@@ -469,7 +468,7 @@ class ViewDataDialog(_QDialog):
                     elif component == 'z':
                         self.graphz[z_count].setData(x, y)
                         z_count = z_count = 1
-            
+
             if show_xlines:
                 xmin = self.ui.xmin_sb.value()
                 xmax = self.ui.xmax_sb.value()
@@ -479,16 +478,16 @@ class ViewDataDialog(_QDialog):
                 self.ui.graph_pw.addItem(self.xmin_line)
                 self.xmin_line.sigPositionChangeFinished.connect(
                     self.updateXMinSpinBox)
-                        
+
                 self.xmax_line = _pyqtgraph.InfiniteLine(
                     xmax, pen=(0, 0, 0), movable=True)
                 self.ui.graph_pw.addItem(self.xmax_line)
                 self.xmax_line.sigPositionChangeFinished.connect(
-                    self.updateXMaxSpinBox)     
+                    self.updateXMaxSpinBox)
             else:
                 self.xmin_line = None
                 self.xmax_line = None
-                
+
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -502,7 +501,7 @@ class ViewDataDialog(_QDialog):
         else:
             self.ui.xmin_sb.setValue(self.data_dict[selected_idx]['xmin'])
             self.ui.xmax_sb.setValue(self.data_dict[selected_idx]['xmax'])
-    
+
     def updateXMax(self):
         """Update xmax value."""
         selected_idx = self.ui.selectcurve_cmb.currentIndex()
@@ -514,7 +513,7 @@ class ViewDataDialog(_QDialog):
     def updateXMaxSpinBox(self):
         """Update xmax value."""
         self.ui.xmax_sb.setValue(self.xmax_line.pos()[0])
-    
+
     def updateXMin(self):
         """Update xmin value."""
         selected_idx = self.ui.selectcurve_cmb.currentIndex()
@@ -522,7 +521,7 @@ class ViewDataDialog(_QDialog):
             return
         else:
             self.data_dict[selected_idx]['xmin'] = self.ui.xmin_sb.value()
-    
+
     def updateXMinSpinBox(self):
         """Update xmin value."""
         self.ui.xmin_sb.setValue(self.xmin_line.pos()[0])
@@ -530,18 +529,18 @@ class ViewDataDialog(_QDialog):
 
 def _linear_fit(x, y):
     label = 'y = K0 + K1*x'
-    
+
     if len(x) != len(y) or len(x) < 2:
         xfit = []
         yfit = []
         param = {}
-    
-    else:            
+
+    else:
         try:
             p = _np.polyfit(x, y, 1)
             xfit = _np.linspace(x[0], x[-1], 100)
             yfit = _np.polyval(p, xfit)
-                        
+
             prev = p[::-1]
             if prev[1] != 0:
                 x0 = -prev[0]/prev[1]
@@ -562,12 +561,12 @@ def _linear_fit(x, y):
 
 def _polynomial_fit(x, y, order):
     label = 'y = K0 + K1*x + K2*x^2 + ...'
-    
+
     if len(x) != len(y) or len(x) < order + 1:
         xfit = []
         yfit = []
         param = {}
-    
+
     else:
         try:
             p = _np.polyfit(x, y, order)
@@ -594,11 +593,11 @@ def _gaussian_fit(x, y):
 
     def minfunc(ps):
         return sum((y - gaussian(x, ps[0], ps[1], ps[2]))**2)
-    
-    try:    
+
+    try:
         n = len(x)
         mean = sum(x*y)/n
-        sigma = sum(y*(x-mean)**2)/n   
+        sigma = sum(y*(x-mean)**2)/n
         if mean <= _np.max(y):
             a = _np.max(y)
         else:
@@ -608,7 +607,7 @@ def _gaussian_fit(x, y):
 
         xfit = _np.linspace(x[0], x[-1], 100)
         yfit = gaussian(xfit, popt[0], popt[1], popt[2])
-    
+
         param = _collections.OrderedDict([
             ('A', popt[0]),
             ('x0', popt[1]),

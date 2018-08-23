@@ -13,8 +13,8 @@ from PyQt4.QtGui import (
 import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.calibrationdialog import CalibrationDialog \
-    as _CalibrationDialog
+from hallbench.gui.hallprobedialog import HallProbeDialog \
+    as _HallProbeDialog
 from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
 
@@ -30,7 +30,7 @@ class ConfigurationDialog(_QDialog):
 
         self.main_wg = ConfigurationWidget(
             self, load_enabled=self._load_enabled)
-        self.main_wg.calibration_btn.setText('Show Probe Calibration')
+        self.main_wg.hall_probe_btn.setText('Show Hall Probe')
 
         _layout = _QVBoxLayout()
         _layout.addWidget(self.main_wg)
@@ -67,12 +67,11 @@ class ConfigurationWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # create dialog
-        self.calibration_dialog = _CalibrationDialog(
-            load_enabled=load_enabled)
+        self.hall_probe_dialog = _HallProbeDialog(load_enabled=load_enabled)
 
         # variables initialization
         self.config = None
-        self.probe_calibration = None
+        self.hall_probe = None
         self._load_enabled = load_enabled
 
         # Enable or disable load option
@@ -98,7 +97,7 @@ class ConfigurationWidget(_QWidget):
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.calibration_dialog.accept()
+            self.hall_probe_dialog.accept()
         except Exception:
             pass
 
@@ -209,11 +208,11 @@ class ConfigurationWidget(_QWidget):
         self.ui.loadfile_btn.clicked.connect(self.loadFile)
         self.ui.savefile_btn.clicked.connect(self.saveFile)
         self.ui.loaddb_btn.clicked.connect(self.loadDB)
-        self.ui.calibration_btn.clicked.connect(
-            self.showCalibrationDialog)
+        self.ui.hall_probe_btn.clicked.connect(
+            self.showHallProbeDialog)
 
-        self.calibration_dialog.probeCalibrationChanged.connect(
-            self.setProbeCalibration)
+        self.hall_probe_dialog.hallProbeChanged.connect(
+            self.setHallProbe)
 
     def disableInvalidLineEdit(self):
         """Disable invalid line edit."""
@@ -241,22 +240,22 @@ class ConfigurationWidget(_QWidget):
 
     def disableInvalidVoltimeter(self):
         """Disable invalid voltimeters."""
-        if self.probe_calibration is None:
+        if self.hall_probe is None:
             return
 
-        if len(self.probe_calibration.sensorx.data) == 0:
+        if len(self.hall_probe.sensorx.data) == 0:
             self.ui.voltx_enable_chb.setChecked(False)
             self.ui.voltx_enable_chb.setEnabled(False)
         else:
             self.ui.voltx_enable_chb.setEnabled(True)
 
-        if len(self.probe_calibration.sensory.data) == 0:
+        if len(self.hall_probe.sensory.data) == 0:
             self.ui.volty_enable_chb.setChecked(False)
             self.ui.volty_enable_chb.setEnabled(False)
         else:
             self.ui.volty_enable_chb.setEnabled(True)
 
-        if len(self.probe_calibration.sensorz.data) == 0:
+        if len(self.hall_probe.sensorz.data) == 0:
             self.ui.voltz_enable_chb.setChecked(False)
             self.ui.voltz_enable_chb.setEnabled(False)
         else:
@@ -311,11 +310,11 @@ class ConfigurationWidget(_QWidget):
         else:
             return None
 
-    def searchCalibrationDB(self):
-        """Load probe calibration from database."""
+    def searchHallProbeDB(self):
+        """Load hall probe from database."""
         try:
-            self.calibration_dialog.database = self.database
-            self.calibration_dialog.searchDB(self.config.probe_name)
+            self.hall_probe_dialog.database = self.database
+            self.hall_probe_dialog.searchDB(self.config.probe_name)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -345,7 +344,7 @@ class ConfigurationWidget(_QWidget):
             first_rb.setChecked(True)
 
             self.disableSecondAxisButton()
-            
+
             second_axis = self.config.second_axis
             if second_axis != -1:
                 second_rb = getattr(
@@ -354,7 +353,7 @@ class ConfigurationWidget(_QWidget):
                 self.uncheckRadioButtons(second_axis)
             else:
                 self.uncheckRadioButtons(second_axis)
-           
+
             for axis in self._measurement_axes:
                 start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
                 value = self.config.get_start(axis)
@@ -376,7 +375,7 @@ class ConfigurationWidget(_QWidget):
                 value = self.config.get_velocity(axis)
                 vel_le.setText('{0:0.4f}'.format(value))
 
-            self.searchCalibrationDB()
+            self.searchHallProbeDB()
             self.disableInvalidLineEdit()
             self.setControlsEnabled()
 
@@ -479,7 +478,7 @@ class ConfigurationWidget(_QWidget):
             else:
                 first_rb.setEnabled(self._load_enabled)
                 second_rb.setEnabled(self._load_enabled)
-            
+
             if first_rb.isChecked():
                 second_rb.setChecked(False)
                 second_rb.setEnabled(False)
@@ -506,13 +505,13 @@ class ConfigurationWidget(_QWidget):
         self.ui.idn_le.setReadOnly(read_only)
         self.ui.idn_le.setEnabled(True)
 
-    def setProbeCalibration(self, probe_calibration):
-        """Set probe calibration."""
+    def setHallProbe(self, hall_probe):
+        """Set hall probe."""
         try:
-            self.probe_calibration = probe_calibration
-            if self.probe_calibration is not None:
+            self.hall_probe = hall_probe
+            if self.hall_probe is not None:
                 self.ui.probe_name_le.setText(
-                    self.probe_calibration.probe_name)
+                    self.hall_probe.probe_name)
                 self.disableInvalidVoltimeter()
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
@@ -566,9 +565,9 @@ class ConfigurationWidget(_QWidget):
         except Exception:
             obj.setText('')
 
-    def showCalibrationDialog(self):
-        """Open calibration dialog."""
-        self.calibration_dialog.show(self.database)
+    def showHallProbeDialog(self):
+        """Open hall probe dialog."""
+        self.hall_probe_dialog.show(self.database)
 
     def uncheckRadioButtons(self, selected_axis):
         """Uncheck radio buttons."""

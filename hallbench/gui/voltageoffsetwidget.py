@@ -87,15 +87,17 @@ class VoltageOffsetWidget(_QWidget):
         self.ui.remove_btn.clicked.connect(self.removeVoltageValue)
         self.ui.copy_btn.clicked.connect(self.copyToClipboard)
 
-    def resetMultimeters(self):
+    def resetMultimeters(self, msgbox=True):
         """Reset multimeters."""
-        if not self.devices.voltx.connected or not self.devices.volty.connected or not self.devices.voltz.connected:
+        if (not self.devices.voltx.connected or
+           not self.devices.volty.connected or
+           not self.devices.voltz.connected):
             if msgbox:
                 _QMessageBox.critical(
                     self, 'Failure',
                     'Multimeters not connected.', _QMessageBox.Ok)
             return
-   
+
         self.devices.voltx.reset()
         self.devices.volty.reset()
         self.devices.voltz.reset()
@@ -142,16 +144,16 @@ class VoltageOffsetWidget(_QWidget):
         self.legend.addItem(self.graphz, 'Z')
 
     def copyToClipboard(self):
-        """Copy table data to clipboard."""       
+        """Copy table data to clipboard."""
         nr = self.ui.voltoffset_ta.rowCount()
         nc = self.ui.voltoffset_ta.columnCount()
-        
+
         if nr == 0:
             return
 
         col_labels = [
             'Date', 'Time', 'ProbeX [mV]', 'ProbeY [mV]', 'ProbeZ [mV]']
-  
+
         tdata = []
         for i in range(nr):
             ldata = []
@@ -161,8 +163,8 @@ class VoltageOffsetWidget(_QWidget):
                     value = float(value)
                 ldata.append(value)
             tdata.append(ldata)
-        _df =_pd.DataFrame(_np.array(tdata), columns=col_labels)
-        _df.to_clipboard(excel=True)        
+        _df = _pd.DataFrame(_np.array(tdata), columns=col_labels)
+        _df.to_clipboard(excel=True)
 
     def monitorVoltage(self, checked):
         """Monitor voltage value."""
@@ -202,7 +204,9 @@ class VoltageOffsetWidget(_QWidget):
 
     def readVoltage(self, msgbox=True):
         """Read voltage value."""
-        if not self.devices.voltx.connected or not self.devices.volty.connected or not self.devices.voltz.connected:
+        if (not self.devices.voltx.connected or
+           not self.devices.volty.connected or
+           not self.devices.voltz.connected):
             if msgbox:
                 _QMessageBox.critical(
                     self, 'Failure',
@@ -211,24 +215,24 @@ class VoltageOffsetWidget(_QWidget):
 
         try:
             ts = _time.time()
-    
+
             self.devices.voltx.send_command(
                 self.devices.voltx.commands.end_gpib_always)
             voltx = float(self.devices.voltx.read_from_device()[:-2])
             self.voltx_values.append(voltx)
-    
+
             self.devices.volty.send_command(
                 self.devices.volty.commands.end_gpib_always)
             volty = float(self.devices.volty.read_from_device()[:-2])
             self.volty_values.append(volty)
-    
+
             self.devices.voltz.send_command(
                 self.devices.voltz.commands.end_gpib_always)
             voltz = float(self.devices.voltz.read_from_device()[:-2])
             self.voltz_values.append(voltz)
-           
+
             self.timestamp.append(ts)
-                     
+
         except Exception:
             pass
 

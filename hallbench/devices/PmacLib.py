@@ -175,7 +175,7 @@ class Pmac(object):
     """Implementation of the main commands to control the bench."""
 
     def __init__(self, logfile=None):
-        """Initiate all function variables."""
+        """Initiaze all function variables."""
         self.logger = None
         self.logfile = logfile
         self.log_events()
@@ -209,7 +209,7 @@ class Pmac(object):
     def load_dll(self):
         """Load dll file PComm32W.dll to control the bench.
 
-        Returns:
+        Return:
             True if successful, False otherwise.
         """
         try:
@@ -361,7 +361,7 @@ class Pmac(object):
             status = self.axis_status(axis)
             if status is None:
                 return None
-            
+
             if (status & 1024) != 0:
                 return True
             else:
@@ -369,7 +369,7 @@ class Pmac(object):
         except Exception:
             if self.logger is not None:
                 self.logger.error('exception', exc_info=True)
-            return None        
+            return None
 
     def align_bench(self, axis_mask):
         """Set the mask of the axis to be aligned and run plc script."""
@@ -390,7 +390,7 @@ class Pmac(object):
         except Exception:
             if self.logger is not None:
                 self.logger.error('exception', exc_info=True)
-            return None 
+            return None
 
     def get_position(self, axis):
         """Read the current position in counter and convert to mm."""
@@ -541,7 +541,6 @@ class Pmac(object):
     def stop_trigger(self):
         """Stop trigerring."""
         try:
-            # stop triggering
             _cmd = self.set_par(self.commands.q_plc0RunControl, 0)
             if self.get_response(_cmd):
                 return True

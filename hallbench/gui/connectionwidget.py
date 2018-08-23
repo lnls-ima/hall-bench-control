@@ -2,6 +2,7 @@
 
 """Connection widget for the Hall Bench Control application."""
 
+import os.path as _path
 from PyQt4.QtGui import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
@@ -30,8 +31,10 @@ class ConnectionWidget(_QWidget):
         self.config = _ConnectionConfig()
 
         # create signal/slot connections
-        self.ui.loadconfig_btn.clicked.connect(self.loadConfiguration)
-        self.ui.saveconfig_btn.clicked.connect(self.saveConfiguration)
+        self.ui.loadfile_btn.clicked.connect(self.loadFile)
+        self.ui.savefile_btn.clicked.connect(self.saveFile)
+        self.ui.loaddb_btn.clicked.connect(self.loadDB)
+        self.ui.savedb_btn.clicked.connect(self.saveDB)
         self.ui.connect_btn.clicked.connect(self.connectDevices)
         self.ui.disconnect_btn.clicked.connect(self.disconnectDevices)
 
@@ -39,6 +42,11 @@ class ConnectionWidget(_QWidget):
     def devices(self):
         """Hall Bench Devices."""
         return self.window().devices
+
+    @property
+    def database(self):
+        """Database filename."""
+        return self.window().database
 
     def connectDevices(self):
         """Connect bench devices."""
@@ -110,8 +118,29 @@ class ConnectionWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
 
-    def loadConfiguration(self):
-        """Load configuration file to set connection parameters."""
+    def loadDB(self):
+        """Load configuration from database to set parameters."""
+        self.ui.filename_le.setText("")
+
+        try:
+            idn = int(self.ui.idn_le.text())
+        except Exception:
+            _QMessageBox.critical(
+                self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
+            return
+
+        try:
+            self.config = _ConnectionConfig(database=self.database, idn=idn)
+        except Exception as e:
+            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+            return
+
+        self.load()
+
+    def loadFile(self):
+        """Load configuration file to set parameters."""
+        self.ui.idn_le.setText("")
+
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getOpenFileName(
             self, caption='Open connection configuration file',
@@ -126,13 +155,15 @@ class ConnectionWidget(_QWidget):
         try:
             self.config = _ConnectionConfig(filename)
         except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
-        try:
-            self.ui.filename_le.setText(filename)
+        self.ui.filename_le.setText(filename)
+        self.load()
 
+    def load(self):
+        """Load configuration file to set connection parameters."""
+        try:
             self.ui.pmac_enable_chb.setChecked(self.config.pmac_enable)
 
             self.ui.voltx_enable_chb.setChecked(self.config.voltx_enable)
@@ -146,12 +177,6 @@ class ConnectionWidget(_QWidget):
 
             self.ui.multich_enable_chb.setChecked(self.config.multich_enable)
             self.ui.multich_address_sb.setValue(self.config.multich_address)
-            if self.config.dcct_head == 0:
-                dcct_head = 'None'
-            else:
-                dcct_head = self.config.dcct_head
-            self.ui.dcct_head_cmb.setCurrentIndex(
-                self.ui.dcct_head_cmb.findText(str(dcct_head)))
 
             self.ui.nmr_enable_chb.setChecked(self.config.nmr_enable)
             self.ui.nmr_port_cmb.setCurrentIndex(
@@ -171,7 +196,21 @@ class ConnectionWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
 
-    def saveConfiguration(self):
+    def saveDB(self):
+        """Save connection parameters to database."""
+        if self.database is not None and _path.isfile(self.database):
+            try:
+                if self.updateConfiguration():
+                    self.config.save_to_database(self.database)
+            except Exception as e:
+                _QMessageBox.critical(
+                    self, 'Failure', str(e), _QMessageBox.Ok)
+        else:
+            msg = 'Invalid database filename.'
+            _QMessageBox.critical(
+                self, 'Failure', msg, _QMessageBox.Ok)
+
+    def saveFile(self):
         """Save connection parameters to file."""
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getSaveFileName(
@@ -212,11 +251,6 @@ class ConnectionWidget(_QWidget):
 
             self.config.multich_enable = self.ui.multich_enable_chb.isChecked()
             self.config.multich_address = self.ui.multich_address_sb.value()
-            if self.ui.dcct_head_cmb.currentText() == 'None':
-                self.config.dcct_head = 0
-            else:                  
-                self.config.dcct_head = int(
-                    self.ui.dcct_head_cmb.currentText().replace('A', ''))
 
             self.config.nmr_enable = self.ui.nmr_enable_chb.isChecked()
             self.config.nmr_port = self.ui.nmr_port_cmb.currentText()

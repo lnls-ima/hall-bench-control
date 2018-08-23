@@ -101,23 +101,23 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>5</number>
        </property>
-       <widget class="QWidget" name="calibration_pg">
+       <widget class="QWidget" name="hall_probe_pg">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>311</height>
+          <height>285</height>
          </rect>
         </property>
         <attribute name="label">
-         <string>Probe Calibration</string>
+         <string>Hall Probe</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_5">
          <item row="0" column="0">
-          <widget class="QPushButton" name="view_calibration_btn">
+          <widget class="QPushButton" name="view_hall_probe_btn">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -131,7 +131,7 @@
             </font>
            </property>
            <property name="text">
-            <string>View Calibration</string>
+            <string>View Hall Probe</string>
            </property>
            <property name="icon">
             <iconset>
@@ -140,7 +140,7 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QPushButton" name="save_calibration_btn">
+          <widget class="QPushButton" name="save_hall_probe_btn">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -154,7 +154,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Save Calibration to File</string>
+            <string>Save Hall Probe to File</string>
            </property>
            <property name="icon">
             <iconset>
@@ -163,8 +163,8 @@
           </widget>
          </item>
         </layout>
-        <zorder>save_calibration_btn</zorder>
-        <zorder>view_calibration_btn</zorder>
+        <zorder>save_hall_probe_btn</zorder>
+        <zorder>view_hall_probe_btn</zorder>
        </widget>
        <widget class="QWidget" name="configuration_pg">
         <property name="geometry">
@@ -172,7 +172,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>311</height>
+          <height>285</height>
          </rect>
         </property>
         <attribute name="label">
@@ -227,21 +227,21 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="raw_data_pg">
+       <widget class="QWidget" name="voltage_scan_pg">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>311</height>
+          <height>285</height>
          </rect>
         </property>
         <attribute name="label">
-         <string>Raw Data</string>
+         <string>Voltage Scan</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="0">
-          <widget class="QPushButton" name="view_raw_data_btn">
+          <widget class="QPushButton" name="view_voltage_scan_btn">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -255,7 +255,7 @@
             </font>
            </property>
            <property name="text">
-            <string>View Raw Data</string>
+            <string>View Voltage Scan</string>
            </property>
            <property name="icon">
             <iconset>
@@ -264,7 +264,7 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QPushButton" name="save_raw_data_btn">
+          <widget class="QPushButton" name="save_voltage_scan_btn">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -278,7 +278,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Save Raw Data to File</string>
+            <string>Save Voltage Scan to File</string>
            </property>
            <property name="icon">
             <iconset>
@@ -287,7 +287,7 @@
           </widget>
          </item>
          <item row="2" column="0">
-          <widget class="QPushButton" name="clear_raw_data_btn">
+          <widget class="QPushButton" name="clear_voltage_scan_btn">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -301,7 +301,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Clear Raw Data Table</string>
+            <string>Clear Voltage Scan Table</string>
            </property>
            <property name="icon">
             <iconset>
@@ -311,21 +311,21 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="scan_pg">
+       <widget class="QWidget" name="field_scan_pg">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>311</height>
+          <height>285</height>
          </rect>
         </property>
         <attribute name="label">
-         <string>Scan</string>
+         <string>Field Scan</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_3">
          <item row="0" column="0">
-          <widget class="QPushButton" name="view_scan_btn">
+          <widget class="QPushButton" name="view_field_scan_btn">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -339,7 +339,7 @@
             </font>
            </property>
            <property name="text">
-            <string>View Scan</string>
+            <string>View Field Scan</string>
            </property>
            <property name="icon">
             <iconset>
@@ -348,7 +348,7 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QPushButton" name="save_scan_btn">
+          <widget class="QPushButton" name="save_field_scan_btn">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -362,7 +362,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Save Scan to File</string>
+            <string>Save Field Scan to File</string>
            </property>
            <property name="icon">
             <iconset>
@@ -397,7 +397,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>311</height>
+          <height>285</height>
          </rect>
         </property>
         <attribute name="label">
@@ -457,6 +457,11 @@
           </widget>
          </item>
         </layout>
+       </widget>
+       <widget class="QWidget" name="empty_pg">
+        <attribute name="label">
+         <string/>
+        </attribute>
        </widget>
       </widget>
      </item>

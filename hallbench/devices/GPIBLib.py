@@ -10,14 +10,13 @@ import time as _time
 import logging as _logging
 import numpy as _np
 import struct as _struct
-from sympy.physics.units import voltage
 
 
 class GPIB(object):
     """GPIB class for communication with GPIB devices."""
 
     def __init__(self, logfile=None):
-        """Initiate all variables and prepare log file.
+        """Initiaze all variables and prepare log file.
 
         Args:
             logfile (str): log file path.
@@ -53,7 +52,7 @@ class GPIB(object):
         Args:
             address (int): device address.
 
-        Returns:
+        Return:
             True if successful, False otherwise.
         """
         try:
@@ -69,8 +68,8 @@ class GPIB(object):
                 try:
                     self.inst = _inst
                     # set a default timeout to 1
-                    self.inst.timeout = 1000 # ms
-              
+                    self.inst.timeout = 1000  # ms
+
                     self.inst.write(self.commands.qid)
                     self.inst.read()
 
@@ -79,7 +78,7 @@ class GPIB(object):
                 except Exception:
                     self.inst.close()
                     if self.logger is not None:
-                        self.logger.error('exception', exc_info=True)                    
+                        self.logger.error('exception', exc_info=True)
                     return False
             else:
                 self._connected = False
@@ -107,7 +106,7 @@ class GPIB(object):
         Args:
             command (str): command to be executed by the device.
 
-        Returns:
+        Return:
             True if successful, False otherwise.
         """
         try:
@@ -126,7 +125,7 @@ class GPIB(object):
         Stop reading when termination is detected.
         Tries to read from device, if timeout occurs, returns empty string.
 
-        Returns:
+        Return:
             the string read from the device.
         """
         try:
@@ -141,7 +140,7 @@ class GPIB(object):
         Stop reading when termination is detected.
         Tries to read from device, if timeout occurs, returns empty string.
 
-        Returns:
+        Return:
             the string read from the device.
         """
         try:
@@ -352,7 +351,7 @@ class Agilent3458ACommands(object):
 
     def _number_of_power_line_cycles(self):
         """
-        Number of power line cycles.
+        Specify the number of power line cycles.
 
         Specifies de A/D integration time in terms of power line cycles
         The primary use stabilish normal mode noise rejection (NMR) at
@@ -442,7 +441,7 @@ class Agilent3458A(GPIB):
     """Agilent 3458A digital multimeter."""
 
     def __init__(self, logfile=None):
-        """Initiate variables and prepare log file.
+        """Initiaze variables and prepare log file.
 
         Args:
             logfile (str): log file path.
@@ -561,24 +560,24 @@ class Agilent34970ACommands(object):
         self.rout_scan = ':ROUT:SCAN'
         self.conf_temp = ':CONF:TEMP FRTD,'
         self.conf_volt = ':CONF:VOLT:DC'
-        
+
     def _query(self):
         """Query commands."""
         self.qid = '*IDN?'
         self.qread = ':READ?'
         self.qscan = ':ROUT:SCAN?'
         self.qscan_size = ':ROUT:SCAN:SIZE?'
-        
+
 
 class Agilent34970A(GPIB):
     """Agilent 34970A multichannel for temperatures readings."""
-    
+
     _probe_channels = ['101', '102', '103']
     _dcct_channels = ['104']
     _temp_channels = []
 
     def __init__(self, logfile=None):
-        """Initiate variables and prepare logging file.
+        """Initiaze variables and prepare logging file.
 
         Args:
             logfile (str): log file path.
@@ -587,13 +586,13 @@ class Agilent34970A(GPIB):
         self.commands = Agilent34970ACommands()
         self.logfile = logfile
         super().__init__(self.logfile)
-    
+
     def configure(self, channel_list='all', wait=0.5):
         """Configure channels."""
         if channel_list == 'all':
             volt_channel_list = self._probe_channels + self._dcct_channels
             temp_channel_list = self._temp_channels
-        
+
         else:
             volt_channel_list = []
             temp_channel_list = []
@@ -611,7 +610,7 @@ class Agilent34970A(GPIB):
         try:
             self.send_command(self.commands.clean)
             self.send_command(self.commands.reset)
-                                    
+
             _cmd = ''
             if len(volt_channel_list) != 0:
                 volt_scanlist = '(@' + ','.join(volt_channel_list) + ')'
@@ -621,7 +620,7 @@ class Agilent34970A(GPIB):
                 if len(_cmd) != 0:
                     _cmd = _cmd + '; '
                 temp_scanlist = '(@' + ','.join(temp_channel_list) + ')'
-                _cmd = _cmd + self.commands.conf_temp  + ' ' + temp_scanlist
+                _cmd = _cmd + self.commands.conf_temp + ' ' + temp_scanlist
 
             self.send_command(_cmd)
             _time.sleep(wait)
@@ -629,15 +628,15 @@ class Agilent34970A(GPIB):
             self.send_command(self.commands.rout_scan + ' ' + scanlist)
             _time.sleep(wait)
             return True
-        
+
         except Exception:
-            return False    
- 
+            return False
+
     def convert_voltage_to_temperature(self, voltage):
         """Convert probe voltage to temperature value."""
         temperature = (voltage + 70e-3)/20e-3
         return temperature
-    
+
     def convert_voltage_to_current(self, voltage, dcct_head):
         """Convert dcct voltage to current value."""
         if dcct_head == 40:
@@ -649,7 +648,7 @@ class Agilent34970A(GPIB):
         else:
             current = 0
         return current
- 
+
     def get_readings(self, wait=0.5):
         """Get reading list."""
         try:
@@ -662,7 +661,7 @@ class Agilent34970A(GPIB):
             else:
                 return []
         except Exception:
-            return []        
+            return []
 
     def get_converted_readings(self, dcct_head=None, wait=0.5):
         """Get reading list and convert voltage values."""
@@ -670,7 +669,7 @@ class Agilent34970A(GPIB):
             self.send_command(self.commands.qread)
             _time.sleep(wait)
             rstr = self.read_from_device()
-            
+
             if len(rstr) != 0:
                 rlist = [float(r) for r in rstr.split(',')]
                 channel_list = self.get_scan_channels()
@@ -690,7 +689,7 @@ class Agilent34970A(GPIB):
             else:
                 return []
         except Exception:
-            return []    
+            return []
 
     def get_scan_channels(self, wait=0.1):
         """Return the scan channel list."""
@@ -702,7 +701,7 @@ class Agilent34970A(GPIB):
             if len(cstr) == 0:
                 return []
             else:
-                channel_list = cstr.split(',')            
+                channel_list = cstr.split(',')
                 return channel_list
         except Exception:
             return []

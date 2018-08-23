@@ -3,6 +3,7 @@
 """Utils."""
 
 import time as _time
+import numpy as _np
 
 
 def read_file(filename):
@@ -11,7 +12,7 @@ def read_file(filename):
     Args:
         filename (str): file path.
 
-    Returns:
+    Return:
         list of non-empty file lines.
     """
     with open(filename, mode='r') as f:
@@ -29,10 +30,10 @@ def find_value(data, variable, vtype=str, raise_error=True):
         vtype (type): variable type
         raise_error (bool): raise error flag.
 
-    Returns:
+    Return:
         the variable value.
 
-    Raises:
+    Raise:
         ValueError: if raise_error is True and the value was not found.
     """
     file_line = next(
@@ -58,7 +59,7 @@ def find_index(data, variable):
         data (list): list of file lines.
         variable (str): string to search in file lines.
 
-    Returns:
+    Return:
         the line index.
     """
     index = next(
@@ -70,3 +71,15 @@ def get_timestamp():
     """Get timestamp (format: Year-month-day_hour-min-sec)."""
     timestamp = _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime())
     return timestamp
+
+
+def to_array(value):
+    """Return a numpy.ndarray."""
+    if value is not None:
+        if not isinstance(value, _np.ndarray):
+            value = _np.array(value)
+        if len(value.shape) == 0:
+            value = _np.array([value])
+    else:
+        value = _np.array([])
+    return value

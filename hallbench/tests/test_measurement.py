@@ -9,6 +9,7 @@ from scipy import interpolate
 from unittest import TestCase
 from hallbench.data import measurement
 from hallbench.data import calibration
+from hallbench.data import utils
 
 
 class TestFunctions(TestCase):
@@ -31,23 +32,23 @@ class TestFunctions(TestCase):
         self.vd = vd
 
         fd = measurement.FieldData()
-        fd._pos1 = measurement._to_array([1, 2])
-        fd._pos2 = measurement._to_array(1)
-        fd._pos3 = measurement._to_array(1)
-        fd._pos5 = measurement._to_array(1)
-        fd._pos6 = measurement._to_array(1)
-        fd._pos7 = measurement._to_array(1)
-        fd._pos8 = measurement._to_array(1)
-        fd._pos9 = measurement._to_array(1)
-        fd._avgx = measurement._to_array([1, 2])
-        fd._avgy = measurement._to_array([3, 4])
-        fd._avgz = measurement._to_array([0, 0])
+        fd._pos1 = utils.to_array([1, 2])
+        fd._pos2 = utils.to_array(1)
+        fd._pos3 = utils.to_array(1)
+        fd._pos5 = utils.to_array(1)
+        fd._pos6 = utils.to_array(1)
+        fd._pos7 = utils.to_array(1)
+        fd._pos8 = utils.to_array(1)
+        fd._pos9 = utils.to_array(1)
+        fd._avgx = utils.to_array([1, 2])
+        fd._avgy = utils.to_array([3, 4])
+        fd._avgz = utils.to_array([0, 0])
         self.fd = fd
 
-        sc = calibration.CalibrationCurve()
+        sc = calibration.HallSensor()
         sc.function_type = 'polynomial'
         sc.data = [-1000, 1000, 0, 1]
-        pc = calibration.ProbeCalibration()
+        pc = calibration.HallProbe()
         pc.sensorx = sc
         pc.sensory = sc
         pc.sensorz = sc
@@ -56,25 +57,6 @@ class TestFunctions(TestCase):
     def tearDown(self):
         """Tear down."""
         pass
-
-    def test_to_array(self):
-        value = measurement._to_array(None)
-        self.assertTrue(isinstance(value, np.ndarray))
-        self.assertEqual(value.size, 0)
-
-        value = measurement._to_array(1)
-        self.assertTrue(isinstance(value, np.ndarray))
-        self.assertEqual(value, np.array(1))
-
-        value = measurement._to_array([1])
-        self.assertTrue(isinstance(value, np.ndarray))
-        self.assertEqual(value, np.array(1))
-
-        value = measurement._to_array([1, 1])
-        self.assertTrue(isinstance(value, np.ndarray))
-
-        value = measurement._to_array(np.array([1, 1]))
-        self.assertTrue(isinstance(value, np.ndarray))
 
     def test_interpolate_data_frames(self):
         fieldy = pd.DataFrame([[0.1, 0.2, 0.3], [1.1, 1.2, 1.3]],
@@ -307,7 +289,7 @@ class TestFunctions(TestCase):
 #     def setUp(self):
 #         """Set up."""
 #         self.base_directory = os.path.dirname(os.path.abspath(__file__))
-#         self.filename = os.path.join(self.base_directory, 'tf_data.txt')
+#         self.filename = os.path.join(self.base_directory, 'data.txt')
 #
 #         self.pos1 = [1, 2, 3, 4, 5]
 #         self.pos2 = [6]
@@ -523,17 +505,17 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos9_unit, 'deg')
 #
 #     def test_save_file(self):
-#         filename = 'tf_data_tmp.txt'
+#         filename = 'data_tmp.txt'
 #         filename = os.path.join(self.base_directory, filename)
 #         dw = measurement.Data()
-#         dw._pos1 = measurement._to_array(1)
-#         dw._pos2 = measurement._to_array(2)
-#         dw._pos3 = measurement._to_array(3)
-#         dw._pos5 = measurement._to_array(4)
-#         dw._pos6 = measurement._to_array(5)
-#         dw._pos7 = measurement._to_array(6)
-#         dw._pos9 = measurement._to_array([8, 9])
-#         dw._sensorx = measurement._to_array([1, 1])
+#         dw._pos1 = utils.to_array(1)
+#         dw._pos2 = utils.to_array(2)
+#         dw._pos3 = utils.to_array(3)
+#         dw._pos5 = utils.to_array(4)
+#         dw._pos6 = utils.to_array(5)
+#         dw._pos7 = utils.to_array(6)
+#         dw._pos9 = utils.to_array([8, 9])
+#         dw._sensorx = utils.to_array([1, 1])
 #         self.assertIsNone(dw.filename)
 #         dw.save_file(filename)
 #         self.assertEqual(dw.filename, filename)
@@ -566,7 +548,7 @@ class TestFunctions(TestCase):
 #         os.remove(filename)
 #
 #     def test_extras(self):
-#         filename = 'tf_data_extras_tmp.txt'
+#         filename = 'data_extras_tmp.txt'
 #         filename = os.path.join(self.base_directory, filename)
 #         d = measurement.Data(self.filename)
 #         d.save_file(filename, extras={'extra_name': 'extra_value'})
@@ -579,32 +561,32 @@ class TestFunctions(TestCase):
 #         d = measurement.Data()
 #         self.assertIsNone(d.scan_axis)
 #
-#         d._pos7 = measurement._to_array([1, 2])
+#         d._pos7 = utils.to_array([1, 2])
 #         self.assertEqual(d.scan_axis, 7)
 #
-#         d._pos2 = measurement._to_array([3])
+#         d._pos2 = utils.to_array([3])
 #         self.assertEqual(d.scan_axis, 7)
 #
-#         d._pos3 = measurement._to_array([4, 5])
+#         d._pos3 = utils.to_array([4, 5])
 #         self.assertIsNone(d.scan_axis)
 #
-#         d._pos7 = measurement._to_array([])
+#         d._pos7 = utils.to_array([])
 #         self.assertEqual(d.scan_axis, 3)
 #
 #     def test_npts(self):
 #         d = measurement.Data()
 #         self.assertEqual(d.npts, 0)
 #
-#         d._pos1 = measurement._to_array([1, 2])
+#         d._pos1 = utils.to_array([1, 2])
 #         self.assertEqual(d.npts, 0)
 #
-#         d._sensory = measurement._to_array([3])
+#         d._sensory = utils.to_array([3])
 #         self.assertEqual(d.npts, 0)
 #
-#         d._sensorz = measurement._to_array([4, 5])
+#         d._sensorz = utils.to_array([4, 5])
 #         self.assertEqual(d.npts, 0)
 #
-#         d._sensory = measurement._to_array([])
+#         d._sensory = utils.to_array([])
 #         self.assertEqual(d.npts, 2)
 #
 #
@@ -615,7 +597,7 @@ class TestFunctions(TestCase):
 #         """Set up."""
 #         self.base_directory = os.path.dirname(os.path.abspath(__file__))
 #         self.filename = os.path.join(
-#             self.base_directory, 'tf_voltage_data.txt')
+#             self.base_directory, 'voltage_data.txt')
 #
 #         self.pos1 = [1, 2, 3, 4, 5]
 #         self.pos2 = [6]
@@ -750,7 +732,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos9_unit, 'deg')
 #
 #     def test_save_file(self):
-#         filename = 'tf_voltage_data_tmp.txt'
+#         filename = 'voltage_data_tmp.txt'
 #         filename = os.path.join(self.base_directory, filename)
 #         dw = measurement.VoltageData()
 #         dw.pos1 = 1
@@ -799,16 +781,16 @@ class TestFunctions(TestCase):
 #     def setUp(self):
 #         """Set up."""
 #         self.base_directory = os.path.dirname(os.path.abspath(__file__))
-#         self.filename = os.path.join(self.base_directory, 'tf_field_data.txt')
+#         self.filename = os.path.join(self.base_directory, 'field_data.txt')
 #
 #         self.voltage_data_filename = os.path.join(
-#             self.base_directory, 'tf_voltage_data.txt')
+#             self.base_directory, 'voltage_data.txt')
 #         self.voltage_data = measurement.VoltageData(self.voltage_data_filename)
 #
-#         self.probe_calibration_filename = 'tf_probe_calibration_polynomial.txt'
-#         self.probe_calibration = calibration.ProbeCalibration(
+#         self.hall_probe_filename = 'hall_probe_polynomial.txt'
+#         self.hall_probe = calibration.HallProbe(
 #             os.path.join(
-#                 self.base_directory, self.probe_calibration_filename))
+#                 self.base_directory, self.hall_probe_filename))
 #
 #         self.field_sensorx = [0.26, 0.28, 0.3, 0.32, 0.34]
 #         self.field_sensory = [0.36, 0.38, 0.4, 0.42, 0.44]
@@ -845,7 +827,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d.npts, 0)
 #         self.assertIsNone(d.scan_axis)
 #         self.assertIsNone(d.filename)
-#         self.assertIsNone(d.probe_calibration)
+#         self.assertIsNone(d.hall_probe)
 #         self.assertIsNone(d.voltage_data_list)
 #
 #     def test_initialization_with_filename(self):
@@ -875,8 +857,8 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos8_unit, 'deg')
 #         self.assertEqual(d._pos9_unit, 'deg')
 #         self.assertEqual(
-#             os.path.split(d.probe_calibration.filename)[1],
-#             self.probe_calibration_filename)
+#             os.path.split(d.hall_probe.filename)[1],
+#             self.hall_probe_filename)
 #         self.assertIsNone(d.voltage_data_list)
 #
 #     def test_clear(self):
@@ -906,8 +888,8 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos8_unit, 'deg')
 #         self.assertEqual(d._pos9_unit, 'deg')
 #         self.assertEqual(
-#             os.path.split(d.probe_calibration.filename)[1],
-#             self.probe_calibration_filename)
+#             os.path.split(d.hall_probe.filename)[1],
+#             self.hall_probe_filename)
 #         self.assertIsNone(d.voltage_data_list)
 #         d.clear()
 #         np.testing.assert_array_equal(d.pos1, [])
@@ -935,7 +917,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d.npts, 0)
 #         self.assertIsNone(d.scan_axis)
 #         self.assertIsNone(d.filename)
-#         self.assertIsNone(d.probe_calibration)
+#         self.assertIsNone(d.hall_probe)
 #         self.assertIsNone(d.voltage_data_list)
 #
 #     def test_copy(self):
@@ -1000,10 +982,10 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos9_unit, 'deg')
 #
 #     def test_save_file(self):
-#         filename = 'tf_field_data_tmp.txt'
+#         filename = 'field_data_tmp.txt'
 #         filename = os.path.join(self.base_directory, filename)
 #         dw = measurement.FieldData()
-#         dw.probe_calibration = self.probe_calibration
+#         dw.hall_probe = self.hall_probe
 #         dw.voltage_data_list = self.voltage_data
 #         self.assertIsNone(dw.filename)
 #         dw.save_file(filename)
@@ -1042,42 +1024,42 @@ class TestFunctions(TestCase):
 #             dw.save_file(filename)
 #
 #         dw = measurement.FieldData()
-#         dw.probe_calibration = self.probe_calibration
+#         dw.hall_probe = self.hall_probe
 #         with self.assertRaises(measurement.MeasurementDataError):
 #             dw.save_file(filename)
 #
-#         fn_probe_calibration = 'tf_probe_calibration_tmp.txt'
+#         fn_hall_probe = 'hall_probe_tmp.txt'
 #         dw = measurement.FieldData()
 #         dw.voltage_data_list = self.voltage_data
-#         dw.probe_calibration = self.probe_calibration
-#         dw.probe_calibration._filename = fn_probe_calibration
+#         dw.hall_probe = self.hall_probe
+#         dw.hall_probe._filename = fn_hall_probe
 #         dw.save_file(filename)
 #         os.remove(filename)
-#         os.remove(os.path.join(self.base_directory, fn_probe_calibration))
+#         os.remove(os.path.join(self.base_directory, fn_hall_probe))
 #
-#     def test_probe_calibration(self):
+#     def test_hall_probe(self):
 #         d = measurement.FieldData()
 #         with self.assertRaises(TypeError):
-#             d.probe_calibration = None
+#             d.hall_probe = None
 #
 #         with self.assertRaises(FileNotFoundError):
-#             d.probe_calibration = 'invalid_filename'
+#             d.hall_probe = 'invalid_filename'
 #
 #         with self.assertRaises(FileNotFoundError):
-#             d.probe_calibration = self.probe_calibration_filename
+#             d.hall_probe = self.hall_probe_filename
 #
-#         probe_calibration_filepath = os.path.join(
-#             self.base_directory, self.probe_calibration_filename)
-#         d.probe_calibration = probe_calibration_filepath
+#         hall_probe_filepath = os.path.join(
+#             self.base_directory, self.hall_probe_filename)
+#         d.hall_probe = hall_probe_filepath
 #         self.assertEqual(
-#             d.probe_calibration, self.probe_calibration)
+#             d.hall_probe, self.hall_probe)
 #
 #         d.clear()
-#         self.assertIsNone(d.probe_calibration)
+#         self.assertIsNone(d.hall_probe)
 #
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         self.assertEqual(
-#             d.probe_calibration, self.probe_calibration)
+#             d.hall_probe, self.hall_probe)
 #
 #     def test_voltage_data_list(self):
 #         d = measurement.FieldData()
@@ -1128,7 +1110,7 @@ class TestFunctions(TestCase):
 #         v2.sensory = [0, 0, 0, 0, 0]
 #         v2.sensorz = [0, 0, 0, 0, 0]
 #         voltage_list = [v1, v2]
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         d.voltage_data_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(d.pos2, [6])
@@ -1194,8 +1176,8 @@ class TestFunctions(TestCase):
 #         v1.sensorx = interpolate.splev(p, f1, der=0)
 #         v2.sensorx = interpolate.splev(p, f2, der=0)
 #         vx = (v1.sensorx + v2.sensorx)/2
-#         fx = self.probe_calibration.sensorx.convert_voltage(vx)
-#         d.probe_calibration = self.probe_calibration
+#         fx = self.hall_probe.sensorx.convert_voltage(vx)
+#         d.hall_probe = self.hall_probe
 #         d.voltage_data_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, p)
 #         np.testing.assert_array_equal(d.pos2, [6])
@@ -1221,30 +1203,30 @@ class TestFunctions(TestCase):
 #         self.base_directory = os.path.dirname(os.path.abspath(__file__))
 #
 #         self.voltage_data_filename = os.path.join(
-#             self.base_directory, 'tf_voltage_data.txt')
+#             self.base_directory, 'voltage_data.txt')
 #         self.voltage_data = measurement.VoltageData(self.voltage_data_filename)
 #
 #         self.field_data_filename = os.path.join(
-#             self.base_directory, 'tf_field_data.txt')
+#             self.base_directory, 'field_data.txt')
 #         self.field_data = measurement.FieldData(self.field_data_filename)
 #
-#         self.probe_calibration_filename = 'tf_probe_calibration_polynomial.txt'
-#         self.probe_calibration = calibration.ProbeCalibration(
+#         self.hall_probe_filename = 'hall_probe_polynomial.txt'
+#         self.hall_probe = calibration.HallProbe(
 #             os.path.join(
-#                 self.base_directory, self.probe_calibration_filename))
+#                 self.base_directory, self.hall_probe_filename))
 #
 #         self.fn_fmd_ndcz = os.path.join(
-#             self.base_directory, 'tf_field_map_data_ndcz.txt')
+#             self.base_directory, 'field_map_data_ndcz.txt')
 #         self.fn_fmd_ndcy = os.path.join(
-#             self.base_directory, 'tf_field_map_data_ndcy.txt')
+#             self.base_directory, 'field_map_data_ndcy.txt')
 #         self.fn_fmd_ndcx = os.path.join(
-#             self.base_directory, 'tf_field_map_data_ndcx.txt')
+#             self.base_directory, 'field_map_data_ndcx.txt')
 #         self.fn_fmd_ndcxz = os.path.join(
-#             self.base_directory, 'tf_field_map_data_ndcxz.txt')
+#             self.base_directory, 'field_map_data_ndcxz.txt')
 #         self.fn_fmd_ndcyz = os.path.join(
-#             self.base_directory, 'tf_field_map_data_ndcyz.txt')
+#             self.base_directory, 'field_map_data_ndcyz.txt')
 #         self.fn_fmd_ndcxy = os.path.join(
-#             self.base_directory, 'tf_field_map_data_ndcxy.txt')
+#             self.base_directory, 'field_map_data_ndcxy.txt')
 #
 #     def tearDown(self):
 #         """Tear down."""
@@ -1258,7 +1240,7 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_equal(d.pos3, [])
 #         self.assertIsNone(d.voltage_data_list)
 #         self.assertIsNone(d.field_data_list)
-#         self.assertIsNone(d.probe_calibration)
+#         self.assertIsNone(d.hall_probe)
 #         self.assertIsNone(d.index_axis)
 #         self.assertIsNone(d.columns_axis)
 #         self.assertIsNone(d.field1)
@@ -1368,7 +1350,7 @@ class TestFunctions(TestCase):
 #             d.field3.values, np.transpose(field3), decimal=3)
 #
 #     def test_read_and_save_file(self):
-#         filename = os.path.join(self.base_directory, 'tf_fmd_tmp.txt')
+#         filename = os.path.join(self.base_directory, 'fmd_tmp.txt')
 #
 #         d = measurement.FieldMapData()
 #         d.read_file(self.fn_fmd_ndcz)
@@ -1432,7 +1414,7 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_equal(d.pos3, [])
 #         self.assertIsNone(d.voltage_data_list)
 #         self.assertIsNone(d.field_data_list)
-#         self.assertIsNone(d.probe_calibration)
+#         self.assertIsNone(d.hall_probe)
 #         self.assertIsNone(d.index_axis)
 #         self.assertIsNone(d.columns_axis)
 #         self.assertIsNone(d.field1)
@@ -1444,7 +1426,7 @@ class TestFunctions(TestCase):
 #
 #     def test_get_axis_position_dict(self):
 #         fmd = measurement.FieldMapData()
-#         fmd.probe_calibration = self.probe_calibration
+#         fmd.hall_probe = self.hall_probe
 #
 #         d = fmd._get_axis_position_dict()
 #         self.assertEqual(len(d), 0)
@@ -1478,7 +1460,7 @@ class TestFunctions(TestCase):
 #         vd3.sensorz = vd3.sensorz[:2]
 #
 #         fmd = measurement.FieldMapData()
-#         fmd.probe_calibration = self.probe_calibration
+#         fmd.hall_probe = self.hall_probe
 #         fmd.correct_sensor_displacement = False
 #         fmd.voltage_data_list = [vd1, vd2, vd3]
 #         d = fmd._get_axis_position_dict()
@@ -1506,29 +1488,29 @@ class TestFunctions(TestCase):
 #         self.assertEqual(fmd.header_info[0], (1, 2))
 #         self.assertEqual(fmd.header_info[1], (3, 4))
 #
-#     def test_probe_calibration(self):
+#     def test_hall_probe(self):
 #         fmd = measurement.FieldMapData()
 #         with self.assertRaises(TypeError):
-#             fmd.probe_calibration = None
+#             fmd.hall_probe = None
 #
 #         with self.assertRaises(FileNotFoundError):
-#             fmd.probe_calibration = 'invalid_filename'
+#             fmd.hall_probe = 'invalid_filename'
 #
 #         with self.assertRaises(FileNotFoundError):
-#             fmd.probe_calibration = self.probe_calibration_filename
+#             fmd.hall_probe = self.hall_probe_filename
 #
-#         probe_calibration_filepath = os.path.join(
-#             self.base_directory, self.probe_calibration_filename)
-#         fmd.probe_calibration = probe_calibration_filepath
+#         hall_probe_filepath = os.path.join(
+#             self.base_directory, self.hall_probe_filename)
+#         fmd.hall_probe = hall_probe_filepath
 #         self.assertEqual(
-#             fmd.probe_calibration, self.probe_calibration)
+#             fmd.hall_probe, self.hall_probe)
 #
 #         fmd.clear()
-#         self.assertIsNone(fmd.probe_calibration)
+#         self.assertIsNone(fmd.hall_probe)
 #
-#         fmd.probe_calibration = self.probe_calibration
+#         fmd.hall_probe = self.hall_probe
 #         self.assertEqual(
-#             fmd.probe_calibration, self.probe_calibration)
+#             fmd.hall_probe, self.hall_probe)
 #
 #     def test_voltage_data_list(self):
 #         d = measurement.FieldMapData()
@@ -1563,7 +1545,7 @@ class TestFunctions(TestCase):
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         field_sensorx = [0.26, 0.28, 0.3, 0.32, 0.34]
 #         field_sensory = [0.36, 0.38, 0.4, 0.42, 0.44]
 #         field_sensorz = [0.46, 0.48, 0.5, 0.52, 0.54]
@@ -1588,7 +1570,7 @@ class TestFunctions(TestCase):
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         v1 = self.voltage_data.copy()
 #         v2 = self.voltage_data.copy()
 #         tmp_pos2 = v2.pos2
@@ -1600,7 +1582,7 @@ class TestFunctions(TestCase):
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         v1 = self.voltage_data.copy()
 #         v1.sensorx = v1.pos1
 #         v1.sensory = v1.pos1
@@ -1618,8 +1600,8 @@ class TestFunctions(TestCase):
 #         v1.sensorx = interpolate.splev(p, f1, der=0)
 #         v2.sensorx = interpolate.splev(p, f2, der=0)
 #         vx = (v1.sensorx + v2.sensorx)/2
-#         fx = self.probe_calibration.sensorx.convert_voltage(vx).reshape(5, -1)
-#         d.probe_calibration = self.probe_calibration
+#         fx = self.hall_probe.sensorx.convert_voltage(vx).reshape(5, -1)
+#         d.hall_probe = self.hall_probe
 #         d.voltage_data_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, p)
 #         np.testing.assert_array_equal(d.pos2, [6])
@@ -1634,14 +1616,14 @@ class TestFunctions(TestCase):
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         vd = self.voltage_data.copy()
 #         d.voltage_data_list = [vd, vd, vd, vd]
 #         self.assertEqual(len(d.field_data_list), 1)
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         fd = self.field_data.copy()
 #         with self.assertRaises(TypeError):
 #             d.voltage_data_list = [fd]
@@ -1676,7 +1658,7 @@ class TestFunctions(TestCase):
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #
 #         fda = self.field_data.copy()
 #         fdb = self.field_data.copy()
@@ -1685,7 +1667,7 @@ class TestFunctions(TestCase):
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         va = self.voltage_data.copy()
 #         vb = self.voltage_data.copy()
 #         tmp_pos2 = vb.pos2
@@ -1701,7 +1683,7 @@ class TestFunctions(TestCase):
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         d.probe_calibration = self.probe_calibration
+#         d.hall_probe = self.hall_probe
 #         vd = self.voltage_data.copy()
 #         with self.assertRaises(TypeError):
 #             d.field_data_list = [vd]
@@ -1712,7 +1694,7 @@ class TestFunctions(TestCase):
 #         self.assertIsNone(fmd.columns_axis)
 #
 #         vd1 = self.voltage_data
-#         fmd.probe_calibration = self.probe_calibration
+#         fmd.hall_probe = self.hall_probe
 #         fmd.voltage_data_list = vd1
 #         self.assertEqual(fmd.index_axis, 1)
 #         self.assertIsNone(fmd.columns_axis)
@@ -1737,7 +1719,7 @@ class TestFunctions(TestCase):
 #         vdb.pos2 = 8
 #
 #         fmd = measurement.FieldMapData()
-#         fmd.probe_calibration = self.probe_calibration
+#         fmd.hall_probe = self.hall_probe
 #         fmd.correct_sensor_displacement = False
 #         fmd.voltage_data_list = [vda, vdb]
 #
@@ -1754,7 +1736,7 @@ class TestFunctions(TestCase):
 #         vdb.pos2 = vdb.pos2 + 1
 #
 #         fmd = measurement.FieldMapData()
-#         fmd.probe_calibration = self.probe_calibration
+#         fmd.hall_probe = self.hall_probe
 #         fmd.correct_sensor_displacement = False
 #         fmd.voltage_data_list = [vda, vdb]
 #         fieldmap = fmd.get_field_map()
@@ -1783,7 +1765,7 @@ class TestFunctions(TestCase):
 #         vdb.pos2 = vdb.pos2 + 1
 #
 #         fmd = measurement.FieldMapData()
-#         fmd.probe_calibration = self.probe_calibration
+#         fmd.hall_probe = self.hall_probe
 #         fmd.correct_sensor_displacement = False
 #         fmd.voltage_data_list = [vda, vdb]
 #

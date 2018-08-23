@@ -557,7 +557,7 @@ class TestMeasurementConfig(TestCase):
         os.remove(filename)
 
     def test_save_file_raise_exception(self):
-        filename = 'tf_measurement_configuration_tmp.txt'
+        filename = 'measurement_configuration_tmp.txt'
         filename = os.path.join(self.base_directory, filename)
         m = configuration.MeasurementConfig()
         with self.assertRaises(configuration.ConfigurationError):

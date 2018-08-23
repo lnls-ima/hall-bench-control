@@ -6,22 +6,25 @@ import collections as _collections
 
 from . import utils as _utils
 from . import database as _database
-from hallbench import __version__
 
 
 class ConfigurationError(Exception):
     """Configuration exception."""
 
     def __init__(self, message, *args):
-        """Initialization method."""
+        """Initialize object."""
         self.message = message
 
 
-class Configuration(object):
+class Configuration(_database.DatabaseObject):
     """Base class for configurations."""
 
+    _db_table = ''
+    _db_dict = {}
+    _db_json_str = []
+
     def __init__(self, filename=None):
-        """Initialization method.
+        """Initialize obejct.
 
         Args:
             filename (str): configuration filepath.
@@ -73,65 +76,9 @@ class Configuration(object):
                 value = _utils.find_value(data, name, vtype=tp)
                 setattr(self, name, value)
 
-    def read_from_database(self, database, idn):
-        """Read field data from database entry."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise ConfigurationError(
-                'Failed to read configuration from database.')
-
-        db_entry = _database.read_from_database(database, self._db_table, idn)
-
-        if db_entry is None:
-            raise ValueError('Invalid database ID.')
-
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise ConfigurationError(
-                    'Failed to read configuration from database.')
-            else:
-                if attr_name is not None:
-                    idx = db_column_names.index(key)
-                    setattr(self, attr_name, db_entry[idx])
-
     def save_file(self, filename):
         """Save configuration to file."""
         pass
-
-    def save_to_database(self, database):
-        """Insert field data into database table."""
-        db_column_names = _database.get_table_column_names(
-            database, self._db_table)
-        if len(db_column_names) == 0:
-            raise ConfigurationError(
-                'Failed to save configuration to database.')
-            return None
-
-        timestamp = _utils.get_timestamp().split('_')
-        date = timestamp[0]
-        hour = timestamp[1].replace('-', ':')
-        software_version = __version__
-
-        db_values = []
-        for key in self._db_dict.keys():
-            attr_name = self._db_dict[key][0]
-            if key not in db_column_names:
-                raise ConfigurationError(
-                    'Failed to save configuration to database.')
-                return None
-            else:
-                if key == "id":
-                    db_values.append(None)
-                elif attr_name is None:
-                    db_values.append(locals()[key])
-                else:
-                    db_values.append(getattr(self, attr_name))
-
-        idn = _database.insert_into_database(
-            database, self._db_table, db_values)
-        return idn
 
     def valid_data(self):
         """Check if parameters are valid."""
@@ -160,50 +107,36 @@ class ConnectionConfig(Configuration):
         ('voltz_address', ['voltz_address', 'INTEGER NOT NULL']),
         ('multich_enable', ['multich_enable', 'INTEGER NOT NULL']),
         ('multich_address', ['multich_address', 'INTEGER NOT NULL']),
-        ('dcct_head', ['dcct_head', 'INTEGER NOT NULL']),
         ('nmr_enable', ['nmr_enable', 'INTEGER NOT NULL']),
         ('nmr_port', ['nmr_port', 'TEXT NOT NULL']),
         ('nmr_baudrate', ['nmr_baudrate', 'INTEGER NOT NULL']),
-        ('colimator_enable', ['colimator_enable', 'INTEGER NOT NULL']),
-        ('colimator_port', ['colimator_port', 'TEXT NOT NULL']),               
+        ('collimator_enable', ['collimator_enable', 'INTEGER NOT NULL']),
+        ('collimator_port', ['collimator_port', 'TEXT NOT NULL']),
     ])
 
-    def __init__(self, filename=None):
-        """Initialization method.
+    def __init__(self, filename=None, database=None, idn=None):
+        """Initialize object.
 
         Args:
             filename (str): connection configuration filepath.
+            database (str): database file path.
+            idn (int): id in database table.
         """
-        self.pmac_enable = 0
-        self.voltx_enable = 0
-        self.voltx_address = 0
-        self.volty_enable = 0
-        self.volty_address = 0
-        self.voltz_enable = 0
-        self.voltz_address = 0
-        self.multich_enable = 0
-        self.multich_address = 0
-        self.dcct_head = 0
-        self.nmr_enable = 0
-        self.nmr_port = ''
-        self.nmr_baudrate = 0
-        self.collimator_enable = 0
-        self.collimator_port = ''
+        self.pmac_enable = None
+        self.voltx_enable = None
+        self.voltx_address = None
+        self.volty_enable = None
+        self.volty_address = None
+        self.voltz_enable = None
+        self.voltz_address = None
+        self.multich_enable = None
+        self.multich_address = None
+        self.nmr_enable = None
+        self.nmr_port = None
+        self.nmr_baudrate = None
+        self.collimator_enable = None
+        self.collimator_port = None
         super().__init__(filename)
-
-    @classmethod
-    def create_database_table(cls, database):
-        """Create database table."""
-        variables = []
-        for key in cls._db_dict.keys():
-            variables.append((key, cls._db_dict[key][1]))
-        success = _database.create_table(database, cls._db_table, variables)
-        return success
-
-    @classmethod
-    def database_table_name(cls):
-        """Return the database table name."""
-        return cls._db_table
 
     def get_attribute_type(self, name):
         """Get attribute type."""
@@ -218,7 +151,7 @@ class ConnectionConfig(Configuration):
         Args:
             filename (str): configuration filepath.
 
-        Raises:
+        Raise:
             ConfigurationError: if the configuration was not saved.
         """
         if not self.valid_data():
@@ -237,7 +170,6 @@ class ConnectionConfig(Configuration):
                 'voltz_address\t{0:1d}\n\n'.format(self.voltz_address),
                 'multich_enable\t{0:1d}\n'.format(self.multich_enable),
                 'multich_address\t{0:1d}\n\n'.format(self.multich_address),
-                'dcct_head\t{0:1d}\n'.format(self.dcct_head),
                 'nmr_enable\t{0:1d}\n'.format(self.nmr_enable),
                 'nmr_port\t{0:s}\n'.format(self.nmr_port),
                 'nmr_baudrate\t{0:1d}\n'.format(self.nmr_baudrate),
@@ -300,10 +232,12 @@ class MeasurementConfig(Configuration):
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
-        """Initialization method.
+        """Initialize object.
 
         Args:
             filename (str): measurement configuration filepath.
+            database (str): database file path.
+            idn (int): id in database table.
         """
         self.magnet_name = None
         self.main_current = None
@@ -348,36 +282,13 @@ class MeasurementConfig(Configuration):
             super().__init__(filename)
 
     @classmethod
-    def create_database_table(cls, database):
-        """Create database table."""
-        variables = []
-        for key in cls._db_dict.keys():
-            variables.append((key, cls._db_dict[key][1]))
-        success = _database.create_table(database, cls._db_table, variables)
-        return success
-
-    @classmethod
-    def database_table_name(cls):
-        """Return the database table name."""
-        return cls._db_table
-
-    @classmethod
     def get_probe_name_from_database(cls, database, idn):
         """Return the probe name of the database record."""
         if len(cls._db_table) == 0:
             return None
 
-        db_column_names = _database.get_table_column_names(
-            database, cls._db_table)
-        if len(db_column_names) == 0:
-            return None
-
-        db_entry = _database.read_from_database(database, cls._db_table, idn)
-        if db_entry is None:
-            return None
-
-        idx = db_column_names.index('probe_name')
-        probe_name = db_entry[idx]
+        probe_name = _database.get_database_param(
+            database, cls._db_table, idn, 'probe_name')
         return probe_name
 
     def _set_axis_param(self, param, axis, value):
@@ -431,7 +342,7 @@ class MeasurementConfig(Configuration):
         Args:
             filename (str): configuration filepath.
 
-        Raises:
+        Raise:
             ConfigurationError: if the configuration was not saved.
         """
         if not self.valid_data():
@@ -445,7 +356,7 @@ class MeasurementConfig(Configuration):
                 'main_current\t{0:s}\n'.format(self.main_current),
                 'temperature\t{0:s}\n'.format(self.temperature),
                 'operator\t{0:s}\n\n'.format(self.operator),
-                '# Probe Calibration\n',
+                '# Hall Probe\n',
                 'probe_name\t{0:s}\n\n'.format(self.probe_name),
                 '# Digital Multimeters (X, Y, Z)\n',
                 'voltx_enable\t{0:1d}\n'.format(self.voltx_enable),

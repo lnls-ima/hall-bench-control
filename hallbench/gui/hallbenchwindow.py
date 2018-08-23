@@ -22,16 +22,9 @@ from hallbench.gui.databasewidget import DatabaseWidget \
 from hallbench.gui.voltageoffsetwidget import VoltageOffsetWidget \
     as _VoltageOffsetWidget
 from hallbench.gui.temperaturewidget import TemperatureWidget \
-    as _TemperatureWidget    
+    as _TemperatureWidget
 from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
-from hallbench.data.calibration import ProbeCalibration as _ProbeCalibration
-from hallbench.data.configuration import (
-    MeasurementConfig as _MeasurementConfig)
-from hallbench.data.measurement import (
-    VoltageData as _VoltageData,
-    FieldData as _FieldData,
-    Fieldmap as _Fieldmap,
-    )
+import hallbench.data as _data
 
 
 _database_filename = 'hall_bench_measurements.db'
@@ -108,35 +101,51 @@ class HallBenchWindow(_QMainWindow):
         Args:
             database (str): full file path to database.
         """
-        success = _ProbeCalibration.create_database_table(database)
+        success = _data.configuration.ConnectionConfig.create_database_table(
+            database)
         if not success:
             message = 'Fail to create database table'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        success = _MeasurementConfig.create_database_table(database)
+        success = _data.calibration.HallSensor.create_database_table(database)
         if not success:
             message = 'Fail to create database table'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        success = _VoltageData.create_database_table(database)
+        success = _data.calibration.HallProbe.create_database_table(database)
         if not success:
             message = 'Fail to create database table'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        success = _FieldData.create_database_table(database)
+        success = _data.configuration.MeasurementConfig.create_database_table(
+            database)
         if not success:
             message = 'Fail to create database table'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        success = _Fieldmap.create_database_table(database)
+        success = _data.measurement.VoltageData.create_database_table(database)
+        if not success:
+            message = 'Fail to create database table'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
+
+        success = _data.measurement.FieldData.create_database_table(database)
+        if not success:
+            message = 'Fail to create database table'
+            _QMessageBox.critical(
+                self, 'Failure', message, _QMessageBox.Ok)
+            return
+
+        success = _data.measurement.Fieldmap.create_database_table(database)
         if not success:
             message = 'Fail to create database table'
             _QMessageBox.critical(

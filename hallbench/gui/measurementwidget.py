@@ -22,7 +22,7 @@ from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
 from hallbench.gui.fieldmapdialog import FieldMapDialog \
     as _FieldMapDialog
-from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog    
+from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
 from hallbench.data.measurement import VoltageData as _VoltageData
 from hallbench.data.measurement import FieldData as _FieldData
 
@@ -63,7 +63,7 @@ class MeasurementWidget(_QWidget):
         self.threadz = None
         self.config = None
         self.config_id = None
-        self.probe_calibration = None
+        self.hall_probe = None
         self.voltage_data = None
         self.field_data = None
         self.voltage_data_list = []
@@ -94,7 +94,7 @@ class MeasurementWidget(_QWidget):
         self.threadz = None
         self.config = None
         self.config_id = None
-        self.probe_calibration = None
+        self.hall_probe = None
         self.voltage_data = None
         self.field_data = None
         self.voltage_data_list = []
@@ -134,7 +134,7 @@ class MeasurementWidget(_QWidget):
         """Configure devices and start measurement."""
         self.clear()
 
-        if (not self.updateProbeCalibration()
+        if (not self.updateHallProbe()
            or not self.updateConfiguration()
            or not self.configurePmac()
            or not self.validDatabase()
@@ -192,7 +192,7 @@ class MeasurementWidget(_QWidget):
             self.resetMultimeters()
 
             self.ui.viewdata_btn.setEnabled(True)
-            if self.probe_calibration is not None:
+            if self.hall_probe is not None:
                 self.ui.savefieldmap_btn.setEnabled(True)
 
             message = 'End of measurements.'
@@ -220,7 +220,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return False
-            
+
         try:
             self.devices.pmac.set_axis_speed(1, self.config.vel_ax1)
             self.devices.pmac.set_axis_speed(2, self.config.vel_ax2)
@@ -328,7 +328,7 @@ class MeasurementWidget(_QWidget):
 
     def plotField(self):
         """Plot field data."""
-        if self.probe_calibration is None:
+        if self.hall_probe is None:
             return
 
         self.clearGraph()
@@ -514,9 +514,9 @@ class MeasurementWidget(_QWidget):
         for vd in voltage_data_list:
             self.voltage_data_list.append(vd)
 
-        if self.probe_calibration is not None:
+        if self.hall_probe is not None:
             self.field_data.set_field_data(
-                voltage_data_list, self.probe_calibration)
+                voltage_data_list, self.hall_probe)
             success = self.saveScan()
         else:
             success = True
@@ -527,13 +527,13 @@ class MeasurementWidget(_QWidget):
         """Open fieldmap dialog."""
         self.fieldmap_dialog.show(
             self.field_data_list,
-            self.probe_calibration,
+            self.hall_probe,
             self.database,
             self.scan_id_list)
 
     def showViewDataDialog(self):
         """Open view data dialog."""
-        if self.probe_calibration is None:
+        if self.hall_probe is None:
             self.viewdata_dialog.show(self.voltage_data_list, 'voltage')
         else:
             self.viewdata_dialog.show(self.field_data_list, 'field')
@@ -602,13 +602,13 @@ class MeasurementWidget(_QWidget):
         """Update axes positions."""
         self.current_position_widget.updatePositions()
 
-    def updateProbeCalibration(self):
-        """Update probe calibration."""
-        self.probe_calibration = self.configuration_widget.probe_calibration
-        if self.probe_calibration is not None:
+    def updateHallProbe(self):
+        """Update hall probe."""
+        self.hall_probe = self.configuration_widget.hall_probe
+        if self.hall_probe is not None:
             return True
         else:
-            message = 'Invalid probe calibration. Measure only voltage data?'
+            message = 'Invalid hall probe. Measure only voltage data?'
             reply = _QMessageBox.question(
                 self, 'Message', message, _QMessageBox.Yes, _QMessageBox.No)
             if reply == _QMessageBox.Yes:

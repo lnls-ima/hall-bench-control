@@ -46,6 +46,13 @@ class HallSensor(_database.DatabaseObject):
         self._function_type = None
         self._function = None
         self._data = []
+
+        if filename is not None and idn is not None:
+            raise ValueError('Invalid arguments for HallSensor.')
+
+        if idn is not None and database is not None:
+            self.read_from_database(database, idn)
+
         if filename is not None:
             self.read_file(filename)
 
@@ -524,9 +531,8 @@ class HallProbe(_database.DatabaseObject):
             idns = _database.get_database_id(
                 database, db_table, 'sensor_name', self.sensorx_name)
             if len(idns) != 0:
-                idn = idns[0][0]
-                sensorx = HallSensor()
-                sensorx.read_from_database(database, idn)
+                idn = idns[0]
+                self.sensorx = HallSensor(database=database, idn=idn)
             else:
                 return False
 
@@ -534,9 +540,8 @@ class HallProbe(_database.DatabaseObject):
             idns = _database.get_database_id(
                 database, db_table, 'sensor_name', self.sensory_name)
             if len(idns) != 0:
-                idn = idns[0][0]
-                sensory = HallSensor()
-                sensory.read_from_database(database, idn)
+                idn = idns[0]
+                self.sensory = HallSensor(database=database, idn=idn)
             else:
                 return False
 
@@ -544,9 +549,8 @@ class HallProbe(_database.DatabaseObject):
             idns = _database.get_database_id(
                 database, db_table, 'sensor_name', self.sensorz_name)
             if len(idns) != 0:
-                idn = idns[0][0]
-                sensorz = HallSensor()
-                sensorz.read_from_database(database, idn)
+                idn = idns[0]
+                self.sensorz = HallSensor(database=database, idn=idn)
             else:
                 return False
 

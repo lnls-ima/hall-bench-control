@@ -136,7 +136,14 @@ class ConnectionConfig(Configuration):
         self.nmr_baudrate = None
         self.collimator_enable = None
         self.collimator_port = None
-        super().__init__(filename)
+        
+        if filename is not None and idn is not None:
+            raise ValueError('Invalid arguments for ConnectionConfig.')
+
+        if idn is not None and database is not None:
+            self.read_from_database(database, idn)
+        else:
+            super().__init__(filename)
 
     def get_attribute_type(self, name):
         """Get attribute type."""

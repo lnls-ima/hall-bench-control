@@ -243,19 +243,23 @@ class ConfigurationWidget(_QWidget):
         if self.hall_probe is None:
             return
 
-        if len(self.hall_probe.sensorx.data) == 0:
+        sx = self.hall_probe.sensorx
+        sy = self.hall_probe.sensory
+        sz = self.hall_probe.sensorz
+        
+        if sx is None or len(sx.data) == 0:
             self.ui.voltx_enable_chb.setChecked(False)
             self.ui.voltx_enable_chb.setEnabled(False)
         else:
             self.ui.voltx_enable_chb.setEnabled(True)
 
-        if len(self.hall_probe.sensory.data) == 0:
+        if sy is None or len(sy.data) == 0:
             self.ui.volty_enable_chb.setChecked(False)
             self.ui.volty_enable_chb.setEnabled(False)
         else:
             self.ui.volty_enable_chb.setEnabled(True)
 
-        if len(self.hall_probe.sensorz.data) == 0:
+        if sz is None or len(sz.data) == 0:
             self.ui.voltz_enable_chb.setChecked(False)
             self.ui.voltz_enable_chb.setEnabled(False)
         else:

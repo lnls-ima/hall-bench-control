@@ -194,7 +194,8 @@ def get_database_id(database, table, parameter, value):
         cmd = 'SELECT id FROM {0} WHERE {1}="{2}"'.format(
             table, parameter, str(value))
         cur.execute(cmd)
-        idns = cur.fetchall()
+        values = cur.fetchall()
+        idns = [val[0] for val in values]
         con.close()
         return idns
     except Exception:
@@ -225,7 +226,7 @@ def get_database_param(database, table, idn, parameter):
     try:
         cur.execute('SELECT {0} FROM {1} WHERE id = ?'.format(
             parameter, table), (idn,))
-        value = cur.fetchone()
+        value = cur.fetchone()[0] 
         con.close()
         return value
     except Exception:

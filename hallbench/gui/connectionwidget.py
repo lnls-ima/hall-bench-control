@@ -198,10 +198,12 @@ class ConnectionWidget(_QWidget):
 
     def saveDB(self):
         """Save connection parameters to database."""
+        self.ui.idn_le.setText("")
         if self.database is not None and _path.isfile(self.database):
             try:
                 if self.updateConfiguration():
-                    self.config.save_to_database(self.database)
+                    idn = self.config.save_to_database(self.database)
+                    self.ui.idn_le.setText(str(idn))
             except Exception as e:
                 _QMessageBox.critical(
                     self, 'Failure', str(e), _QMessageBox.Ok)

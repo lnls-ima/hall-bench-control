@@ -247,8 +247,10 @@ class FieldMapDialog(_QDialog):
         final_scan = self.scan_id_list[-1]
 
         try:
-            idn = fieldmap.save_to_database(
-                self.database, nr_scans, initial_scan, final_scan)
+            fieldmap.nr_scans = nr_scans
+            fieldmap.initial_scan = initial_scan
+            fieldmap.final_scan = final_scan
+            idn = fieldmap.save_to_database(self.database)
             message = 'Fieldmap data saved to database table. ID: %i' % idn
             _QMessageBox.information(
                 self, 'Information', message, _QMessageBox.Ok)

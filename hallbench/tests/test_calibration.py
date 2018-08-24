@@ -613,12 +613,15 @@ class TestHallProbe(TestCase):
         self.assertIsNotNone(idn)
 
         cw = calibration.HallProbe(self.filename_polynomial)
+        loaded = cw.load_sensors_data(self.database)
+        self.assertTrue(loaded)
+
         idn = cw.save_to_database(self.database)
         self.assertIsNotNone(idn)
 
         cr = calibration.HallProbe()
         cr.read_from_database(self.database, idn)
-        self.assertEqual(cr, cw)
+        self.assertTrue(cr == cw)
 
         cr = calibration.HallProbe(database=self.database, idn=idn)
         self.assertEqual(cr, cw)

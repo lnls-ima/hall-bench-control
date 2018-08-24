@@ -19,8 +19,9 @@ def make_connection_configuration_file(filename):
     cc.nmr_enable = 0
     cc.nmr_port = 'COM1'
     cc.nmr_baudrate = 19200
-    cc.collimator_enable = 0
-    cc.collimator_port = 'COM1'
+    cc.elcomat_enable = 0
+    cc.elcomat_port = 'COM1'
+    cc.elcomat_baudrate = 19200
     try:
         cc.save_file(filename)
     except Exception:
@@ -95,14 +96,14 @@ class TestConnectionConfig(TestCase):
         self.assertIsNone(c.voltz_enable)
         self.assertIsNone(c.multich_enable)
         self.assertIsNone(c.nmr_enable)
-        self.assertIsNone(c.collimator_enable)
+        self.assertIsNone(c.elcomat_enable)
         self.assertIsNone(c.voltx_address)
         self.assertIsNone(c.volty_address)
         self.assertIsNone(c.voltz_address)
         self.assertIsNone(c.multich_address)
         self.assertIsNone(c.nmr_baudrate)
         self.assertIsNone(c.nmr_port)
-        self.assertIsNone(c.collimator_port)
+        self.assertIsNone(c.elcomat_port)
 
     def test_initialization_with_filename(self):
         c = configuration.ConnectionConfig(self.filename)
@@ -112,14 +113,14 @@ class TestConnectionConfig(TestCase):
         self.assertEqual(c.voltz_enable, self.config.voltz_enable)
         self.assertEqual(c.multich_enable, self.config.multich_enable)
         self.assertEqual(c.nmr_enable, self.config.nmr_enable)
-        self.assertEqual(c.collimator_enable,  self.config.collimator_enable)
+        self.assertEqual(c.elcomat_enable,  self.config.elcomat_enable)
         self.assertEqual(c.voltx_address, self.config.voltx_address)
         self.assertEqual(c.volty_address, self.config.volty_address)
         self.assertEqual(c.voltz_address, self.config.voltz_address)
         self.assertEqual(c.multich_address, self.config.multich_address)
         self.assertEqual(c.nmr_baudrate, self.config.nmr_baudrate)
         self.assertEqual(c.nmr_port, self.config.nmr_port)
-        self.assertEqual(c.collimator_port, self.config.collimator_port)
+        self.assertEqual(c.elcomat_port, self.config.elcomat_port)
 
     def test_equality(self):
         c1 = configuration.ConnectionConfig()
@@ -141,14 +142,14 @@ class TestConnectionConfig(TestCase):
         self.assertEqual(c.voltz_enable, self.config.voltz_enable)
         self.assertEqual(c.multich_enable, self.config.multich_enable)
         self.assertEqual(c.nmr_enable, self.config.nmr_enable)
-        self.assertEqual(c.collimator_enable,  self.config.collimator_enable)
+        self.assertEqual(c.elcomat_enable,  self.config.elcomat_enable)
         self.assertEqual(c.voltx_address, self.config.voltx_address)
         self.assertEqual(c.volty_address, self.config.volty_address)
         self.assertEqual(c.voltz_address, self.config.voltz_address)
         self.assertEqual(c.multich_address, self.config.multich_address)
         self.assertEqual(c.nmr_baudrate, self.config.nmr_baudrate)
         self.assertEqual(c.nmr_port, self.config.nmr_port)
-        self.assertEqual(c.collimator_port, self.config.collimator_port)
+        self.assertEqual(c.elcomat_port, self.config.elcomat_port)
 
     def test_valid_data(self):
         cnf = configuration.ConnectionConfig()
@@ -171,14 +172,14 @@ class TestConnectionConfig(TestCase):
         self.assertIsNone(c.voltz_enable)
         self.assertIsNone(c.multich_enable)
         self.assertIsNone(c.nmr_enable)
-        self.assertIsNone(c.collimator_enable)
+        self.assertIsNone(c.elcomat_enable)
         self.assertIsNone(c.voltx_address)
         self.assertIsNone(c.volty_address)
         self.assertIsNone(c.voltz_address)
         self.assertIsNone(c.multich_address)
         self.assertIsNone(c.nmr_baudrate)
         self.assertIsNone(c.nmr_port)
-        self.assertIsNone(c.collimator_port)
+        self.assertIsNone(c.elcomat_port)
 
     def test_save_file(self):
         filename = 'connection_configuration_tmp.txt'
@@ -190,14 +191,15 @@ class TestConnectionConfig(TestCase):
         cw.voltz_enable = 0
         cw.multich_enable = 0
         cw.nmr_enable = 0
-        cw.collimator_enable = 0
+        cw.elcomat_enable = 0
         cw.voltx_address = 1
         cw.volty_address = 2
         cw.voltz_address = 3
         cw.multich_address = 4
         cw.nmr_baudrate = 300
         cw.nmr_port = 'COM2'
-        cw.collimator_port = 'COM3'
+        cw.elcomat_port = 'COM3'
+        cw.elcomat_baudrate = 300
         cw.save_file(filename)
 
         cr = configuration.ConnectionConfig(filename)
@@ -207,14 +209,14 @@ class TestConnectionConfig(TestCase):
         self.assertEqual(cr.voltz_enable, cw.voltz_enable)
         self.assertEqual(cr.multich_enable, cw.multich_enable)
         self.assertEqual(cr.nmr_enable, cw.nmr_enable)
-        self.assertEqual(cr.collimator_enable, cw.collimator_enable)
+        self.assertEqual(cr.elcomat_enable, cw.elcomat_enable)
         self.assertEqual(cr.voltx_address, cw.voltx_address)
         self.assertEqual(cr.volty_address, cw.volty_address)
         self.assertEqual(cr.voltz_address, cw.voltz_address)
         self.assertEqual(cr.multich_address, cw.multich_address)
         self.assertEqual(cr.nmr_baudrate, cw.nmr_baudrate)
         self.assertEqual(cr.nmr_port, cw.nmr_port)
-        self.assertEqual(cr.collimator_port, cw.collimator_port)
+        self.assertEqual(cr.elcomat_port, cw.elcomat_port)
         os.remove(filename)
 
     def test_save_file_raise_exception(self):

@@ -110,7 +110,7 @@ class GPIB(object):
             True if successful, False otherwise.
         """
         try:
-            if self.inst.write(command, '')[0] == (len(command)):
+            if self.inst.write(command)[0] == (len(command)):
                 return True
             else:
                 return False

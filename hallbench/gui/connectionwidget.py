@@ -102,6 +102,10 @@ class ConnectionWidget(_QWidget):
             if self.config.nmr_enable and not self.devices.nmr.connected:
                 return False
 
+            if (self.config.elcomat_enable and
+               not self.devices.elcomat.connected):
+                return False
+
             return True
 
         except Exception:
@@ -185,11 +189,12 @@ class ConnectionWidget(_QWidget):
                 self.ui.nmr_baudrate_cmb.findText(
                     str(self.config.nmr_baudrate)))
 
-            self.ui.collimator_enable_chb.setChecked(
-                self.config.collimator_enable)
-            self.ui.collimator_port_cmb.setCurrentIndex(
-                self.ui.collimator_port_cmb.findText(
-                    self.config.collimator_port))
+            self.ui.elcomat_enable_chb.setChecked(self.config.elcomat_enable)
+            self.ui.elcomat_port_cmb.setCurrentIndex(
+                self.ui.elcomat_port_cmb.findText(self.config.elcomat_port))
+            self.ui.elcomat_baudrate_cmb.setCurrentIndex(
+                self.ui.elcomat_baudrate_cmb.findText(
+                    str(self.config.elcomat_baudrate)))
 
         except Exception:
             message = 'Fail to load configuration.'
@@ -259,10 +264,10 @@ class ConnectionWidget(_QWidget):
             self.config.nmr_baudrate = int(
                 self.ui.nmr_baudrate_cmb.currentText())
 
-            self.config.collimator_enable = (
-                self.ui.collimator_enable_chb.isChecked())
-            self.config.collimator_port = (
-                self.ui.collimator_port_cmb.currentText())
+            self.config.elcomat_enable = self.ui.elcomat_enable_chb.isChecked()
+            self.config.elcomat_port = self.ui.elcomat_port_cmb.currentText()
+            self.config.elcomat_baudrate = int(
+                self.ui.elcomat_baudrate_cmb.currentText())
 
         except Exception:
             self.config = _ConnectionConfig()
@@ -289,6 +294,7 @@ class ConnectionWidget(_QWidget):
             self.ui.voltz_led_la.setEnabled(self.devices.voltz.connected)
             self.ui.multich_led_la.setEnabled(self.devices.multich.connected)
             self.ui.nmr_led_la.setEnabled(self.devices.nmr.connected)
+            self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
 
         except Exception:
             message = 'Fail to update led status.'

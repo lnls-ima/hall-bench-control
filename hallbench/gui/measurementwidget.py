@@ -381,8 +381,8 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
-            self.voltage_data.save_to_database(
-                self.database, self.config_id)
+            self.voltage_data.configuration_id = self.config_id
+            self.voltage_data.save_to_database(self.database)
             return True
 
         except Exception as e:
@@ -398,8 +398,8 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
-            idn = self.field_data.save_to_database(
-                self.database, self.config_id)
+            self.field_data.configuration_id = self.config_id
+            idn = self.field_data.save_to_database(self.database)
             self.scan_id_list.append(idn)
             return True
 

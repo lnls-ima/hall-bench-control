@@ -246,7 +246,7 @@ class ConfigurationWidget(_QWidget):
         sx = self.hall_probe.sensorx
         sy = self.hall_probe.sensory
         sz = self.hall_probe.sensorz
-        
+
         if sx is None or len(sx.data) == 0:
             self.ui.voltx_enable_chb.setChecked(False)
             self.ui.voltx_enable_chb.setEnabled(False)

@@ -2,6 +2,7 @@
 """Hall Bench Devices."""
 
 import os as _os
+from . import ElcomatLib as _ElcomatLib
 from . import GPIBLib as _GPIBLib
 from . import PmacLib as _PmacLib
 from . import NMRLib as _NMRLib
@@ -30,7 +31,8 @@ class HallBenchDevices(object):
         self.multich = _GPIBLib.Agilent34970A(
             _os.path.join(_logs_path, 'multich.log'))
         self.nmr = _NMRLib.NMR(_os.path.join(_logs_path, 'nmr.log'))
-        self.collimator = None
+        self.elcomat = _ElcomatLib.Elcomat(
+            _os.path.join(_logs_path, 'elcomat.log'))
 
     def connect(self, config):
         """Connect devices.
@@ -56,6 +58,9 @@ class HallBenchDevices(object):
         if config.nmr_enable:
             self.nmr.connect(config.nmr_port, config.nmr_baudrate)
 
+        if config.elcomat_enable:
+            self.elcomat.connect(config.elcomat_port, config.elcomat_baudrate)
+
     def disconnect(self):
         """Disconnect devices."""
         self.voltx.disconnect()
@@ -64,3 +69,4 @@ class HallBenchDevices(object):
         self.pmac.disconnect()
         self.multich.disconnect()
         self.nmr.disconnect()
+        self.elcomat.disconnect()

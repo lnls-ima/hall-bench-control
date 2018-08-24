@@ -214,7 +214,7 @@
      <item row="2" column="1">
       <widget class="QGroupBox" name="groupBox_5">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="title">
         <string/>
@@ -261,62 +261,8 @@
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="2">
-           <widget class="QLabel" name="collimator_led_la">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="pixmap">
-             <pixmap>../../resources/img/led.png</pixmap>
-            </property>
-            <property name="scaledContents">
-             <bool>true</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>30</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="collimator_enable_chb">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Enable</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="collimator_port_cmb">
+           <widget class="QComboBox" name="elcomat_port_cmb">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -396,6 +342,105 @@
             <item>
              <property name="text">
               <string>COM15</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="elcomat_led_la">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="pixmap">
+             <pixmap>../../resources/img/led.png</pixmap>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="elcomat_enable_chb">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Enable</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Baud rate</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="elcomat_baudrate_cmb">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="currentIndex">
+             <number>6</number>
+            </property>
+            <item>
+             <property name="text">
+              <string>300</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>600</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>1200</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>2400</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>4800</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>9600</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>19200</string>
              </property>
             </item>
            </widget>
@@ -918,19 +963,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_14">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Baud rate</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QComboBox" name="nmr_port_cmb">
             <property name="sizePolicy">
@@ -1042,6 +1074,19 @@
               <string>19200</string>
              </property>
             </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Baud rate</string>
+            </property>
            </widget>
           </item>
          </layout>

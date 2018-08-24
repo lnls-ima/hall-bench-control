@@ -93,6 +93,19 @@ class HallSensor(_database.DatabaseObject):
             return not self.__eq__(other)
         return NotImplemented
 
+    def __str__(self):
+        """Printable string representation of the object."""
+        fmtstr = '{0:<18s} : {1}\n'
+        r = ''
+        for key, value in self.__dict__.items():
+            if key != '_function':
+                if key.startswith('_'):
+                    name = key[1:]
+                else:
+                    name = key
+                r += fmtstr.format(name, str(value))
+        return r
+
     @property
     def function_type(self):
         """Return the function type."""
@@ -308,9 +321,25 @@ class HallProbe(_database.DatabaseObject):
             return not self.__eq__(other)
         return NotImplemented
 
+    def __str__(self):
+        """Printable string representation of the object."""
+        fmtstr = '{0:<18s} : {1}\n'
+        r = ''
+        for key, value in self.__dict__.items():
+            if key not in ['_sensorx', '_sensory', '_sensorz']:
+                if key.startswith('_'):
+                    name = key[1:]
+                else:
+                    name = key
+                r += fmtstr.format(name, str(value))
+        return r
+
     @classmethod
     def get_hall_probe_id(cls, database, probe_name):
         """Search probe name in database and return table ID."""
+        if len(cls._db_table) == 0:
+            return None
+
         idns = _database.get_database_id(
             database, cls._db_table, 'probe_name', probe_name)
         if len(idns) != 0:
@@ -318,6 +347,16 @@ class HallProbe(_database.DatabaseObject):
         else:
             idn = None
         return idn
+
+    @classmethod
+    def get_probe_name_from_database(cls, database, idn):
+        """Return the probe name of the database record."""
+        if len(cls._db_table) == 0:
+            return None
+
+        probe_name = _database.get_database_param(
+            database, cls._db_table, idn, 'probe_name')
+        return probe_name
 
     @property
     def distance_xy(self):
@@ -555,24 +594,6 @@ class HallProbe(_database.DatabaseObject):
                 return False
 
         return True
-
-    def get_probe_name_from_database(cls, database, idn):
-        """Return the probe name of the database record."""
-        if len(cls._db_table) == 0:
-            return None
-
-        db_column_names = _database.get_table_column_names(
-            database, cls._db_table)
-        if len(db_column_names) == 0:
-            return None
-
-        db_entry = _database.read_from_database(database, cls._db_table, idn)
-        if db_entry is None:
-            return None
-
-        idx = db_column_names.index('probe_name')
-        probe_name = db_entry[idx]
-        return probe_name
 
     def read_file(self, filename):
         """Read calibration parameters from file.

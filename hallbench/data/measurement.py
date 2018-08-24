@@ -56,6 +56,7 @@ class Data(_database.DatabaseObject):
         self._magnet_name = None
         self._main_current = None
         self._timestamp = None
+        self._configuration_id = None
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
         self._pos3 = _np.array([])
@@ -126,6 +127,18 @@ class Data(_database.DatabaseObject):
             if len(value) == 0 or value == _empty_str:
                 value = None
         self._magnet_name = value
+
+    @property
+    def configuration_id(self):
+        """Return the configuration ID."""
+        return self._configuration_id
+
+    @configuration_id.setter
+    def configuration_id(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._configuration_id = value
 
     @property
     def main_current(self):
@@ -278,9 +291,10 @@ class Data(_database.DatabaseObject):
 
     def clear(self):
         """Clear Data."""
-        self.magnet_name = None
-        self.main_current = None
+        self._magnet_name = None
+        self._main_current = None
         self._timestamp = None
+        self._configuration_id = None
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
                 self.__dict__[key] = _np.array([])
@@ -436,11 +450,6 @@ class Data(_database.DatabaseObject):
                     line = line + '\t' + '{0:+0.10e}'.format(columns[i, j])
                 f.write(line + '\n')
 
-        def save_to_database(self, database, configuration_id=None):
-            """Insert data into database table."""
-            super().save_to_database(
-                database, configuration_id=configuration_id)
-
 
 class VoltageData(Data):
     """Position and voltage values."""
@@ -453,7 +462,7 @@ class VoltageData(Data):
         ('hour', [None, 'TEXT NOT NULL']),
         ('magnet_name', ['magnet_name', 'TEXT']),
         ('main_current', ['main_current', 'TEXT']),
-        ('configuration_id', [None, 'INTEGER']),
+        ('configuration_id', ['configuration_id', 'INTEGER']),
         ('scan_axis', ['scan_axis', 'INTEGER']),
         ('pos1', ['_pos1', 'TEXT NOT NULL']),
         ('pos2', ['_pos2', 'TEXT NOT NULL']),
@@ -577,7 +586,7 @@ class FieldData(Data):
         ('hour', [None, 'TEXT NOT NULL']),
         ('magnet_name', ['magnet_name', 'TEXT']),
         ('main_current', ['main_current', 'TEXT']),
-        ('configuration_id', [None, 'INTEGER']),
+        ('configuration_id', ['configuration_id', 'INTEGER']),
         ('scan_axis', ['scan_axis', 'INTEGER']),
         ('pos1', ['_pos1', 'TEXT NOT NULL']),
         ('pos2', ['_pos2', 'TEXT NOT NULL']),
@@ -650,9 +659,9 @@ class Fieldmap(_database.DatabaseObject):
         ('hour', [None, 'TEXT NOT NULL']),
         ('magnet_name', ['magnet_name', 'TEXT']),
         ('main_current', ['current_main', 'TEXT']),
-        ('nr_scans', [None, 'INTEGER']),
-        ('initial_scan', [None, 'INTEGER']),
-        ('final_scan', [None, 'INTEGER']),
+        ('nr_scans', ['nr_scans', 'INTEGER']),
+        ('initial_scan', ['initial_scan', 'INTEGER']),
+        ('final_scan', ['final_scan', 'INTEGER']),
         ('gap', ['gap', 'TEXT']),
         ('control_gap', ['control_gap', 'TEXT']),
         ('magnet_length', ['magnet_length', 'TEXT']),
@@ -701,6 +710,9 @@ class Fieldmap(_database.DatabaseObject):
         self.nr_turns_cv = None
         self.current_qs = None
         self.nr_turns_qs = None
+        self.nr_scans = None
+        self.initial_scan = None
+        self.final_scan = None
         self._map = _np.array([])
         self._magnet_center = None
         self._magnet_x_axis = None
@@ -792,6 +804,9 @@ class Fieldmap(_database.DatabaseObject):
         self.nr_turns_cv = None
         self.current_qs = None
         self.nr_turns_qs = None
+        self.nr_scans = None
+        self.initial_scan = None
+        self.final_scan = None
         self._map = _np.array([])
         self._magnet_center = None
         self._magnet_x_axis = None

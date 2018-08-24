@@ -81,7 +81,7 @@ class DatabaseObject(object):
             hour = db_entry[idx_hour]
             self._timestamp = '_'.join([date, hour])
 
-    def save_to_database(self, database, **kwargs):
+    def save_to_database(self, database):
         """Insert data into database table."""
         if len(self._db_table) == 0:
             return None
@@ -226,7 +226,7 @@ def get_database_param(database, table, idn, parameter):
     try:
         cur.execute('SELECT {0} FROM {1} WHERE id = ?'.format(
             parameter, table), (idn,))
-        value = cur.fetchone()[0] 
+        value = cur.fetchone()[0]
         con.close()
         return value
     except Exception:

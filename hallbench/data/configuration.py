@@ -54,6 +54,18 @@ class Configuration(_database.DatabaseObject):
         else:
             raise TypeError('%s must be of type %s.' % (name, tp.__name__))
 
+    def __str__(self):
+        """Printable string representation of the object."""
+        fmtstr = '{0:<18s} : {1}\n'
+        r = ''
+        for key, value in self.__dict__.items():
+            if key.startswith('_'):
+                name = key[1:]
+            else:
+                name = key
+            r += fmtstr.format(name, str(value))
+        return r
+
     def clear(self):
         """Clear configuration."""
         for key in self.__dict__:
@@ -110,8 +122,9 @@ class ConnectionConfig(Configuration):
         ('nmr_enable', ['nmr_enable', 'INTEGER NOT NULL']),
         ('nmr_port', ['nmr_port', 'TEXT NOT NULL']),
         ('nmr_baudrate', ['nmr_baudrate', 'INTEGER NOT NULL']),
-        ('collimator_enable', ['collimator_enable', 'INTEGER NOT NULL']),
-        ('collimator_port', ['collimator_port', 'TEXT NOT NULL']),
+        ('elcomat_enable', ['elcomat_enable', 'INTEGER NOT NULL']),
+        ('elcomat_port', ['elcomat_port', 'TEXT NOT NULL']),
+        ('elcomat_baudrate', ['elcomat_baudrate', 'INTEGER NOT NULL']),
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -134,9 +147,10 @@ class ConnectionConfig(Configuration):
         self.nmr_enable = None
         self.nmr_port = None
         self.nmr_baudrate = None
-        self.collimator_enable = None
-        self.collimator_port = None
-        
+        self.elcomat_enable = None
+        self.elcomat_port = None
+        self.elcomat_baudrate = None
+
         if filename is not None and idn is not None:
             raise ValueError('Invalid arguments for ConnectionConfig.')
 
@@ -168,21 +182,21 @@ class ConnectionConfig(Configuration):
         try:
             data = [
                 '# Configuration File\n\n',
-                'pmac_enable\t{0:1d}\n\n'.format(self.pmac_enable),
-                'voltx_enable\t{0:1d}\n'.format(self.voltx_enable),
-                'voltx_address\t{0:1d}\n'.format(self.voltx_address),
-                'volty_enable\t{0:1d}\n'.format(self.volty_enable),
-                'volty_address\t{0:1d}\n'.format(self.volty_address),
-                'voltz_enable\t{0:1d}\n\n'.format(self.voltz_enable),
-                'voltz_address\t{0:1d}\n\n'.format(self.voltz_address),
-                'multich_enable\t{0:1d}\n'.format(self.multich_enable),
-                'multich_address\t{0:1d}\n\n'.format(self.multich_address),
-                'nmr_enable\t{0:1d}\n'.format(self.nmr_enable),
-                'nmr_port\t{0:s}\n'.format(self.nmr_port),
-                'nmr_baudrate\t{0:1d}\n'.format(self.nmr_baudrate),
-                'collimator_enable\t{0:1d}\n\n'.format(
-                    self.collimator_enable),
-                'collimator_port\t{0:s}\n'.format(self.collimator_port),
+                'pmac_enable      \t{0:1d}\n\n'.format(self.pmac_enable),
+                'voltx_enable     \t{0:1d}\n'.format(self.voltx_enable),
+                'voltx_address    \t{0:1d}\n'.format(self.voltx_address),
+                'volty_enable     \t{0:1d}\n'.format(self.volty_enable),
+                'volty_address    \t{0:1d}\n'.format(self.volty_address),
+                'voltz_enable     \t{0:1d}\n\n'.format(self.voltz_enable),
+                'voltz_address    \t{0:1d}\n\n'.format(self.voltz_address),
+                'multich_enable   \t{0:1d}\n'.format(self.multich_enable),
+                'multich_address  \t{0:1d}\n\n'.format(self.multich_address),
+                'nmr_enable       \t{0:1d}\n'.format(self.nmr_enable),
+                'nmr_port         \t{0:s}\n'.format(self.nmr_port),
+                'nmr_baudrate     \t{0:1d}\n'.format(self.nmr_baudrate),
+                'elcomat_enable   \t{0:1d}\n\n'.format(self.elcomat_enable),
+                'elcomat_port     \t{0:s}\n'.format(self.elcomat_port),
+                'elcomat_baudrate \t{0:1d}\n'.format(self.elcomat_baudrate),
                 ]
 
             with open(filename, mode='w') as f:
@@ -359,48 +373,48 @@ class MeasurementConfig(Configuration):
         try:
             data = [
                 '# Measurement Setup\n\n',
-                'magnet_name\t{0:s}\n'.format(self.magnet_name),
+                'magnet_name \t{0:s}\n'.format(self.magnet_name),
                 'main_current\t{0:s}\n'.format(self.main_current),
-                'temperature\t{0:s}\n'.format(self.temperature),
-                'operator\t{0:s}\n\n'.format(self.operator),
+                'temperature \t{0:s}\n'.format(self.temperature),
+                'operator    \t{0:s}\n\n'.format(self.operator),
                 '# Hall Probe\n',
-                'probe_name\t{0:s}\n\n'.format(self.probe_name),
+                'probe_name  \t{0:s}\n\n'.format(self.probe_name),
                 '# Digital Multimeters (X, Y, Z)\n',
                 'voltx_enable\t{0:1d}\n'.format(self.voltx_enable),
                 'volty_enable\t{0:1d}\n'.format(self.volty_enable),
                 'voltz_enable\t{0:1d}\n\n'.format(self.voltz_enable),
                 '# Digital Multimeter (aper [s])\n',
-                'integration_time\t{0:4f}\n\n'.format(self.integration_time),
+                'integration_time \t{0:4f}\n\n'.format(self.integration_time),
                 '# Digital Multimeter (precision [single=0 or double=1])\n',
                 'voltage_precision\t{0:1d}\n\n'.format(self.voltage_precision),
                 '# Number of measurements\n',
-                'nr_measurements\t{0:1d}\n\n'.format(self.nr_measurements),
+                'nr_measurements  \t{0:1d}\n\n'.format(self.nr_measurements),
                 '# First Axis (Triggering Axis)\n',
-                'first_axis\t{0:1d}\n\n'.format(self.first_axis),
+                'first_axis  \t{0:1d}\n\n'.format(self.first_axis),
                 '#Second Axis\n',
-                'second_axis\t{0:1d}\n\n'.format(self.second_axis),
+                'second_axis \t{0:1d}\n\n'.format(self.second_axis),
                 ('#Axis Parameters (StartPos, EndPos, Incr, Extra, Velocity)' +
                  ' - Ax1, Ax2, Ax3, Ax5\n'),
-                'start_ax1  \t{0:4f}\n'.format(self.start_ax1),
-                'end_ax1    \t{0:4f}\n'.format(self.end_ax1),
-                'step_ax1   \t{0:2f}\n'.format(self.step_ax1),
-                'extra_ax1  \t{0:2f}\n'.format(self.extra_ax1),
-                'vel_ax1    \t{0:2f}\n\n'.format(self.vel_ax1),
-                'start_ax2  \t{0:4f}\n'.format(self.start_ax2),
-                'end_ax2    \t{0:4f}\n'.format(self.end_ax2),
-                'step_ax2   \t{0:2f}\n'.format(self.step_ax2),
-                'extra_ax2  \t{0:2f}\n'.format(self.extra_ax2),
-                'vel_ax2    \t{0:2f}\n\n'.format(self.vel_ax2),
-                'start_ax3  \t{0:4f}\n'.format(self.start_ax3),
-                'end_ax3    \t{0:4f}\n'.format(self.end_ax3),
-                'step_ax3   \t{0:2f}\n'.format(self.step_ax3),
-                'extra_ax3  \t{0:2f}\n'.format(self.extra_ax3),
-                'vel_ax3    \t{0:2f}\n\n'.format(self.vel_ax3),
-                'start_ax5  \t{0:4f}\n'.format(self.start_ax5),
-                'end_ax5    \t{0:4f}\n'.format(self.end_ax5),
-                'step_ax5   \t{0:2f}\n'.format(self.step_ax5),
-                'extra_ax5  \t{0:2f}\n'.format(self.extra_ax5),
-                'vel_ax5    \t{0:2f}\n'.format(self.vel_ax5)]
+                'start_ax1   \t{0:4f}\n'.format(self.start_ax1),
+                'end_ax1     \t{0:4f}\n'.format(self.end_ax1),
+                'step_ax1    \t{0:2f}\n'.format(self.step_ax1),
+                'extra_ax1   \t{0:2f}\n'.format(self.extra_ax1),
+                'vel_ax1     \t{0:2f}\n\n'.format(self.vel_ax1),
+                'start_ax2   \t{0:4f}\n'.format(self.start_ax2),
+                'end_ax2     \t{0:4f}\n'.format(self.end_ax2),
+                'step_ax2    \t{0:2f}\n'.format(self.step_ax2),
+                'extra_ax2   \t{0:2f}\n'.format(self.extra_ax2),
+                'vel_ax2     \t{0:2f}\n\n'.format(self.vel_ax2),
+                'start_ax3   \t{0:4f}\n'.format(self.start_ax3),
+                'end_ax3     \t{0:4f}\n'.format(self.end_ax3),
+                'step_ax3    \t{0:2f}\n'.format(self.step_ax3),
+                'extra_ax3   \t{0:2f}\n'.format(self.extra_ax3),
+                'vel_ax3     \t{0:2f}\n\n'.format(self.vel_ax3),
+                'start_ax5   \t{0:4f}\n'.format(self.start_ax5),
+                'end_ax5     \t{0:4f}\n'.format(self.end_ax5),
+                'step_ax5    \t{0:2f}\n'.format(self.step_ax5),
+                'extra_ax5   \t{0:2f}\n'.format(self.extra_ax5),
+                'vel_ax5     \t{0:2f}\n'.format(self.vel_ax5)]
 
             with open(filename, mode='w') as f:
                 for item in data:

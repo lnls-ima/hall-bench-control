@@ -21,8 +21,9 @@ def make_connection_configuration_file(filename):
     cc.nmr_enable = 0
     cc.nmr_port = 'COM1'
     cc.nmr_baudrate = 19200
-    cc.collimator_enable = 0
-    cc.collimator_port = 'COM1'
+    cc.elcomat_enable = 0
+    cc.elcomat_port = 'COM1'
+    cc.elcomat_baudrate = 19200
     try:
         cc.save_file(filename)
     except Exception:
@@ -55,20 +56,21 @@ class TestUtils(TestCase):
         read_flines = utils.read_file(self.filename)
         flines = [
             '# Configuration File',
-            'pmac_enable\t1',
-            'voltx_enable\t1',
-            'voltx_address\t20',
-            'volty_enable\t1',
-            'volty_address\t21',
-            'voltz_enable\t1',
-            'voltz_address\t22',
-            'multich_enable\t1',
-            'multich_address\t18',
-            'nmr_enable\t0',
-            'nmr_port\tCOM1',
-            'nmr_baudrate\t19200',
-            'collimator_enable\t0',
-            'collimator_port\tCOM1',
+            'pmac_enable      \t1',
+            'voltx_enable     \t1',
+            'voltx_address    \t20',
+            'volty_enable     \t1',
+            'volty_address    \t21',
+            'voltz_enable     \t1',
+            'voltz_address    \t22',
+            'multich_enable   \t1',
+            'multich_address  \t18',
+            'nmr_enable       \t0',
+            'nmr_port         \tCOM1',
+            'nmr_baudrate     \t19200',
+            'elcomat_enable   \t0',
+            'elcomat_port     \tCOM1',
+            'elcomat_baudrate \t19200',
         ]
         for i in range(len(read_flines)):
             self.assertEqual(read_flines[i], flines[i])

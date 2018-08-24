@@ -5,13 +5,8 @@ Created on 07/12/2012
 @author: James Citadini
 """
 
-import re as _re
-import time as _time
-import numpy as _np
 import serial as _serial
-import ctypes as _ctypes
 import logging as _logging
-import threading as _threading
 
 
 class ElcomatCommands(object):
@@ -20,7 +15,7 @@ class ElcomatCommands(object):
     def __init__(self):
         """Load commands."""
         self.read = 'r'
-    
+
 
 class Elcomat(object):
     """Class for communication with Elcomat device."""
@@ -42,7 +37,6 @@ class Elcomat(object):
         self.log_events()
 
         self.commands = ElcomatCommands()
-        self.rlock = _threading.RLock()
         self.ser = None
 
     @property
@@ -102,14 +96,11 @@ class Elcomat(object):
             if self.logger is not None:
                 self.logger.error('exception', exc_info=True)
             return None
-   
-    def configure(self):
-        pass
 
     def flush(self):
         """Clear input and output."""
         self.ser.flushInput()
-        self.ser.flushOutput()        
+        self.ser.flushOutput()
 
     def send_command(self, command):
         """Write string message to the device and check size of the answer.
@@ -130,7 +121,7 @@ class Elcomat(object):
             if self.logfile is not None:
                 self.logger.error('exception', exc_info=True)
             return None
- 
+
     def read_from_device(self, n=100):
         """Read a string from the device.
 
@@ -145,7 +136,7 @@ class Elcomat(object):
             return _reading
         except Exception:
             return ''
-        
+
     def get_measurement_lists(self):
         """Read X-axis and Y-axis values from the device."""
         xvals = []
@@ -154,7 +145,7 @@ class Elcomat(object):
             self.send_command(self.commands.read)
             _readings = self.read_from_device(n=1000)
             _rlist = _readings.split('\r')[:-1]
-            if len(_rlist) != 0:          
+            if len(_rlist) != 0:
                 for _r in _rlist:
                     values = _r.split(' ')
                     x = float(values[2])
@@ -162,11 +153,9 @@ class Elcomat(object):
                     xvals.append(x)
                     yvals.append(y)
                 return xvals, yvals
-            
+
             else:
                 return [], []
-        
+
         except Exception:
             return [], []
-
-              

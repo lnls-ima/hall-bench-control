@@ -17,7 +17,7 @@ import hallbench.data.magnets_info as _magnets_info
 from hallbench.data.measurement import Fieldmap as _Fieldmap
 
 
-class FieldMapDialog(_QDialog):
+class FieldmapDialog(_QDialog):
     """Field map dialog class for the Hall Bench Control application."""
 
     _coil_list = ['main', 'trim', 'ch', 'cv', 'qs']

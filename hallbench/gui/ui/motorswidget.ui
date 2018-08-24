@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1077</width>
-    <height>874</height>
+    <height>906</height>
    </rect>
   </property>
   <property name="font">
@@ -146,6 +146,9 @@
       </item>
       <item row="1" column="0">
        <layout class="QGridLayout" name="gridLayout">
+        <property name="verticalSpacing">
+         <number>10</number>
+        </property>
         <item row="3" column="1">
          <widget class="QLabel" name="ledax5_la">
           <property name="sizePolicy">
@@ -318,6 +321,9 @@
       </item>
       <item row="1" column="2">
        <layout class="QGridLayout" name="gridLayout_3">
+        <property name="verticalSpacing">
+         <number>10</number>
+        </property>
         <item row="0" column="0">
          <widget class="QCheckBox" name="homingax6_chb">
           <property name="font">
@@ -491,7 +497,7 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="1" rowspan="2" colspan="2">
+   <item row="1" column="1" colspan="2">
     <widget class="QGroupBox" name="moveaxis_gb">
      <property name="enabled">
       <bool>false</bool>
@@ -506,22 +512,7 @@
       <string>Move Axis</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
-      <property name="leftMargin">
-       <number>20</number>
-      </property>
-      <property name="topMargin">
-       <number>20</number>
-      </property>
-      <property name="rightMargin">
-       <number>20</number>
-      </property>
-      <property name="horizontalSpacing">
-       <number>6</number>
-      </property>
-      <property name="verticalSpacing">
-       <number>20</number>
-      </property>
-      <item row="0" column="0" colspan="2">
+      <item row="0" column="0" rowspan="2">
        <layout class="QGridLayout" name="gridLayout_4">
         <property name="sizeConstraint">
          <enum>QLayout::SetDefaultConstraint</enum>
@@ -728,20 +719,7 @@
         </item>
        </layout>
       </item>
-      <item row="1" column="0">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>359</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="1" column="1">
+      <item row="0" column="1">
        <widget class="QPushButton" name="move_btn">
         <property name="enabled">
          <bool>false</bool>
@@ -749,28 +727,19 @@
         <property name="minimumSize">
          <size>
           <width>200</width>
-          <height>50</height>
+          <height>60</height>
          </size>
         </property>
         <property name="text">
          <string>Move to Target</string>
         </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../../resources/img/move.png</normaloff>../../resources/img/move.png</iconset>
+        </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>359</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="2" column="1">
+      <item row="1" column="1">
        <widget class="QPushButton" name="stop_btn">
         <property name="enabled">
          <bool>false</bool>
@@ -778,18 +747,22 @@
         <property name="minimumSize">
          <size>
           <width>200</width>
-          <height>50</height>
+          <height>60</height>
          </size>
         </property>
         <property name="text">
          <string>Stop Motor</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../../resources/img/stop.png</normaloff>../../resources/img/stop.png</iconset>
         </property>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="2" column="0" rowspan="2">
+   <item row="2" column="0">
     <widget class="QGroupBox" name="limits_gb">
      <property name="enabled">
       <bool>false</bool>
@@ -1112,7 +1085,7 @@
      </layout>
     </widget>
    </item>
-   <item row="3" column="1">
+   <item row="2" column="1">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -1145,7 +1118,6 @@
   <tabstop>reldisp_le</tabstop>
   <tabstop>targetpos_le</tabstop>
   <tabstop>move_btn</tabstop>
-  <tabstop>stop_btn</tabstop>
  </tabstops>
  <resources/>
  <connections/>

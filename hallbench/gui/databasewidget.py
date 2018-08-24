@@ -23,8 +23,8 @@ from hallbench.gui.hallprobedialog import HallProbeDialog \
 from hallbench.gui.configurationwidgets import ConfigurationDialog \
     as _ConfigurationDialog
 from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
-from hallbench.gui.fieldmapdialog import FieldMapDialog \
-    as _FieldMapDialog
+from hallbench.gui.fieldmapdialog import FieldmapDialog \
+    as _FieldmapDialog
 import hallbench.data as _data
 
 
@@ -62,8 +62,8 @@ class DatabaseWidget(_QWidget):
         # create dialogs
         self.hall_probe_dialog = _HallProbeDialog(load_enabled=False)
         self.configuration_dialog = _ConfigurationDialog(load_enabled=False)
-        self.view_data_dialog = _ViewDataDialog()
-        self.fieldmap_dialog = _FieldMapDialog()
+        self.viewdata_dialog = _ViewDataDialog()
+        self.fieldmap_dialog = _FieldmapDialog()
 
         self.tables = []
         self.ui.database_tab.clear()
@@ -115,7 +115,7 @@ class DatabaseWidget(_QWidget):
         try:
             self.hall_probe_dialog.accept()
             self.configuration_dialog.accept()
-            self.view_data_dialog.accept()
+            self.viewdata_dialog.accept()
             self.fieldmap_dialog.accept()
         except Exception:
             pass
@@ -125,21 +125,51 @@ class DatabaseWidget(_QWidget):
         self.ui.refresh_btn.clicked.connect(self.updateDatabaseTables)
         self.ui.database_tab.currentChanged.connect(self.disableInvalidButtons)
 
-        self.ui.view_hall_probe_btn.clicked.connect(self.viewHallProbe)
-        self.ui.save_hall_probe_btn.clicked.connect(self.saveHallProbe)
+        self.ui.save_connection_btn.clicked.connect(
+            lambda: self.saveFile(
+                self._connection_table_name, _ConnectionConfig))
+        self.ui.delete_connection_btn.clicked.connect(
+            lambda: self.deleteDatabaseRecords(self._connection_table_name))        
+ 
+        self.ui.save_hall_sensor_btn.clicked.connect(
+            lambda: self.saveFile(self._hall_sensor_table_name, _HallSensor))
+        self.ui.delete_hall_sensor_btn.clicked.connect(
+            lambda: self.deleteDatabaseRecords(self._hall_sensor_table_name))
 
+        self.ui.view_hall_probe_btn.clicked.connect(self.viewHallProbe)
+        self.ui.save_hall_probe_btn.clicked.connect(
+            lambda: self.saveFile(self._hall_probe_table_name, _HallProbe))
+        self.ui.delete_hall_probe_btn.clicked.connect(
+            lambda: self.deleteDatabaseRecords(self._hall_probe_table_name))
+        
         self.ui.view_configuration_btn.clicked.connect(self.viewConfiguration)
-        self.ui.save_configuration_btn.clicked.connect(self.saveConfiguration)
+        self.ui.save_configuration_btn.clicked.connect(
+            lambda: self.saveFile(
+                self._configuration_table_name, _MeasurementConfig))
+        self.ui.delete_configuration_btn.clicked.connect(
+            lambda: self.deleteDatabaseRecords(self._configuration_table_name))
 
         self.ui.view_voltage_scan_btn.clicked.connect(self.viewRawData)
-        self.ui.save_voltage_scan_btn.clicked.connect(self.saveRawData)
+        self.ui.save_voltage_scan_btn.clicked.connect(
+            lambda: self.saveFile(
+                self._voltage_scan_table_name, _VoltageData, True))
+        self.ui.delete_voltage_scan_btn.clicked.connect(
+            lambda: self.deleteDatabaseRecords(self._voltage_scan_table_name))
         self.ui.clear_voltage_scan_btn.clicked.connect(self.clearRawDataTable)
 
         self.ui.view_field_scan_btn.clicked.connect(self.viewScan)
-        self.ui.save_field_scan_btn.clicked.connect(self.saveScan)
+        self.ui.save_field_scan_btn.clicked.connect(
+            lambda: self.saveFile(
+                self._field_scan_table_name, _FieldData, True))
+        self.ui.delete_field_scan_btn.clicked.connect(
+            lambda: self.deleteDatabaseRecords(self._field_scan_table_name))
         self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
-
-        self.ui.save_fieldmap_btn.clicked.connect(self.saveFieldmap)
+        
+        self.ui.save_fieldmap_btn.clicked.connect(
+            lambda: self.saveFile(
+                self._fieldmap_table_name, _Fieldmap, True))
+        self.ui.delete_fieldmap_btn.clicked.connect(
+            lambda: self.deleteDatabaseRecords(self._fieldmap_table_name))
 
     def createFieldmap(self):
         """Create fieldmap from field scan records."""
@@ -192,6 +222,29 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
+    def deleteDatabaseRecords(self, table_name):
+        """Delete record from database table."""
+        idns = self.getTableSelectedIDs(table_name)
+        if len(idns) == 0:
+            return
+        
+        con = _sqlite3.connect(self.database)
+        cur = con.cursor()
+
+        msg = 'Delete selected database records?'
+        reply = _QMessageBox.question(
+            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)        
+        if reply == _QMessageBox.Yes:
+            seq = ','.join(['?']*len(idns))
+            cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(table_name, seq)
+            cur.execute(cmd, idns)
+            con.commit()
+            con.close()
+            self.updateDatabaseTables()
+        else:
+            con.close()
+            return
+
     def disableInvalidButtons(self):
         """Disable invalid buttons."""
         current_table = self.getCurrentTable()
@@ -199,35 +252,31 @@ class DatabaseWidget(_QWidget):
             self.ui.buttons_tbx.setEnabled(True)
             table_name = current_table.table_name
 
-            no_buttons_tables = [
-                self._connection_table_name, self._hall_sensor_table_name]
-            if table_name in no_buttons_tables:
-                self.ui.buttons_tbx.setCurrentWidget(self.ui.empty_pg)
-
-            _enable = table_name == self._hall_probe_table_name
-            self.ui.hall_probe_pg.setEnabled(_enable)
-            if _enable:
-                self.ui.buttons_tbx.setCurrentWidget(self.ui.hall_probe_pg)
-
-            _enable = table_name == self._configuration_table_name
-            self.ui.configuration_pg.setEnabled(_enable)
-            if _enable:
-                self.ui.buttons_tbx.setCurrentWidget(self.ui.configuration_pg)
-
-            _enable = table_name == self._voltage_scan_table_name
-            self.ui.voltage_scan_pg.setEnabled(_enable)
-            if _enable:
-                self.ui.buttons_tbx.setCurrentWidget(self.ui.voltage_scan_pg)
-
-            _enable = table_name == self._field_scan_table_name
-            self.ui.field_scan_pg.setEnabled(_enable)
-            if _enable:
-                self.ui.buttons_tbx.setCurrentWidget(self.ui.field_scan_pg)
-
-            _enable = table_name == self._fieldmap_table_name
-            self.ui.fieldmap_pg.setEnabled(_enable)
-            if _enable:
-                self.ui.buttons_tbx.setCurrentWidget(self.ui.fieldmap_pg)
+            tables = [
+                self._connection_table_name,
+                self._hall_sensor_table_name,
+                self._hall_probe_table_name,
+                self._configuration_table_name,
+                self._voltage_scan_table_name,
+                self._field_scan_table_name,
+                self._fieldmap_table_name,
+            ]
+            
+            pages = [
+                self.ui.connection_pg,
+                self.ui.hall_sensor_pg,
+                self.ui.hall_probe_pg,
+                self.ui.configuration_pg,
+                self.ui.voltage_scan_pg,
+                self.ui.field_scan_pg,
+                self.ui.fieldmap_pg,
+            ]
+            
+            for i in range(len(tables)):
+                _enable = table_name == tables[i]
+                pages[i].setEnabled(_enable)
+                if _enable:
+                    self.ui.buttons_tbx.setCurrentWidget(pages[i])
         else:
             self.ui.buttons_tbx.setEnabled(False)
 
@@ -309,15 +358,26 @@ class DatabaseWidget(_QWidget):
 
             self.tables.append(table)
             self.ui.database_tab.addTab(tab, table_name)
-
-    def saveHallProbe(self):
-        """Save hall probe data to file."""
-        idn = self.getTableSelectedID(self._hall_probe_table_name)
+ 
+    def saveFile(self, table_name, object_class, has_default_filename=False):
+        """Save database record to file."""
+        idn = self.getTableSelectedID(table_name)
         if idn is None:
             return
 
+        try:
+            obj = object_class(database=self.database, idn=idn)
+            if has_default_filename:
+                default_filename = obj.default_filename
+            else:
+                default_filename = ''
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
         filename = _QFileDialog.getSaveFileName(
-            self, caption='Save hall probe file',
+            self, caption='Save configuration file',
+            directory=default_filename,
             filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):
@@ -329,126 +389,7 @@ class DatabaseWidget(_QWidget):
         try:
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
                 filename = filename + '.txt'
-            hall_probe = _HallProbe(database=self.database, idn=idn)
-            hall_probe.save_file(filename)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
-    def saveConfiguration(self):
-        """Save configuration data to file."""
-        idn = self.getTableSelectedID(self._configuration_table_name)
-        if idn is None:
-            return
-
-        filename = _QFileDialog.getSaveFileName(
-            self, caption='Save configuration file',
-            filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            if not filename.endswith('.txt') and not filename.endswith('.dat'):
-                filename = filename + '.txt'
-            configuration = _MeasurementConfig(database=self.database, idn=idn)
-            configuration.save_file(filename)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
-    def saveRawData(self):
-        """Save voltage scan to file."""
-        idn = self.getTableSelectedID(self._voltage_scan_table_name)
-        if idn is None:
-            return
-
-        try:
-            voltage_scan = _VoltageData(database=self.database, idn=idn)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
-        filename = _QFileDialog.getSaveFileName(
-            self, caption='Save configuration file',
-            directory=voltage_scan.default_filename,
-            filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            if not filename.endswith('.txt') and not filename.endswith('.dat'):
-                filename = filename + '.dat'
-            voltage_scan.save_file(filename)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
-    def saveScan(self):
-        """Save field scan data to file."""
-        idn = self.getTableSelectedID(self._field_scan_table_name)
-        if idn is None:
-            return
-
-        try:
-            field_scan = _FieldData(database=self.database, idn=idn)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
-        filename = _QFileDialog.getSaveFileName(
-            self, caption='Save configuration file',
-            directory=field_scan.default_filename,
-            filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            if not filename.endswith('.txt') and not filename.endswith('.dat'):
-                filename = filename + '.dat'
-            field_scan.save_file(filename)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
-    def saveFieldmap(self):
-        """Save fieldmap to file."""
-        idn = self.getTableSelectedID(self._fieldmap_table_name)
-        if idn is None:
-            return
-
-        try:
-            fieldmap = _Fieldmap(database=self.database, idn=idn)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
-        filename = _QFileDialog.getSaveFileName(
-            self, caption='Save fieldmap file',
-            directory=fieldmap.default_filename,
-            filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            if not filename.endswith('.txt') and not filename.endswith('.dat'):
-                filename = filename + '.dat'
-            fieldmap.save_file(filename)
+            obj.save_file(filename)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
@@ -509,9 +450,8 @@ class DatabaseWidget(_QWidget):
         data_list = []
         for idn in idns:
             data_list.append(_VoltageData(database=self.database, idn=idn))
-        data_type = 'voltage'
-        self.view_data_dialog.accept()
-        self.view_data_dialog.show(data_list, data_type)
+        self.viewdata_dialog.accept()
+        self.viewdata_dialog.show(data_list, 'Voltage [V]')
 
     def viewScan(self):
         """Open view data dialog."""
@@ -522,9 +462,8 @@ class DatabaseWidget(_QWidget):
         data_list = []
         for idn in idns:
             data_list.append(_FieldData(database=self.database, idn=idn))
-        data_type = 'field'
-        self.view_data_dialog.accept()
-        self.view_data_dialog.show(data_list, data_type)
+        self.viewdata_dialog.accept()
+        self.viewdata_dialog.show(data_list, 'Magnetic Field [T]')
 
 
 class DatabaseTable(_QTableWidget):

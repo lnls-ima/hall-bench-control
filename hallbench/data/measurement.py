@@ -56,7 +56,7 @@ class Data(_database.DatabaseObject):
         self._magnet_name = None
         self._main_current = None
         self._timestamp = None
-        self._configuration_id = None
+        self.configuration_id = None
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
         self._pos3 = _np.array([])
@@ -127,18 +127,6 @@ class Data(_database.DatabaseObject):
             if len(value) == 0 or value == _empty_str:
                 value = None
         self._magnet_name = value
-
-    @property
-    def configuration_id(self):
-        """Return the configuration ID."""
-        return self._configuration_id
-
-    @configuration_id.setter
-    def configuration_id(self, value):
-        if value is not None:
-            if len(value) == 0 or value == _empty_str:
-                value = None
-        self._configuration_id = value
 
     @property
     def main_current(self):
@@ -294,7 +282,7 @@ class Data(_database.DatabaseObject):
         self._magnet_name = None
         self._main_current = None
         self._timestamp = None
-        self._configuration_id = None
+        self.configuration_id = None
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
                 self.__dict__[key] = _np.array([])
@@ -454,7 +442,7 @@ class Data(_database.DatabaseObject):
 class VoltageData(Data):
     """Position and voltage values."""
 
-    _data_label = 'Voltage'
+    _data_label = 'VoltageScan'
     _db_table = 'voltage_scans'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
@@ -578,7 +566,7 @@ class VoltageData(Data):
 class FieldData(Data):
     """Position and magnetic field values."""
 
-    _data_label = 'Field'
+    _data_label = 'FieldScan'
     _db_table = 'field_scans'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),

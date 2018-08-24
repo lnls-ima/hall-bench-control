@@ -2,6 +2,7 @@
 
 """Configuration widget for the Hall Bench Control application."""
 
+import os.path as _path
 import numpy as _np
 from PyQt4.QtGui import (
     QWidget as _QWidget,
@@ -208,6 +209,7 @@ class ConfigurationWidget(_QWidget):
         self.ui.loadfile_btn.clicked.connect(self.loadFile)
         self.ui.savefile_btn.clicked.connect(self.saveFile)
         self.ui.loaddb_btn.clicked.connect(self.loadDB)
+        self.ui.savedb_btn.clicked.connect(self.saveDB)
         self.ui.hall_probe_btn.clicked.connect(
             self.showHallProbeDialog)
 
@@ -237,33 +239,6 @@ class ConfigurationWidget(_QWidget):
                 end_le.setText('')
                 extra_le.setEnabled(False)
                 extra_le.setText('')
-
-    def disableInvalidVoltimeter(self):
-        """Disable invalid voltimeters."""
-        if self.hall_probe is None:
-            return
-
-        sx = self.hall_probe.sensorx
-        sy = self.hall_probe.sensory
-        sz = self.hall_probe.sensorz
-
-        if sx is None or len(sx.data) == 0:
-            self.ui.voltx_enable_chb.setChecked(False)
-            self.ui.voltx_enable_chb.setEnabled(False)
-        else:
-            self.ui.voltx_enable_chb.setEnabled(True)
-
-        if sy is None or len(sy.data) == 0:
-            self.ui.volty_enable_chb.setChecked(False)
-            self.ui.volty_enable_chb.setEnabled(False)
-        else:
-            self.ui.volty_enable_chb.setEnabled(True)
-
-        if sz is None or len(sz.data) == 0:
-            self.ui.voltz_enable_chb.setChecked(False)
-            self.ui.voltz_enable_chb.setEnabled(False)
-        else:
-            self.ui.voltz_enable_chb.setEnabled(True)
 
     def disableSecondAxisButton(self):
         """Disable invalid second axis radio buttons."""
@@ -432,6 +407,22 @@ class ConfigurationWidget(_QWidget):
         self.ui.filename_le.setText(filename)
         self.load()
 
+    def saveDB(self):
+        """Save configuration to database."""
+        self.ui.idn_le.setText("")
+        if self.database is not None and _path.isfile(self.database):
+            try:
+                if self.updateConfiguration():
+                    idn = self.config.save_to_database(self.database)
+                    self.ui.idn_le.setText(str(idn))
+            except Exception as e:
+                _QMessageBox.critical(
+                    self, 'Failure', str(e), _QMessageBox.Ok)
+        else:
+            msg = 'Invalid database filename.'
+            _QMessageBox.critical(
+                self, 'Failure', msg, _QMessageBox.Ok)
+
     def saveFile(self):
         """Save measurement parameters to file."""
         default_filename = self.ui.filename_le.text()
@@ -514,9 +505,7 @@ class ConfigurationWidget(_QWidget):
         try:
             self.hall_probe = hall_probe
             if self.hall_probe is not None:
-                self.ui.probe_name_le.setText(
-                    self.hall_probe.probe_name)
-                self.disableInvalidVoltimeter()
+                self.ui.probe_name_le.setText(self.hall_probe.probe_name)
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
 

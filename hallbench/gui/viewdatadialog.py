@@ -28,7 +28,6 @@ class ViewDataDialog(_QDialog):
         self.ui = _uic.loadUi(uifile, self)
 
         self.data_label = ''
-        self.data_type = None
         self.data_list = []
         self.graphx = []
         self.graphy = []
@@ -253,7 +252,7 @@ class ViewDataDialog(_QDialog):
             if data.pos3.size == 1 and len(p3) != 1:
                 pos = pos + 'pos3={0:.0f}mm'.format(data.pos3[0])
 
-            if data.timestamp is not None and self.data_type == 'voltage':
+            if data.timestamp is not None:
                 ts = ' ({0:s})'.format(data.timestamp.split('_')[1])
             else:
                 ts = ''
@@ -270,7 +269,7 @@ class ViewDataDialog(_QDialog):
         self.ui.selectcurve_cmb.addItems(curve_labels)
         self.ui.selectcurve_cmb.setEnabled(True)
 
-    def show(self, data_list, data_type):
+    def show(self, data_list, data_label=''):
         """Update data and show dialog."""
         if data_list is None or len(data_list) == 0:
             message = 'Invalid data list.'
@@ -279,14 +278,7 @@ class ViewDataDialog(_QDialog):
             return
 
         self.data_list = [d.copy() for d in data_list]
-        self.data_type = data_type
-
-        if data_type == 'voltage':
-            self.data_label = 'Voltage [V]'
-        elif data_type == 'field':
-            self.data_label == 'Magnetic Field [T]'
-        else:
-            self.data_label = ''
+        self.data_label = data_label
 
         try:
             idx = 0
@@ -320,7 +312,7 @@ class ViewDataDialog(_QDialog):
                     'ymult': 1,
                     'xmin': xmin,
                     'xmax': xmax,
-                    'fit_function': None,
+                    'fit_function': 'Linear',
                     'fit_polyorder': None,
                     }
 
@@ -334,7 +326,7 @@ class ViewDataDialog(_QDialog):
                     'ymult': 1,
                     'xmin': xmin,
                     'xmax': xmax,
-                    'fit_function': None,
+                    'fit_function': 'Linear',
                     'fit_polyorder': None,
                     }
 
@@ -348,7 +340,7 @@ class ViewDataDialog(_QDialog):
                     'ymult': 1,
                     'xmin': xmin,
                     'xmax': xmax,
-                    'fit_function': None,
+                    'fit_function': 'Linear',
                     'fit_polyorder': None,
                     }
 

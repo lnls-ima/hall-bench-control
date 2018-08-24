@@ -77,4 +77,4 @@ def run():
 
 def run_in_thread():
     """Run hallbench application in a thread."""
-    return GUIThread(daemon=True)
+    return GUIThread()

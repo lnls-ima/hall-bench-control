@@ -5,8 +5,8 @@
 import os.path as _path
 import time as _time
 import numpy as _np
-import threading as _threading
 import warnings as _warnings
+import pyqtgraph as _pyqtgraph
 from PyQt4.QtGui import (
     QWidget as _QWidget,
     QApplication as _QApplication,
@@ -14,14 +14,15 @@ from PyQt4.QtGui import (
     QMessageBox as _QMessageBox,
     )
 import PyQt4.uic as _uic
+from PyQt4.QtCore import QThread as _QThread
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.configurationwidgets import ConfigurationWidget \
     as _ConfigurationWidget
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
-from hallbench.gui.fieldmapdialog import FieldMapDialog \
-    as _FieldMapDialog
+from hallbench.gui.fieldmapdialog import FieldmapDialog \
+    as _FieldmapDialog
 from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
 from hallbench.data.measurement import VoltageData as _VoltageData
 from hallbench.data.measurement import FieldData as _FieldData
@@ -55,7 +56,7 @@ class MeasurementWidget(_QWidget):
         self.ui.position_wg.setLayout(_layout)
 
         # create dialog
-        self.fieldmap_dialog = _FieldMapDialog()
+        self.fieldmap_dialog = _FieldmapDialog()
         self.viewdata_dialog = _ViewDataDialog()
 
         self.threadx = None
@@ -76,6 +77,11 @@ class MeasurementWidget(_QWidget):
         self.stop = False
 
         self.connectSignalSlots()
+
+        # Add legend to plot
+        self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
+        self.legend.setParentItem(self.ui.graph_pw.graphicsItem())
+        self.legend.setAutoFillBackground(1)
 
     @property
     def devices(self):
@@ -104,6 +110,7 @@ class MeasurementWidget(_QWidget):
         self.stop = False
         self.clearGraph()
         self.ui.viewdata_btn.setEnabled(False)
+        self.ui.cleargraph_btn.setEnabled(False)
         self.ui.savefieldmap_btn.setEnabled(False)
 
     def clearGraph(self):
@@ -127,8 +134,9 @@ class MeasurementWidget(_QWidget):
         """Create signal/slot connections."""
         self.ui.measure_btn.clicked.connect(self.configureAndMeasure)
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
-        self.ui.savefieldmap_btn.clicked.connect(self.showFieldMapDialog)
+        self.ui.savefieldmap_btn.clicked.connect(self.showFieldmapDialog)
         self.ui.viewdata_btn.clicked.connect(self.showViewDataDialog)
+        self.ui.cleargraph_btn.clicked.connect(self.clearGraph)
 
     def configureAndMeasure(self):
         """Configure devices and start measurement."""
@@ -185,16 +193,18 @@ class MeasurementWidget(_QWidget):
             # move to initial position
             if self.stop is True:
                 return
+
             first_axis_start = self.config.get_start(first_axis)
             self.moveAxis(first_axis, first_axis_start)
             self.plotField()
             self.ui.stop_btn.setEnabled(False)
             self.resetMultimeters()
-
+            
             self.ui.viewdata_btn.setEnabled(True)
+            self.ui.cleargraph_btn.setEnabled(True)
             if self.hall_probe is not None:
                 self.ui.savefieldmap_btn.setEnabled(True)
-
+            
             message = 'End of measurements.'
             _QMessageBox.information(
                 self, 'Measurements', message, _QMessageBox.Ok)
@@ -242,6 +252,9 @@ class MeasurementWidget(_QWidget):
         self.graphx = []
         self.graphy = []
         self.graphz = []
+        self.legend.removeItem('X')
+        self.legend.removeItem('Y')
+        self.legend.removeItem('Z')
 
         for idx in range(nr_curves):
             self.graphx.append(
@@ -277,6 +290,9 @@ class MeasurementWidget(_QWidget):
         self.ui.graph_pw.setLabel('bottom', 'Scan Position [mm]')
         self.ui.graph_pw.setLabel('left', label)
         self.ui.graph_pw.showGrid(x=True, y=True)
+        self.legend.addItem(self.graphx[0], 'X')
+        self.legend.addItem(self.graphy[0], 'Y')
+        self.legend.addItem(self.graphz[0], 'Z')
 
     def getFixedAxes(self):
         """Get fixed axes."""
@@ -294,6 +310,9 @@ class MeasurementWidget(_QWidget):
             del self.threadx
             del self.thready
             del self.threadz
+            self.threadx = None
+            self.thready = None
+            self.threadz = None
         except Exception:
             pass
 
@@ -367,6 +386,7 @@ class MeasurementWidget(_QWidget):
         """Save configuration to database table."""
         try:
             self.config_id = self.config.save_to_database(self.database)
+            self.ui.configuration_widget.idn_le.setText(str(self.config_id))
             return True
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
@@ -513,17 +533,17 @@ class MeasurementWidget(_QWidget):
 
         for vd in voltage_data_list:
             self.voltage_data_list.append(vd)
-
+        
         if self.hall_probe is not None:
             self.field_data.set_field_data(
                 voltage_data_list, self.hall_probe)
             success = self.saveScan()
         else:
             success = True
-
+        
         return success
 
-    def showFieldMapDialog(self):
+    def showFieldmapDialog(self):
         """Open fieldmap dialog."""
         self.fieldmap_dialog.show(
             self.field_data_list,
@@ -534,29 +554,34 @@ class MeasurementWidget(_QWidget):
     def showViewDataDialog(self):
         """Open view data dialog."""
         if self.hall_probe is None:
-            self.viewdata_dialog.show(self.voltage_data_list, 'voltage')
+            self.viewdata_dialog.show(
+                self.voltage_data_list, 'Voltage [V]')
         else:
-            self.viewdata_dialog.show(self.field_data_list, 'field')
+            self.viewdata_dialog.show(
+                self.field_data_list, 'Magnetic Field [T]')
 
     def startReadingThreads(self):
         """Start threads to read voltage values."""
         if self.config.voltx_enable:
-            self.threadx = _threading.Thread(
-                target=self.devices.voltx.read_voltage,
-                args=(self.config.voltage_precision,))
+            self.threadx = ReadingThread(
+                self.devices.voltx, self.config.voltage_precision)
             self.threadx.start()
+        else:
+            self.threadx = None
 
         if self.config.volty_enable:
-            self.thready = _threading.Thread(
-                target=self.devices.volty.read_voltage,
-                args=(self.config.voltage_precision,))
+            self.thready = ReadingThread(
+                self.devices.volty, self.config.voltage_precision)
             self.thready.start()
+        else:
+            self.thready = None
 
         if self.config.voltz_enable:
-            self.threadz = _threading.Thread(
-                target=self.devices.voltz.read_voltage,
-                args=(self.config.voltage_precision,))
+            self.threadz = ReadingThread(
+                self.devices.voltz, self.config.voltage_precision)
             self.threadz.start()
+        else:
+            self.threadz = None
 
     def stopMeasurement(self):
         """Stop measurement to True."""
@@ -564,6 +589,7 @@ class MeasurementWidget(_QWidget):
             self.stop = True
             self.devices.pmac.stop_all_axis()
             self.ui.stop_btn.setEnabled(False)
+            self.ui.cleargraph_btn.setEnabled(True)
             message = 'The user stopped the measurements.'
             _QMessageBox.information(
                 self, 'Abort', message, _QMessageBox.Ok)
@@ -587,7 +613,7 @@ class MeasurementWidget(_QWidget):
                     config.voltx_enable,
                     config.volty_enable,
                     config.voltz_enable]):
-                message = 'Multimeters not connected.'
+                message = 'No multimeter selected.'
                 _QMessageBox.critical(
                     self, 'Failure', message, _QMessageBox.Ok)
                 return False
@@ -631,13 +657,27 @@ class MeasurementWidget(_QWidget):
     def waitReadingThreads(self):
         """Wait threads."""
         if self.threadx is not None:
-            while self.threadx.is_alive() and self.stop is False:
+            while self.threadx.isRunning() and self.stop is False:
                 _QApplication.processEvents()
 
         if self.thready is not None:
-            while self.thready.is_alive() and self.stop is False:
+            while self.thready.isRunning() and self.stop is False:
                 _QApplication.processEvents()
 
         if self.threadz is not None:
-            while self.threadz.is_alive() and self.stop is False:
+            while self.threadz.isRunning() and self.stop is False:
                 _QApplication.processEvents()
+
+
+class ReadingThread(_QThread):
+    """Thread to read values from multimeters."""
+
+    def __init__(self, volt, precision):
+        """Initialize object."""
+        super().__init__()
+        self.volt = volt
+        self.precision = precision
+
+    def run(self):
+        """Target function."""
+        self.volt.read_voltage(self.precision)

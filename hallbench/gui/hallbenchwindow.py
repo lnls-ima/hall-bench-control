@@ -23,6 +23,8 @@ from hallbench.gui.voltageoffsetwidget import VoltageOffsetWidget \
     as _VoltageOffsetWidget
 from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
+from hallbench.gui.angularerrorwidget import AngularErrorWidget \
+    as _AngularErrorWidget    
 from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
 import hallbench.data as _data
 
@@ -67,6 +69,9 @@ class HallBenchWindow(_QMainWindow):
 
         self.temperature_tab = _TemperatureWidget(self)
         self.ui.main_tab.addTab(self.temperature_tab, 'Temperature')
+
+        self.angularerror_tab = _AngularErrorWidget(self)
+        self.ui.main_tab.addTab(self.angularerror_tab, 'Angular Error')
 
         self.database_tab = _DatabaseWidget(self)
         self.ui.main_tab.addTab(self.database_tab, 'Database')
@@ -168,6 +173,7 @@ class HallBenchWindow(_QMainWindow):
         try:
             self.motors_tab.updatePositions()
             self.measurement_tab.updatePositions()
+            self.angularerror_tab.updatePositions()
             _QApplication.processEvents()
         except Exception:
             pass

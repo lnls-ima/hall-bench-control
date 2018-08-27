@@ -124,11 +124,20 @@ class MeasurementWidget(_QWidget):
     def closeDialogs(self):
         """Close dialogs."""
         try:
+            self.current_position_widget.close()
             self.fieldmap_dialog.accept()
             self.viewdata_dialog.accept()
             self.configuration_widget.closeDialogs()
         except Exception:
             pass
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.closeDialogs()
+            event.accept()
+        except Exception:
+            event.accept()
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
@@ -199,12 +208,12 @@ class MeasurementWidget(_QWidget):
             self.plotField()
             self.ui.stop_btn.setEnabled(False)
             self.resetMultimeters()
-            
+
             self.ui.viewdata_btn.setEnabled(True)
             self.ui.cleargraph_btn.setEnabled(True)
             if self.hall_probe is not None:
                 self.ui.savefieldmap_btn.setEnabled(True)
-            
+
             message = 'End of measurements.'
             _QMessageBox.information(
                 self, 'Measurements', message, _QMessageBox.Ok)
@@ -533,14 +542,14 @@ class MeasurementWidget(_QWidget):
 
         for vd in voltage_data_list:
             self.voltage_data_list.append(vd)
-        
+
         if self.hall_probe is not None:
             self.field_data.set_field_data(
                 voltage_data_list, self.hall_probe)
             success = self.saveScan()
         else:
             success = True
-        
+
         return success
 
     def showFieldmapDialog(self):

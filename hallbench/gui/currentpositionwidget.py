@@ -6,6 +6,7 @@ from PyQt4.QtGui import (
     QWidget as _QWidget,
     QApplication as _QApplication,
     )
+from PyQt4.QtCore import QTimer as _QTimer
 import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
@@ -13,6 +14,8 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 
 class CurrentPositionWidget(_QWidget):
     """Current Position Widget class for the Hall Bench Control application."""
+
+    _timer_interval = 250  # [ms]
 
     def __init__(self, parent=None):
         """Set up the ui."""
@@ -22,10 +25,30 @@ class CurrentPositionWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
+        self.timer = _QTimer(self)
+        self.startTimer()
+
     @property
     def pmac(self):
         """Pmac object."""
         return self.window().devices.pmac
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.stopTimer()
+            event.accept()
+        except Exception:
+            event.accept()
+
+    def startTimer(self):
+        """Start timer for interface updates."""
+        self.timer.timeout.connect(self.updatePositions)
+        self.timer.start(self._timer_interval)
+
+    def stopTimer(self):
+        """Stop timer."""
+        self.timer.stop()
 
     def updatePositions(self):
         """Update axes positions."""

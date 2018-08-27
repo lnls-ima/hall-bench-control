@@ -66,6 +66,14 @@ class VoltageOffsetWidget(_QWidget):
         else:
             return True
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.timer.stop()
+            event.accept()
+        except Exception:
+            event.accept()
+
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.posax1_le.editingFinished.connect(

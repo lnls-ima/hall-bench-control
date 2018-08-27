@@ -120,6 +120,14 @@ class DatabaseWidget(_QWidget):
         except Exception:
             pass
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.closeDialogs()
+            event.accept()
+        except Exception:
+            event.accept()
+
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.refresh_btn.clicked.connect(self.updateDatabaseTables)
@@ -129,8 +137,8 @@ class DatabaseWidget(_QWidget):
             lambda: self.saveFile(
                 self._connection_table_name, _ConnectionConfig))
         self.ui.delete_connection_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._connection_table_name))        
- 
+            lambda: self.deleteDatabaseRecords(self._connection_table_name))
+
         self.ui.save_hall_sensor_btn.clicked.connect(
             lambda: self.saveFile(self._hall_sensor_table_name, _HallSensor))
         self.ui.delete_hall_sensor_btn.clicked.connect(
@@ -141,7 +149,7 @@ class DatabaseWidget(_QWidget):
             lambda: self.saveFile(self._hall_probe_table_name, _HallProbe))
         self.ui.delete_hall_probe_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._hall_probe_table_name))
-        
+
         self.ui.view_configuration_btn.clicked.connect(self.viewConfiguration)
         self.ui.save_configuration_btn.clicked.connect(
             lambda: self.saveFile(
@@ -164,7 +172,7 @@ class DatabaseWidget(_QWidget):
         self.ui.delete_field_scan_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._field_scan_table_name))
         self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
-        
+
         self.ui.save_fieldmap_btn.clicked.connect(
             lambda: self.saveFile(
                 self._fieldmap_table_name, _Fieldmap, True))
@@ -227,13 +235,13 @@ class DatabaseWidget(_QWidget):
         idns = self.getTableSelectedIDs(table_name)
         if len(idns) == 0:
             return
-        
+
         con = _sqlite3.connect(self.database)
         cur = con.cursor()
 
         msg = 'Delete selected database records?'
         reply = _QMessageBox.question(
-            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)        
+            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
         if reply == _QMessageBox.Yes:
             seq = ','.join(['?']*len(idns))
             cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(table_name, seq)
@@ -261,7 +269,7 @@ class DatabaseWidget(_QWidget):
                 self._field_scan_table_name,
                 self._fieldmap_table_name,
             ]
-            
+
             pages = [
                 self.ui.connection_pg,
                 self.ui.hall_sensor_pg,
@@ -271,7 +279,7 @@ class DatabaseWidget(_QWidget):
                 self.ui.field_scan_pg,
                 self.ui.fieldmap_pg,
             ]
-            
+
             for i in range(len(tables)):
                 _enable = table_name == tables[i]
                 pages[i].setEnabled(_enable)
@@ -358,7 +366,7 @@ class DatabaseWidget(_QWidget):
 
             self.tables.append(table)
             self.ui.database_tab.addTab(tab, table_name)
- 
+
     def saveFile(self, table_name, object_class, has_default_filename=False):
         """Save database record to file."""
         idn = self.getTableSelectedID(table_name)

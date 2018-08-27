@@ -5,10 +5,8 @@
 import os as _os
 from PyQt4.QtGui import (
     QMainWindow as _QMainWindow,
-    QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     )
-from PyQt4.QtCore import QTimer as _QTimer
 import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
@@ -24,7 +22,7 @@ from hallbench.gui.voltageoffsetwidget import VoltageOffsetWidget \
 from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
 from hallbench.gui.angularerrorwidget import AngularErrorWidget \
-    as _AngularErrorWidget    
+    as _AngularErrorWidget
 from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
 import hallbench.data as _data
 
@@ -34,8 +32,6 @@ _database_filename = 'hall_bench_measurements.db'
 
 class HallBenchWindow(_QMainWindow):
     """Main Window class for the Hall Bench Control application."""
-
-    _timer_interval = 250  # [ms]
 
     def __init__(self, parent=None):
         """Set up the ui and add main tabs."""
@@ -76,9 +72,6 @@ class HallBenchWindow(_QMainWindow):
         self.database_tab = _DatabaseWidget(self)
         self.ui.main_tab.addTab(self.database_tab, 'Database')
 
-        self.timer = _QTimer()
-        self.startTimer()
-
         self.create_database(self.database)
         self.ui.database_le.setText(self.database)
 
@@ -99,6 +92,16 @@ class HallBenchWindow(_QMainWindow):
     def fieldmap(self):
         """Measurement fieldmap."""
         return self.measurement_tab.fieldmap
+
+    def closeEvent(self, event):
+        """Close main window and dialogs."""
+        try:
+            for idx in range(self.ui.main_tab.count()):
+                widget = self.ui.main_tab.widget(idx)
+                widget.close()
+            event.accept()
+        except Exception:
+            event.accept()
 
     def create_database(self, database):
         """Create database and tables.
@@ -156,36 +159,6 @@ class HallBenchWindow(_QMainWindow):
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
-
-    def closeEvent(self, event):
-        """Close main window and dialogs."""
-        try:
-            self.measurement_tab.closeDialogs()
-            self.database_tab.closeDialogs()
-            self.devices.disconnect()
-            self.stopTimer()
-            event.accept()
-        except Exception:
-            event.accept()
-
-    def refreshInterface(self):
-        """Read probes positions and update the interface."""
-        try:
-            self.motors_tab.updatePositions()
-            self.measurement_tab.updatePositions()
-            self.angularerror_tab.updatePositions()
-            _QApplication.processEvents()
-        except Exception:
-            pass
-
-    def startTimer(self):
-        """Start timer for interface updates."""
-        self.timer.timeout.connect(self.refreshInterface)
-        self.timer.start(self._timer_interval)
-
-    def stopTimer(self):
-        """Stop timer."""
-        self.timer.stop()
 
     def updateDatabaseTab(self):
         """Update database tab."""

@@ -2,11 +2,7 @@
 
 """Main window for the Hall probe calibration application."""
 
-from PyQt4.QtGui import (
-    QMainWindow as _QMainWindow,
-    QApplication as _QApplication,
-    )
-from PyQt4.QtCore import QTimer as _QTimer
+from PyQt4.QtGui import QMainWindow as _QMainWindow
 import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
@@ -20,8 +16,6 @@ from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
 
 class CalibrationWindow(_QMainWindow):
     """Main Window class for the Hall probe calibration application."""
-
-    _timer_interval = 250  # [ms]
 
     def __init__(self, parent=None):
         """Set up the ui and add main tabs."""
@@ -47,31 +41,16 @@ class CalibrationWindow(_QMainWindow):
         self.voltagetoffset_tab = _VoltageOffsetWidget(self)
         self.ui.main_tab.addTab(self.voltagetoffset_tab, 'Voltage Offset')
 
-        # create timer
-        self.timer = _QTimer()
-
     def closeEvent(self, event):
         """Close main window and dialogs."""
-        self.stopTimer()
-        event.accept()
-
-    def refreshInterface(self):
-        """Read probes positions and update the interface."""
         try:
-            self.motors_tab.updatePositions()
-            _QApplication.processEvents()
+            for idx in range(self.ui.main_tab.count()):
+                widget = self.ui.main_tab.widget(idx)
+                widget.close()
+            event.accept()
         except Exception:
-            pass
-
-    def startTimer(self):
-        """Start timer for interface updates."""
-        self.timer.timeout.connect(self.refreshInterface)
-        self.timer.start(self._timer_interval)
-
-    def stopTimer(self):
-        """Stop timer."""
-        self.timer.stop()
+            event.accept()
 
     def updateMainTabStatus(self, tab, status):
         """Enable or disable main tabs."""
-        self.ui.main_tab.setTabEnabled(tab, status)
+        pass

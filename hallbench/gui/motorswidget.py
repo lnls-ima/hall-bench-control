@@ -70,6 +70,14 @@ class MotorsWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.current_position_widget.close()
+            event.accept()
+        except Exception:
+            event.accept()
+
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.minax1_le.editingFinished.connect(

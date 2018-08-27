@@ -80,14 +80,13 @@ class AngularErrorWidget(_QWidget):
         """Hall Bench devices."""
         return self.window().devices
 
-    def updateLegendItems(self):
-        """Update legend items."""      
-        self.clearLegendItems()
-        self._legend_items = []
-        for label in self._data_labels:
-            legend_label = label.split('[')[0]
-            self._legend_items.append(legend_label)
-            self.legend.addItem(self._graphs[label], legend_label)
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.move_axis_widget.close()
+            event.accept()
+        except Exception:
+            event.accept()
 
     def clearLegendItems(self):
         """Clear plot legend."""
@@ -119,7 +118,7 @@ class AngularErrorWidget(_QWidget):
         self.updateLegendItems()
 
     def connectSignalSlots(self):
-        """Create signal/slot connections."""       
+        """Create signal/slot connections."""
         self.ui.read_btn.clicked.connect(lambda: self.readValue(monitor=False))
         self.ui.monitor_btn.toggled.connect(self.monitorValue)
         self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
@@ -180,7 +179,7 @@ class AngularErrorWidget(_QWidget):
             _rl = self.devices.elcomat.get_absolute_measurement()
         if len(_rl) != len(self._data_labels):
             return
-        
+
         readings = [r if r is not None else _np.nan for r in _rl]
 
         try:
@@ -210,6 +209,15 @@ class AngularErrorWidget(_QWidget):
 
         self.updateTableValues(scrollDown=False)
         self.updatePlot()
+
+    def updateLegendItems(self):
+        """Update legend items."""
+        self.clearLegendItems()
+        self._legend_items = []
+        for label in self._data_labels:
+            legend_label = label.split('[')[0]
+            self._legend_items.append(legend_label)
+            self.legend.addItem(self._graphs[label], legend_label)
 
     def updateMonitorInterval(self):
         """Update monitor interval value."""

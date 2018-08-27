@@ -37,6 +37,19 @@ class ConfigurationDialog(_QDialog):
         _layout.addWidget(self.main_wg)
         self.setLayout(_layout)
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.main_wg.close()
+            event.accept()
+        except Exception:
+            event.accept()
+
+    def accept(self):
+        """Close dialog."""
+        self.main_wg.close()
+        super().accept()
+
     def show(self, database):
         """Update database and show dialog."""
         self.database = database
@@ -101,6 +114,14 @@ class ConfigurationWidget(_QWidget):
             self.hall_probe_dialog.accept()
         except Exception:
             pass
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.closeDialogs()
+            event.accept()
+        except Exception:
+            event.accept()
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""

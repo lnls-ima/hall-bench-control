@@ -138,6 +138,14 @@ class TemperatureWidget(_QWidget):
         self.updateTableValues()
         self.updatePlot()
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.timer.stop()
+            event.accept()
+        except Exception:
+            event.accept()
+
     def configureChannels(self):
         """Configure channels for temperature measurement."""
         self._selected_channels = []

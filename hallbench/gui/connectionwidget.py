@@ -48,6 +48,14 @@ class ConnectionWidget(_QWidget):
         """Database filename."""
         return self.window().database
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.devices.disconnect()
+            event.accept()
+        except Exception:
+            event.accept()
+
     def connectDevices(self):
         """Connect bench devices."""
         if not self.updateConfiguration():

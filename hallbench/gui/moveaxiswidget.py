@@ -45,6 +45,14 @@ class MoveAxisWidget(_QWidget):
         """Pmac object."""
         return self.window().devices.pmac
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.current_position_widget.close()
+            event.accept()
+        except Exception:
+            event.accept()
+
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.targetvel_le.editingFinished.connect(

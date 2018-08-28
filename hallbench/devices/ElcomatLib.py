@@ -144,7 +144,7 @@ class Elcomat(object):
         try:
             self.flush()
             self.send_command(self.commands.read_absolute)
-            _time.sleep(0.01)
+            _time.sleep(0.05)
             _readings = self.read_from_device(n=50)
             _rlist = _readings.split('\r')[:-1]
             if len(_rlist) == 1:
@@ -172,7 +172,7 @@ class Elcomat(object):
         try:
             self.flush()
             self.send_command(self.commands.read_relative)
-            _time.sleep(0.01)
+            _time.sleep(0.05)
             _readings = self.read_from_device(n=50)
             _rlist = _readings.split('\r')[:-1]
             if len(_rlist) == 1:

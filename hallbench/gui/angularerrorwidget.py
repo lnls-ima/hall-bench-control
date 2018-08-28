@@ -28,8 +28,8 @@ class AngularErrorWidget(_QWidget):
     _data_labels = ['X-axis [arcsec]', 'Y-axis [arcsec]']
     _yaxis_label = 'Angular error [arcsec]'
     _colors = {
-        'X-axis [arcsec]': (230, 25, 75),
-        'Y-axis [arcsec]': (60, 180, 75),
+        'X-axis [arcsec]': (255, 0, 0),
+        'Y-axis [arcsec]': (0, 255, 0),
     }
 
     def __init__(self, parent=None):
@@ -49,6 +49,7 @@ class AngularErrorWidget(_QWidget):
 
         # variables initialization
         self.timestamp = []
+        self.pos = []
         self._legend_items = []
         self._readings = {}
         self._graphs = {}
@@ -61,7 +62,7 @@ class AngularErrorWidget(_QWidget):
         self.updateMonitorInterval()
         self.timer.timeout.connect(lambda: self.readValue(monitor=True))
 
-        col_labels = ['Date', 'Time']
+        col_labels = ['Date', 'Time', 'Position']
         for label in self._data_labels:
             col_labels.append(label)
         self.ui.table_ta.setColumnCount(len(col_labels))
@@ -84,6 +85,7 @@ class AngularErrorWidget(_QWidget):
         """Close widget."""
         try:
             self.move_axis_widget.close()
+            self.timer.stop()
             event.accept()
         except Exception:
             event.accept()
@@ -96,6 +98,7 @@ class AngularErrorWidget(_QWidget):
     def clearValues(self):
         """Clear all values."""
         self.timestamp = []
+        self.pos = []
         for label in self._data_labels:
             self._readings[label] = []
         self.updateTableValues()
@@ -136,7 +139,7 @@ class AngularErrorWidget(_QWidget):
         if nr == 0:
             return
 
-        col_labels = ['Date', 'Time']
+        col_labels = ['Date', 'Time', 'Position']
         for label in self._data_labels:
             col_labels.append(label)
         tdata = []
@@ -161,7 +164,7 @@ class AngularErrorWidget(_QWidget):
             self.ui.read_btn.setEnabled(True)
 
     def readValue(self, monitor=False):
-        """Read  value."""
+        """Read value."""
         if len(self._data_labels) == 0:
             return
 
@@ -172,22 +175,30 @@ class AngularErrorWidget(_QWidget):
                     'Auto-collimator not connected.', _QMessageBox.Ok)
             return
 
-        ts = _time.time()
-        if self.ui.meastype_cmb.currentText().lower() == 'relative':
-            _rl = self.devices.elcomat.get_relative_measurement()
-        else:
-            _rl = self.devices.elcomat.get_absolute_measurement()
-        if len(_rl) != len(self._data_labels):
-            return
-
-        readings = [r if r is not None else _np.nan for r in _rl]
-
         try:
+            ts = _time.time()
+
+            axis = self.move_axis_widget.selectedAxis()
+            if axis is None:
+                pos = _np.nan
+            else:
+                pos = self.devices.pmac.get_position(axis)
+            
+            if self.ui.meastype_cmb.currentText().lower() == 'relative':
+                _rl = self.devices.elcomat.get_relative_measurement()
+            else:
+                _rl = self.devices.elcomat.get_absolute_measurement()
+            if len(_rl) != len(self._data_labels):
+                return
+    
+            readings = [r if r is not None else _np.nan for r in _rl]
+            
             for i in range(len(self._data_labels)):
                 label = self._data_labels[i]
                 value = readings[i]
                 self._readings[label].append(value)
 
+            self.pos.append(pos)
             self.timestamp.append(ts)
             self.updateTableValues()
             self.updatePlot()
@@ -202,6 +213,7 @@ class AngularErrorWidget(_QWidget):
         n = len(self.timestamp)
 
         self.timestamp = [self.timestamp[i] for i in range(n) if i not in rows]
+        self.pos = [self.pos[i] for i in range(n) if i not in rows]
         for label in self._data_labels:
             readings = self._readings[label]
             self._readings[label] = [
@@ -263,10 +275,12 @@ class AngularErrorWidget(_QWidget):
                 dt = _datetime.datetime.fromtimestamp(self.timestamp[i])
                 date = dt.strftime("%d/%m/%Y")
                 hour = dt.strftime("%H:%M:%S")
+                pos = '{0:.4f}'.format(self.pos[i])
                 self.ui.table_ta.setItem(i, 0, _QTableWidgetItem(date))
                 self.ui.table_ta.setItem(i, 1, _QTableWidgetItem(hour))
+                self.ui.table_ta.setItem(i, 2, _QTableWidgetItem(pos))
                 self.ui.table_ta.setItem(
-                    i, j+2, _QTableWidgetItem(self._data_format.format(
+                    i, j+3, _QTableWidgetItem(self._data_format.format(
                         readings[i])))
 
         if scrollDown:

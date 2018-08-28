@@ -26,12 +26,13 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 class TemperatureWidget(_QWidget):
     """Temperature Widget class for the Hall Bench Control application."""
 
-    _temperature_format = '{0:.2f}'
+    _data_format = '{0:.2f}'
     _probe_channels = ['101', '102', '103']
     _channels = [
         '101', '102', '103', '201', '202', '203', '204',
         '205', '206', '207', '208', '209', '210',
     ]
+    _yaxis_label = 'Temperature [deg C]'
     _channel_colors = _collections.OrderedDict([
         ('101', (230, 25, 75)),
         ('102', (60, 180, 75)),
@@ -92,20 +93,20 @@ class TemperatureWidget(_QWidget):
             ('210', None),
         ])
 
-        # create timer to monitor temperature
+        # create timer to monitor values
         self.timer = _QTimer(self)
         self.updateMonitorInterval()
-        self.timer.timeout.connect(lambda: self.readTemperature(monitor=True))
+        self.timer.timeout.connect(lambda: self.readValue(monitor=True))
 
         self.ui.configureled_la.setEnabled(False)
-        self.ui.temperature_ta.setAlternatingRowColors(True)
+        self.ui.table_ta.setAlternatingRowColors(True)
 
         dt = _QDateTime()
         dt.setTime_t(_time.time())
         self.ui.time_dte.setDateTime(dt)
 
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
-        self.legend.setParentItem(self.ui.temperature_pw.graphicsItem())
+        self.legend.setParentItem(self.ui.plot_pw.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
         self.configureGraph()
@@ -130,8 +131,8 @@ class TemperatureWidget(_QWidget):
         for label in self._legend_items:
             self.legend.removeItem(label)
 
-    def clearTemperatureValues(self):
-        """Clear all temperature values."""
+    def clearValues(self):
+        """Clear all values."""
         self.timestamp = []
         for channel in self._channels:
             self.channel_readings[channel] = []
@@ -177,31 +178,31 @@ class TemperatureWidget(_QWidget):
 
     def configureGraph(self):
         """Configure data plots."""
-        self.ui.temperature_pw.clear()
+        self.ui.plot_pw.clear()
 
         for channel in self._channels:
             pen = self._channel_colors[channel]
-            graph = self.ui.temperature_pw.plotItem.plot(
+            graph = self.ui.plot_pw.plotItem.plot(
                 _np.array([]), _np.array([]), pen=pen,
                 symbol='o', symbolPen=pen, symbolSize=3, symbolBrush=pen)
             self.channel_graphs[channel] = graph
 
-        self.ui.temperature_pw.setLabel('bottom', 'Time interval [s]')
-        self.ui.temperature_pw.setLabel('left', 'Temperature [deg C]')
-        self.ui.temperature_pw.showGrid(x=True, y=True)
+        self.ui.plot_pw.setLabel('bottom', 'Time interval [s]')
+        self.ui.plot_pw.setLabel('left', self._yaxis_label)
+        self.ui.plot_pw.showGrid(x=True, y=True)
         self.updateLegendItems()
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.configure_btn.clicked.connect(self.configureChannels)
         self.ui.read_btn.clicked.connect(
-            lambda: self.readTemperature(monitor=False))
-        self.ui.monitor_btn.toggled.connect(self.monitorTemperature)
+            lambda: self.readValue(monitor=False))
+        self.ui.monitor_btn.toggled.connect(self.monitorValue)
         self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
         self.ui.monitorunit_cmb.currentIndexChanged.connect(
             self.updateMonitorInterval)
-        self.ui.clear_btn.clicked.connect(self.clearTemperatureValues)
-        self.ui.remove_btn.clicked.connect(self.removeTemperatureValue)
+        self.ui.clear_btn.clicked.connect(self.clearValues)
+        self.ui.remove_btn.clicked.connect(self.removeValue)
         self.ui.copy_btn.clicked.connect(self.copyToClipboard)
         self.ui.channel101_chb.stateChanged.connect(self.disableLed)
         self.ui.channel102_chb.stateChanged.connect(self.disableLed)
@@ -219,8 +220,8 @@ class TemperatureWidget(_QWidget):
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""
-        nr = self.ui.temperature_ta.rowCount()
-        nc = self.ui.temperature_ta.columnCount()
+        nr = self.ui.table_ta.rowCount()
+        nc = self.ui.table_ta.columnCount()
 
         if nr == 0:
             return
@@ -232,7 +233,7 @@ class TemperatureWidget(_QWidget):
         for i in range(nr):
             ldata = []
             for j in range(nc):
-                value = self.ui.temperature_ta.item(i, j).text()
+                value = self.ui.table_ta.item(i, j).text()
                 if j >= 2:
                     value = float(value)
                 ldata.append(value)
@@ -244,8 +245,8 @@ class TemperatureWidget(_QWidget):
         """Disable configuration led."""
         self.ui.configureled_la.setEnabled(False)
 
-    def monitorTemperature(self, checked):
-        """Monitor temperature values."""
+    def monitorValue(self, checked):
+        """Monitor values."""
         if checked:
             self.ui.read_btn.setEnabled(False)
             self.timer.start()
@@ -253,8 +254,8 @@ class TemperatureWidget(_QWidget):
             self.timer.stop()
             self.ui.read_btn.setEnabled(True)
 
-    def readTemperature(self, monitor=False):
-        """Read temperature value."""
+    def readValue(self, monitor=False):
+        """Read value."""
         if len(self._selected_channels) == 0:
             return
 
@@ -285,7 +286,7 @@ class TemperatureWidget(_QWidget):
                 channel = self._selected_channels[i]
                 le = getattr(self.ui, 'channel' + channel + '_le')
                 temperature = readings[i]
-                le.setText(self._temperature_format.format(temperature))
+                le.setText(self._data_format.format(temperature))
                 self.channel_readings[channel].append(temperature)
 
             for channel in self._channels:
@@ -305,9 +306,9 @@ class TemperatureWidget(_QWidget):
         except Exception:
             pass
 
-    def removeTemperatureValue(self):
-        """Remove temperature value from list."""
-        selected = self.ui.temperature_ta.selectedItems()
+    def removeValue(self):
+        """Remove value from list."""
+        selected = self.ui.table_ta.selectedItems()
         rows = [s.row() for s in selected]
         n = len(self.timestamp)
 
@@ -351,8 +352,8 @@ class TemperatureWidget(_QWidget):
     def updateTableValues(self, scrollDown=True):
         """Update table values."""
         n = len(self.timestamp)
-        self.ui.temperature_ta.clearContents()
-        self.ui.temperature_ta.setRowCount(n)
+        self.ui.table_ta.clearContents()
+        self.ui.table_ta.setRowCount(n)
 
         for j in range(len(self._channels)):
             readings = self.channel_readings[self._channels[j]]
@@ -360,12 +361,12 @@ class TemperatureWidget(_QWidget):
                 dt = _datetime.datetime.fromtimestamp(self.timestamp[i])
                 date = dt.strftime("%d/%m/%Y")
                 hour = dt.strftime("%H:%M:%S")
-                self.ui.temperature_ta.setItem(i, 0, _QTableWidgetItem(date))
-                self.ui.temperature_ta.setItem(i, 1, _QTableWidgetItem(hour))
-                self.ui.temperature_ta.setItem(
-                    i, j+2, _QTableWidgetItem(self._temperature_format.format(
+                self.ui.table_ta.setItem(i, 0, _QTableWidgetItem(date))
+                self.ui.table_ta.setItem(i, 1, _QTableWidgetItem(hour))
+                self.ui.table_ta.setItem(
+                    i, j+2, _QTableWidgetItem(self._data_format.format(
                         readings[i])))
 
         if scrollDown:
-            vbar = self.temperature_ta.verticalScrollBar()
+            vbar = self.table_ta.verticalScrollBar()
             vbar.setValue(vbar.maximum())

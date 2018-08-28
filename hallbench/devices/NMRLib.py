@@ -178,7 +178,6 @@ class NMR(object):
         """
         try:
             with self.rlock:
-                self.rlock.acquire()
                 self.send_command(self.commands.remote)
                 _time.sleep(self._delay)
 

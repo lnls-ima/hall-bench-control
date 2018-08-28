@@ -125,6 +125,7 @@ class ConnectionConfig(Configuration):
         ('elcomat_enable', ['elcomat_enable', 'INTEGER NOT NULL']),
         ('elcomat_port', ['elcomat_port', 'TEXT NOT NULL']),
         ('elcomat_baudrate', ['elcomat_baudrate', 'INTEGER NOT NULL']),
+        ('ps_port', )
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -150,6 +151,7 @@ class ConnectionConfig(Configuration):
         self.elcomat_enable = None
         self.elcomat_port = None
         self.elcomat_baudrate = None
+        self.ps_port = None
 
         if filename is not None and idn is not None:
             raise ValueError('Invalid arguments for ConnectionConfig.')
@@ -444,3 +446,85 @@ class MeasurementConfig(Configuration):
         """Set velocity value for the given axis."""
         param = 'vel_ax'
         self._set_axis_param(param, axis, value)
+
+
+class PowerSupplyConfig(Configuration):
+    """Read, write and store Power Supply configuration data"""
+
+    _db_table = 'power_supply'
+    _db_dict = _collections.OrderedDict([
+        ('id', [None, 'INTEGER NOT NULL'])
+        ('name', ['ps_name', 'TEXT NOT NULL UNIQUE']),
+        ('type', ['ps_type', 'INTEGER NOT NULL']),
+        ('port', ['ps_port', 'TEXT NOT NULL']),
+        ('dclink', ['dclink', 'REAL'])
+        ('setpoint', ['ps_setpoint', 'REAL NOT NULL']),
+        ('sinusoidal amplitude', ['sinusoidal_amplitude', 'REAL NOT NULL']),
+        ('sinusoidal offset', ['sinusoidal_offset', 'REAL NOT NULL']),
+        ('sinusoidal frequency', ['sinusoidal_frequency', 'REAL NOT NULL']),
+        ('sinusoidal n cycles', ['sinusoidal_ncycles', 'REAL NOT NULL']),
+        ('sinusoidal initial phase', ['sinusoidal_phasei', 'REAL NOT NULL']),
+        ('sinusoidal final phase', ['sinusoidal_phasef', 'REAL NOT NULL']),
+        ('damped sinusoidal amplitude', ['dsinusoidal_amplitude',
+                                         'REAL NOT NULL']),
+        ('damped sinusoidal offset', ['dsinusoidal_offset', 'REAL NOT NULL']),
+        ('damped sinusoidal frequency', ['dsinusoidal_frequency',
+                                         'REAL NOT NULL']),
+        ('damped sinusoidal n cycles', ['dsinusoidal_ncycles',
+                                        'REAL NOT NULL']),
+        ('damped sinusoidal initial phase', ['dsinusoidal_phasei',
+                                             'REAL NOT NULL']),
+        ('damped sinusoidal final phase', ['dsinusoidal_phasef',
+                                           'REAL NOT NULL']),
+        ('damped sinusoidal damping', ['dsinusoidal_damp', 'REAL NOT NULL']),
+        ('maximum current', ['maximum_current', 'REAL NOT NULL']),
+        ('minimum current', ['minimum_current', 'REAL NOT NULL']),
+        ('Kp', ['Kp', 'REAL NOT NULL']),
+        ('Ki', ['Ki', 'REAL NOT NULL']),
+        ('DCCT Head', ['dcct_head', 'INTEGER NOT NULL']),
+    ])
+
+    def __init__(self):
+        """Initialize object.
+
+        Args:
+            serial_drs(SerialDRS_FBP): power supply serial class instance
+            database (str): database file path.
+            idn (int): id in database table.
+        """
+        #Power supply status (False = off, True = on)
+        self.status = False
+        #Power supply loop status (False = open, True = closed)
+        self.status_loop = False
+        #DC link voltage (30V is the default)
+        self.dclink = 30
+        #True for DCCT enabled, False for DCCT disabled
+        self.dcct = False
+        #Actual current
+        self.actual_current = 0
+
+        #database variables
+        self.ps_name = None
+        self.ps_type = None
+        self.ps_port = None
+        self.ps_setpoint = None
+        self.sinusoidal_amplitude = None
+        self.sinusoidal_offset = None
+        self.sinusoidal_frequency = None
+        self.sinusoidal_ncycles = None
+        self.sinusoidal_phasei = None
+        self.sinusoidal_phasef = None
+        self.dsinusoidal_amplitude = None
+        self.dsinusoidal_offset = None
+        self.dsinusoidal_frequency = None
+        self.dsinusoidal_ncycles = None
+        self.dsinusoidal_phasei = None
+        self.dsinusoidal_phasef = None
+        self.dsinusoidal_damp = None
+        self.maximum_current = None
+        self.minimum_current = None
+        self.Kp = None
+        self.Ki = None
+        self.dcct_head = None
+
+powersupply_config = PowerSupplyConfig()

@@ -184,6 +184,28 @@ class DatabaseObject(object):
         return column_names
 
     @classmethod
+    def get_table_column(cls, database, column, table=None):
+        """Return column values of the database table.
+
+        Args:
+            database (str): full file path to database.
+            column (str): column name.
+            table (str, optional): database table name.
+        """
+        if table is None:
+            table = cls._db_table
+
+        if not cls.table_exists(database, table):
+            return []
+
+        con = _sqlite.connect(database)
+        cur = con.cursor()
+        cur.execute('SELECT {0} FROM {1}'.format(column, table))
+        column = [d[0] for d in cur.fetchall()]
+        con.close()
+        return column
+
+    @classmethod
     def search_database_param(cls, database, parameter, value, table=None):
         """Search paremeter in database.
 

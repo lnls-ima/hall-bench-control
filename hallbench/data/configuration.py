@@ -305,11 +305,7 @@ class MeasurementConfig(Configuration):
     @classmethod
     def get_probe_name_from_database(cls, database, idn):
         """Return the probe name of the database record."""
-        if len(cls._db_table) == 0:
-            return None
-
-        probe_name = _database.get_database_param(
-            database, cls._db_table, idn, 'probe_name')
+        probe_name = cls.get_database_param(database, idn, 'probe_name')
         return probe_name
 
     def _set_axis_param(self, param, axis, value):

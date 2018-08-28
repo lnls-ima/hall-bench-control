@@ -109,11 +109,8 @@ class Data(_database.DatabaseObject):
     @classmethod
     def get_configuration_id_from_database(cls, database, idn):
         """Return the configuration ID of the database record."""
-        if len(cls._db_table) == 0:
-            return None
-
-        configuration_id = _database.get_database_param(
-            database, cls._db_table, idn, 'configuration_id')
+        configuration_id = cls.get_database_param(
+            database, idn, 'configuration_id')
         return configuration_id
 
     @property

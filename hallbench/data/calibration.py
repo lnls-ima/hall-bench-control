@@ -156,10 +156,10 @@ class HallSensor(_database.DatabaseObject):
 
     def clear(self):
         """Clear hall sensor data."""
-        self._function_type = None
-        self._function = None
         self.sensor_name = None
         self.calibration_magnet = None
+        self._function_type = None
+        self._function = None
         self._data = []
 
     def convert_voltage(self, voltage_array):
@@ -337,11 +337,7 @@ class HallProbe(_database.DatabaseObject):
     @classmethod
     def get_hall_probe_id(cls, database, probe_name):
         """Search probe name in database and return table ID."""
-        if len(cls._db_table) == 0:
-            return None
-
-        idns = _database.get_database_id(
-            database, cls._db_table, 'probe_name', probe_name)
+        idns = cls.get_database_id(database, 'probe_name', probe_name)
         if len(idns) != 0:
             idn = idns[0]
         else:
@@ -351,11 +347,7 @@ class HallProbe(_database.DatabaseObject):
     @classmethod
     def get_probe_name_from_database(cls, database, idn):
         """Return the probe name of the database record."""
-        if len(cls._db_table) == 0:
-            return None
-
-        probe_name = _database.get_database_param(
-            database, cls._db_table, idn, 'probe_name')
+        probe_name = cls.get_database_param(database, idn, 'probe_name')
         return probe_name
 
     @property
@@ -564,11 +556,9 @@ class HallProbe(_database.DatabaseObject):
 
     def load_sensors_data(self, database):
         """Load Hall sensors data from database."""
-        db_table = HallSensor.database_table_name()
-
         if self.sensorx_name is not None:
-            idns = _database.get_database_id(
-                database, db_table, 'sensor_name', self.sensorx_name)
+            idns = HallSensor.get_database_id(
+                database, 'sensor_name', self.sensorx_name)
             if len(idns) != 0:
                 idn = idns[0]
                 self.sensorx = HallSensor(database=database, idn=idn)
@@ -576,8 +566,8 @@ class HallProbe(_database.DatabaseObject):
                 return False
 
         if self.sensory_name is not None:
-            idns = _database.get_database_id(
-                database, db_table, 'sensor_name', self.sensory_name)
+            idns = HallSensor.get_database_id(
+                database, 'sensor_name', self.sensory_name)
             if len(idns) != 0:
                 idn = idns[0]
                 self.sensory = HallSensor(database=database, idn=idn)
@@ -585,8 +575,8 @@ class HallProbe(_database.DatabaseObject):
                 return False
 
         if self.sensory_name is not None:
-            idns = _database.get_database_id(
-                database, db_table, 'sensor_name', self.sensorz_name)
+            idns = HallSensor.get_database_id(
+                database, 'sensor_name', self.sensorz_name)
             if len(idns) != 0:
                 idn = idns[0]
                 self.sensorz = HallSensor(database=database, idn=idn)

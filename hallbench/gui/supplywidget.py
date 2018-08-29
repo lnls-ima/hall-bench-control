@@ -13,12 +13,9 @@ import PyQt4.uic as _uic
 
 import numpy as _np
 import time as _time
-import serial.tools.list_ports as _list_ports
+# import serial.tools.list_ports as _list_ports
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.data.configuration import powersupply_config as\
-    _powersupply_config
-from hallbench.devices.SerialDRS import SerialDRS_FBP as _SerialDRS_FBP
 
 
 class SupplyWidget(_QWidget):
@@ -33,11 +30,10 @@ class SupplyWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
-        self.config = _powersupply_config
-        self.drs = _SerialDRS_FBP
+        self.config = self.power_supply_config
+        self.drs = self.devices.ps
 
-        #fill comboboxes
-        self.list_ports()
+        #fill combobox
         self.list_powersupply()
 
         # create signal/slot connections
@@ -55,48 +51,37 @@ class SupplyWidget(_QWidget):
     @property
     def devices(self):
         """Hall Bench Devices."""
-        return self.window().devices
+        return _QApplication.instance().devices
 
     @property
     def database(self):
         """Database filename."""
-        return self.window().database
+        return _QApplication.instance().database
 
-    def connect(self):
-        """Connects Power Supply serial communication."""
-        self.drs.Connect(self.config.ps_port)
-        if not self.drs.ser.is_open:
-            _QMessageBox.warning(self, 'Warning',
-                                 'Failed to connect to Power Supply.',
-                                 _QMessageBox.Ok)
-        else:
-            _QMessageBox.information(self, 'Information',
-                                     'Connected to Power Supply.',
-                                     _QMessageBox.Ok)
+    @property
+    def power_supply_config(self):
+        """Power Supply configurations."""
+        return _QApplication.instance().power_supply_config
 
-    def disconnect(self):
-        """Disconnects Power Supply serial communication."""
-        self.drs.Disconnect()
-
-    def list_ports(self):
-        """Updates avaliable serial ports."""
-        _l = _list_ports.comports()
-        _ports = []
-
-        _s = ''
-        _k = str
-        if 'COM' in _l[0]:
-            _s = 'COM'
-            _k = int
-
-        for key in _l:
-            _ports.append(key.device.strip(_s))
-        _ports.sort(key=_k)
-        _ports = [_s + key for key in _ports]
-
-        for i in range(self.ui.cb_ps_port.count()):
-            self.ui.cb_ps_port.removeItem(0)
-        self.ui.cb_ps_port.addItems(_ports)
+#     def list_ports(self):
+#         """Updates avaliable serial ports."""
+#         _l = _list_ports.comports()
+#         _ports = []
+#
+#         _s = ''
+#         _k = str
+#         if 'COM' in _l[0][0]:
+#             _s = 'COM'
+#             _k = int
+#
+#         for key in _l:
+#             _ports.append(key.device.strip(_s))
+#         _ports.sort(key=_k)
+#         _ports = [_s + key for key in _ports]
+#
+#         for i in range(self.ui.cb_ps_port.count()):
+#             self.ui.cb_ps_port.removeItem(0)
+#         self.ui.cb_ps_port.addItems(_ports)
 
     def list_powersupply(self):
         """Updates available power supply supply names."""
@@ -110,7 +95,6 @@ class SupplyWidget(_QWidget):
         try:
             self.ui.pb_ps_button.setEnabled(False)
             self.ui.pb_ps_button.setText('Processing...')
-            _status_ps = self.config.status
             self.ui.tabWidget_2.setEnabled(False)
             _QApplication.processEvents()
 
@@ -118,7 +102,7 @@ class SupplyWidget(_QWidget):
             self.drs.SetSlaveAdd(_ps_type)
 
             # Status ps is OFF
-            if _status_ps is False:
+            if self.config.status is False:
                 try:
                     self.drs.Read_iLoad1()
                 except:
@@ -245,7 +229,7 @@ class SupplyWidget(_QWidget):
                     return
                 self.change_ps_button(False)
                 self.config.status = True
-                self.config.actual_current = 0
+                self.config.main_current = 0
                 self.ui.le_status_loop.setText('Closed')
                 self.ui.lb_status_ps.setText('OK')
                 self.ui.tabWidget_2.setEnabled(True)
@@ -284,7 +268,7 @@ class SupplyWidget(_QWidget):
                         self.change_ps_button(False)
                         return
                 self.config.status = False
-                self.config.actual_current = 0
+                self.config.main_current = 0
                 self.ui.lb_status_ps.setText('NOK')
                 self.ui.le_status_loop.setText('Open')
                 self.ui.pb_send.setEnabled(False)
@@ -318,7 +302,6 @@ class SupplyWidget(_QWidget):
 
         self.config.ps_name = self.ui.cb_ps_name.currentText()
         self.config.ps_type = self.ui.cb_ps_type.currentIndex()
-        self.config.ps_port = self.ui.cb_ps_port.currentText()
         self.config.dclink = self.ui.sb_dclink.value()
         self.config.ps_setpoint = self.ui.sp_current_setpoint.value()
         self.config.sinusoidal_amplitude = float(
@@ -327,7 +310,7 @@ class SupplyWidget(_QWidget):
             self.ui.le_sinusoidal_offset.text())
         self.config.sinusoidal_frequency = float(
             self.ui.le_sinusoidal_frequency.text())
-        self.config.sinusoidal_ncycles = float(
+        self.config.sinusoidal_ncycles = int(
             self.ui.le_sinusoidal_n_cycles.text())
         self.config.sinusoidal_phasei = float(self.ui.le_initial_phase.text())
         self.config.sinusoidal_phasef = float(self.ui.le_final_phase.text())
@@ -337,7 +320,7 @@ class SupplyWidget(_QWidget):
             self.ui.le_damp_sin_offset.text())
         self.config.dsinusoidal_frequency = float(
             self.ui.le_damp_sin_freq.text())
-        self.config.dsinusoidal_ncycles = float(
+        self.config.dsinusoidal_ncycles = int(
             self.ui.le_damp_sin_ncycles.text())
         self.config.dsinusoidal_phasei = float(
             self.ui.le_damp_sin_phaseShift.text())
@@ -356,7 +339,6 @@ class SupplyWidget(_QWidget):
 
         self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
         self.ui.cb_ps_type.setCurrentIndex(self.config.ps_type - 2)
-        self.ui.cb_ps_port.setCurrentText(self.config.ps_port)
         self.ui.sb_dclink.setValue(self.config.dclink)
         self.ui.sp_current_setpoint.setValue(self.config.ps_setpoint)
         self.ui.le_sinusoidal_amplitude.setText(str(
@@ -455,6 +437,24 @@ class SupplyWidget(_QWidget):
             _QMessageBox.warning(self, 'Warning', 'Could not display Current.',
                                  _QMessageBox.Ok)
             return
+
+    def dcct_convert(self):
+        _agilent_reading = Lib.comm.agilent34970a.read_temp_volt()
+        if isinstance(Lib.measurement_settings, pd.DataFrame):
+            Lib.write_value(Lib.measurement_settings, 'temperature', _agilent_reading[0])
+            setattr(self, 'temperature_magnet', _agilent_reading[1])
+            setattr(self, 'temperature_water', _agilent_reading[2])
+        _voltage = _agilent_reading[4]
+        if _voltage =='':
+            _current = 0
+        else:
+            if self.ui.dcct_select.currentIndex() == 0:   #For 40 A dcct head
+                _current = (float(_voltage))*4
+            if self.ui.dcct_select.currentIndex() == 1:   #For 160 A dcct head
+                _current = (float(_voltage))*16
+            if self.ui.dcct_select.currentIndex() == 2:   #For 320 A dcct head
+                _current = (float(_voltage))*32
+        return _current
 
     def current_setpoint(self, setpoint=0):
         """Changes power supply current setpoint settings."""
@@ -838,19 +838,31 @@ class SupplyWidget(_QWidget):
 
     def save_powersupply(self):
         """Save Power Supply settings into database"""
-
         self.config_ps()
+
         try:
-            if self.config.save_to_database(self.database) is not None:
-                self.list_powersupply()
-                _QMessageBox.information(self, 'Information',
-                                         'Power Supply saved into database.',
-                                         _QMessageBox.Ok)
+            _idn = self.config.get_database_id(self.database, 'name',
+                                               self.config.ps_name)
+            if not len(_idn):
+                if self.config.save_to_database(self.database) is not None:
+                    self.list_powersupply()
+                    _QMessageBox.information(self, 'Information', '''Power
+                                             Supply saved into database.''',
+                                             _QMessageBox.Ok)
+                else:
+                    raise Exception('Failed to save Power Supply')
             else:
-                _QMessageBox.warning(self, 'Warning',
-                                     'Failed to save Power Supply entry.',
-                                     _QMessageBox.Ok)
-        except:
+                if self.config.update_database_table(self.database, _idn[0]):
+                    self.list_powersupply()
+                    _QMessageBox.information(self, 'Information', '''Power
+                                             Supply updated into database.''',
+                                             _QMessageBox.Ok)
+                else:
+                    raise Exception('Failed to save Power Supply')
+        except Exception:
+            _QMessageBox.warning(self, 'Warning',
+                                 'Failed to save Power Supply entry.',
+                                 _QMessageBox.Ok)
             return
 
     def load_powersupply(self):
@@ -858,21 +870,22 @@ class SupplyWidget(_QWidget):
 
         self.config.ps_name = self.ui.cb_ps_name.currentText()
         try:
-            self.config.read_from_database(database, self.config._db_table,
-                                           idn)
-            self.config_widget()
-            if _ans is True:
-                self.refresh_ps_settings()
+            _idn = self.config.get_database_id(self.database, 'name',
+                                               self.config.ps_name)
+            if len(_idn):
+                self.config.read_from_database(self.database, _idn)
+                self.config_widget()
                 self.ui.gb_start_supply.setEnabled(True)
-                _QMessageBox.information(self, 'Information',
-                                         'Power Supply File loaded.',
-                                         _QMessageBox.Ok)
                 self.ui.tabWidget_2.setEnabled(True)
                 self.ui.tabWidget_3.setEnabled(True)
                 self.ui.pb_refresh.setEnabled(True)
+                _QMessageBox.information(self, 'Information',
+                                         'Power Supply File loaded.',
+                                         _QMessageBox.Ok)
             else:
                 _QMessageBox.warning(self, 'Warning',
-                                     '''Failed to load Power Supply File.''',
+                                     '''Could not load the power supply.\n
+                                     Check if the name really exists.''',
                                      _QMessageBox.Ok)
         except:
             #traceback.print_exc(file=sys.stdout)

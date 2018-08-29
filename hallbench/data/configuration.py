@@ -125,7 +125,7 @@ class ConnectionConfig(Configuration):
         ('elcomat_enable', ['elcomat_enable', 'INTEGER NOT NULL']),
         ('elcomat_port', ['elcomat_port', 'TEXT NOT NULL']),
         ('elcomat_baudrate', ['elcomat_baudrate', 'INTEGER NOT NULL']),
-        ('ps_port', )
+        ('ps_port', ['ps_port', 'TEXT NOT NULL'])
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -453,16 +453,15 @@ class PowerSupplyConfig(Configuration):
 
     _db_table = 'power_supply'
     _db_dict = _collections.OrderedDict([
-        ('id', [None, 'INTEGER NOT NULL'])
+        ('id', [None, 'INTEGER NOT NULL']),
         ('name', ['ps_name', 'TEXT NOT NULL UNIQUE']),
         ('type', ['ps_type', 'INTEGER NOT NULL']),
-        ('port', ['ps_port', 'TEXT NOT NULL']),
-        ('dclink', ['dclink', 'REAL'])
+        ('dclink', ['dclink', 'REAL']),
         ('setpoint', ['ps_setpoint', 'REAL NOT NULL']),
         ('sinusoidal amplitude', ['sinusoidal_amplitude', 'REAL NOT NULL']),
         ('sinusoidal offset', ['sinusoidal_offset', 'REAL NOT NULL']),
         ('sinusoidal frequency', ['sinusoidal_frequency', 'REAL NOT NULL']),
-        ('sinusoidal n cycles', ['sinusoidal_ncycles', 'REAL NOT NULL']),
+        ('sinusoidal n cycles', ['sinusoidal_ncycles', 'INTEGER NOT NULL']),
         ('sinusoidal initial phase', ['sinusoidal_phasei', 'REAL NOT NULL']),
         ('sinusoidal final phase', ['sinusoidal_phasef', 'REAL NOT NULL']),
         ('damped sinusoidal amplitude', ['dsinusoidal_amplitude',
@@ -471,7 +470,7 @@ class PowerSupplyConfig(Configuration):
         ('damped sinusoidal frequency', ['dsinusoidal_frequency',
                                          'REAL NOT NULL']),
         ('damped sinusoidal n cycles', ['dsinusoidal_ncycles',
-                                        'REAL NOT NULL']),
+                                        'INTEGER NOT NULL']),
         ('damped sinusoidal initial phase', ['dsinusoidal_phasei',
                                              'REAL NOT NULL']),
         ('damped sinusoidal final phase', ['dsinusoidal_phasef',
@@ -500,13 +499,12 @@ class PowerSupplyConfig(Configuration):
         self.dclink = 30
         #True for DCCT enabled, False for DCCT disabled
         self.dcct = False
-        #Actual current
-        self.actual_current = 0
+        #Main current
+        self.main_current = 0
 
         #database variables
         self.ps_name = None
         self.ps_type = None
-        self.ps_port = None
         self.ps_setpoint = None
         self.sinusoidal_amplitude = None
         self.sinusoidal_offset = None
@@ -527,4 +525,67 @@ class PowerSupplyConfig(Configuration):
         self.Ki = None
         self.dcct_head = None
 
-powersupply_config = PowerSupplyConfig()
+    def get_attribute_type(self, name):
+        """Get attribute type."""
+        if name in ['ps_type', 'dcct_head', 'status', 'status_loop', 'dcct',
+                    'sinusoidal_ncycles', 'dsinusoidal_ncycles']:
+            return int
+        elif name in ['ps_name']:
+            return str
+        else:
+            return float
+
+    def save_file(self, filename):
+        """Save measurement configuration to file.
+
+        Args:
+            filename (str): configuration filepath.
+
+        Raise:
+            ConfigurationError: if the configuration was not saved.
+        """
+        if not self.valid_data():
+            message = 'Invalid Configuration.'
+            raise ConfigurationError(message)
+
+        try:
+            data = [
+                '# Power Supply Settings\n\n',
+                'ps_name          \t{0:s}\n'.format(self.ps_name),
+                'ps_type          \t{0}\n'.format(self.ps_type),
+                'current_setpoint \t{0:2f}\n'.format(self.ps_setpoint),
+                'minimum_current  \t{0:2f}\n'.format(self.minimum_current),
+                'maximum_current  \t{0:2f}\n'.format(self.maximum_current),
+                'Kp               \t{0:2f}\n'.format(self.Kp),
+                'Ki               \t{0:2f}\n\n'.format(self.Ki),
+                '# Sinusoidal Signal Generator\n',
+                'amplitude        \t{0:2f}\n'.format(
+                    self.sinusoidal_amplitude),
+                'offset           \t{0:2f}\n'.format(self.sinusoidal_offset),
+                'frequency        \t{0:2f}\n'.format(
+                    self.sinusoidal_frequency),
+                'n_cycles         \t{0:d}\n'.format(self.sinusoidal_ncycles),
+                'initial_phase    \t{0:2f}\n'.format(self.sinusoidal_phasei),
+                'final_phase      \t{0:2f}\n\n'.format(self.sinusoidal_phasef),
+                '# Damped Sinusoidal Signal Generator\n',
+                'amplitude        \t{0:2f}\n'.format(
+                    self.dsinusoidal_amplitude),
+                'offset           \t{0:2f}\n'.format(self.dsinusoidal_offset),
+                'frequency        \t{0:2f}\n'.format(
+                    self.dsinusoidal_frequency),
+                'n_cycles         \t{0:d}\n'.format(self.dsinusoidal_ncycles),
+                'initial_phase    \t{0:2f}\n'.format(self.dsinusoidal_phasei),
+                'final_phase      \t{0:2f}\n'.format(self.dsinusoidal_phasef),
+                'damping          \t{0:2f}\n\n'.format(self.dsinusoidal_damp),
+                '#DCCT Settings\n',
+                'dcct_enabled     \t{0}\n'.format(self.dcct),
+                'dcct_head        \t{0}'.format(self.dcct_head)
+                ]
+
+            with open(filename, mode='w') as f:
+                for item in data:
+                    f.write(item)
+
+        except Exception:
+            message = 'Failed to save configuration to file: "%s"' % filename
+            raise ConfigurationError(message)

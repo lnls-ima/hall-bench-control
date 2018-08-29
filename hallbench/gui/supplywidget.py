@@ -13,7 +13,6 @@ import PyQt4.uic as _uic
 
 import numpy as _np
 import time as _time
-# import serial.tools.list_ports as _list_ports
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
@@ -62,26 +61,6 @@ class SupplyWidget(_QWidget):
     def power_supply_config(self):
         """Power Supply configurations."""
         return _QApplication.instance().power_supply_config
-
-#     def list_ports(self):
-#         """Updates avaliable serial ports."""
-#         _l = _list_ports.comports()
-#         _ports = []
-#
-#         _s = ''
-#         _k = str
-#         if 'COM' in _l[0][0]:
-#             _s = 'COM'
-#             _k = int
-#
-#         for key in _l:
-#             _ports.append(key.device.strip(_s))
-#         _ports.sort(key=_k)
-#         _ports = [_s + key for key in _ports]
-#
-#         for i in range(self.ui.cb_ps_port.count()):
-#             self.ui.cb_ps_port.removeItem(0)
-#         self.ui.cb_ps_port.addItems(_ports)
 
     def list_powersupply(self):
         """Updates available power supply supply names."""

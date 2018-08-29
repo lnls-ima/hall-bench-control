@@ -3,6 +3,7 @@
 """Connection widget for the Hall Bench Control application."""
 
 import os.path as _path
+import serial.tools.list_ports as _list_ports
 from PyQt4.QtGui import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
@@ -30,6 +31,9 @@ class ConnectionWidget(_QWidget):
             self.database, 'id')
         self.ui.idn_cmb.addItems([str(idn) for idn in idns])
         self.ui.idn_cmb.setCurrentIndex(-1)
+
+        self.connectSignalSlots()
+        self.updateSerialPorts()
 
     @property
     def connection_config(self):
@@ -122,7 +126,7 @@ class ConnectionWidget(_QWidget):
                 return False
 
             if (self.connection_config.ps_enable and
-               not self.devices.ps.connected):
+               not self.devices.ps.ser.is_open):
                 return False
 
             return True
@@ -388,9 +392,32 @@ class ConnectionWidget(_QWidget):
             self.ui.multich_led_la.setEnabled(self.devices.multich.connected)
             self.ui.nmr_led_la.setEnabled(self.devices.nmr.connected)
             self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
-            self.ui.ps_led_la.setEnabled(self.devices.ps.connected)
+            self.ui.ps_led_la.setEnabled(self.devices.ps.ser.is_open)
 
         except Exception:
-            message = 'Fail to update led status.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            pass
+
+    def updateSerialPorts(self):
+        """Update avaliable serial ports."""
+        _l = _list_ports.comports()
+        _ports = []
+
+        _s = ''
+        _k = str
+        if 'COM' in _l[0][0]:
+            _s = 'COM'
+            _k = int
+
+        for key in _l:
+            _ports.append(key.device.strip(_s))
+        _ports.sort(key=_k)
+        _ports = [_s + key for key in _ports]
+
+        self.ui.ps_port_cmb.clear()
+        self.ui.ps_port_cmb.addItems(_ports)
+
+        self.ui.nmr_port_cmb.clear()
+        self.ui.nmr_port_cmb.addItems(_ports)
+
+        self.ui.elcomat_port_cmb.clear()
+        self.ui.elcomat_port_cmb.addItems(_ports)

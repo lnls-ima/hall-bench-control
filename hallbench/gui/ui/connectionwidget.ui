@@ -253,67 +253,25 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <item>
-             <property name="text">
-              <string>COM1</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM2</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM3</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM4</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM5</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM6</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM7</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM8</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM9</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM10</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM11</string>
-             </property>
-            </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Baud rate</string>
+            </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="nmr_baudrate_cmb">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -356,19 +314,6 @@
               <string>19200</string>
              </property>
             </item>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_14">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Baud rate</string>
-            </property>
            </widget>
           </item>
          </layout>
@@ -595,7 +540,7 @@
           <item row="1" column="1">
            <widget class="QComboBox" name="elcomat_baudrate_cmb">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -674,81 +619,6 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <item>
-             <property name="text">
-              <string>COM1</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM2</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM3</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM4</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM5</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM6</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM7</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM8</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM9</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM10</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM11</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM12</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM13</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM14</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM15</string>
-             </property>
-            </item>
            </widget>
           </item>
           <item row="0" column="2">
@@ -1117,14 +987,8 @@
        <property name="title">
         <string/>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
-        <property name="leftMargin">
-         <number>9</number>
-        </property>
-        <property name="rightMargin">
-         <number>9</number>
-        </property>
-        <item>
+       <layout class="QGridLayout" name="gridLayout_13">
+        <item row="0" column="0">
          <widget class="QLabel" name="label_23">
           <property name="text">
            <string>Magnet
@@ -1135,7 +999,39 @@ Power Supply</string>
           </property>
          </widget>
         </item>
-        <item>
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_17">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>140</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="pixmap">
+             <pixmap>../../resources/img/power_supply.png</pixmap>
+            </property>
+            <property name="scaledContents">
+             <bool>false</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="0">
          <layout class="QGridLayout" name="gridLayout_15">
           <item row="0" column="0">
            <widget class="QCheckBox" name="ps_enable_chb">
@@ -1158,81 +1054,6 @@ Power Supply</string>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <item>
-             <property name="text">
-              <string>COM1</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM2</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM3</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM4</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM5</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM6</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM7</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM8</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM9</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM10</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM11</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM12</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM13</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM14</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COM15</string>
-             </property>
-            </item>
            </widget>
           </item>
           <item row="0" column="2">
@@ -1261,6 +1082,22 @@ Power Supply</string>
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="2" column="0">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>

@@ -207,10 +207,10 @@ class ConnectionConfig(Configuration):
                 'multich_address  \t{0:1d}\n\n'.format(self.multich_address),
                 'nmr_enable       \t{0:1d}\n'.format(self.nmr_enable),
                 'nmr_port         \t{0:s}\n'.format(self.nmr_port),
-                'nmr_baudrate     \t{0:1d}\n'.format(self.nmr_baudrate),
-                'elcomat_enable   \t{0:1d}\n\n'.format(self.elcomat_enable),
+                'nmr_baudrate     \t{0:1d}\n\n'.format(self.nmr_baudrate),
+                'elcomat_enable   \t{0:1d}\n'.format(self.elcomat_enable),
                 'elcomat_port     \t{0:s}\n'.format(self.elcomat_port),
-                'elcomat_baudrate \t{0:1d}\n'.format(self.elcomat_baudrate),
+                'elcomat_baudrate \t{0:1d}\n\n'.format(self.elcomat_baudrate),
                 'ps_enable        \t{0:1d}\n'.format(self.ps_enable),
                 'ps_port          \t{0:s}\n'.format(self.ps_port),
                 ]

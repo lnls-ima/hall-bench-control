@@ -13,6 +13,7 @@ from PyQt4.QtGui import (
     QMessageBox as _QMessageBox,
     QVBoxLayout as _QVBoxLayout,
     QTableWidgetItem as _QTableWidgetItem,
+    QApplication as _QApplication,
     )
 from PyQt4.QtCore import QTimer as _QTimer
 import PyQt4.uic as _uic
@@ -32,7 +33,7 @@ class VoltageOffsetWidget(_QWidget):
         'ProbeX [mV]': (255, 0, 0),
         'ProbeY [mV]': (0, 255, 0),
         'ProbeZ [mV]': (0, 0, 255),
-    } 
+    }
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
@@ -79,8 +80,8 @@ class VoltageOffsetWidget(_QWidget):
 
     @property
     def devices(self):
-        """Hall Bench devices."""
-        return self.window().devices
+        """Hall Bench Devices."""
+        return _QApplication.instance().devices
 
     def closeEvent(self, event):
         """Close widget."""
@@ -180,7 +181,7 @@ class VoltageOffsetWidget(_QWidget):
 
         if True: #try:
             ts = _time.time()
-            
+
             self.devices.voltx.send_command(
                 self.devices.voltx.commands.end_gpib_always)
             voltx = float(self.devices.voltx.read_from_device()[:-2])
@@ -250,7 +251,7 @@ class VoltageOffsetWidget(_QWidget):
             voltx = self._readings[self._data_labels[0]]
             volty = self._readings[self._data_labels[1]]
             voltz = self._readings[self._data_labels[2]]
-            
+
             avgprobex = _np.mean(_np.array(voltx))
             self.ui.avgprobex_le.setText(
                 self._data_format.format(avgprobex))
@@ -337,5 +338,5 @@ class VoltageOffsetWidget(_QWidget):
         if scrollDown:
             vbar = self.table_ta.verticalScrollBar()
             vbar.setValue(vbar.maximum())
-            
+
         self.updateAvgStdValues()

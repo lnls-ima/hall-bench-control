@@ -9,6 +9,7 @@ import datetime as _datetime
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
 from PyQt4.QtGui import (
+    QApplication as _QApplication,
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QVBoxLayout as _QVBoxLayout,
@@ -79,7 +80,7 @@ class AngularErrorWidget(_QWidget):
     @property
     def devices(self):
         """Hall Bench devices."""
-        return self.window().devices
+        return _QApplication.instance().devices
 
     def closeEvent(self, event):
         """Close widget."""
@@ -183,16 +184,16 @@ class AngularErrorWidget(_QWidget):
                 pos = _np.nan
             else:
                 pos = self.devices.pmac.get_position(axis)
-            
+
             if self.ui.meastype_cmb.currentText().lower() == 'relative':
                 _rl = self.devices.elcomat.get_relative_measurement()
             else:
                 _rl = self.devices.elcomat.get_absolute_measurement()
             if len(_rl) != len(self._data_labels):
                 return
-    
+
             readings = [r if r is not None else _np.nan for r in _rl]
-            
+
             for i in range(len(self._data_labels)):
                 label = self._data_labels[i]
                 value = readings[i]

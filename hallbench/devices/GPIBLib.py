@@ -10,6 +10,7 @@ import time as _time
 import logging as _logging
 import numpy as _np
 import struct as _struct
+import threading as _threading
 
 
 class GPIB(object):
@@ -21,12 +22,12 @@ class GPIB(object):
         Args:
             logfile (str): log file path.
         """
+        self.inst = None
         self.logger = None
         self.logfile = logfile
-        self.log_events()
-
-        self.inst = None
+        self.rlock = _threading.RLock()
         self._connected = False
+        self.log_events()
 
     @property
     def connected(self):
@@ -69,9 +70,6 @@ class GPIB(object):
                     self.inst = _inst
                     # set a default timeout to 1
                     self.inst.timeout = 1000  # ms
-
-                    self.inst.write(self.commands.qid)
-                    self.inst.read()
 
                     self._connected = True
                     return True
@@ -461,6 +459,29 @@ class Agilent3458A(GPIB):
         """Clear voltage data."""
         self._voltage = _np.array([])
 
+    def connect(self, address):
+        """Connect to a GPIB device with the given address.
+
+        Args:
+            address (int): device address.
+
+        Return:
+            True if successful, False otherwise.
+        """
+        if super().connect(address):
+            try:
+                self.inst.write(self.commands.end_gpib_always)
+                self.inst.write(self.commands.qid)
+                self.inst.read()
+                self._connected = True
+                return True
+            except Exception:
+                self._connected = False
+                return False
+        else:
+            self._connected = False
+            return False
+
     def read_voltage(self, formtype=0):
         """Read voltage from the device.
 
@@ -574,7 +595,8 @@ class Agilent34970A(GPIB):
 
     _probe_channels = ['101', '102', '103']
     _dcct_channels = ['104']
-    _temp_channels = []
+    _temp_channels = [
+        '201', '202', '203', '204', '205', '206', '207', '208', '209']
 
     def __init__(self, logfile=None):
         """Initiaze variables and prepare logging file.
@@ -586,6 +608,28 @@ class Agilent34970A(GPIB):
         self.commands = Agilent34970ACommands()
         self.logfile = logfile
         super().__init__(self.logfile)
+
+    def connect(self, address):
+        """Connect to a GPIB device with the given address.
+
+        Args:
+            address (int): device address.
+
+        Return:
+            True if successful, False otherwise.
+        """
+        if super().connect(address):
+            try:
+                self.inst.write(self.commands.qid)
+                self.inst.read()
+                self._connected = True
+                return True
+            except Exception:
+                self._connected = False
+                return False
+        else:
+            self._connected = False
+            return False
 
     def configure(self, channel_list='all', wait=0.5):
         """Configure channels."""

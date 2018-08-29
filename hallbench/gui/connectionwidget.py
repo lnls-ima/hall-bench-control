@@ -13,7 +13,6 @@ from PyQt4.QtCore import Qt as _Qt
 import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.data.configuration import ConnectionConfig as _ConnectionConfig
 
 
 class ConnectionWidget(_QWidget):
@@ -27,26 +26,30 @@ class ConnectionWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        # variables initialization
-        self.config = _ConnectionConfig()
+        idns = self.connection_config.get_table_column(
+            self.database, 'id')
+        self.ui.idn_cmb.addItems([str(idn) for idn in idns])
+        self.ui.idn_cmb.setCurrentIndex(-1)
 
-        # create signal/slot connections
-        self.ui.loadfile_btn.clicked.connect(self.loadFile)
-        self.ui.savefile_btn.clicked.connect(self.saveFile)
-        self.ui.loaddb_btn.clicked.connect(self.loadDB)
-        self.ui.savedb_btn.clicked.connect(self.saveDB)
-        self.ui.connect_btn.clicked.connect(self.connectDevices)
-        self.ui.disconnect_btn.clicked.connect(self.disconnectDevices)
+    @property
+    def connection_config(self):
+        """Return the connection configuration."""
+        return _QApplication.instance().connection_config
 
     @property
     def devices(self):
         """Hall Bench Devices."""
-        return self.window().devices
+        return _QApplication.instance().devices
 
     @property
     def database(self):
         """Database filename."""
-        return self.window().database
+        return _QApplication.instance().database
+
+    def clearLoadOptions(self):
+        """Clear load options."""
+        self.ui.filename_le.setText("")
+        self.ui.idn_cmb.setCurrentIndex(-1)
 
     def closeEvent(self, event):
         """Close widget."""
@@ -65,7 +68,7 @@ class ConnectionWidget(_QWidget):
         _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
         try:
-            self.devices.connect(self.config)
+            self.devices.connect(self.connection_config)
             self.updateLedStatus()
             connected = self.connectionStatus()
 
@@ -89,35 +92,74 @@ class ConnectionWidget(_QWidget):
     def connectionStatus(self):
         """Return the connection status."""
         try:
-            if self.config.pmac_enable:
+            if self.connection_config.pmac_enable:
                 pmac_connected = self.devices.pmac.connected
                 if pmac_connected is None or pmac_connected is False:
                     return False
 
-            if self.config.voltx_enable and not self.devices.voltx.connected:
+            if (self.connection_config.voltx_enable and
+               not self.devices.voltx.connected):
                 return False
 
-            if self.config.volty_enable and not self.devices.volty.connected:
+            if (self.connection_config.volty_enable and
+               not self.devices.volty.connected):
                 return False
 
-            if self.config.voltz_enable and not self.devices.voltz.connected:
+            if (self.connection_config.voltz_enable and
+               not self.devices.voltz.connected):
                 return False
 
-            if (self.config.multich_enable and
+            if (self.connection_config.multich_enable and
                not self.devices.multich.connected):
                 return False
 
-            if self.config.nmr_enable and not self.devices.nmr.connected:
+            if (self.connection_config.nmr_enable and
+               not self.devices.nmr.connected):
                 return False
 
-            if (self.config.elcomat_enable and
+            if (self.connection_config.elcomat_enable and
                not self.devices.elcomat.connected):
+                return False
+
+            if (self.connection_config.ps_enable and
+               not self.devices.ps.connected):
                 return False
 
             return True
 
         except Exception:
             return False
+
+    def connectSignalSlots(self):
+        """Create signal/slot connections."""
+        self.ui.pmac_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.voltx_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.voltx_address_sb.valueChanged.connect(self.clearLoadOptions)
+        self.ui.volty_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.volty_address_sb.valueChanged.connect(self.clearLoadOptions)
+        self.ui.voltz_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.voltz_address_sb.valueChanged.connect(self.clearLoadOptions)
+        self.ui.multich_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.multich_address_sb.valueChanged.connect(self.clearLoadOptions)
+        self.ui.nmr_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.nmr_port_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        self.ui.nmr_baudrate_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        self.ui.elcomat_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.elcomat_port_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        self.ui.elcomat_baudrate_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        self.ui.ps_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.ps_port_cmb.currentIndexChanged.connect(self.clearLoadOptions)
+
+        self.ui.loadfile_btn.clicked.connect(self.loadFile)
+        self.ui.savefile_btn.clicked.connect(self.saveFile)
+        self.ui.loaddb_btn.clicked.connect(self.loadDB)
+        self.ui.savedb_btn.clicked.connect(self.saveDB)
+        self.ui.connect_btn.clicked.connect(self.connectDevices)
+        self.ui.disconnect_btn.clicked.connect(self.disconnectDevices)
 
     def disconnectDevices(self):
         """Disconnect bench devices."""
@@ -135,23 +177,26 @@ class ConnectionWidget(_QWidget):
         self.ui.filename_le.setText("")
 
         try:
-            idn = int(self.ui.idn_le.text())
+            index = self.ui.idn_cmb.currentIndex()
+            idn = int(self.ui.idn_cmb.currentText())
         except Exception:
             _QMessageBox.critical(
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
 
         try:
-            self.config = _ConnectionConfig(database=self.database, idn=idn)
+            self.connection_config.clear()
+            self.connection_config.read_from_database(self.database, idn)
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
         self.load()
+        self.ui.idn_cmb.setCurrentIndex(index)
 
     def loadFile(self):
         """Load configuration file to set parameters."""
-        self.ui.idn_le.setText("")
+        self.ui.idn_cmb.setCurrentIndex(-1)
 
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getOpenFileName(
@@ -165,44 +210,64 @@ class ConnectionWidget(_QWidget):
             return
 
         try:
-            self.config = _ConnectionConfig(filename)
+            self.connection_config.clear()
+            self.connection_config.read_file(filename)
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
-        self.ui.filename_le.setText(filename)
         self.load()
+        self.ui.filename_le.setText(filename)
 
     def load(self):
         """Load configuration file to set connection parameters."""
         try:
-            self.ui.pmac_enable_chb.setChecked(self.config.pmac_enable)
+            self.ui.pmac_enable_chb.setChecked(
+                self.connection_config.pmac_enable)
 
-            self.ui.voltx_enable_chb.setChecked(self.config.voltx_enable)
-            self.ui.voltx_address_sb.setValue(self.config.voltx_address)
+            self.ui.voltx_enable_chb.setChecked(
+                self.connection_config.voltx_enable)
+            self.ui.voltx_address_sb.setValue(
+                self.connection_config.voltx_address)
 
-            self.ui.volty_enable_chb.setChecked(self.config.volty_enable)
-            self.ui.volty_address_sb.setValue(self.config.volty_address)
+            self.ui.volty_enable_chb.setChecked(
+                self.connection_config.volty_enable)
+            self.ui.volty_address_sb.setValue(
+                self.connection_config.volty_address)
 
-            self.ui.voltz_enable_chb.setChecked(self.config.voltz_enable)
-            self.ui.voltz_address_sb.setValue(self.config.voltz_address)
+            self.ui.voltz_enable_chb.setChecked(
+                self.connection_config.voltz_enable)
+            self.ui.voltz_address_sb.setValue(
+                self.connection_config.voltz_address)
 
-            self.ui.multich_enable_chb.setChecked(self.config.multich_enable)
-            self.ui.multich_address_sb.setValue(self.config.multich_address)
+            self.ui.multich_enable_chb.setChecked(
+                self.connection_config.multich_enable)
+            self.ui.multich_address_sb.setValue(
+                self.connection_config.multich_address)
 
-            self.ui.nmr_enable_chb.setChecked(self.config.nmr_enable)
+            self.ui.nmr_enable_chb.setChecked(
+                self.connection_config.nmr_enable)
             self.ui.nmr_port_cmb.setCurrentIndex(
-                self.ui.nmr_port_cmb.findText(self.config.nmr_port))
+                self.ui.nmr_port_cmb.findText(
+                    self.connection_config.nmr_port))
             self.ui.nmr_baudrate_cmb.setCurrentIndex(
                 self.ui.nmr_baudrate_cmb.findText(
-                    str(self.config.nmr_baudrate)))
+                    str(self.connection_config.nmr_baudrate)))
 
-            self.ui.elcomat_enable_chb.setChecked(self.config.elcomat_enable)
+            self.ui.elcomat_enable_chb.setChecked(
+                self.connection_config.elcomat_enable)
             self.ui.elcomat_port_cmb.setCurrentIndex(
-                self.ui.elcomat_port_cmb.findText(self.config.elcomat_port))
+                self.ui.elcomat_port_cmb.findText(
+                    self.connection_config.elcomat_port))
             self.ui.elcomat_baudrate_cmb.setCurrentIndex(
                 self.ui.elcomat_baudrate_cmb.findText(
-                    str(self.config.elcomat_baudrate)))
+                    str(self.connection_config.elcomat_baudrate)))
+
+            self.ui.ps_enable_chb.setChecked(
+                self.connection_config.ps_enable)
+            self.ui.ps_port_cmb.setCurrentIndex(
+                self.ui.ps_port_cmb.findText(
+                    self.connection_config.ps_port))
 
         except Exception:
             message = 'Fail to load configuration.'
@@ -211,12 +276,14 @@ class ConnectionWidget(_QWidget):
 
     def saveDB(self):
         """Save connection parameters to database."""
-        self.ui.idn_le.setText("")
+        self.ui.idn_cmb.setCurrentIndex(-1)
         if self.database is not None and _path.isfile(self.database):
             try:
                 if self.updateConfiguration():
-                    idn = self.config.save_to_database(self.database)
-                    self.ui.idn_le.setText(str(idn))
+                    idn = self.connection_config.save_to_database(
+                        self.database)
+                    self.ui.idn_cmb.addItem(str(idn))
+                    self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
             except Exception as e:
                 _QMessageBox.critical(
                     self, 'Failure', str(e), _QMessageBox.Ok)
@@ -243,44 +310,62 @@ class ConnectionWidget(_QWidget):
                 if (not filename.endswith('.txt')
                    and not filename.endswith('.dat')):
                     filename = filename + '.txt'
-                self.config.save_file(filename)
+                self.connection_config.save_file(filename)
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
     def updateConfiguration(self):
         """Update connection configuration parameters."""
-        self.config = _ConnectionConfig()
+        self.connection_config.clear()
 
         try:
-            self.config.pmac_enable = self.ui.pmac_enable_chb.isChecked()
+            self.connection_config.pmac_enable = (
+                self.ui.pmac_enable_chb.isChecked())
 
-            self.config.voltx_enable = self.ui.voltx_enable_chb.isChecked()
-            self.config.voltx_address = self.ui.voltx_address_sb.value()
+            self.connection_config.voltx_enable = (
+                self.ui.voltx_enable_chb.isChecked())
+            self.connection_config.voltx_address = (
+                self.ui.voltx_address_sb.value())
 
-            self.config.volty_enable = self.ui.volty_enable_chb.isChecked()
-            self.config.volty_address = self.ui.volty_address_sb.value()
+            self.connection_config.volty_enable = (
+                self.ui.volty_enable_chb.isChecked())
+            self.connection_config.volty_address = (
+                self.ui.volty_address_sb.value())
 
-            self.config.voltz_enable = self.ui.voltz_enable_chb.isChecked()
-            self.config.voltz_address = self.ui.voltz_address_sb.value()
+            self.connection_config.voltz_enable = (
+                self.ui.voltz_enable_chb.isChecked())
+            self.connection_config.voltz_address = (
+                self.ui.voltz_address_sb.value())
 
-            self.config.multich_enable = self.ui.multich_enable_chb.isChecked()
-            self.config.multich_address = self.ui.multich_address_sb.value()
+            self.connection_config.multich_enable = (
+                self.ui.multich_enable_chb.isChecked())
+            self.connection_config.multich_address = (
+                self.ui.multich_address_sb.value())
 
-            self.config.nmr_enable = self.ui.nmr_enable_chb.isChecked()
-            self.config.nmr_port = self.ui.nmr_port_cmb.currentText()
-            self.config.nmr_baudrate = int(
+            self.connection_config.nmr_enable = (
+                self.ui.nmr_enable_chb.isChecked())
+            self.connection_config.nmr_port = (
+                self.ui.nmr_port_cmb.currentText())
+            self.connection_config.nmr_baudrate = int(
                 self.ui.nmr_baudrate_cmb.currentText())
 
-            self.config.elcomat_enable = self.ui.elcomat_enable_chb.isChecked()
-            self.config.elcomat_port = self.ui.elcomat_port_cmb.currentText()
-            self.config.elcomat_baudrate = int(
+            self.connection_config.elcomat_enable = (
+                self.ui.elcomat_enable_chb.isChecked())
+            self.connection_config.elcomat_port = (
+                self.ui.elcomat_port_cmb.currentText())
+            self.connection_config.elcomat_baudrate = int(
                 self.ui.elcomat_baudrate_cmb.currentText())
 
-        except Exception:
-            self.config = _ConnectionConfig()
+            self.connection_config.ps_enable = (
+                self.ui.ps_enable_chb.isChecked())
+            self.connection_config.ps_port = (
+                self.ui.ps_port_cmb.currentText())
 
-        if self.config.valid_data():
+        except Exception:
+            self.connection_config.clear()
+
+        if self.connection_config.valid_data():
             return True
         else:
             message = 'Invalid connection configuration.'
@@ -303,6 +388,7 @@ class ConnectionWidget(_QWidget):
             self.ui.multich_led_la.setEnabled(self.devices.multich.connected)
             self.ui.nmr_led_la.setEnabled(self.devices.nmr.connected)
             self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
+            self.ui.ps_led_la.setEnabled(self.devices.ps.connected)
 
         except Exception:
             message = 'Fail to update led status.'

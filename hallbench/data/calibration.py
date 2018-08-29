@@ -162,6 +162,18 @@ class HallSensor(_database.DatabaseObject):
         self._function = None
         self._data = []
 
+    def copy(self):
+        """Return a copy of the object."""
+        _copy = type(self)()
+        for key in self.__dict__:
+            if isinstance(self.__dict__[key], _np.ndarray):
+                _copy.__dict__[key] = _np.copy(self.__dict__[key])
+            elif isinstance(self.__dict__[key], list):
+                _copy.__dict__[key] = self.__dict__[key].copy()
+            else:
+                _copy.__dict__[key] = self.__dict__[key]
+        return _copy
+
     def convert_voltage(self, voltage_array):
         """Convert voltage values to magnetic field values.
 
@@ -231,6 +243,14 @@ class HallSensor(_database.DatabaseObject):
                 for value in d:
                     f.write('{0:+14.7e}\t'.format(value))
                 f.write('\n')
+
+    def valid_data(self):
+        """Check if parameters are valid."""
+        al = [getattr(self, a) for a in self.__dict__]
+        if all([a is not None for a in al]):
+            return True
+        else:
+            return False
 
 
 class HallProbe(_database.DatabaseObject):
@@ -516,6 +536,20 @@ class HallProbe(_database.DatabaseObject):
         self._angle_yz = None
         self._angle_xz = None
 
+    def copy(self):
+        """Return a copy of the object."""
+        _copy = type(self)()
+        for key in self.__dict__:
+            if isinstance(self.__dict__[key], _np.ndarray):
+                _copy.__dict__[key] = _np.copy(self.__dict__[key])
+            elif isinstance(self.__dict__[key], list):
+                _copy.__dict__[key] = self.__dict__[key].copy()
+            elif isinstance(self.__dict__[key], HallSensor):
+                _copy.__dict__[key] = self.__dict__[key].copy()
+            else:
+                _copy.__dict__[key] = self.__dict__[key]
+        return _copy
+
     def corrected_position(self, axis, position_array, sensor):
         """Return the corrected position list for the given sensor."""
         if axis == self.probe_axis:
@@ -631,6 +665,22 @@ class HallProbe(_database.DatabaseObject):
             f.write('angle_xy[deg]:  \t{0:1s}\n'.format(str(self.angle_xy)))
             f.write('angle_yz[deg]:  \t{0:1s}\n'.format(str(self.angle_yz)))
             f.write('angle_xz[deg]:  \t{0:1s}\n'.format(str(self.angle_xz)))
+
+    def valid_data(self):
+        """Check if parameters are valid."""
+        sensor_names = ['_sensorx_name', '_sensory_name', '_sensorz_name']
+        sensors = ['_sensorx', '_sensory', '_sensorz']
+        for i in range(len(sensor_names)):
+            sn = getattr(self, sensor_names[i])
+            s = getattr(self, sensors[i])
+            if sn is not None and s is None:
+                return False
+        valid_none = sensor_names + sensors
+        al = [getattr(self, a) for a in self.__dict__ if a not in valid_none]
+        if all([a is not None for a in al]):
+            return True
+        else:
+            return False
 
 
 def _polynomial_conversion(data, voltage_array):

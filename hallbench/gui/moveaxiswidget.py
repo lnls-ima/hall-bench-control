@@ -6,6 +6,7 @@ from PyQt4.QtGui import (
     QWidget as _QWidget,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
+    QApplication as _QApplication,
     )
 import PyQt4.uic as _uic
 
@@ -42,8 +43,8 @@ class MoveAxisWidget(_QWidget):
 
     @property
     def pmac(self):
-        """Pmac object."""
-        return self.window().devices.pmac
+        """Pmac communication class."""
+        return _QApplication.instance().devices.pmac
 
     def closeEvent(self, event):
         """Close widget."""

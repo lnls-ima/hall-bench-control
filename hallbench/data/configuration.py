@@ -71,6 +71,16 @@ class Configuration(_database.DatabaseObject):
         for key in self.__dict__:
             self.__dict__[key] = None
 
+    def copy(self):
+        """Return a copy of the object."""
+        _copy = type(self)()
+        for key in self.__dict__:
+            if isinstance(self.__dict__[key], list):
+                _copy.__dict__[key] = self.__dict__[key].copy()
+            else:
+                _copy.__dict__[key] = self.__dict__[key]
+        return _copy
+
     def get_attribute_type(self, name):
         """Get attribute type."""
         return None
@@ -125,7 +135,7 @@ class ConnectionConfig(Configuration):
         ('elcomat_enable', ['elcomat_enable', 'INTEGER NOT NULL']),
         ('elcomat_port', ['elcomat_port', 'TEXT NOT NULL']),
         ('elcomat_baudrate', ['elcomat_baudrate', 'INTEGER NOT NULL']),
-        ('ps_port', )
+        ('ps_port', [None, 'TEXT'])
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -453,11 +463,11 @@ class PowerSupplyConfig(Configuration):
 
     _db_table = 'power_supply'
     _db_dict = _collections.OrderedDict([
-        ('id', [None, 'INTEGER NOT NULL'])
+        ('id', [None, 'INTEGER NOT NULL']),
         ('name', ['ps_name', 'TEXT NOT NULL UNIQUE']),
         ('type', ['ps_type', 'INTEGER NOT NULL']),
         ('port', ['ps_port', 'TEXT NOT NULL']),
-        ('dclink', ['dclink', 'REAL'])
+        ('dclink', ['dclink', 'REAL']),
         ('setpoint', ['ps_setpoint', 'REAL NOT NULL']),
         ('sinusoidal amplitude', ['sinusoidal_amplitude', 'REAL NOT NULL']),
         ('sinusoidal offset', ['sinusoidal_offset', 'REAL NOT NULL']),

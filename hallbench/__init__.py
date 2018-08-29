@@ -10,6 +10,4 @@ __all__ = (
     'devices',
     'resources',
     'gui',
-    'hallbenchapp',
-    'calibrationapp'
     )

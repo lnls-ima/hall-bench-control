@@ -1,33 +1,28 @@
 # -*- coding: utf-8 -*-
 
-"""Hall probe dialog for the Hall Bench Control application."""
+"""View probe dialog for the Hall Bench Control application."""
 
 import numpy as _np
 import warnings as _warnings
 from PyQt4.QtGui import (
     QDialog as _QDialog,
-    QFileDialog as _QFileDialog,
     QApplication as _QApplication,
     QTableWidgetItem as _QTableWidgetItem,
     QMessageBox as _QMessageBox,
     )
-from PyQt4.QtCore import pyqtSignal as _pyqtSignal
 import PyQt4.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.data.calibration import HallProbe as _HallProbe
 
 
-class HallProbeDialog(_QDialog):
-    """Hall probe dialog class for Hall Bench Control application."""
-
-    hallProbeChanged = _pyqtSignal(_HallProbe)
+class ViewProbeDialog(_QDialog):
+    """View probe dialog class for Hall Bench Control application."""
 
     _axis_str_dict = {
         1: '+ Axis #1 (+Z)', 2: '+ Axis #2 (+Y)', 3: '+ Axis #3 (+X)'}
 
-    def __init__(self, parent=None, load_enabled=True):
+    def __init__(self, parent=None):
         """Set up the ui and create connections."""
         super().__init__(parent)
 
@@ -35,12 +30,11 @@ class HallProbeDialog(_QDialog):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
+        self.local_hall_probe = None
+
         self.interpolation_dialog = InterpolationTableDialog()
         self.polynomial_dialog = PolynomialTableDialog()
 
-        self._hall_probe = None
-        self._load_enabled = load_enabled
-        self.database = None
         self.graphx = []
         self.graphy = []
         self.graphz = []
@@ -50,28 +44,14 @@ class HallProbeDialog(_QDialog):
         self.legend.setAutoFillBackground(1)
 
         # create connections
-        self.ui.loadfile_btn.clicked.connect(self.loadFile)
-        self.ui.loaddb_btn.clicked.connect(self.loadDB)
         self.ui.showtable_btn.clicked.connect(self.showTable)
         self.ui.updategraph_btn.clicked.connect(self.updateGraph)
         self.ui.voltage_sb.valueChanged.connect(self.updateField)
 
-        # Enable or disable load option
-        self.ui.loadfile_btn.setEnabled(self._load_enabled)
-        self.ui.loaddb_btn.setEnabled(self._load_enabled)
-        self.ui.filename_le.setEnabled(self._load_enabled)
-        self.ui.idn_le.setReadOnly(not self._load_enabled)
-
     @property
-    def hall_probe(self):
-        """Hall probe object."""
-        return self._hall_probe
-
-    @hall_probe.setter
-    def hall_probe(self, value):
-        self._hall_probe = value
-        self.hallProbeChanged.emit(self.hall_probe)
-        self.closeDialogs()
+    def database(self):
+        """Database filename."""
+        return _QApplication.instance().database
 
     def accept(self):
         """Close dialog."""
@@ -160,15 +140,15 @@ class HallProbeDialog(_QDialog):
     def load(self):
         """Load hall probe parameters."""
         try:
-            self.ui.probe_name_le.setText(self._hall_probe.probe_name)
+            self.ui.probe_name_le.setText(self.local_hall_probe.probe_name)
             self.ui.sensorx_name_le.setText(
-                self._hall_probe.sensorx_name)
+                self.local_hall_probe.sensorx_name)
             self.ui.sensory_name_le.setText(
-                self._hall_probe.sensory_name)
+                self.local_hall_probe.sensory_name)
             self.ui.sensorz_name_le.setText(
-                self._hall_probe.sensorz_name)
+                self.local_hall_probe.sensorz_name)
 
-            probe_axis = self._hall_probe.probe_axis
+            probe_axis = self.local_hall_probe.probe_axis
             if probe_axis in self._axis_str_dict.keys():
                 self.ui.probe_axis_le.setText(self._axis_str_dict[probe_axis])
                 self.ui.probe_axis_le.setEnabled(True)
@@ -176,7 +156,7 @@ class HallProbeDialog(_QDialog):
                 self.ui.probe_axis_le.setText('')
                 self.ui.probe_axis_le.setEnabled(False)
 
-            distance_xy = self._hall_probe.distance_xy
+            distance_xy = self.local_hall_probe.distance_xy
             if distance_xy is not None:
                 self.ui.distance_xy_le.setText('{0:0.4f}'.format(distance_xy))
                 self.ui.distance_xy_le.setEnabled(True)
@@ -184,7 +164,7 @@ class HallProbeDialog(_QDialog):
                 self.ui.distance_xy_le.setText('')
                 self.ui.distance_xy_le.setEnabled(False)
 
-            distance_zy = self._hall_probe.distance_zy
+            distance_zy = self.local_hall_probe.distance_zy
             if distance_zy is not None:
                 self.ui.distance_zy_le.setText('{0:0.4f}'.format(distance_zy))
                 self.ui.distance_zy_le.setEnabled(True)
@@ -192,7 +172,7 @@ class HallProbeDialog(_QDialog):
                 self.ui.distance_zy_le.setText('')
                 self.ui.distance_zy_le.setEnabled(False)
 
-            angle_xy = self._hall_probe.angle_xy
+            angle_xy = self.local_hall_probe.angle_xy
             if angle_xy is not None:
                 self.ui.angle_xy_le.setText('{0:0.4f}'.format(angle_xy))
                 self.ui.angle_xy_le.setEnabled(True)
@@ -200,7 +180,7 @@ class HallProbeDialog(_QDialog):
                 self.ui.angle_xy_le.setText('')
                 self.ui.angle_xy_le.setEnabled(False)
 
-            angle_yz = self._hall_probe.angle_yz
+            angle_yz = self.local_hall_probe.angle_yz
             if angle_yz is not None:
                 self.ui.angle_yz_le.setText('{0:0.4f}'.format(angle_yz))
                 self.ui.angle_yz_le.setEnabled(True)
@@ -208,7 +188,7 @@ class HallProbeDialog(_QDialog):
                 self.ui.angle_yz_le.setText('')
                 self.ui.angle_yz_le.setEnabled(False)
 
-            angle_xz = self._hall_probe.angle_xz
+            angle_xz = self.local_hall_probe.angle_xz
             if angle_xz is not None:
                 self.ui.angle_xz_le.setText('{0:0.4f}'.format(angle_xz))
                 self.ui.angle_xz_le.setEnabled(True)
@@ -230,84 +210,6 @@ class HallProbeDialog(_QDialog):
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
-    def loadDB(self):
-        """Load hall probe from database."""
-        self.ui.filename_le.setText('')
-        self.setDataEnabled(False)
-        self.updateGraph()
-
-        try:
-            idn = int(self.ui.idn_le.text())
-        except Exception:
-            _QMessageBox.critical(
-                self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
-            return
-
-        try:
-            self.hall_probe = _HallProbe(
-                database=self.database, idn=idn)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-            return
-
-        self.load()
-
-    def loadFile(self):
-        """Load hall probe file."""
-        self.setDatabaseID('')
-        self.setDataEnabled(False)
-        self.updateGraph()
-
-        default_filename = self.ui.filename_le.text()
-        filename = _QFileDialog.getOpenFileName(
-            self, caption='Load hall probe file',
-            directory=default_filename, filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            self.hall_probe = _HallProbe(filename)
-            self.hall_probe.load_sensors_data(self.database)
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
-            return
-
-        self.filename_le.setText(filename)
-        self.load()
-
-    def searchDB(self, probe_name):
-        """Search hall probe in database."""
-        if (self.hall_probe is not None and
-           self.hall_probe.probe_name == probe_name):
-            return
-
-        if probe_name is None or len(probe_name) == 0:
-            return
-
-        if self.database is None or len(self.database) == 0:
-            return
-
-        try:
-            idn = _HallProbe.get_hall_probe_id(
-                self.database, probe_name)
-            if idn is not None:
-                self.setDatabaseID(idn)
-                self.loadDB()
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
-    def setDatabaseID(self, idn):
-        """Set database id text."""
-        self.ui.filename_le.setText('')
-        self.ui.idn_le.setText(str(idn))
-        self.ui.idn_le.setEnabled(True)
-
     def setDataEnabled(self, enabled):
         """Enable or disable controls."""
         self.ui.probedata_gb.setEnabled(enabled)
@@ -316,39 +218,29 @@ class HallProbeDialog(_QDialog):
         self.ui.updategraph_btn.setEnabled(enabled)
         self.ui.getfield_gb.setEnabled(enabled)
 
-    def show(self, database):
-        """Update database and show dialog."""
-        self.database = database
-
-        if self.database is not None:
-            self.ui.idn_le.setEnabled(True)
-            if self._load_enabled:
-                self.ui.loaddb_btn.setEnabled(True)
-            else:
-                self.ui.loaddb_btn.setEnabled(False)
-        else:
-            self.ui.loaddb_btn.setEnabled(False)
-            self.ui.idn_le.setEnabled(False)
-
+    def show(self, hall_probe):
+        """Show dialog."""
+        self.local_hall_probe = hall_probe
+        self.load()
         super().show()
 
     def showTable(self):
         """Show probe data table."""
-        if self._hall_probe is None:
+        if self.local_hall_probe is None:
             return
 
-        if self._hall_probe.sensorx is not None:
-            function_type_x = self._hall_probe.sensorx.function_type
+        if self.local_hall_probe.sensorx is not None:
+            function_type_x = self.local_hall_probe.sensorx.function_type
         else:
             function_type_x = None
 
-        if self._hall_probe.sensory is not None:
-            function_type_y = self._hall_probe.sensory.function_type
+        if self.local_hall_probe.sensory is not None:
+            function_type_y = self.local_hall_probe.sensory.function_type
         else:
             function_type_y = None
 
-        if self._hall_probe.sensorz is not None:
-            function_type_z = self._hall_probe.sensorz.function_type
+        if self.local_hall_probe.sensorz is not None:
+            function_type_z = self.local_hall_probe.sensorz.function_type
         else:
             function_type_z = None
 
@@ -356,10 +248,10 @@ class HallProbeDialog(_QDialog):
 
         if all([f == 'interpolation' for f in func_type if f is not None]):
             self.polynomial_dialog.accept()
-            self.interpolation_dialog.show(self._hall_probe)
+            self.interpolation_dialog.show(self.local_hall_probe)
         elif all([f == 'polynomial' for f in func_type if f is not None]):
             self.interpolation_dialog.accept()
-            self.polynomial_dialog.show(self._hall_probe)
+            self.polynomial_dialog.show(self.local_hall_probe)
         else:
             return
 
@@ -369,24 +261,24 @@ class HallProbeDialog(_QDialog):
         self.ui.fieldy_le.setText('')
         self.ui.fieldz_le.setText('')
 
-        if self._hall_probe is None:
+        if self.local_hall_probe is None:
             return
 
         try:
             volt = [self.ui.voltage_sb.value()]
 
-            if self._hall_probe.sensorx is not None:
-                fieldx = self._hall_probe.sensorx.convert_voltage(volt)[0]
+            if self.local_hall_probe.sensorx is not None:
+                fieldx = self.local_hall_probe.sensorx.convert_voltage(volt)[0]
             else:
                 fieldx = _np.nan
 
-            if self._hall_probe.sensory is not None:
-                fieldy = self._hall_probe.sensory.convert_voltage(volt)[0]
+            if self.local_hall_probe.sensory is not None:
+                fieldy = self.local_hall_probe.sensory.convert_voltage(volt)[0]
             else:
                 fieldy = _np.nan
 
-            if self._hall_probe.sensorz is not None:
-                fieldz = self._hall_probe.sensorz.convert_voltage(volt)[0]
+            if self.local_hall_probe.sensorz is not None:
+                fieldz = self.local_hall_probe.sensorz.convert_voltage(volt)[0]
             else:
                 fieldz = _np.nan
 
@@ -416,21 +308,21 @@ class HallProbeDialog(_QDialog):
             self.legend.removeItem('Y')
             self.legend.removeItem('Z')
 
-            if self._hall_probe is None or len(voltage) == 0:
+            if self.local_hall_probe is None or len(voltage) == 0:
                 return
 
-            if self._hall_probe.sensorx is not None:
-                fieldx = self._hall_probe.sensorx.convert_voltage(voltage)
+            if self.local_hall_probe.sensorx is not None:
+                fieldx = self.local_hall_probe.sensorx.convert_voltage(voltage)
             else:
                 fieldx = empty_data
 
-            if self._hall_probe.sensory is not None:
-                fieldy = self._hall_probe.sensory.convert_voltage(voltage)
+            if self.local_hall_probe.sensory is not None:
+                fieldy = self.local_hall_probe.sensory.convert_voltage(voltage)
             else:
                 fieldy = empty_data
 
-            if self._hall_probe.sensorz is not None:
-                fieldz = self._hall_probe.sensorz.convert_voltage(voltage)
+            if self.local_hall_probe.sensorz is not None:
+                fieldz = self.local_hall_probe.sensorz.convert_voltage(voltage)
             else:
                 fieldz = empty_data
 
@@ -469,7 +361,7 @@ class InterpolationTableDialog(_QDialog):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.hall_probe = None
+        self.local_hall_probe = None
         self.clip = _QApplication.clipboard()
 
         # create connections
@@ -506,13 +398,13 @@ class InterpolationTableDialog(_QDialog):
 
     def show(self, hall_probe):
         """Update hall probe object and show dialog."""
-        self.hall_probe = hall_probe
+        self.local_hall_probe = hall_probe
         self.updateTables()
         super(InterpolationTableDialog, self).show()
 
     def updateTables(self):
         """Update table values."""
-        if self.hall_probe is None:
+        if self.local_hall_probe is None:
             return
         self.updateTablesensorX()
         self.updateTablesensorY()
@@ -523,11 +415,11 @@ class InterpolationTableDialog(_QDialog):
         precision = self.sensorxprec_sb.value()
         table = self.ui.sensorx_ta
 
-        if self.hall_probe.sensorx is None:
+        if self.local_hall_probe.sensorx is None:
             table.setRowCount(0)
             return
 
-        data = self.hall_probe.sensorx.data
+        data = self.local_hall_probe.sensorx.data
         self._updateTable(table, data, precision)
 
     def updateTablesensorY(self):
@@ -535,11 +427,11 @@ class InterpolationTableDialog(_QDialog):
         precision = self.sensoryprec_sb.value()
         table = self.ui.sensory_ta
 
-        if self.hall_probe.sensory is None:
+        if self.local_hall_probe.sensory is None:
             table.setRowCount(0)
             return
 
-        data = self.hall_probe.sensory.data
+        data = self.local_hall_probe.sensory.data
         self._updateTable(table, data, precision)
 
     def updateTablesensorZ(self):
@@ -547,11 +439,11 @@ class InterpolationTableDialog(_QDialog):
         precision = self.sensorzprec_sb.value()
         table = self.ui.sensorz_ta
 
-        if self.hall_probe.sensorz is None:
+        if self.local_hall_probe.sensorz is None:
             table.setRowCount(0)
             return
 
-        data = self.hall_probe.sensorz.data
+        data = self.local_hall_probe.sensorz.data
         self._updateTable(table, data, precision)
 
 
@@ -566,8 +458,8 @@ class PolynomialTableDialog(_QDialog):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.hall_probe = None
         self.clip = _QApplication.clipboard()
+        self.local_hall_probe = None
 
         # create connections
         self.ui.copysensorx_btn.clicked.connect(
@@ -617,15 +509,15 @@ class PolynomialTableDialog(_QDialog):
             text = text[:-1] + "\n"
         self.clip.setText(text)
 
-    def show(self, hall_probe):
+    def show(self, hall_probe=None):
         """Update hall probe object and show dialog."""
-        self.hall_probe = hall_probe
+        self.local_hall_probe = hall_probe
         self.updateTables()
-        super(PolynomialTableDialog, self).show()
+        super().show()
 
     def updateTables(self):
         """Update table values."""
-        if self.hall_probe is None:
+        if self.local_hall_probe is None:
             return
         self.updateTableSensorX()
         self.updateTableSensorY()
@@ -635,31 +527,31 @@ class PolynomialTableDialog(_QDialog):
         """Update sensor x table values."""
         precision = self.sensorxprec_sb.value()
         table = self.ui.sensorx_ta
-        if self.hall_probe.sensorx is None:
+        if self.local_hall_probe.sensorx is None:
             table.setRowCount(0)
             return
 
-        data = self.hall_probe.sensorx.data
+        data = self.local_hall_probe.sensorx.data
         self._updateTable(table, data, precision)
 
     def updateTableSensorY(self):
         """Update sensor y table values."""
         precision = self.sensoryprec_sb.value()
         table = self.ui.sensory_ta
-        if self.hall_probe.sensory is None:
+        if self.local_hall_probe.sensory is None:
             table.setRowCount(0)
             return
 
-        data = self.hall_probe.sensory.data
+        data = self.local_hall_probe.sensory.data
         self._updateTable(table, data, precision)
 
     def updateTableSensorZ(self):
         """Update sensor z table values."""
         precision = self.sensorzprec_sb.value()
         table = self.ui.sensorz_ta
-        if self.hall_probe.sensorz is None:
+        if self.local_hall_probe.sensorz is None:
             table.setRowCount(0)
             return
 
-        data = self.hall_probe.sensorz.data
+        data = self.local_hall_probe.sensorz.data
         self._updateTable(table, data, precision)

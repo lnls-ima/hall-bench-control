@@ -17,7 +17,7 @@ import PyQt4.uic as _uic
 from PyQt4.QtCore import QThread as _QThread
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.configurationwidgets import ConfigurationWidget \
+from hallbench.gui.configurationwidget import ConfigurationWidget \
     as _ConfigurationWidget
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
@@ -59,12 +59,12 @@ class MeasurementWidget(_QWidget):
         self.fieldmap_dialog = _FieldmapDialog()
         self.viewdata_dialog = _ViewDataDialog()
 
+        self.local_measurement_config = None
+        self.local_measurement_config_id = None
+        self.local_hall_probe = None
         self.threadx = None
         self.thready = None
         self.threadz = None
-        self.config = None
-        self.config_id = None
-        self.hall_probe = None
         self.voltage_data = None
         self.field_data = None
         self.voltage_data_list = []
@@ -84,23 +84,33 @@ class MeasurementWidget(_QWidget):
         self.legend.setAutoFillBackground(1)
 
     @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return self.window().devices
-
-    @property
     def database(self):
         """Database filename."""
-        return self.window().database
+        return _QApplication.instance().database
+
+    @property
+    def devices(self):
+        """Hall Bench Devices."""
+        return _QApplication.instance().devices
+
+    @property
+    def hall_probe(self):
+        """Hall probe calibration data."""
+        return _QApplication.instance().hall_probe
+
+    @property
+    def measurement_config(self):
+        """Measurement configuration."""
+        return _QApplication.instance().measurement_config
 
     def clear(self):
         """Clear."""
         self.threadx = None
         self.thready = None
         self.threadz = None
-        self.config = None
-        self.config_id = None
-        self.hall_probe = None
+        self.local_measurement_config = None
+        self.local_measurement_config_id = None
+        self.local_hall_probe = None
         self.voltage_data = None
         self.field_data = None
         self.voltage_data_list = []
@@ -151,30 +161,31 @@ class MeasurementWidget(_QWidget):
         """Configure devices and start measurement."""
         self.clear()
 
-        if (not self.updateHallProbe()
+        if (not self.validDatabase()
+           or not self.updateHallProbe()
            or not self.updateConfiguration()
+           or not self.multimetersConnected()
            or not self.configurePmac()
-           or not self.validDatabase()
            or not self.saveConfiguration()):
             return
 
         try:
             self.ui.stop_btn.setEnabled(True)
 
-            first_axis = self.config.first_axis
-            second_axis = self.config.second_axis
+            first_axis = self.local_measurement_config.first_axis
+            second_axis = self.local_measurement_config.second_axis
             fixed_axes = self.getFixedAxes()
 
             for axis in fixed_axes:
                 if self.stop is True:
                     return
-                pos = self.config.get_start(axis)
+                pos = self.local_measurement_config.get_start(axis)
                 self.moveAxis(axis, pos)
 
             if second_axis != -1:
-                start = self.config.get_start(second_axis)
-                end = self.config.get_end(second_axis)
-                step = self.config.get_step(second_axis)
+                start = self.local_measurement_config.get_start(second_axis)
+                end = self.local_measurement_config.get_end(second_axis)
+                step = self.local_measurement_config.get_step(second_axis)
                 npts = _np.abs(_np.ceil(round((end - start) / step, 4) + 1))
                 pos_list = _np.linspace(start, end, npts)
 
@@ -189,7 +200,8 @@ class MeasurementWidget(_QWidget):
                 # move to initial position
                 if self.stop is True:
                     return
-                second_axis_start = self.config.get_start(second_axis)
+                second_axis_start = self.local_measurement_config.get_start(
+                    second_axis)
                 self.moveAxis(second_axis, second_axis_start)
 
             else:
@@ -203,7 +215,8 @@ class MeasurementWidget(_QWidget):
             if self.stop is True:
                 return
 
-            first_axis_start = self.config.get_start(first_axis)
+            first_axis_start = self.local_measurement_config.get_start(
+                first_axis)
             self.moveAxis(first_axis, first_axis_start)
             self.plotField()
             self.ui.stop_btn.setEnabled(False)
@@ -211,7 +224,7 @@ class MeasurementWidget(_QWidget):
 
             self.ui.viewdata_btn.setEnabled(True)
             self.ui.cleargraph_btn.setEnabled(True)
-            if self.hall_probe is not None:
+            if self.local_hall_probe is not None:
                 self.ui.savefieldmap_btn.setEnabled(True)
 
             message = 'End of measurements.'
@@ -220,17 +233,6 @@ class MeasurementWidget(_QWidget):
 
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
-
-    def resetMultimeters(self):
-        """Reset connected multimeters."""
-        if self.devices.voltx.connected:
-            self.devices.voltx.reset()
-
-        if self.devices.volty.connected:
-            self.devices.volty.reset()
-
-        if self.devices.voltz.connected:
-            self.devices.voltz.reset()
 
     def configurePmac(self):
         """Configure devices."""
@@ -241,10 +243,14 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
-            self.devices.pmac.set_axis_speed(1, self.config.vel_ax1)
-            self.devices.pmac.set_axis_speed(2, self.config.vel_ax2)
-            self.devices.pmac.set_axis_speed(3, self.config.vel_ax3)
-            self.devices.pmac.set_axis_speed(5, self.config.vel_ax5)
+            self.devices.pmac.set_axis_speed(
+                1, self.local_measurement_config.vel_ax1)
+            self.devices.pmac.set_axis_speed(
+                2, self.local_measurement_config.vel_ax2)
+            self.devices.pmac.set_axis_speed(
+                3, self.local_measurement_config.vel_ax3)
+            self.devices.pmac.set_axis_speed(
+                5, self.local_measurement_config.vel_ax5)
             return True
         except Exception:
             message = 'Failed to configure devices.'
@@ -305,8 +311,8 @@ class MeasurementWidget(_QWidget):
 
     def getFixedAxes(self):
         """Get fixed axes."""
-        first_axis = self.config.first_axis
-        second_axis = self.config.second_axis
+        first_axis = self.local_measurement_config.first_axis
+        second_axis = self.local_measurement_config.second_axis
         fixed_axes = [a for a in self._measurement_axes]
         fixed_axes.remove(first_axis)
         if second_axis != -1:
@@ -354,9 +360,37 @@ class MeasurementWidget(_QWidget):
                 _QApplication.processEvents()
                 _time.sleep(self._update_graph_time_interval)
 
+    def multimetersConnected(self):
+        """Check if multimeters are connected."""
+        if self.local_measurement_config is None:
+            return False
+
+        if (self.local_measurement_config.voltx_enable
+           and not self.devices.voltx.connected):
+                message = 'Multimeter X not connected.'
+                _QMessageBox.critical(
+                    self, 'Failure', message, _QMessageBox.Ok)
+                return False
+
+        if (self.local_measurement_config.volty_enable
+           and not self.devices.volty.connected):
+                message = 'Multimeter Y not connected.'
+                _QMessageBox.critical(
+                    self, 'Failure', message, _QMessageBox.Ok)
+                return False
+
+        if (self.local_measurement_config.voltz_enable
+           and not self.devices.voltz.connected):
+                message = 'Multimeter Z not connected.'
+                _QMessageBox.critical(
+                    self, 'Failure', message, _QMessageBox.Ok)
+                return False
+
+        return True
+
     def plotField(self):
         """Plot field data."""
-        if self.hall_probe is None:
+        if self.local_hall_probe is None:
             return
 
         self.clearGraph()
@@ -391,11 +425,24 @@ class MeasurementWidget(_QWidget):
             self.graphz[idx].setData(
                 self.position_list[:len(voltagez)], voltagez)
 
+    def resetMultimeters(self):
+        """Reset connected multimeters."""
+        if self.devices.voltx.connected:
+            self.devices.voltx.reset()
+
+        if self.devices.volty.connected:
+            self.devices.volty.reset()
+
+        if self.devices.voltz.connected:
+            self.devices.voltz.reset()
+
     def saveConfiguration(self):
         """Save configuration to database table."""
         try:
-            self.config_id = self.config.save_to_database(self.database)
-            self.ui.configuration_widget.idn_le.setText(str(self.config_id))
+            idn = self.local_measurement_config.save_to_database(self.database)
+            self.local_measurement_config_id = idn
+            self.ui.configuration_widget.idn_le.setText(
+                str(self.local_measurement_config_id))
             return True
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
@@ -410,7 +457,8 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
-            self.voltage_data.configuration_id = self.config_id
+            self.voltage_data.configuration_id = (
+                self.local_measurement_config_id)
             self.voltage_data.save_to_database(self.database)
             return True
 
@@ -427,7 +475,7 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
-            self.field_data.configuration_id = self.config_id
+            self.field_data.configuration_id = self.local_measurement_config_id
             idn = self.field_data.save_to_database(self.database)
             self.scan_id_list.append(idn)
             return True
@@ -440,19 +488,19 @@ class MeasurementWidget(_QWidget):
         """Start line scan."""
         self.field_data = _FieldData()
 
-        start = self.config.get_start(first_axis)
-        end = self.config.get_end(first_axis)
-        step = self.config.get_step(first_axis)
-        extra = self.config.get_extra(first_axis)
-        vel = self.config.get_velocity(first_axis)
+        start = self.local_measurement_config.get_start(first_axis)
+        end = self.local_measurement_config.get_end(first_axis)
+        step = self.local_measurement_config.get_step(first_axis)
+        extra = self.local_measurement_config.get_extra(first_axis)
+        vel = self.local_measurement_config.get_velocity(first_axis)
 
-        aper_displacement = self.config.integration_time * vel
+        aper_displacement = self.local_measurement_config.integration_time*vel
         npts = _np.ceil(round((end - start) / step, 4) + 1)
         scan_list = _np.linspace(start, end, npts)
         to_pos_scan_list = scan_list + aper_displacement/2
         to_neg_scan_list = (scan_list - aper_displacement/2)[::-1]
 
-        nr_measurements = self.config.nr_measurements
+        nr_measurements = self.local_measurement_config.nr_measurements
         self.clearGraph()
         self.configureGraph(2*nr_measurements, 'Voltage [V]')
 
@@ -500,18 +548,18 @@ class MeasurementWidget(_QWidget):
                     self.devices.pmac.set_trigger(
                         first_axis, end, step*(-1), 10, npts, 1)
 
-            if self.config.voltx_enable:
+            if self.local_measurement_config.voltx_enable:
                 self.devices.voltx.config(
-                    self.config.integration_time,
-                    self.config.voltage_precision)
-            if self.config.volty_enable:
+                    self.local_measurement_config.integration_time,
+                    self.local_measurement_config.voltage_precision)
+            if self.local_measurement_config.volty_enable:
                 self.devices.volty.config(
-                    self.config.integration_time,
-                    self.config.voltage_precision)
-            if self.config.voltz_enable:
+                    self.local_measurement_config.integration_time,
+                    self.local_measurement_config.voltage_precision)
+            if self.local_measurement_config.voltz_enable:
                 self.devices.voltz.config(
-                    self.config.integration_time,
-                    self.config.voltage_precision)
+                    self.local_measurement_config.integration_time,
+                    self.local_measurement_config.voltage_precision)
 
             self.startReadingThreads()
 
@@ -543,9 +591,9 @@ class MeasurementWidget(_QWidget):
         for vd in voltage_data_list:
             self.voltage_data_list.append(vd)
 
-        if self.hall_probe is not None:
+        if self.local_hall_probe is not None:
             self.field_data.set_field_data(
-                voltage_data_list, self.hall_probe)
+                voltage_data_list, self.local_hall_probe)
             success = self.saveScan()
         else:
             success = True
@@ -555,14 +603,11 @@ class MeasurementWidget(_QWidget):
     def showFieldmapDialog(self):
         """Open fieldmap dialog."""
         self.fieldmap_dialog.show(
-            self.field_data_list,
-            self.hall_probe,
-            self.database,
-            self.scan_id_list)
+            self.field_data_list, self.local_hall_probe, self.scan_id_list)
 
     def showViewDataDialog(self):
         """Open view data dialog."""
-        if self.hall_probe is None:
+        if self.local_hall_probe is None:
             self.viewdata_dialog.show(
                 self.voltage_data_list, 'Voltage [V]')
         else:
@@ -571,23 +616,26 @@ class MeasurementWidget(_QWidget):
 
     def startReadingThreads(self):
         """Start threads to read voltage values."""
-        if self.config.voltx_enable:
+        if self.local_measurement_config.voltx_enable:
             self.threadx = ReadingThread(
-                self.devices.voltx, self.config.voltage_precision)
+                self.devices.voltx,
+                self.local_measurement_config.voltage_precision)
             self.threadx.start()
         else:
             self.threadx = None
 
-        if self.config.volty_enable:
+        if self.local_measurement_config.volty_enable:
             self.thready = ReadingThread(
-                self.devices.volty, self.config.voltage_precision)
+                self.devices.volty,
+                self.local_measurement_config.voltage_precision)
             self.thready.start()
         else:
             self.thready = None
 
-        if self.config.voltz_enable:
+        if self.local_measurement_config.voltz_enable:
             self.threadz = ReadingThread(
-                self.devices.voltz, self.config.voltage_precision)
+                self.devices.voltz,
+                self.local_measurement_config.voltage_precision)
             self.threadz.start()
         else:
             self.threadz = None
@@ -617,7 +665,7 @@ class MeasurementWidget(_QWidget):
         """Update measurement configuration."""
         success = self.configuration_widget.updateConfiguration()
         if success:
-            config = self.configuration_widget.config
+            config = self.measurement_config.copy()
             if not any([
                     config.voltx_enable,
                     config.volty_enable,
@@ -627,10 +675,10 @@ class MeasurementWidget(_QWidget):
                     self, 'Failure', message, _QMessageBox.Ok)
                 return False
             else:
-                self.config = config
+                self.local_measurement_config = config
                 return True
         else:
-            self.config = None
+            self.local_measurement_config = None
             return False
 
     def updatePositions(self):
@@ -639,8 +687,8 @@ class MeasurementWidget(_QWidget):
 
     def updateHallProbe(self):
         """Update hall probe."""
-        self.hall_probe = self.configuration_widget.hall_probe
-        if self.hall_probe is not None:
+        self.local_hall_probe = self.hall_probe.copy()
+        if self.local_hall_probe.valid_data():
             return True
         else:
             message = 'Invalid hall probe. Measure only voltage data?'

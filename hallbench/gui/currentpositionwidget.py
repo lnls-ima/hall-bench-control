@@ -30,8 +30,8 @@ class CurrentPositionWidget(_QWidget):
 
     @property
     def pmac(self):
-        """Pmac object."""
-        return self.window().devices.pmac
+        """Pmac communication class."""
+        return _QApplication.instance().devices.pmac
 
     def closeEvent(self, event):
         """Close widget."""

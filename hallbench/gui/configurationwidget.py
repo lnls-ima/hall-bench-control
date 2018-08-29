@@ -6,65 +6,15 @@ import os.path as _path
 import numpy as _np
 from PyQt4.QtGui import (
     QWidget as _QWidget,
-    QDialog as _QDialog,
     QFileDialog as _QFileDialog,
-    QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
+    QApplication as _QApplication,
     )
 import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.hallprobedialog import HallProbeDialog \
-    as _HallProbeDialog
-from hallbench.data.configuration import MeasurementConfig \
-    as _MeasurementConfig
-
-
-class ConfigurationDialog(_QDialog):
-    """Configuration dialog class for the Hall Bench Control application."""
-
-    def __init__(self, parent=None, load_enabled=True):
-        """Add configuration widget."""
-        super().__init__(parent)
-        self.database = None
-        self._load_enabled = load_enabled
-
-        self.main_wg = ConfigurationWidget(
-            self, load_enabled=self._load_enabled)
-        self.main_wg.hall_probe_btn.setText('Show Hall Probe')
-
-        _layout = _QVBoxLayout()
-        _layout.addWidget(self.main_wg)
-        self.setLayout(_layout)
-
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.main_wg.close()
-            event.accept()
-        except Exception:
-            event.accept()
-
-    def accept(self):
-        """Close dialog."""
-        self.main_wg.close()
-        super().accept()
-
-    def show(self, database):
-        """Update database and show dialog."""
-        self.database = database
-
-        if self.database is not None:
-            self.main_wg.idn_le.setEnabled(True)
-            if self._load_enabled:
-                self.main_wg.loaddb_btn.setEnabled(True)
-            else:
-                self.main_wg.loaddb_btn.setEnabled(False)
-        else:
-            self.main_wg.loaddb_btn.setEnabled(False)
-            self.main_wg.idn_le.setEnabled(False)
-
-        super().show()
+from hallbench.gui.viewprobedialog import ViewProbeDialog \
+    as _ViewProbeDialog
 
 
 class ConfigurationWidget(_QWidget):
@@ -72,7 +22,7 @@ class ConfigurationWidget(_QWidget):
 
     _measurement_axes = [1, 2, 3, 5]
 
-    def __init__(self, parent=None, load_enabled=True):
+    def __init__(self, parent=None):
         """Set up the ui, add widgets and create connections."""
         super().__init__(parent)
 
@@ -80,38 +30,48 @@ class ConfigurationWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        # create dialog
-        self.hall_probe_dialog = _HallProbeDialog(load_enabled=load_enabled)
+        probe_names = self.hall_probe.get_table_column(
+            self.database, 'probe_name')
+        self.ui.probe_name_cmb.addItems(probe_names)
+        self.ui.probe_name_cmb.setCurrentIndex(-1)
 
-        # variables initialization
-        self.config = None
-        self.hall_probe = None
-        self._load_enabled = load_enabled
+        idns = self.measurement_config.get_table_column(
+            self.database, 'id')
+        self.ui.idn_cmb.addItems([str(idn) for idn in idns])
+        self.ui.idn_cmb.setCurrentIndex(-1)
 
-        # Enable or disable load option
-        self.ui.loadfile_btn.setEnabled(self._load_enabled)
-        self.ui.savefile_btn.setEnabled(self._load_enabled)
-        self.ui.loaddb_btn.setEnabled(self._load_enabled)
-        self.ui.filename_le.setEnabled(self._load_enabled)
-        self.ui.idn_le.setReadOnly(not self._load_enabled)
-
-        self.setControlsEnabled()
+        self.view_probe_dialog = _ViewProbeDialog()
         self.connectSignalSlots()
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return self.window().devices
 
     @property
     def database(self):
         """Database filename."""
-        return self.window().database
+        return _QApplication.instance().database
+
+    @property
+    def measurement_config(self):
+        """Measurement configuration."""
+        return _QApplication.instance().measurement_config
+
+    @property
+    def hall_probe(self):
+        """Hall probe calibration data."""
+        return _QApplication.instance().hall_probe
+
+    def clearHallProbe(self):
+        """Clear hall probe calibration data."""
+        self.hall_probe.clear()
+        self.ui.probe_name_cmb.setCurrentIndex(-1)
+
+    def clearLoadOptions(self):
+        """Clear load options."""
+        self.ui.filename_le.setText("")
+        self.ui.idn_cmb.setCurrentIndex(-1)
 
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.hall_probe_dialog.accept()
+            self.view_probe_dialog.accept()
         except Exception:
             pass
 
@@ -125,6 +85,27 @@ class ConfigurationWidget(_QWidget):
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
+        self.ui.first_ax1_rb.clicked.connect(self.clearLoadOptions)
+        self.ui.first_ax2_rb.clicked.connect(self.clearLoadOptions)
+        self.ui.first_ax3_rb.clicked.connect(self.clearLoadOptions)
+        self.ui.first_ax5_rb.clicked.connect(self.clearLoadOptions)
+        self.ui.second_ax1_rb.clicked.connect(self.clearLoadOptions)
+        self.ui.second_ax2_rb.clicked.connect(self.clearLoadOptions)
+        self.ui.second_ax3_rb.clicked.connect(self.clearLoadOptions)
+        self.ui.second_ax5_rb.clicked.connect(self.clearLoadOptions)
+        self.ui.magnet_name_le.editingFinished.connect(self.clearLoadOptions)
+        self.ui.main_current_le.editingFinished.connect(self.clearLoadOptions)
+        self.ui.temperature_le.editingFinished.connect(self.clearLoadOptions)
+        self.ui.operator_le.editingFinished.connect(self.clearLoadOptions)
+        self.ui.nr_measurements_sb.valueChanged.connect(self.clearLoadOptions)
+        self.ui.probe_name_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        self.ui.voltage_precision_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        self.voltx_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.volty_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.voltz_enable_chb.stateChanged.connect(self.clearLoadOptions)
+
         self.ui.start_ax1_le.editingFinished.connect(
             lambda: self.setStrFormatFloat(self.ui.start_ax1_le))
         self.ui.start_ax2_le.editingFinished.connect(
@@ -172,9 +153,6 @@ class ConfigurationWidget(_QWidget):
 
         self.ui.integration_time_le.editingFinished.connect(
             lambda: self.setStrFormatFloat(self.ui.integration_time_le))
-
-        self.ui.idn_le.editingFinished.connect(
-            lambda: self.setStrFormatInteger(self.ui.idn_le))
 
         self.ui.first_ax1_rb.clicked.connect(self.disableSecondAxisButton)
         self.ui.first_ax2_rb.clicked.connect(self.disableSecondAxisButton)
@@ -231,11 +209,9 @@ class ConfigurationWidget(_QWidget):
         self.ui.savefile_btn.clicked.connect(self.saveFile)
         self.ui.loaddb_btn.clicked.connect(self.loadDB)
         self.ui.savedb_btn.clicked.connect(self.saveDB)
-        self.ui.hall_probe_btn.clicked.connect(
-            self.showHallProbeDialog)
-
-        self.hall_probe_dialog.hallProbeChanged.connect(
-            self.setHallProbe)
+        self.ui.probe_name_cmb.currentIndexChanged.connect(self.loadHallProbe)
+        self.ui.clear_probe_btn.clicked.connect(self.clearHallProbe)
+        self.ui.view_probe_btn.clicked.connect(self.showViewProbeDialog)
 
     def disableInvalidLineEdit(self):
         """Disable invalid line edit."""
@@ -310,42 +286,42 @@ class ConfigurationWidget(_QWidget):
         else:
             return None
 
-    def searchHallProbeDB(self):
-        """Load hall probe from database."""
-        try:
-            self.hall_probe_dialog.database = self.database
-            self.hall_probe_dialog.searchDB(self.config.probe_name)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
-
     def load(self):
         """Set measurement parameters."""
         try:
-            self.ui.magnet_name_le.setText(self.config.magnet_name)
-            self.ui.main_current_le.setText(self.config.main_current)
-            self.ui.probe_name_le.setText(self.config.probe_name)
-            self.ui.temperature_le.setText(self.config.temperature)
-            self.ui.operator_le.setText(self.config.operator)
+            self.ui.magnet_name_le.setText(self.measurement_config.magnet_name)
+            self.ui.main_current_le.setText(
+                self.measurement_config.main_current)
 
-            self.ui.voltx_enable_chb.setChecked(self.config.voltx_enable)
-            self.ui.volty_enable_chb.setChecked(self.config.volty_enable)
-            self.ui.voltz_enable_chb.setChecked(self.config.voltz_enable)
+            idx = self.ui.probe_name_cmb.findText(
+                self.measurement_config.probe_name)
+            self.ui.probe_name_cmb.setCurrentIndex(idx)
+
+            self.ui.temperature_le.setText(self.measurement_config.temperature)
+            self.ui.operator_le.setText(self.measurement_config.operator)
+
+            self.ui.voltx_enable_chb.setChecked(
+                self.measurement_config.voltx_enable)
+            self.ui.volty_enable_chb.setChecked(
+                self.measurement_config.volty_enable)
+            self.ui.voltz_enable_chb.setChecked(
+                self.measurement_config.voltz_enable)
 
             self.ui.integration_time_le.setText('{0:0.4f}'.format(
-                self.config.integration_time))
+                self.measurement_config.integration_time))
             self.ui.voltage_precision_cmb.setCurrentIndex(
-                self.config.voltage_precision)
+                self.measurement_config.voltage_precision)
 
-            self.ui.nr_measurements_sb.setValue(self.config.nr_measurements)
+            self.ui.nr_measurements_sb.setValue(
+                self.measurement_config.nr_measurements)
 
-            first_axis = self.config.first_axis
+            first_axis = self.measurement_config.first_axis
             first_rb = getattr(self.ui, 'first_ax' + str(first_axis) + '_rb')
             first_rb.setChecked(True)
 
             self.disableSecondAxisButton()
 
-            second_axis = self.config.second_axis
+            second_axis = self.measurement_config.second_axis
             if second_axis != -1:
                 second_rb = getattr(
                     self.ui, 'second_ax' + str(second_axis) + '_rb')
@@ -356,31 +332,28 @@ class ConfigurationWidget(_QWidget):
 
             for axis in self._measurement_axes:
                 start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
-                value = self.config.get_start(axis)
+                value = self.measurement_config.get_start(axis)
                 start_le.setText('{0:0.4f}'.format(value))
 
                 step_le = getattr(self.ui, 'step_ax' + str(axis) + '_le')
-                value = self.config.get_step(axis)
+                value = self.measurement_config.get_step(axis)
                 step_le.setText('{0:0.4f}'.format(value))
 
                 end_le = getattr(self.ui, 'end_ax' + str(axis) + '_le')
-                value = self.config.get_end(axis)
+                value = self.measurement_config.get_end(axis)
                 end_le.setText('{0:0.4f}'.format(value))
 
                 extra_le = getattr(self.ui, 'extra_ax' + str(axis) + '_le')
-                value = self.config.get_extra(axis)
+                value = self.measurement_config.get_extra(axis)
                 extra_le.setText('{0:0.4f}'.format(value))
 
                 vel_le = getattr(self.ui, 'vel_ax' + str(axis) + '_le')
-                value = self.config.get_velocity(axis)
+                value = self.measurement_config.get_velocity(axis)
                 vel_le.setText('{0:0.4f}'.format(value))
 
-            self.searchHallProbeDB()
             self.disableInvalidLineEdit()
-            self.setControlsEnabled()
 
         except Exception:
-            self.setControlsEnabled()
             message = 'Fail to load configuration.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
@@ -390,23 +363,26 @@ class ConfigurationWidget(_QWidget):
         self.ui.filename_le.setText("")
 
         try:
-            idn = int(self.ui.idn_le.text())
+            index = self.ui.idn_cmb.currentIndex()
+            idn = int(self.ui.idn_cmb.currentText())
         except Exception:
             _QMessageBox.critical(
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
 
         try:
-            self.config = _MeasurementConfig(database=self.database, idn=idn)
+            self.measurement_config.clear()
+            self.measurement_config.read_from_database(self.database, idn)
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
         self.load()
+        self.ui.idn_cmb.setCurrentIndex(index)
 
     def loadFile(self):
         """Load configuration file to set measurement parameters."""
-        self.ui.idn_le.setText("")
+        self.ui.idn_cmb.setCurrentIndex(-1)
 
         default_filename = self.ui.filename_le.text()
         filename = _QFileDialog.getOpenFileName(
@@ -420,22 +396,45 @@ class ConfigurationWidget(_QWidget):
             return
 
         try:
-            self.config = _MeasurementConfig(filename)
+            self.measurement_config.clear()
+            self.measurement_config.read_file(filename)
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return
 
-        self.ui.filename_le.setText(filename)
         self.load()
+        self.ui.filename_le.setText(filename)
+
+    def loadHallProbe(self):
+        """Load hall probe from database."""
+        self.hall_probe.clear()
+        probe_name = self.ui.probe_name_cmb.currentText()
+        if len(probe_name) == 0:
+            return
+
+        try:
+            idn = self.hall_probe.get_hall_probe_id(self.database, probe_name)
+            if idn is not None:
+                self.hall_probe.read_from_database(self.database, idn)
+            else:
+                self.ui.probe_name_cmb.setCurrentIndex(-1)
+                msg = 'Invalid probe name.'
+                _QMessageBox.critical(
+                    self, 'Failure', msg, _QMessageBox.Ok)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def saveDB(self):
         """Save configuration to database."""
-        self.ui.idn_le.setText("")
+        self.ui.idn_cmb.setCurrentIndex(-1)
         if self.database is not None and _path.isfile(self.database):
             try:
                 if self.updateConfiguration():
-                    idn = self.config.save_to_database(self.database)
-                    self.ui.idn_le.setText(str(idn))
+                    idn = self.measurement_config.save_to_database(
+                        self.database)
+                    self.ui.idn_cmb.addItem(str(idn))
+                    self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
             except Exception as e:
                 _QMessageBox.critical(
                     self, 'Failure', str(e), _QMessageBox.Ok)
@@ -462,126 +461,63 @@ class ConfigurationWidget(_QWidget):
                 if (not filename.endswith('.txt')
                    and not filename.endswith('.dat')):
                     filename = filename + '.txt'
-                self.config.save_file(filename)
+                self.measurement_config.save_file(filename)
 
             except Exception as e:
                 _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
 
-    def setControlsEnabled(self):
-        """Enable or disable controls."""
-        read_only = True if not self._load_enabled else False
-
-        self.ui.probe_name_le.setReadOnly(True)
-
-        self.ui.magnet_name_le.setReadOnly(read_only)
-        self.ui.main_current_le.setReadOnly(read_only)
-        self.ui.temperature_le.setReadOnly(read_only)
-        self.ui.operator_le.setReadOnly(read_only)
-        self.ui.nr_measurements_sb.setReadOnly(read_only)
-        self.ui.integration_time_le.setReadOnly(read_only)
-
-        self.ui.voltx_enable_chb.setEnabled(self._load_enabled)
-        self.ui.volty_enable_chb.setEnabled(self._load_enabled)
-        self.ui.voltz_enable_chb.setEnabled(self._load_enabled)
-        self.ui.voltage_precision_cmb.setEnabled(self._load_enabled)
-
-        for axis in self._measurement_axes:
-            first_rb = getattr(self.ui, 'first_ax' + str(axis) + '_rb')
-            second_rb = getattr(self.ui, 'second_ax' + str(axis) + '_rb')
-            if axis == 5:
-                first_rb.setEnabled(False)
-                second_rb.setEnabled(False)
-            else:
-                first_rb.setEnabled(self._load_enabled)
-                second_rb.setEnabled(self._load_enabled)
-
-            if first_rb.isChecked():
-                second_rb.setChecked(False)
-                second_rb.setEnabled(False)
-
-            start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
-            start_le.setReadOnly(read_only)
-
-            step_le = getattr(self.ui, 'step_ax' + str(axis) + '_le')
-            step_le.setReadOnly(read_only)
-
-            end_le = getattr(self.ui, 'end_ax' + str(axis) + '_le')
-            end_le.setReadOnly(read_only)
-
-            extra_le = getattr(self.ui, 'extra_ax' + str(axis) + '_le')
-            extra_le.setReadOnly(read_only)
-
-            vel_le = getattr(self.ui, 'vel_ax' + str(axis) + '_le')
-            vel_le.setReadOnly(read_only)
-
-    def setDatabaseID(self, idn, read_only=False):
-        """Set database id text."""
-        self.ui.filename_le.setText('')
-        self.ui.idn_le.setText(str(idn))
-        self.ui.idn_le.setReadOnly(read_only)
-        self.ui.idn_le.setEnabled(True)
-
-    def setHallProbe(self, hall_probe):
-        """Set hall probe."""
-        try:
-            self.hall_probe = hall_probe
-            if self.hall_probe is not None:
-                self.ui.probe_name_le.setText(self.hall_probe.probe_name)
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
-
     def setStrFormatFloat(self, obj):
         """Set the line edit string format for float value."""
         try:
-            value = float(obj.text())
-            obj.setText('{0:0.4f}'.format(value))
-        except Exception:
-            obj.setText('')
-
-    def setStrFormatInteger(self, obj):
-        """Set the line edit string format for integer value."""
-        try:
-            value = int(obj.text())
-            obj.setText('{0:d}'.format(value))
+            if obj.isModified():
+                self.clearLoadOptions()
+                value = float(obj.text())
+                obj.setText('{0:0.4f}'.format(value))
         except Exception:
             obj.setText('')
 
     def setStrFormatPositiveFloat(self, obj):
         """Set the line edit string format for positive float value."""
         try:
-            value = float(obj.text())
-            if value >= 0:
-                obj.setText('{0:0.4f}'.format(value))
-            else:
-                obj.setText('')
+            if obj.isModified():
+                self.clearLoadOptions()
+                value = float(obj.text())
+                if value >= 0:
+                    obj.setText('{0:0.4f}'.format(value))
+                else:
+                    obj.setText('')
         except Exception:
             obj.setText('')
 
     def setStrFormatPositiveNonZeroFloat(self, obj):
         """Set the line edit string format for positive float value."""
         try:
-            value = float(obj.text())
-            if value > 0:
-                obj.setText('{0:0.4f}'.format(value))
-            else:
-                obj.setText('')
+            if obj.isModified():
+                self.clearLoadOptions()
+                value = float(obj.text())
+                if value > 0:
+                    obj.setText('{0:0.4f}'.format(value))
+                else:
+                    obj.setText('')
         except Exception:
             obj.setText('')
 
     def setStrFormatNonZeroFloat(self, obj):
         """Set the line edit string format for positive float value."""
         try:
-            value = float(obj.text())
-            if value != 0:
-                obj.setText('{0:0.4f}'.format(value))
-            else:
-                obj.setText('')
+            if obj.isModified():
+                self.clearLoadOptions()
+                value = float(obj.text())
+                if value != 0:
+                    obj.setText('{0:0.4f}'.format(value))
+                else:
+                    obj.setText('')
         except Exception:
             obj.setText('')
 
-    def showHallProbeDialog(self):
-        """Open hall probe dialog."""
-        self.hall_probe_dialog.show(self.database)
+    def showViewProbeDialog(self):
+        """Open view probe dialog."""
+        self.view_probe_dialog.show(self.hall_probe)
 
     def uncheckRadioButtons(self, selected_axis):
         """Uncheck radio buttons."""
@@ -593,91 +529,81 @@ class ConfigurationWidget(_QWidget):
     def updateConfiguration(self):
         """Update measurement configuration parameters."""
         try:
-            self.config = _MeasurementConfig()
+            self.measurement_config.clear()
 
             _s = self.ui.magnet_name_le.text()
-            self.config.magnet_name = _s if len(_s) != 0 else None
+            self.measurement_config.magnet_name = _s if len(_s) != 0 else None
 
             _s = self.ui.main_current_le.text()
-            self.config.main_current = _s if len(_s) != 0 else None
+            self.measurement_config.main_current = _s if len(_s) != 0 else None
 
-            _s = self.ui.probe_name_le.text()
-            self.config.probe_name = _s if len(_s) != 0 else 'None'
+            _s = self.ui.probe_name_cmb.currentText()
+            self.measurement_config.probe_name = _s if len(_s) != 0 else 'None'
 
             _s = self.ui.temperature_le.text()
-            self.config.temperature = _s if len(_s) != 0 else None
+            self.measurement_config.temperature = _s if len(_s) != 0 else None
 
             _s = self.ui.operator_le.text()
-            self.config.operator = _s if len(_s) != 0 else None
+            self.measurement_config.operator = _s if len(_s) != 0 else None
 
-            if self.devices.voltx.connected:
-                _voltx_enable = self.ui.voltx_enable_chb.isChecked()
-                self.config.voltx_enable = _voltx_enable
-            else:
-                self.ui.voltx_enable_chb.setChecked(False)
-                self.config.voltx_enable = 0
+            _voltx_enable = self.ui.voltx_enable_chb.isChecked()
+            self.measurement_config.voltx_enable = _voltx_enable
 
-            if self.devices.volty.connected:
-                _volty_enable = self.ui.volty_enable_chb.isChecked()
-                self.config.volty_enable = _volty_enable
-            else:
-                self.ui.volty_enable_chb.setChecked(False)
-                self.config.volty_enable = 0
+            _volty_enable = self.ui.volty_enable_chb.isChecked()
+            self.measurement_config.volty_enable = _volty_enable
 
-            if self.devices.voltz.connected:
-                _voltz_enable = self.ui.voltz_enable_chb.isChecked()
-                self.config.voltz_enable = _voltz_enable
-            else:
-                self.ui.voltz_enable_chb.setChecked(False)
-                self.config.voltz_enable = 0
+            _voltz_enable = self.ui.voltz_enable_chb.isChecked()
+            self.measurement_config.voltz_enable = _voltz_enable
 
             idx = self.ui.voltage_precision_cmb.currentIndex()
-            self.config.voltage_precision = idx
-            self.config.nr_measurements = self.ui.nr_measurements_sb.value()
+            self.measurement_config.voltage_precision = idx
+            nr_meas = self.ui.nr_measurements_sb.value()
+            self.measurement_config.nr_measurements = nr_meas
 
             integration_time = self.ui.integration_time_le.text()
             if bool(integration_time and integration_time.strip()):
-                self.config.integration_time = float(integration_time)
+                self.measurement_config.integration_time = float(
+                    integration_time)
 
             for axis in self._measurement_axes:
                 first_rb = getattr(self.ui, 'first_ax' + str(axis) + '_rb')
                 second_rb = getattr(self.ui, 'second_ax' + str(axis) + '_rb')
                 if first_rb.isChecked():
-                    self.config.first_axis = axis
+                    self.measurement_config.first_axis = axis
                 elif second_rb.isChecked():
-                    self.config.second_axis = axis
+                    self.measurement_config.second_axis = axis
 
                 start = self.getAxisParam('start', axis)
-                self.config.set_start(axis, start)
+                self.measurement_config.set_start(axis, start)
 
                 step_le = getattr(self.ui, 'step_ax' + str(axis) + '_le')
                 if step_le.isEnabled():
                     step = self.getAxisParam('step', axis)
-                    self.config.set_step(axis, step)
+                    self.measurement_config.set_step(axis, step)
                 else:
-                    self.config.set_step(axis, 0.0)
+                    self.measurement_config.set_step(axis, 0.0)
 
                 end_le = getattr(self.ui, 'end_ax' + str(axis) + '_le')
                 if end_le.isEnabled():
                     end = self.getAxisParam('end', axis)
-                    self.config.set_end(axis, end)
+                    self.measurement_config.set_end(axis, end)
                 else:
-                    self.config.set_end(axis, start)
+                    self.measurement_config.set_end(axis, start)
 
                 extra_le = getattr(self.ui, 'extra_ax' + str(axis) + '_le')
                 if extra_le.isEnabled():
                     extra = self.getAxisParam('extra', axis)
-                    self.config.set_extra(axis, extra)
+                    self.measurement_config.set_extra(axis, extra)
                 else:
-                    self.config.set_extra(axis, 0.0)
+                    self.measurement_config.set_extra(axis, 0.0)
 
                 vel = self.getAxisParam('vel', axis)
-                self.config.set_velocity(axis, vel)
+                self.measurement_config.set_velocity(axis, vel)
 
-            if self.config.second_axis is None:
-                self.config.second_axis = -1
+            if self.measurement_config.second_axis is None:
+                self.measurement_config.second_axis = -1
 
-            if self.config.valid_data():
+            if self.measurement_config.valid_data():
                 return True
 
             else:

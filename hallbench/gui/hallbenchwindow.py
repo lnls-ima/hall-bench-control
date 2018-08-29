@@ -2,10 +2,10 @@
 
 """Main window for the Hall Bench Control application."""
 
-import os as _os
 from PyQt4.QtGui import (
+    QApplication as _QApplication,
+    QDesktopWidget as _QDesktopWidget,
     QMainWindow as _QMainWindow,
-    QMessageBox as _QMessageBox,
     )
 import PyQt4.uic as _uic
 
@@ -23,32 +23,22 @@ from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
 from hallbench.gui.angularerrorwidget import AngularErrorWidget \
     as _AngularErrorWidget
-from hallbench.devices.devices import HallBenchDevices as _HallBenchDevices
-import hallbench.data as _data
-
-
-_database_filename = 'hall_bench_measurements.db'
 
 
 class HallBenchWindow(_QMainWindow):
     """Main Window class for the Hall Bench Control application."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, width=1200, height=700):
         """Set up the ui and add main tabs."""
         super().__init__(parent)
 
         # setup the ui
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
+        self.resize(width, height)
 
         # clear the current tabs
         self.ui.main_tab.clear()
-
-        # variables initialization
-        _default_directory = _os.path.dirname(_os.path.dirname(
-            _os.path.dirname(_os.path.abspath(__file__))))
-        self.database = _os.path.join(_default_directory, _database_filename)
-        self.devices = _HallBenchDevices()
 
         # add tabs
         self.connection_tab = _ConnectionWidget(self)
@@ -72,26 +62,15 @@ class HallBenchWindow(_QMainWindow):
         self.database_tab = _DatabaseWidget(self)
         self.ui.main_tab.addTab(self.database_tab, 'Database')
 
-        self.create_database(self.database)
         self.ui.database_le.setText(self.database)
 
         self.updateMainTabStatus()
         self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
 
     @property
-    def voltage_data(self):
-        """Measurement voltage data."""
-        return self.measurement_tab.voltage_data
-
-    @property
-    def field_data(self):
-        """Measurement field data."""
-        return self.measurement_tab.field_data
-
-    @property
-    def fieldmap(self):
-        """Measurement fieldmap."""
-        return self.measurement_tab.fieldmap
+    def database(self):
+        """Return the database filename."""
+        return _QApplication.instance().database
 
     def closeEvent(self, event):
         """Close main window and dialogs."""
@@ -103,62 +82,12 @@ class HallBenchWindow(_QMainWindow):
         except Exception:
             event.accept()
 
-    def create_database(self, database):
-        """Create database and tables.
-
-        Args:
-            database (str): full file path to database.
-        """
-        success = _data.configuration.ConnectionConfig.create_database_table(
-            database)
-        if not success:
-            message = 'Fail to create database table'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return
-
-        success = _data.calibration.HallSensor.create_database_table(database)
-        if not success:
-            message = 'Fail to create database table'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return
-
-        success = _data.calibration.HallProbe.create_database_table(database)
-        if not success:
-            message = 'Fail to create database table'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return
-
-        success = _data.configuration.MeasurementConfig.create_database_table(
-            database)
-        if not success:
-            message = 'Fail to create database table'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return
-
-        success = _data.measurement.VoltageData.create_database_table(database)
-        if not success:
-            message = 'Fail to create database table'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return
-
-        success = _data.measurement.FieldData.create_database_table(database)
-        if not success:
-            message = 'Fail to create database table'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return
-
-        success = _data.measurement.Fieldmap.create_database_table(database)
-        if not success:
-            message = 'Fail to create database table'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-            return
+    def centralizeWindow(self):
+        """Centralize window."""
+        window_center = _QDesktopWidget().availableGeometry().center()
+        self.move(
+            window_center.x() - self.geometry().width()/2,
+            window_center.y() - self.geometry().height()/2)
 
     def updateDatabaseTab(self):
         """Update database tab."""

@@ -18,10 +18,8 @@ from PyQt4.QtGui import (
     )
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.hallprobedialog import HallProbeDialog \
-    as _HallProbeDialog
-from hallbench.gui.configurationwidgets import ConfigurationDialog \
-    as _ConfigurationDialog
+from hallbench.gui.viewprobedialog import ViewProbeDialog \
+    as _ViewProbeDialog
 from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
 from hallbench.gui.fieldmapdialog import FieldmapDialog \
     as _FieldmapDialog
@@ -60,8 +58,7 @@ class DatabaseWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # create dialogs
-        self.hall_probe_dialog = _HallProbeDialog(load_enabled=False)
-        self.configuration_dialog = _ConfigurationDialog(load_enabled=False)
+        self.view_probe_dialog = _ViewProbeDialog()
         self.viewdata_dialog = _ViewDataDialog()
         self.fieldmap_dialog = _FieldmapDialog()
 
@@ -73,7 +70,7 @@ class DatabaseWidget(_QWidget):
     @property
     def database(self):
         """Database filename."""
-        return self.window().database
+        return _QApplication.instance().database
 
     def clear(self):
         """Clear."""
@@ -113,8 +110,7 @@ class DatabaseWidget(_QWidget):
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.hall_probe_dialog.accept()
-            self.configuration_dialog.accept()
+            self.view_probe_dialog.accept()
             self.viewdata_dialog.accept()
             self.fieldmap_dialog.accept()
         except Exception:
@@ -150,7 +146,6 @@ class DatabaseWidget(_QWidget):
         self.ui.delete_hall_probe_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._hall_probe_table_name))
 
-        self.ui.view_configuration_btn.clicked.connect(self.viewConfiguration)
         self.ui.save_configuration_btn.clicked.connect(
             lambda: self.saveFile(
                 self._configuration_table_name, _MeasurementConfig))
@@ -224,7 +219,7 @@ class DatabaseWidget(_QWidget):
                 database=self.database, idn=idn)
 
             self.fieldmap_dialog.show(
-                field_data_list, hall_probe, self.database, idns)
+                field_data_list, hall_probe, idns)
 
         except Exception as e:
             _QMessageBox.critical(
@@ -382,6 +377,7 @@ class DatabaseWidget(_QWidget):
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
+            return
 
         filename = _QFileDialog.getSaveFileName(
             self, caption='Save configuration file',
@@ -435,19 +431,12 @@ class DatabaseWidget(_QWidget):
         if idn is None:
             return
 
-        self.hall_probe_dialog.show(self.database)
-        self.hall_probe_dialog.setDatabaseID(idn)
-        self.hall_probe_dialog.loadDB()
-
-    def viewConfiguration(self):
-        """Open configuration dialog."""
-        idn = self.getTableSelectedID(self._configuration_table_name)
-        if idn is None:
-            return
-
-        self.configuration_dialog.show(self.database)
-        self.configuration_dialog.main_wg.setDatabaseID(idn)
-        self.configuration_dialog.main_wg.loadDB()
+        try:
+            hall_probe = _HallProbe(database=self.database, idn=idn)
+            self.view_probe_dialog.show(hall_probe)
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def viewRawData(self):
         """Open view data dialog."""

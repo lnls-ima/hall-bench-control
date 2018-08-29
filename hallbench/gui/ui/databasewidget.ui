@@ -101,9 +101,17 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>7</number>
+        <number>5</number>
        </property>
        <widget class="QWidget" name="connection_pg">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>250</width>
+          <height>273</height>
+         </rect>
+        </property>
         <attribute name="label">
          <string>Connection</string>
         </attribute>
@@ -160,6 +168,14 @@
         </layout>
        </widget>
        <widget class="QWidget" name="hall_sensor_pg">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>250</width>
+          <height>273</height>
+         </rect>
+        </property>
         <attribute name="label">
          <string>Hall Sensor</string>
         </attribute>
@@ -221,7 +237,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>215</height>
+          <height>273</height>
          </rect>
         </property>
         <attribute name="label">
@@ -311,7 +327,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>215</height>
+          <height>273</height>
          </rect>
         </property>
         <attribute name="label">
@@ -319,29 +335,6 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_4">
          <item row="0" column="0">
-          <widget class="QPushButton" name="view_configuration_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>View Configuration</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
           <widget class="QPushButton" name="save_configuration_btn">
            <property name="minimumSize">
             <size>
@@ -364,7 +357,7 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
+         <item row="1" column="0">
           <widget class="QPushButton" name="delete_configuration_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -397,8 +390,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>233</width>
-          <height>236</height>
+          <width>250</width>
+          <height>273</height>
          </rect>
         </property>
         <attribute name="label">
@@ -507,8 +500,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>233</width>
-          <height>236</height>
+          <width>250</width>
+          <height>273</height>
          </rect>
         </property>
         <attribute name="label">
@@ -614,7 +607,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>215</height>
+          <height>273</height>
          </rect>
         </property>
         <attribute name="label">
@@ -707,7 +700,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>215</height>
+          <height>273</height>
          </rect>
         </property>
         <attribute name="label">
@@ -727,7 +720,7 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>300</height>
+         <height>250</height>
         </size>
        </property>
       </spacer>

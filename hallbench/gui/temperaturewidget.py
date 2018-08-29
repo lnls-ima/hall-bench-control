@@ -13,6 +13,7 @@ from PyQt4.QtGui import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
+    QApplication as _QApplication,
     )
 from PyQt4.QtCore import (
     QTimer as _QTimer,
@@ -114,8 +115,8 @@ class TemperatureWidget(_QWidget):
 
     @property
     def devices(self):
-        """Hall Bench devices."""
-        return self.window().devices
+        """Hall Bench Devices."""
+        return _QApplication.instance().devices
 
     def updateLegendItems(self):
         """Update legend items."""

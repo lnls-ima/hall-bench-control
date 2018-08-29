@@ -6,6 +6,7 @@ import time as _time
 from PyQt4.QtGui import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
+    QApplication as _QApplication,
     )
 import PyQt4.uic as _uic
 
@@ -47,8 +48,8 @@ class MotorsWidget(_QWidget):
 
     @property
     def pmac(self):
-        """Pmac object."""
-        return self.window().devices.pmac
+        """Pmac communication class."""
+        return _QApplication.instance().devices.pmac
 
     def activateBench(self):
         """Activate the bench and enable control."""

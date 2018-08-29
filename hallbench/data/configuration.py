@@ -135,6 +135,7 @@ class ConnectionConfig(Configuration):
         ('elcomat_enable', ['elcomat_enable', 'INTEGER NOT NULL']),
         ('elcomat_port', ['elcomat_port', 'TEXT NOT NULL']),
         ('elcomat_baudrate', ['elcomat_baudrate', 'INTEGER NOT NULL']),
+        ('ps_enable', ['ps_enable', 'INTEGER NOT NULL']),
         ('ps_port', ['ps_port', 'TEXT NOT NULL'])
     ])
 
@@ -161,6 +162,7 @@ class ConnectionConfig(Configuration):
         self.elcomat_enable = None
         self.elcomat_port = None
         self.elcomat_baudrate = None
+        self.ps_enable = None
         self.ps_port = None
 
         if filename is not None and idn is not None:
@@ -209,6 +211,8 @@ class ConnectionConfig(Configuration):
                 'elcomat_enable   \t{0:1d}\n\n'.format(self.elcomat_enable),
                 'elcomat_port     \t{0:s}\n'.format(self.elcomat_port),
                 'elcomat_baudrate \t{0:1d}\n'.format(self.elcomat_baudrate),
+                'ps_enable        \t{0:1d}\n'.format(self.ps_enable),
+                'ps_port          \t{0:s}\n'.format(self.ps_port),
                 ]
 
             with open(filename, mode='w') as f:
@@ -459,7 +463,7 @@ class MeasurementConfig(Configuration):
 
 
 class PowerSupplyConfig(Configuration):
-    """Read, write and store Power Supply configuration data"""
+    """Read, write and store Power Supply configuration data."""
 
     _db_table = 'power_supply'
     _db_dict = _collections.OrderedDict([
@@ -501,18 +505,18 @@ class PowerSupplyConfig(Configuration):
             database (str): database file path.
             idn (int): id in database table.
         """
-        #Power supply status (False = off, True = on)
+        # Power supply status (False = off, True = on)
         self.status = False
-        #Power supply loop status (False = open, True = closed)
+        # Power supply loop status (False = open, True = closed)
         self.status_loop = False
-        #DC link voltage (30V is the default)
+        # DC link voltage (30V is the default)
         self.dclink = 30
-        #True for DCCT enabled, False for DCCT disabled
+        # True for DCCT enabled, False for DCCT disabled
         self.dcct = False
-        #Main current
+        # Main current
         self.main_current = 0
 
-        #database variables
+        # database variables
         self.ps_name = None
         self.ps_type = None
         self.ps_setpoint = None

@@ -47,7 +47,7 @@ class Elcomat(object):
         if self.ser is None:
             return False
         else:
-            return self.ser.isOpen()
+            return self.ser.is_open
 
     def log_events(self):
         """Prepare log file to save info, warning and error status."""
@@ -78,7 +78,7 @@ class Elcomat(object):
             self.ser.stopbits = self._stopbits
             self.ser.parity = self._parity
             self.ser.timeout = self._timeout
-            if not self.ser.isOpen():
+            if not self.ser.is_open:
                 self.ser.open()
             self.send_command(self.commands.remote)
             return True
@@ -101,8 +101,8 @@ class Elcomat(object):
 
     def flush(self):
         """Clear input and output."""
-        self.ser.flushInput()
-        self.ser.flushOutput()
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
 
     def send_command(self, command):
         """Write string message to the device and check size of the answer.

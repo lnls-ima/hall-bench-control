@@ -537,7 +537,7 @@ class SerialDRS_FBP(object):
             return False
 
     def Disconnect(self):
-        if (self.ser.isOpen()):
+        if (self.ser.is_open):
             try:
                 self.ser.close()
                 return True

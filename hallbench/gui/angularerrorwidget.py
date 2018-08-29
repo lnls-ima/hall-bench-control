@@ -11,6 +11,7 @@ import pyqtgraph as _pyqtgraph
 from PyQt4.QtGui import (
     QApplication as _QApplication,
     QWidget as _QWidget,
+    QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QVBoxLayout as _QVBoxLayout,
     QTableWidgetItem as _QTableWidgetItem,
@@ -131,14 +132,21 @@ class AngularErrorWidget(_QWidget):
         self.ui.clear_btn.clicked.connect(self.clearValues)
         self.ui.remove_btn.clicked.connect(self.removeValue)
         self.ui.copy_btn.clicked.connect(self.copyToClipboard)
+        self.ui.save_btn.clicked.connect(self.saveToFile)
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""
+        df = self.getDataFrame()
+        if df is not None:
+            df.to_clipboard(excel=True)
+
+    def getDataFrame(self):
+        """Create data frame with table values."""
         nr = self.ui.table_ta.rowCount()
         nc = self.ui.table_ta.columnCount()
 
         if nr == 0:
-            return
+            return None
 
         col_labels = ['Date', 'Time', 'Position']
         for label in self._data_labels:
@@ -152,8 +160,8 @@ class AngularErrorWidget(_QWidget):
                     value = float(value)
                 ldata.append(value)
             tdata.append(ldata)
-        _df = _pd.DataFrame(_np.array(tdata), columns=col_labels)
-        _df.to_clipboard(excel=True)
+        df = _pd.DataFrame(_np.array(tdata), columns=col_labels)
+        return df
 
     def monitorValue(self, checked):
         """Monitor values."""
@@ -222,6 +230,33 @@ class AngularErrorWidget(_QWidget):
 
         self.updateTableValues(scrollDown=False)
         self.updatePlot()
+
+    def saveToFile(self):
+        """Save table values to file."""
+        df = self.getDataFrame()
+        if df is None:
+            _QMessageBox.critical(
+                self, 'Failure', 'Empty table.', _QMessageBox.Ok)
+            return
+
+        filename = _QFileDialog.getSaveFileName(
+            self, caption='Save measurements file.',
+            filter="Text files (*.txt *.dat)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            if (not filename.endswith('.txt')
+               and not filename.endswith('.dat')):
+                filename = filename + '.txt'
+            df.to_csv(filename, sep='\t')
+
+        except Exception as e:
+            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
 
     def updateLegendItems(self):
         """Update legend items."""

@@ -11,6 +11,7 @@ import pyqtgraph as _pyqtgraph
 from PyQt4.QtGui import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
+    QFileDialog as _QFileDialog,
     QVBoxLayout as _QVBoxLayout,
     QTableWidgetItem as _QTableWidgetItem,
     QApplication as _QApplication,
@@ -132,14 +133,21 @@ class VoltageOffsetWidget(_QWidget):
         self.ui.clear_btn.clicked.connect(self.clearValues)
         self.ui.remove_btn.clicked.connect(self.removeValue)
         self.ui.copy_btn.clicked.connect(self.copyToClipboard)
+        self.ui.save_btn.clicked.connect(self.saveToFile)
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""
+        df = self.getDataFrame()
+        if df is not None:
+            df.to_clipboard(excel=True)
+
+    def getDataFrame(self):
+        """Create data frame with table values."""
         nr = self.ui.table_ta.rowCount()
         nc = self.ui.table_ta.columnCount()
 
         if nr == 0:
-            return
+            return None
 
         col_labels = ['Date', 'Time']
         for label in self._data_labels:
@@ -153,8 +161,8 @@ class VoltageOffsetWidget(_QWidget):
                     value = float(value)
                 ldata.append(value)
             tdata.append(ldata)
-        _df = _pd.DataFrame(_np.array(tdata), columns=col_labels)
-        _df.to_clipboard(excel=True)
+        df = _pd.DataFrame(_np.array(tdata), columns=col_labels)
+        return df
 
     def monitorValue(self, checked):
         """Monitor values."""
@@ -179,7 +187,7 @@ class VoltageOffsetWidget(_QWidget):
                     'Multimeters not connected.', _QMessageBox.Ok)
             return
 
-        if True: #try:
+        try:
             ts = _time.time()
 
             self.devices.voltx.send_command(
@@ -204,8 +212,8 @@ class VoltageOffsetWidget(_QWidget):
             self.updateTableValues()
             self.updatePlot()
 
-#         except Exception:
-#             pass
+        except Exception:
+            pass
 
     def removeValue(self):
         """Remove value from list."""
@@ -235,6 +243,33 @@ class VoltageOffsetWidget(_QWidget):
         self.devices.voltx.reset()
         self.devices.volty.reset()
         self.devices.voltz.reset()
+
+    def saveToFile(self):
+        """Save table values to file."""
+        df = self.getDataFrame()
+        if df is None:
+            _QMessageBox.critical(
+                self, 'Failure', 'Empty table.', _QMessageBox.Ok)
+            return
+
+        filename = _QFileDialog.getSaveFileName(
+            self, caption='Save measurements file.',
+            filter="Text files (*.txt *.dat)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            if (not filename.endswith('.txt')
+               and not filename.endswith('.dat')):
+                filename = filename + '.txt'
+            df.to_csv(filename, sep='\t')
+
+        except Exception as e:
+            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
 
     def updateAvgStdValues(self):
         """Update average and STD voltage values."""

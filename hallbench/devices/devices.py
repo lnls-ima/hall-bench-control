@@ -6,7 +6,7 @@ from . import ElcomatLib as _ElcomatLib
 from . import GPIBLib as _GPIBLib
 from . import PmacLib as _PmacLib
 from . import NMRLib as _NMRLib
-
+from . import SerialDRS as _SerialDRS
 
 _logs_dir = 'logs'
 
@@ -33,6 +33,7 @@ class HallBenchDevices(object):
         self.nmr = _NMRLib.NMR(_os.path.join(_logs_path, 'nmr.log'))
         self.elcomat = _ElcomatLib.Elcomat(
             _os.path.join(_logs_path, 'elcomat.log'))
+        self.ps = _SerialDRS.SerialDRS_FBP()
 
     def connect(self, config):
         """Connect devices.
@@ -61,6 +62,9 @@ class HallBenchDevices(object):
         if config.elcomat_enable:
             self.elcomat.connect(config.elcomat_port, config.elcomat_baudrate)
 
+        if config.ps_enable:
+            self.ps.Connect(config.ps_port)
+
     def disconnect(self):
         """Disconnect devices."""
         self.voltx.disconnect()
@@ -70,3 +74,4 @@ class HallBenchDevices(object):
         self.multich.disconnect()
         self.nmr.disconnect()
         self.elcomat.disconnect()
+        self.ps.Disconnect()

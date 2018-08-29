@@ -412,3 +412,82 @@ class DatabaseObject(object):
             message = 'Could not insert values into table {0}.'.format(table)
             raise DatabaseError(message)
             return None
+
+    def update_database_table(self, database, idn, table=None):
+        """Update a table entry from database.
+
+        Args:
+                database (str): full file path to database.
+                idn (int): entry id.
+                table (str, optional): database table name.
+        Returns:
+                True if update was sucessful.
+                False if update failed.
+        """
+        if table is None:
+            table = self._db_table
+
+        if len(table) == 0:
+            return False
+
+        if not self.table_exists(database, table):
+            raise DatabaseError('Invalid database table name.')
+            return False
+
+        db_column_names = self.get_table_column_names(database, table)
+        if len(db_column_names) == 0:
+            raise DatabaseError('Failed to save data to database.')
+            return False
+
+        if hasattr(self, '_timestamp') and self._timestamp is not None:
+            timestamp = self._timestamp
+        else:
+            timestamp = _utils.get_timestamp().split('_')
+
+        date = timestamp[0]
+        hour = timestamp[1].replace('-', ':')
+        software_version = __version__
+
+        con = _sqlite.connect(database)
+        cur = con.cursor()
+
+        values = []
+        updates = ''
+        for key in self._db_dict.keys():
+            attr_name = self._db_dict[key][0]
+            if key not in db_column_names:
+                raise DatabaseError('Failed to read data from database.')
+                return False
+            else:
+                updates = updates + '`' + key + '`' + '=?, '
+                if key == "id":
+                    values.append(None)
+                elif attr_name is None:
+                    values.append(locals()[key])
+                elif attr_name in self._db_json_str:
+                    val = getattr(self, attr_name)
+                    if not isinstance(val, list):
+                        val = val.tolist()
+                    values.append(_json.dumps(val))
+                else:
+                    values.append(getattr(self, attr_name))
+        #strips last ', ' from updates
+        updates = updates[:-2]
+
+        try:
+            if idn is not None:
+                cur.execute("""UPDATE {0} SET {1} WHERE
+                            id = {2}""".format(table, updates, idn), values)
+                con.commit()
+                con.close()
+                return True
+            else:
+                message = 'Invalid entry id.'
+                raise DatabaseError(message)
+                return False
+
+        except Exception:
+            con.close()
+            message = ('Could not update {0} entry.'.format(table))
+            raise DatabaseError(message)
+            return False

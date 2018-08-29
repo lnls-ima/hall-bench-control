@@ -53,6 +53,7 @@ class HallBenchApp(_QApplication):
         """Create database and tables."""
         status = []
         status.append(_ConnectionConfig.create_database_table(self.database))
+        status.append(_PowerSupplyConfig.create_database_table(self.database))
         status.append(_HallSensor.create_database_table(self.database))
         status.append(_HallProbe.create_database_table(self.database))
         status.append(_MeasurementConfig.create_database_table(self.database))

@@ -4,11 +4,9 @@
 
 from PyQt4.QtGui import (
     QWidget as _QWidget,
-    QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-from PyQt4.QtCore import Qt as _Qt
 import PyQt4.uic as _uic
 
 import numpy as _np
@@ -32,7 +30,7 @@ class SupplyWidget(_QWidget):
         self.config = self.power_supply_config
         self.drs = self.devices.ps
 
-        #fill combobox
+        # fill combobox
         self.list_powersupply()
 
         # create signal/slot connections
@@ -84,8 +82,8 @@ class SupplyWidget(_QWidget):
             if self.config.status is False:
                 try:
                     self.drs.Read_iLoad1()
-                except:
-                    #traceback.print_exc(file=sys.stdout)
+                except Exception:
+                    # traceback.print_exc(file=sys.stdout)
                     _QMessageBox.warning(self, 'Warning',
                                          'Could not read the digital current.',
                                          _QMessageBox.Ok)
@@ -124,7 +122,7 @@ class SupplyWidget(_QWidget):
                                                  _QMessageBox.Ok)
                             self.change_ps_button(True)
                             return
-                    except:
+                    except Exception:
                         _QMessageBox.warning(self, 'Warning',
                                              '''Power Supply Capacitor
                                              Bank did not initialize.''',
@@ -143,7 +141,7 @@ class SupplyWidget(_QWidget):
                                                  _QMessageBox.Ok)
                             self.change_ps_button(True)
                             return
-                    except:
+                    except Exception:
                         _QMessageBox.warning(self, 'Warning',
                                              '''Power Supply circuit
                                              loop is not closed.''',
@@ -175,7 +173,7 @@ class SupplyWidget(_QWidget):
                         self.drs.TurnOff()
                         self.change_ps_button(True)
                         return
-                #Turn on Power Supply
+                # Turn on Power Supply
                 self.drs.SetSlaveAdd(_ps_type)
                 if _ps_type < 4:
                     self.pid_setting()
@@ -184,7 +182,7 @@ class SupplyWidget(_QWidget):
                 if _ps_type == 2:
                     _time.sleep(0.9)
                 if not self.drs.Read_ps_OnOff():
-                    #Turn off DC link
+                    # Turn off DC link
                     self.drs.SetSlaveAdd(_ps_type-1)
                     self.drs.TurnOff()
                     self.change_ps_button(True)
@@ -198,7 +196,7 @@ class SupplyWidget(_QWidget):
                 if _ps_type == 2:
                     _time.sleep(0.9)
                 if self.drs.Read_ps_OpenLoop() == 1:
-                    #Turn off DC link
+                    # Turn off DC link
                     self.drs.SetSlaveAdd(_ps_type-1)
                     self.drs.TurnOff()
                     self.change_ps_button(True)
@@ -233,7 +231,7 @@ class SupplyWidget(_QWidget):
                     self.change_ps_button(False)
                     return
                 if _ps_type == 2:
-                    #Turn off DC link
+                    # Turn off DC link
                     self.drs.SetSlaveAdd(_ps_type-1)
                     self.drs.TurnOff()
                     _time.sleep(0.1)
@@ -257,8 +255,8 @@ class SupplyWidget(_QWidget):
                 _QMessageBox.information(self, 'Information',
                                          '''Power supply was turned off.''',
                                          _QMessageBox.Ok)
-        except:
-            #traceback.print_exc(file=sys.stdout)
+        except Exception:
+            # traceback.print_exc(file=sys.stdout)
             _QMessageBox.warning(self, 'Warning', '''Failed to change the power
                                  supply state.''', _QMessageBox.Ok)
             self.change_ps_button(False)
@@ -282,7 +280,7 @@ class SupplyWidget(_QWidget):
         self.config.ps_name = self.ui.cb_ps_name.currentText()
         self.config.ps_type = self.ui.cb_ps_type.currentIndex()
         self.config.dclink = self.ui.sb_dclink.value()
-        self.config.ps_setpoint = self.ui.sp_current_setpoint.value()
+        self.config.ps_setpoint = self.ui.sb_current_setpoint.value()
         self.config.sinusoidal_amplitude = float(
             self.ui.le_sinusoidal_amplitude.text())
         self.config.sinusoidal_offset = float(
@@ -319,7 +317,7 @@ class SupplyWidget(_QWidget):
         self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
         self.ui.cb_ps_type.setCurrentIndex(self.config.ps_type - 2)
         self.ui.sb_dclink.setValue(self.config.dclink)
-        self.ui.sp_current_setpoint.setValue(self.config.ps_setpoint)
+        self.ui.sb_current_setpoint.setValue(self.config.ps_setpoint)
         self.ui.le_sinusoidal_amplitude.setText(str(
             self.config.sinusoidal_amplitude))
         self.ui.le_sinusoidal_offset.setText(str(
@@ -374,12 +372,12 @@ class SupplyWidget(_QWidget):
         _id_mode = 0
         _elp_PI_dawu = 3
         try:
-            #Write ID module from controller
+            # Write ID module from controller
             self.drs.Write_dp_ID(_id_mode)
-            #Write DP Class for setting PI
+            # Write DP Class for setting PI
             self.drs.Write_dp_Class(_elp_PI_dawu)
-        except:
-            #traceback.print_exc(file=sys.stdout)
+        except Exception:
+            # traceback.print_exc(file=sys.stdout)
             return False
         try:
             _list_coeffs = _np.zeros(16)
@@ -387,12 +385,12 @@ class SupplyWidget(_QWidget):
             _ki = self.config.Ki
             _list_coeffs[0] = _kp
             _list_coeffs[1] = _ki
-            #Write kp and ki
+            # Write kp and ki
             self.drs.Write_dp_Coeffs(_list_coeffs.tolist())
-            #Configure kp and ki
+            # Configure kp and ki
             self.drs.ConfigDPModule()
-        except:
-            #traceback.print_exc(file=sys.stdout)
+        except Exception:
+            # traceback.print_exc(file=sys.stdout)
             return False
 
         return True
@@ -405,14 +403,14 @@ class SupplyWidget(_QWidget):
             _refresh_current = round(float(self.drs.Read_iLoad1()), 3)
             self.ui.lcd_ps_reading.display(_refresh_current)
             if (self.ui.chb_dcct.isChecked() and
-                                 self.ui.chb_enable_Agilent34970A.isChecked()):
+               self.ui.chb_enable_Agilent34970A.isChecked()):
                 self.ui.lcd_current_dcct.setEnabled(True)
                 self.ui.label_161.setEnabled(True)
                 self.ui.label_164.setEnabled(True)
                 _current = round(self.dcct_convert(), 3)
                 self.ui.lcd_current_dcct.display(_current)
                 _QApplication.processEvents()
-        except:
+        except Exception:
             _QMessageBox.warning(self, 'Warning', 'Could not display Current.',
                                  _QMessageBox.Ok)
             return
@@ -442,14 +440,14 @@ class SupplyWidget(_QWidget):
 
         self.drs.SetSlaveAdd(_ps_type)
 
-        #verify current limits
+        # verify current limits
         _setpoint = self.verify_current_limits(0, setpoint, 0)
         if _setpoint == 'False':
             self.ui.tabWidget_2.setEnabled(True)
             return False
         self.config.ps_setpoint = _setpoint
 
-        #send setpoint and wait until current is set
+        # send setpoint and wait until current is set
         self.drs.SetISlowRef(_setpoint)
         _time.sleep(0.1)
         for i in range(30):
@@ -487,14 +485,14 @@ class SupplyWidget(_QWidget):
 
         try:
             _current_max = self.config.maximum_current
-        except:
+        except Exception:
             _QMessageBox.warning(self, 'Warning', '''Incorrect value for
                                  maximum Supply Current.\nPlease, verify the
                                  value.''', _QMessageBox.Ok)
             return 'False'
         try:
             _current_min = self.config.minimum_current
-        except:
+        except Exception:
             _QMessageBox.warning(self, 'Warning', '''Incorrect value for
                                  minimum Supply Current.\nPlease, verify the
                                  value.''', _QMessageBox.Ok)
@@ -559,7 +557,7 @@ class SupplyWidget(_QWidget):
         self.drs.SetSlaveAdd(_ps_type)
 
         if _curve_type == 0:    # Sinusoidal
-            #For Offset
+            # For Offset
             try:
                 _offset = self.config.sinusoidal_offset
                 _offset = self.verify_current_limits(0, _offset)
@@ -569,11 +567,11 @@ class SupplyWidget(_QWidget):
                     return False
                 self.ui.le_sinusoidal_offset.setText(str(_offset))
                 self.config.sinusoidal_offset = _offset
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Offset parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Amplitude
+            # For Amplitude
             try:
                 _amp = self.config.sinusoidal_amplitude
                 _amp = self.verify_current_limits(2, abs(_amp), _offset)
@@ -583,42 +581,42 @@ class SupplyWidget(_QWidget):
                     return False
                 self.ui.le_sinusoidal_amplitude.setText(str(_amp))
                 self.config.sinusoidal_amplitude = _amp
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Amplitude parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Frequency
+            # For Frequency
             try:
                 _freq = self.config.sinusoidal_frequency
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Frequency parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For N-cycles
+            # For N-cycles
             try:
                 _n_cycles = self.config.sinusoidal_ncycles
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      #cycles parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Phase shift
+            # For Phase shift
             try:
                 _phase_shift = self.config.sinusoidal_phasei
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Phase parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Final phase
+            # For Final phase
             try:
                 _final_phase = self.config.sinusoidal_phasef
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Final phase parameter of the curve.''',
                                      _QMessageBox.Ok)
 
         # Damped Sinusoidal
         if _curve_type == 1:
-            #For Offset
+            # For Offset
             try:
                 _offset = self.config.dsinusoidal_offset
                 _offset = self.verify_current_limits(0, _offset)
@@ -628,11 +626,11 @@ class SupplyWidget(_QWidget):
                     return False
                 self.config.dsinusoidal_offset = _offset
                 self.ui.le_damp_sin_offset.setText(str(_offset))
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Offset parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Amplitude
+            # For Amplitude
             try:
                 _amp = self.config.dsinusoidal_amplitude
                 _amp = self.verify_current_limits(2, abs(_amp), _offset)
@@ -642,63 +640,63 @@ class SupplyWidget(_QWidget):
                     return False
                 self.config.dsinusoidal_amplitude = _amp
                 self.ui.le_damp_sin_ampl.setText(str(_amp))
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Amplitude parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Frequency
+            # For Frequency
             try:
                 _freq = self.config.dsinusoidal_frequency
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Frequency parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For N-cycles
+            # For N-cycles
             try:
                 _n_cycles = self.config.dsinusoidal_ncycles
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      #cycles parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Phase shift
+            # For Phase shift
             try:
                 _phase_shift = self.config.dsinusoidal_phasei
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Phase parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Final phase
+            # For Final phase
             try:
                 _final_phase = self.config.dsinusoidal_phasef
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Final Phase parameter of the curve.''',
                                      _QMessageBox.Ok)
-            #For Damping
+            # For Damping
             try:
                 _damping = self.config.dsinusoidal_damp
-            except:
+            except Exception:
                 _QMessageBox.warning(self, 'Warning', '''Please, verify the
                                      Damping _time parameter of the curve.''',
                                      _QMessageBox.Ok)
 
-        #Generating curves
+        # Generating curves
         try:
-            #Sinusoidal
+            # Sinusoidal
             if _curve_type == 0:
                 try:
                     _sigType = 0
-                    #send Frequency
+                    # send Frequency
                     self.drs.Write_sigGen_Freq(float(_freq))
-                    #send Amplitude
+                    # send Amplitude
                     self.drs.Write_sigGen_Amplitude(float(_amp))
-                    #send Offset
+                    # send Offset
                     self.drs.Write_sigGen_Offset(float(_offset))
-                    #Sending curves to ps Controller
+                    # Sending curves to ps Controller
                     self.drs.ConfigSigGen(_sigType, _n_cycles, _phase_shift,
                                           _final_phase)
-                except:
-                    #traceback.print_exc(file=sys.stdout)
+                except Exception:
+                    # traceback.print_exc(file=sys.stdout)
                     _QMessageBox.warning(self, 'Warning', '''Failed to send
                                          configuration to the controller.\n
                                          Please, verify the parameters of the
@@ -712,27 +710,27 @@ class SupplyWidget(_QWidget):
                     self.drs.Write_sigGen_Freq(float(_freq))
                     self.drs.Write_sigGen_Amplitude(float(_amp))
                     self.drs.Write_sigGen_Offset(float(_offset))
-                except:
+                except Exception:
                     _QMessageBox.warning(self, 'Warning', '''Failed to send
                                          configuration to the controller.\n
                                          Please, verify the parameters of the
                                          Power Supply.''', _QMessageBox.Ok)
                     return
 
-                #Sending sigGenDamped
+                # Sending sigGenDamped
                 try:
                     self.drs.Write_sigGen_Aux(_damping)
                     self.drs.ConfigSigGen(_sigType, _n_cycles,
                                           _phase_shift, _final_phase)
-                except:
+                except Exception:
                     _QMessageBox.warning(self, 'Warning.',
                                          'Damped Sinusoidal fault.',
                                          _QMessageBox.Ok)
-                    #traceback.print_exc(file=sys.stdout)
+                    # traceback.print_exc(file=sys.stdout)
                     return False
 
             return True
-        except:
+        except Exception:
             return False
 
     def reset_interlocks(self):
@@ -754,7 +752,7 @@ class SupplyWidget(_QWidget):
             _QMessageBox.information(self, 'Information',
                                      'Interlocks reseted.',
                                      _QMessageBox.Ok)
-        except:
+        except Exception:
             _QMessageBox.warning(self, 'Warning',
                                  'Interlocks not reseted.',
                                  _QMessageBox.Ok)
@@ -774,7 +772,7 @@ class SupplyWidget(_QWidget):
                                      in signal generator mode.''',
                                      _QMessageBox.Ok)
                 return False
-        except:
+        except Exception:
             _QMessageBox.warning(self, 'Warning', '''Power supply is not in
                                  signal generator mode.''', _QMessageBox.Ok)
             return
@@ -807,9 +805,9 @@ class SupplyWidget(_QWidget):
 
             if _curve_type == 2:
                 pass
-            #returns to mode ISlowRef
+            # returns to mode ISlowRef
             self.drs.OpMode(0)
-        except:
+        except Exception:
             _QMessageBox.warning(self, 'Warning',
                                  'Cycling was not performed.',
                                  _QMessageBox.Ok)
@@ -866,8 +864,8 @@ class SupplyWidget(_QWidget):
                                      '''Could not load the power supply.\n
                                      Check if the name really exists.''',
                                      _QMessageBox.Ok)
-        except:
-            #traceback.print_exc(file=sys.stdout)
+        except Exception:
+            # traceback.print_exc(file=sys.stdout)
             _QMessageBox.warning(self, 'Warning',
                                  '''Could not load the power supply settings.\n
                                  Check if the configuration file values are

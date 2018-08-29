@@ -13,6 +13,7 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.connectionwidget import ConnectionWidget \
     as _ConnectionWidget
 from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
+from hallbench.gui.supplywidget import SupplyWidget as _SupplyWidget
 from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
 from hallbench.gui.databasewidget import DatabaseWidget \
@@ -46,6 +47,9 @@ class HallBenchWindow(_QMainWindow):
 
         self.motors_tab = _MotorsWidget(self)
         self.ui.main_tab.addTab(self.motors_tab, 'Motors')
+
+        self.supply_tab = _SupplyWidget(self)
+        self.ui.main_tab.addTab(self.supply_tab, 'Power Supply')
 
         self.measurement_tab = _MeasurementWidget(self)
         self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')

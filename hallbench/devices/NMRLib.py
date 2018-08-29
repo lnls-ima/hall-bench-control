@@ -88,7 +88,7 @@ class NMR(object):
         if self.ser is None:
             return False
         else:
-            return self.ser.isOpen()
+            return self.ser.is_open
 
     @property
     def locked(self):
@@ -128,7 +128,7 @@ class NMR(object):
             self.ser.stopbits = self._stopbits
             self.ser.parity = self._parity
             self.ser.timeout = self._timeout
-            if not self.ser.isOpen():
+            if not self.ser.is_open:
                 self.ser.open()
             self.send_command(self.commands.remote)
             return True
@@ -224,8 +224,8 @@ class NMR(object):
             True if successful, False otherwise.
         """
         try:
-            self.ser.flushInput()
-            self.ser.flushOutput()
+            self.ser.reset_input_buffer()
+            self.ser.reset_output_buffer()
             command = command + '\r\n'
             if self.ser.write(command.encode('utf-8')) == len(command):
                 return True
@@ -313,33 +313,34 @@ class NMR(object):
             DAC value (int): current DAC value.
             dt (float): measurement duration in seconds or -1 if timed out.
         """
-        self.send_command(self.commands.channel + channel)
-        _time.sleep(self._delay)
+        with self.rlock:
+            self.send_command(self.commands.channel + channel)
+            _time.sleep(self._delay)
 
-        self.send_command(self.commands.aquisition + '1')
-        _time.sleep(self._delay)
+            self.send_command(self.commands.aquisition + '1')
+            _time.sleep(self._delay)
 
-        self.send_command(self.commands.display_unit + '1')
-        _time.sleep(self._delay)
+            self.send_command(self.commands.display_unit + '1')
+            _time.sleep(self._delay)
 
-        self.send_command(self.commands.search_time + str(speed))
-        _time.sleep(self._delay)
+            self.send_command(self.commands.search_time + str(speed))
+            _time.sleep(self._delay)
 
-        self.send_command(self.commands.search + str(dac))
-        _t0 = _time.time()
-        _time.sleep(self._delay)
+            self.send_command(self.commands.search + str(dac))
+            _t0 = _time.time()
+            _time.sleep(self._delay)
 
-        _dt = 0
-        while not self.locked:
-            _time.sleep(0.1)
-            _dt = _time.time() - _t0
-            if _dt > 30:
-                _dt = -1
-                break
+            _dt = 0
+            while not self.locked:
+                _time.sleep(0.1)
+                _dt = _time.time() - _t0
+                if _dt > 30:
+                    _dt = -1
+                    break
 
-        _b = float(self.read_b_value().strip('LNST\r\n'))
-        _dac = self.read_dac_value()
+            _b = float(self.read_b_value().strip('LNST\r\n'))
+            _dac = self.read_dac_value()
 
-        self.send_command(self.commands.quit_search)
+            self.send_command(self.commands.quit_search)
 
         return _b, _dac, _dt

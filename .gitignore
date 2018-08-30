@@ -2,6 +2,8 @@
 *.db
 *.txt
 *.dat
+toPyQt4.sh
+toPyQt5.sh
 
 # --------------- Default lnls-ima ---------------
 *~

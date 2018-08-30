@@ -6,7 +6,7 @@ from hallbench.gui import hallbenchapp
 
 
 _thread = True
-_daemon = True
+_daemon = False
 
 
 if (__name__ == '__main__'):

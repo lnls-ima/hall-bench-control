@@ -9,18 +9,18 @@ import datetime as _datetime
 import warnings as _warnings
 import collections as _collections
 import pyqtgraph as _pyqtgraph
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QFileDialog as _QFileDialog,
     QTableWidgetItem as _QTableWidgetItem,
     QApplication as _QApplication,
     )
-from PyQt4.QtCore import (
+from PyQt5.QtCore import (
     QTimer as _QTimer,
     QDateTime as _QDateTime,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 

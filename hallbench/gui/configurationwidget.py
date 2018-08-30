@@ -4,13 +4,13 @@
 
 import os.path as _path
 import numpy as _np
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.viewprobedialog import ViewProbeDialog \

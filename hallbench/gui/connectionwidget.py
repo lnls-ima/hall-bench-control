@@ -4,14 +4,14 @@
 
 import os.path as _path
 import serial.tools.list_ports as _list_ports
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-from PyQt4.QtCore import Qt as _Qt
-import PyQt4.uic as _uic
+from PyQt5.QtCore import Qt as _Qt
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 

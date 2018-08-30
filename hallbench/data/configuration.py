@@ -472,6 +472,11 @@ class PowerSupplyConfig(Configuration):
         ('type', ['ps_type', 'INTEGER NOT NULL']),
         ('dclink', ['dclink', 'REAL']),
         ('setpoint', ['ps_setpoint', 'REAL NOT NULL']),
+        ('maximum current', ['maximum_current', 'REAL NOT NULL']),
+        ('minimum current', ['minimum_current', 'REAL NOT NULL']),
+        ('DCCT Head', ['dcct_head', 'INTEGER NOT NULL']),
+        ('Kp', ['Kp', 'REAL NOT NULL']),
+        ('Ki', ['Ki', 'REAL NOT NULL']),
         ('sinusoidal amplitude', ['sinusoidal_amplitude', 'REAL NOT NULL']),
         ('sinusoidal offset', ['sinusoidal_offset', 'REAL NOT NULL']),
         ('sinusoidal frequency', ['sinusoidal_frequency', 'REAL NOT NULL']),
@@ -490,11 +495,6 @@ class PowerSupplyConfig(Configuration):
         ('damped sinusoidal final phase', ['dsinusoidal_phasef',
                                            'REAL NOT NULL']),
         ('damped sinusoidal damping', ['dsinusoidal_damp', 'REAL NOT NULL']),
-        ('maximum current', ['maximum_current', 'REAL NOT NULL']),
-        ('minimum current', ['minimum_current', 'REAL NOT NULL']),
-        ('Kp', ['Kp', 'REAL NOT NULL']),
-        ('Ki', ['Ki', 'REAL NOT NULL']),
-        ('DCCT Head', ['dcct_head', 'INTEGER NOT NULL']),
     ])
 
     def __init__(self):

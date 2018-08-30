@@ -8,7 +8,7 @@ import time as _time
 import datetime as _datetime
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
@@ -16,8 +16,8 @@ from PyQt4.QtGui import (
     QVBoxLayout as _QVBoxLayout,
     QTableWidgetItem as _QTableWidgetItem,
     )
-from PyQt4.QtCore import QTimer as _QTimer
-import PyQt4.uic as _uic
+from PyQt5.QtCore import QTimer as _QTimer
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.moveaxiswidget import MoveAxisWidget as _MoveAxisWidget

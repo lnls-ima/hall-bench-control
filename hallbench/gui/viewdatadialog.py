@@ -6,12 +6,12 @@ import numpy as _np
 import scipy.optimize as _optimize
 import collections as _collections
 import warnings as _warnings
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QDialog as _QDialog,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.utils import getUiFile as _getUiFile

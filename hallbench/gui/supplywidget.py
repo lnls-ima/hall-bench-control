@@ -2,12 +2,12 @@
 
 """Power Supply widget for the Hall Bench Control application."""
 
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
 import numpy as _np
 import time as _time
@@ -44,6 +44,8 @@ class SupplyWidget(_QWidget):
         self.ui.pb_reset_inter.clicked.connect(self.reset_interlocks)
         self.ui.pb_cycle.clicked.connect(self.cycling_ps)
         self.ui.pb_config_ps.clicked.connect(self.config_ps)
+        self.ui.cb_ps_name.currentIndexChanged.connect(self.change_ps)
+        self.ui.cb_ps_name.editTextChanged.connect(self.change_ps)
 
     @property
     def devices(self):
@@ -66,6 +68,12 @@ class SupplyWidget(_QWidget):
         for i in range(self.ui.cb_ps_name.count()):
             self.ui.cb_ps_name.removeItem(0)
         self.ui.cb_ps_name.addItems(_l)
+
+    def change_ps(self):
+        if self.ui.cb_ps_name.currentText() == self.config.ps_name:
+            self.ui.pb_load_ps.setEnabled(False)
+        else:
+            self.ui.pb_load_ps.setEnabled(True)
 
     def start_powersupply(self):
         """Starts/Stops Power Supply."""
@@ -117,15 +125,15 @@ class SupplyWidget(_QWidget):
                         _time.sleep(1)
                         if self.drs.Read_ps_OnOff() != 1:
                             _QMessageBox.warning(self, 'Warning',
-                                                 '''Power Supply Capacitor
-                                                 Bank did not initialize.''',
+                                                 'Power Supply Capacitor '
+                                                 'Bank did not initialize.',
                                                  _QMessageBox.Ok)
                             self.change_ps_button(True)
                             return
                     except Exception:
                         _QMessageBox.warning(self, 'Warning',
-                                             '''Power Supply Capacitor
-                                             Bank did not initialize.''',
+                                             'Power Supply Capacitor '
+                                             'Bank did not initialize.',
                                              _QMessageBox.Ok)
                         self.change_ps_button(True)
                         return
@@ -136,15 +144,15 @@ class SupplyWidget(_QWidget):
                         _time.sleep(1)
                         if self.drs.Read_ps_OpenLoop() == 1:
                             _QMessageBox.warning(self, 'Warning',
-                                                 '''Power Supply circuit
-                                                 loop is not closed.''',
+                                                 'Power Supply circuit '
+                                                 'loop is not closed.',
                                                  _QMessageBox.Ok)
                             self.change_ps_button(True)
                             return
                     except Exception:
                         _QMessageBox.warning(self, 'Warning',
-                                             '''Power Supply circuit
-                                             loop is not closed.''',
+                                             'Power Supply circuit '
+                                             'loop is not closed.',
                                              _QMessageBox.Ok)
                         self.change_ps_button(True)
                         return
@@ -166,9 +174,9 @@ class SupplyWidget(_QWidget):
                         _time.sleep(0.5)
                         _i = _i-1
                     if _i == 0:
-                        _QMessageBox.warning(self, 'Warning', '''DC link
-                                             setpoint is not set.\n
-                                             Check configurations.''',
+                        _QMessageBox.warning(self, 'Warning', 'DC link '
+                                             'setpoint is not set.\n'
+                                             'Check configurations.',
                                              _QMessageBox.Ok)
                         self.drs.TurnOff()
                         self.change_ps_button(True)
@@ -186,8 +194,8 @@ class SupplyWidget(_QWidget):
                     self.drs.SetSlaveAdd(_ps_type-1)
                     self.drs.TurnOff()
                     self.change_ps_button(True)
-                    _QMessageBox.warning(self, 'Warning', '''The Power Supply
-                                         did not turn off.''',
+                    _QMessageBox.warning(self, 'Warning', 'The Power Supply '
+                                         'did not turn off.',
                                          _QMessageBox.Ok)
                     return
                 # Closed Loop
@@ -200,22 +208,21 @@ class SupplyWidget(_QWidget):
                     self.drs.SetSlaveAdd(_ps_type-1)
                     self.drs.TurnOff()
                     self.change_ps_button(True)
-                    _QMessageBox.warning(self, 'Warning', '''Power Supply
-                                         circuit loop is not closed.''',
+                    _QMessageBox.warning(self, 'Warning', 'Power Supply '
+                                         'circuit loop is not closed.',
                                          _QMessageBox.Ok)
                     return
                 self.change_ps_button(False)
                 self.config.status = True
                 self.config.main_current = 0
                 self.ui.le_status_loop.setText('Closed')
-                self.ui.lb_status_ps.setText('OK')
                 self.ui.tabWidget_2.setEnabled(True)
                 self.ui.tabWidget_3.setEnabled(True)
                 self.ui.pb_refresh.setEnabled(True)
                 self.ui.pb_send.setEnabled(True)
                 self.ui.pb_send_curve.setEnabled(True)
-                _QMessageBox.information(self, 'Information', '''The Power
-                                         Supply started successfully.''',
+                _QMessageBox.information(self, 'Information', 'The Power '
+                                         'Supply started successfully.',
                                          _QMessageBox.Ok)
             else:
                 self.drs.SetSlaveAdd(_ps_type)
@@ -225,9 +232,9 @@ class SupplyWidget(_QWidget):
                     _time.sleep(0.9)
                 _status = self.drs.Read_ps_OnOff()
                 if _status:
-                    _QMessageBox.warning(self, 'Warning', '''Could not turn the
-                                         power supply off.\nPlease, try
-                                         again.''', _QMessageBox.Ok)
+                    _QMessageBox.warning(self, 'Warning', 'Could not turn the '
+                                         'power supply off.\nPlease, try '
+                                         'again.', _QMessageBox.Ok)
                     self.change_ps_button(False)
                     return
                 if _ps_type == 2:
@@ -239,26 +246,25 @@ class SupplyWidget(_QWidget):
                         _time.sleep(0.9)
                     _status = self.drs.Read_ps_OnOff()
                     if _status:
-                        _QMessageBox.warning(self, 'Warning', """Could not turn
-                                             the power supply off.\nPlease, try
-                                             again.""", _QMessageBox.Ok)
+                        _QMessageBox.warning(self, 'Warning', 'Could not turn '
+                                             'the power supply off.\nPlease, '
+                                             'try again.', _QMessageBox.Ok)
                         self.change_ps_button(False)
                         return
                 self.config.status = False
                 self.config.main_current = 0
-                self.ui.lb_status_ps.setText('NOK')
                 self.ui.le_status_loop.setText('Open')
                 self.ui.pb_send.setEnabled(False)
                 self.ui.pb_cycle.setEnabled(False)
                 self.ui.pb_send_curve.setEnabled(False)
                 self.change_ps_button(True)
                 _QMessageBox.information(self, 'Information',
-                                         '''Power supply was turned off.''',
+                                         'Power supply was turned off.',
                                          _QMessageBox.Ok)
         except Exception:
             # traceback.print_exc(file=sys.stdout)
-            _QMessageBox.warning(self, 'Warning', '''Failed to change the power
-                                 supply state.''', _QMessageBox.Ok)
+            _QMessageBox.warning(self, 'Warning', 'Failed to change the power '
+                                 'supply state.', _QMessageBox.Ok)
             self.change_ps_button(False)
             return
 
@@ -278,9 +284,14 @@ class SupplyWidget(_QWidget):
         """Sets Power Supply configurations acording to current UI inputs."""
 
         self.config.ps_name = self.ui.cb_ps_name.currentText()
-        self.config.ps_type = self.ui.cb_ps_type.currentIndex()
+        self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
         self.config.dclink = self.ui.sb_dclink.value()
         self.config.ps_setpoint = self.ui.sb_current_setpoint.value()
+        self.config.maximum_current = float(self.ui.le_maximum_current.text())
+        self.config.minimum_current = float(self.ui.le_minimum_current.text())
+        self.config.dcct_head = self.ui.cb_dcct_select.currentIndex()
+        self.config.Kp = self.ui.sb_kp.value()
+        self.config.Ki = self.ui.sb_ki.value()
         self.config.sinusoidal_amplitude = float(
             self.ui.le_sinusoidal_amplitude.text())
         self.config.sinusoidal_offset = float(
@@ -305,19 +316,21 @@ class SupplyWidget(_QWidget):
             self.ui.le_damp_sin_finalPhase.text())
         self.config.dsinusoidal_damp = float(
             self.ui.le_damp_sin_damping.text())
-        self.config.maximum_current = float(self.ui.le_maximum_current.text())
-        self.config.minimum_current = float(self.ui.le_minimum_current.text())
-        self.config.Kp = float(self.ui.sb_kp.text())
-        self.config.Ki = float(self.ui.sb_ki.text())
-        self.config.dcct_head = self.ui.cb_dcct_select.currentIndex()
 
     def config_widget(self):
         """Sets current configuration variables into the widget."""
 
-        self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
+#         self.ui.cb_ps_name.setCurrentText(self.config.ps_name) #Qt5
+        self.ui.cb_ps_name.setCurrentIndex(
+            self.ui.cb_ps_name.findText(self.config.ps_name))
         self.ui.cb_ps_type.setCurrentIndex(self.config.ps_type - 2)
         self.ui.sb_dclink.setValue(self.config.dclink)
         self.ui.sb_current_setpoint.setValue(self.config.ps_setpoint)
+        self.ui.le_maximum_current.setText(str(self.config.maximum_current))
+        self.ui.le_minimum_current.setText(str(self.config.minimum_current))
+        self.ui.cb_dcct_select.setCurrentIndex(self.config.dcct_head)
+        self.ui.sb_kp.setValue(self.config.Kp)
+        self.ui.sb_ki.setValue(self.config.Ki)
         self.ui.le_sinusoidal_amplitude.setText(str(
             self.config.sinusoidal_amplitude))
         self.ui.le_sinusoidal_offset.setText(str(
@@ -340,18 +353,13 @@ class SupplyWidget(_QWidget):
         self.ui.le_damp_sin_finalPhase.setText(str(
             self.config.dsinusoidal_phasef))
         self.ui.le_damp_sin_damping.setText(str(self.config.dsinusoidal_damp))
-        self.ui.le_maximum_current.setText(str(self.config.maximum_current))
-        self.ui.le_minimum_current.setText(str(self.config.minimum_current))
-        self.ui.sb_kp.setText(str(self.config.Kp))
-        self.ui.sb_ki.setText(str(self.config.Ki))
-        self.ui.cb_dcct_select.setCurrentIndex(self.config.dcct_head)
 
     def config_pid(self):
         """Configures PID settings."""
-        _ans = _QMessageBox.question(self, 'PID settings', '''Be aware that
-                                     this will overwrite the current
-                                     configurations.\n Are you sure you want to
-                                     configure the PID parameters?''',
+        _ans = _QMessageBox.question(self, 'PID settings', 'Be aware that '
+                                     'this will overwrite the current '
+                                     'configurations.\n Are you sure you want '
+                                     'to configure the PID parameters?',
                                      _QMessageBox.Yes | _QMessageBox.No)
         if _ans == _QMessageBox.Yes:
             _ans = self.pid_setting()
@@ -365,8 +373,8 @@ class SupplyWidget(_QWidget):
 
     def pid_setting(self):
         """Set power supply PID configurations."""
-        self.config.Kp = float(self.ui.sb_kp.text())
-        self.config.Ki = float(self.ui.sb_ki.text())
+        self.config.Kp = self.ui.sb_kp.value()
+        self.config.Ki = self.self.ui.sb_ki.text()
         _ps_type = self.config.ps_type
         self.drs.SetSlaveAdd(_ps_type)
         _id_mode = 0
@@ -395,6 +403,23 @@ class SupplyWidget(_QWidget):
 
         return True
 
+    def emergency(self):
+        """Stops power supply current."""
+        self.drs.SetSlaveAdd(self.config.ps_type)
+        self.drs.OpMode(0)
+        self.drs.SetISlowRef(0)
+        _time.sleep(0.1)
+        self.drs.TurnOff()
+        _time.sleep(0.1)
+        if self.config.ps_type == 2:
+            _time.sleep(0.9)
+        if self.drs.Read_ps_OnOff() == 0:
+            self.config.status = False
+            self.config.main_current = 0
+            self.ui.pb_ps_button.setChecked(False)
+            self.ui.pb_ps_button.setText('Turn ON')
+            _QApplication.processEvents()
+
     def display_current(self):
         """Displays current on interface."""
         _ps_type = self.config.ps_type
@@ -422,14 +447,17 @@ class SupplyWidget(_QWidget):
             setattr(self, 'temperature_magnet', _agilent_reading[1])
             setattr(self, 'temperature_water', _agilent_reading[2])
         _voltage = _agilent_reading[4]
-        if _voltage =='':
+        if _voltage == '':
             _current = 0
         else:
-            if self.ui.dcct_select.currentIndex() == 0:   #For 40 A dcct head
+            #For 40 A dcct head
+            if self.ui.dcct_select.currentIndex() == 0:
                 _current = (float(_voltage))*4
-            if self.ui.dcct_select.currentIndex() == 1:   #For 160 A dcct head
+            #For 160 A dcct head
+            if self.ui.dcct_select.currentIndex() == 1:
                 _current = (float(_voltage))*16
-            if self.ui.dcct_select.currentIndex() == 2:   #For 320 A dcct head
+            #For 320 A dcct head
+            if self.ui.dcct_select.currentIndex() == 2:
                 _current = (float(_voltage))*32
         return _current
 
@@ -486,46 +514,46 @@ class SupplyWidget(_QWidget):
         try:
             _current_max = self.config.maximum_current
         except Exception:
-            _QMessageBox.warning(self, 'Warning', '''Incorrect value for
-                                 maximum Supply Current.\nPlease, verify the
-                                 value.''', _QMessageBox.Ok)
+            _QMessageBox.warning(self, 'Warning', 'Incorrect value for '
+                                 'maximum Supply Current.\nPlease, verify the '
+                                 'value.', _QMessageBox.Ok)
             return 'False'
         try:
             _current_min = self.config.minimum_current
         except Exception:
-            _QMessageBox.warning(self, 'Warning', '''Incorrect value for
-                                 minimum Supply Current.\nPlease, verify the
-                                 value.''', _QMessageBox.Ok)
+            _QMessageBox.warning(self, 'Warning', 'Incorrect value for '
+                                 'minimum Supply Current.\nPlease, verify the '
+                                 'value.', _QMessageBox.Ok)
             return 'False'
 
         if index == 0 or index == 1:
             if _current > _current_max:
                 if (index == 0):
-                    _QMessageBox.warning(self, 'Warning', '''Value of current
-                                         higher than the Supply Limit.''',
+                    _QMessageBox.warning(self, 'Warning', 'Value of current '
+                                         'higher than the Supply Limit.',
                                          _QMessageBox.Ok)
                 self.ui.dsb_current_setpoint.setValue(float(_current_max))
                 _current = _current_max
                 return 'False'
             if _current < _current_min:
                 if index == 0:
-                    _QMessageBox.warning(self, 'Warning', '''Current value
-                                         lower than the Supply Limit.''',
+                    _QMessageBox.warning(self, 'Warning', 'Current value '
+                                         'lower than the Supply Limit.',
                                          _QMessageBox.Ok)
                 self.ui.dsb_current_setpoint.setValue(float(_current_min))
                 _current = _current_min
                 return 'False'
         elif index == 2:
             if ((_current)+offset) > _current_max:
-                _QMessageBox.warning(self, 'Warning', '''Check Peak to Peak
-                                     Current and Offset values.\n Values out of
-                                     source limit.''', _QMessageBox.Ok)
+                _QMessageBox.warning(self, 'Warning', 'Check Peak to Peak '
+                                     'Current and Offset values.\n Values out '
+                                     'of source limit.', _QMessageBox.Ok)
                 return 'False'
 
             if ((-_current)+offset) < _current_min:
-                _QMessageBox.warning(self, 'Warning', '''Check Peak to Peak
-                                     Current and Offset values.\nValues out of
-                                     source limit.''', _QMessageBox.Ok)
+                _QMessageBox.warning(self, 'Warning', 'Check Peak to Peak '
+                                     'Current and Offset values.\nValues out '
+                                     'of source limit.', _QMessageBox.Ok)
                 return 'False'
 
         return float(_current)
@@ -556,7 +584,7 @@ class SupplyWidget(_QWidget):
         _ps_type = self.config.ps_type
         self.drs.SetSlaveAdd(_ps_type)
 
-        if _curve_type == 0:    # Sinusoidal
+        if _curve_type == 1:    # Sinusoidal
             # For Offset
             try:
                 _offset = self.config.sinusoidal_offset
@@ -568,8 +596,8 @@ class SupplyWidget(_QWidget):
                 self.ui.le_sinusoidal_offset.setText(str(_offset))
                 self.config.sinusoidal_offset = _offset
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Offset parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Offset parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Amplitude
             try:
@@ -582,40 +610,40 @@ class SupplyWidget(_QWidget):
                 self.ui.le_sinusoidal_amplitude.setText(str(_amp))
                 self.config.sinusoidal_amplitude = _amp
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Amplitude parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Amplitude parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Frequency
             try:
                 _freq = self.config.sinusoidal_frequency
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Frequency parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Frequency parameter of the curve.',
                                      _QMessageBox.Ok)
             # For N-cycles
             try:
                 _n_cycles = self.config.sinusoidal_ncycles
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     #cycles parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     '#cycles parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Phase shift
             try:
                 _phase_shift = self.config.sinusoidal_phasei
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Phase parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Final phase
             try:
                 _final_phase = self.config.sinusoidal_phasef
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Final phase parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Final phase parameter of the curve.',
                                      _QMessageBox.Ok)
 
         # Damped Sinusoidal
-        if _curve_type == 1:
+        if _curve_type == 0:
             # For Offset
             try:
                 _offset = self.config.dsinusoidal_offset
@@ -627,8 +655,8 @@ class SupplyWidget(_QWidget):
                 self.config.dsinusoidal_offset = _offset
                 self.ui.le_damp_sin_offset.setText(str(_offset))
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Offset parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Offset parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Amplitude
             try:
@@ -641,49 +669,49 @@ class SupplyWidget(_QWidget):
                 self.config.dsinusoidal_amplitude = _amp
                 self.ui.le_damp_sin_ampl.setText(str(_amp))
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Amplitude parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Amplitude parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Frequency
             try:
                 _freq = self.config.dsinusoidal_frequency
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Frequency parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Frequency parameter of the curve.',
                                      _QMessageBox.Ok)
             # For N-cycles
             try:
                 _n_cycles = self.config.dsinusoidal_ncycles
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     #cycles parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     '#cycles parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Phase shift
             try:
                 _phase_shift = self.config.dsinusoidal_phasei
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Phase parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Final phase
             try:
                 _final_phase = self.config.dsinusoidal_phasef
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Final Phase parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Final Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Damping
             try:
                 _damping = self.config.dsinusoidal_damp
             except Exception:
-                _QMessageBox.warning(self, 'Warning', '''Please, verify the
-                                     Damping _time parameter of the curve.''',
+                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                                     'Damping _time parameter of the curve.',
                                      _QMessageBox.Ok)
 
         # Generating curves
         try:
             # Sinusoidal
-            if _curve_type == 0:
+            if _curve_type == 1:
                 try:
                     _sigType = 0
                     # send Frequency
@@ -697,24 +725,24 @@ class SupplyWidget(_QWidget):
                                           _final_phase)
                 except Exception:
                     # traceback.print_exc(file=sys.stdout)
-                    _QMessageBox.warning(self, 'Warning', '''Failed to send
-                                         configuration to the controller.\n
-                                         Please, verify the parameters of the
-                                         Power Supply.''', _QMessageBox.Ok)
+                    _QMessageBox.warning(self, 'Warning', 'Failed to send '
+                                         'configuration to the controller.\n'
+                                         'Please, verify the parameters of the'
+                                         'Power Supply.', _QMessageBox.Ok)
                     return
 
             # Damped Sinusoidal
-            if _curve_type == 1:
+            if _curve_type == 0:
                 try:
                     _sigType = 4
                     self.drs.Write_sigGen_Freq(float(_freq))
                     self.drs.Write_sigGen_Amplitude(float(_amp))
                     self.drs.Write_sigGen_Offset(float(_offset))
                 except Exception:
-                    _QMessageBox.warning(self, 'Warning', '''Failed to send
-                                         configuration to the controller.\n
-                                         Please, verify the parameters of the
-                                         Power Supply.''', _QMessageBox.Ok)
+                    _QMessageBox.warning(self, 'Warning', 'Failed to send '
+                                         'configuration to the controller.\n'
+                                         'Please, verify the parameters of '
+                                         'the Power Supply.', _QMessageBox.Ok)
                     return
 
                 # Sending sigGenDamped
@@ -768,20 +796,20 @@ class SupplyWidget(_QWidget):
         try:
             self.drs.OpMode(3)
             if self.drs.Read_ps_OpMode() != 3:
-                _QMessageBox.warning(self, 'Warning', '''Power supply is not
-                                     in signal generator mode.''',
+                _QMessageBox.warning(self, 'Warning', 'Power supply is not '
+                                     'in signal generator mode.',
                                      _QMessageBox.Ok)
                 return False
         except Exception:
-            _QMessageBox.warning(self, 'Warning', '''Power supply is not in
-                                 signal generator mode.''', _QMessageBox.Ok)
+            _QMessageBox.warning(self, 'Warning', 'Power supply is not in '
+                                 'signal generator mode.', _QMessageBox.Ok)
             return
         try:
-            if _curve_type == 0:
+            if _curve_type == 1:
                 self.drs.EnableSigGen()
                 _freq = self.config.sinusoidal_frequency
                 _n_cycles = self.config.sinusoidal_ncycles
-            if _curve_type == 1:
+            if _curve_type == 0:
                 self.drs.EnableSigGen()
                 _freq = self.config.dsinusoidal_frequency
                 _n_cycles = self.config.dsinusoidal_ncycles
@@ -816,27 +844,37 @@ class SupplyWidget(_QWidget):
     def save_powersupply(self):
         """Save Power Supply settings into database"""
         self.config_ps()
-
+        _name = self.config.ps_name
         try:
-            _idn = self.config.get_database_id(self.database, 'name',
-                                               self.config.ps_name)
+            _idn = self.config.get_database_id(self.database, 'name', _name)
             if not len(_idn):
                 if self.config.save_to_database(self.database) is not None:
                     self.list_powersupply()
-                    _QMessageBox.information(self, 'Information', '''Power
-                                             Supply saved into database.''',
+                # self.ui.cb_ps_name.setCurrentText(self.config.ps_name) #Qt5
+                    self.ui.cb_ps_name.setCurrentIndex(
+                        self.ui.cb_ps_name.findText(_name))
+                    _QMessageBox.information(self, 'Information', 'Power '
+                                             'Supply saved into database.',
                                              _QMessageBox.Ok)
                 else:
                     raise Exception('Failed to save Power Supply')
             else:
-                if self.config.update_database_table(self.database, _idn[0]):
-                    self.list_powersupply()
-                    _QMessageBox.information(self, 'Information', '''Power
-                                             Supply updated into database.''',
-                                             _QMessageBox.Ok)
-                else:
-                    raise Exception('Failed to save Power Supply')
+                _ans = _QMessageBox.question(self, 'Update Power Supply',
+                                             'The power supply already exists.'
+                                             '\nAre you sure you want to '
+                                             'update the database entry?',
+                                             _QMessageBox.Yes |
+                                             _QMessageBox.No)
+                if _ans == _QMessageBox.Yes:
+                    if self.config.update_database_table(self.database,
+                                                         _idn[0]):
+                        _QMessageBox.information(self, 'Information',
+                                                 'Power Supply entry updated.',
+                                                 _QMessageBox.Ok)
+                    else:
+                        raise Exception('Failed to save Power Supply')
         except Exception:
+            raise
             _QMessageBox.warning(self, 'Warning',
                                  'Failed to save Power Supply entry.',
                                  _QMessageBox.Ok)
@@ -850,23 +888,24 @@ class SupplyWidget(_QWidget):
             _idn = self.config.get_database_id(self.database, 'name',
                                                self.config.ps_name)
             if len(_idn):
-                self.config.read_from_database(self.database, _idn)
+                self.config.read_from_database(self.database, _idn[0])
                 self.config_widget()
                 self.ui.gb_start_supply.setEnabled(True)
                 self.ui.tabWidget_2.setEnabled(True)
                 self.ui.tabWidget_3.setEnabled(True)
                 self.ui.pb_refresh.setEnabled(True)
+                self.ui.pb_load_ps.setEnabled(False)
                 _QMessageBox.information(self, 'Information',
-                                         'Power Supply File loaded.',
+                                         'Power Supply loaded.',
                                          _QMessageBox.Ok)
             else:
                 _QMessageBox.warning(self, 'Warning',
-                                     '''Could not load the power supply.\n
-                                     Check if the name really exists.''',
+                                     'Could not load the power supply.\n'
+                                     'Check if the name really exists.',
                                      _QMessageBox.Ok)
         except Exception:
             # traceback.print_exc(file=sys.stdout)
             _QMessageBox.warning(self, 'Warning',
-                                 '''Could not load the power supply settings.\n
-                                 Check if the configuration file values are
-                                 correct.''', _QMessageBox.Ok)
+                                 'Could not load the power supply settings.\n'
+                                 'Check if the configuration values are '
+                                 'correct.', _QMessageBox.Ok)

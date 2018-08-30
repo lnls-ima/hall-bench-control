@@ -5,7 +5,7 @@
 import os as _os
 import sys as _sys
 import threading as _threading
-from PyQt4.QtGui import QApplication as _QApplication
+from PyQt5.QtWidgets import QApplication as _QApplication
 
 from hallbench.gui.hallbenchwindow import HallBenchWindow as _HallBenchWindow
 import hallbench.data as _data

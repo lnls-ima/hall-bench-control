@@ -75,15 +75,15 @@ class SupplyWidget(_QWidget):
         self.ui.cb_ps_name.addItems(_l)
 
     def change_ps(self):
-        """Sets the Load Power Supply disabled if the selected supply is
-            already loaded."""
+        """Sets the Load Power Supply button disabled if the selected supply is
+           already loaded."""
         if self.ui.cb_ps_name.currentText() == self.config.ps_name:
             self.ui.pb_load_ps.setEnabled(False)
         else:
             self.ui.pb_load_ps.setEnabled(True)
 
     def start_powersupply(self):
-        """Starts/Stops Power Supply."""
+        """Starts/Stops the Power Supply."""
         try:
             self.ui.pb_ps_button.setEnabled(False)
             self.ui.pb_ps_button.setText('Processing...')
@@ -109,7 +109,7 @@ class SupplyWidget(_QWidget):
                 if _status_interlocks != 0:
                     self.ui.pb_interlock.setChecked(True)
                     _QMessageBox.warning(self, 'Warning',
-                                         'Soft Interlock activated!',
+                                         'Software Interlock activated!',
                                          _QMessageBox.Ok)
                     self.change_ps_button(True)
                     return
@@ -118,7 +118,7 @@ class SupplyWidget(_QWidget):
                 if _status_interlocks != 0:
                     self.ui.pb_interlock.setChecked(True)
                     _QMessageBox.warning(self, 'Warning',
-                                         'Hard Interlock activated!',
+                                         'Hardware Interlock activated!',
                                          _QMessageBox.Ok)
                     self.change_ps_button(True)
                     return
@@ -183,7 +183,7 @@ class SupplyWidget(_QWidget):
                     if _i == 0:
                         _QMessageBox.warning(self, 'Warning', 'DC link '
                                              'setpoint is not set.\n'
-                                             'Check configurations.',
+                                             'Check the configurations.',
                                              _QMessageBox.Ok)
                         self.drs.TurnOff()
                         self.change_ps_button(True)
@@ -240,7 +240,7 @@ class SupplyWidget(_QWidget):
                 _status = self.drs.Read_ps_OnOff()
                 if _status:
                     _QMessageBox.warning(self, 'Warning', 'Could not turn the '
-                                         'power supply off.\nPlease, try '
+                                         'power supply off.\nPlease try '
                                          'again.', _QMessageBox.Ok)
                     self.change_ps_button(False)
                     return
@@ -254,7 +254,7 @@ class SupplyWidget(_QWidget):
                     _status = self.drs.Read_ps_OnOff()
                     if _status:
                         _QMessageBox.warning(self, 'Warning', 'Could not turn '
-                                             'the power supply off.\nPlease, '
+                                             'the power supply off.\nPlease '
                                              'try again.', _QMessageBox.Ok)
                         self.change_ps_button(False)
                         return
@@ -591,7 +591,7 @@ class SupplyWidget(_QWidget):
                     self.config.sinusoidal_offset = 0
                     return False
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Offset parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Amplitude
@@ -602,35 +602,35 @@ class SupplyWidget(_QWidget):
                     self.config.sinusoidal_amplitude = 0
                     return False
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Amplitude parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Frequency
             try:
                 _freq = float(self.config.sinusoidal_frequency)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Frequency parameter of the curve.',
                                      _QMessageBox.Ok)
             # For N-cycles
             try:
                 _n_cycles = int(self.config.sinusoidal_ncycles)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      '#cycles parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Phase shift
             try:
                 _phase_shift = float(self.config.sinusoidal_phasei)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Final phase
             try:
                 _final_phase = float(self.config.sinusoidal_phasef)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Final phase parameter of the curve.',
                                      _QMessageBox.Ok)
 
@@ -644,7 +644,7 @@ class SupplyWidget(_QWidget):
                     self.ui.le_damp_sin_offset.setText('0')
                     return False
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Offset parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Amplitude
@@ -655,43 +655,43 @@ class SupplyWidget(_QWidget):
                     self.ui.le_damp_sin_ampl.setText('0')
                     return False
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Amplitude parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Frequency
             try:
                 _freq = float(self.config.dsinusoidal_frequency)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Frequency parameter of the curve.',
                                      _QMessageBox.Ok)
             # For N-cycles
             try:
                 _n_cycles = int(self.config.dsinusoidal_ncycles)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      '#cycles parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Phase shift
             try:
                 _phase_shift = float(self.config.dsinusoidal_phasei)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Final phase
             try:
                 _final_phase = float(self.config.dsinusoidal_phasef)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Final Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Damping
             try:
                 _damping = float(self.config.dsinusoidal_damp)
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please, verify the '
-                                     'Damping _time parameter of the curve.',
+                _QMessageBox.warning(self, 'Warning', 'Please verify the '
+                                     'Damping parameter of the curve.',
                                      _QMessageBox.Ok)
         _QApplication.processEvents()
 
@@ -723,7 +723,7 @@ class SupplyWidget(_QWidget):
         except Exception:
             # traceback.print_exc(file=sys.stdout)
             _QMessageBox.warning(self, 'Warning', 'Failed to configure'
-                                 'the signal generator.\nPlease, verify the '
+                                 'the signal generator.\nPlease verify the '
                                  'parameters of the Power Supply.',
                                  _QMessageBox.Ok)
             return False

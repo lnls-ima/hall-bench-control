@@ -520,6 +520,11 @@ class PowerSupplyConfig(Configuration):
         self.ps_name = None
         self.ps_type = None
         self.ps_setpoint = None
+        self.maximum_current = None
+        self.minimum_current = None
+        self.Kp = None
+        self.Ki = None
+        self.dcct_head = None
         self.sinusoidal_amplitude = None
         self.sinusoidal_offset = None
         self.sinusoidal_frequency = None
@@ -533,11 +538,6 @@ class PowerSupplyConfig(Configuration):
         self.dsinusoidal_phasei = None
         self.dsinusoidal_phasef = None
         self.dsinusoidal_damp = None
-        self.maximum_current = None
-        self.minimum_current = None
-        self.Kp = None
-        self.Ki = None
-        self.dcct_head = None
 
         if filename is not None and idn is not None:
             raise ValueError('Invalid arguments for PowerSupplyConfig.')

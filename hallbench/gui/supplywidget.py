@@ -48,6 +48,11 @@ class SupplyWidget(_QWidget):
         self.ui.cb_ps_name.editTextChanged.connect(self.change_ps)
 
     @property
+    def connection_config(self):
+        """Return the connection configuration."""
+        return _QApplication.instance().connection_config
+
+    @property
     def devices(self):
         """Hall Bench Devices."""
         return _QApplication.instance().devices
@@ -427,39 +432,21 @@ class SupplyWidget(_QWidget):
         try:
             _refresh_current = round(float(self.drs.Read_iLoad1()), 3)
             self.ui.lcd_ps_reading.display(_refresh_current)
-            if (self.ui.chb_dcct.isChecked() and
-               self.ui.chb_enable_Agilent34970A.isChecked()):
+            if all([self.ui.chb_dcct.isChecked(),
+                    self.connection_config.multich_enable]):
                 self.ui.lcd_current_dcct.setEnabled(True)
                 self.ui.label_161.setEnabled(True)
                 self.ui.label_164.setEnabled(True)
-                _current = round(self.dcct_convert(), 3)
+                if not self.devices.multich.configure(['104']):
+                    raise Exception('Could not configure the Multichannel.')
+                _current = round(self.devices.multich.get_converted_readings(
+                                 self.config.dcct_head)[0], 3)
                 self.ui.lcd_current_dcct.display(_current)
                 _QApplication.processEvents()
         except Exception:
             _QMessageBox.warning(self, 'Warning', 'Could not display Current.',
                                  _QMessageBox.Ok)
             return
-
-    def dcct_convert(self):
-        _agilent_reading = Lib.comm.agilent34970a.read_temp_volt()
-        if isinstance(Lib.measurement_settings, pd.DataFrame):
-            Lib.write_value(Lib.measurement_settings, 'temperature', _agilent_reading[0])
-            setattr(self, 'temperature_magnet', _agilent_reading[1])
-            setattr(self, 'temperature_water', _agilent_reading[2])
-        _voltage = _agilent_reading[4]
-        if _voltage == '':
-            _current = 0
-        else:
-            #For 40 A dcct head
-            if self.ui.dcct_select.currentIndex() == 0:
-                _current = (float(_voltage))*4
-            #For 160 A dcct head
-            if self.ui.dcct_select.currentIndex() == 1:
-                _current = (float(_voltage))*16
-            #For 320 A dcct head
-            if self.ui.dcct_select.currentIndex() == 2:
-                _current = (float(_voltage))*32
-        return _current
 
     def current_setpoint(self, setpoint=0):
         """Changes power supply current setpoint settings."""

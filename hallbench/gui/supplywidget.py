@@ -75,6 +75,8 @@ class SupplyWidget(_QWidget):
         self.ui.cb_ps_name.addItems(_l)
 
     def change_ps(self):
+        """Sets the Load Power Supply disabled if the selected supply is
+            already loaded."""
         if self.ui.cb_ps_name.currentText() == self.config.ps_name:
             self.ui.pb_load_ps.setEnabled(False)
         else:
@@ -274,7 +276,11 @@ class SupplyWidget(_QWidget):
             return
 
     def change_ps_button(self, on=True):
-        """Updates ui when turning power supply on/off."""
+        """Updates ui when turning power supply on/off.
+
+        Args:
+            on (bool): True when turning off the power supply;
+                       False otherwise"""
         self.ui.pb_ps_button.setEnabled(True)
         if on:
             self.ui.pb_ps_button.setChecked(False)
@@ -437,27 +443,36 @@ class SupplyWidget(_QWidget):
                 self.ui.lcd_current_dcct.setEnabled(True)
                 self.ui.label_161.setEnabled(True)
                 self.ui.label_164.setEnabled(True)
-                if not self.devices.multich.configure(['104']):
-                    raise Exception('Could not configure the Multichannel.')
+                _ch_list = self.devices.multich.config_channels
+                if '104' in _ch_list:
+                    _idx = _ch_list.index('104')
+                else:
+                    if self.devices.multich.configure(['104']):
+                        _idx = 0
+                    else:
+                        raise Exception
                 _current = round(self.devices.multich.get_converted_readings(
-                                 self.config.dcct_head)[0], 3)
+                                 self.config.dcct_head)[_idx], 3)
                 self.ui.lcd_current_dcct.display(_current)
-                _QApplication.processEvents()
+            _QApplication.processEvents()
         except Exception:
             _QMessageBox.warning(self, 'Warning', 'Could not display Current.',
                                  _QMessageBox.Ok)
             return
 
     def current_setpoint(self, setpoint=0):
-        """Changes power supply current setpoint settings."""
+        """Changes current setpoint in power supply configuration.
+
+        Args:
+            setpoint (float): current setpoint."""
         self.ui.tabWidget_2.setEnabled(False)
         _ps_type = self.config.ps_type
 
         self.drs.SetSlaveAdd(_ps_type)
 
         # verify current limits
-        _setpoint = self.verify_current_limits(0, setpoint, 0)
-        if _setpoint == 'False':
+        _setpoint = setpoint
+        if not self.verify_current_limits(setpoint):
             self.ui.tabWidget_2.setEnabled(True)
             return False
         self.config.ps_setpoint = _setpoint
@@ -477,7 +492,7 @@ class SupplyWidget(_QWidget):
         return True
 
     def send_setpoint(self):
-        """Sends new current setpoing to the power supply."""
+        """Sends configured current setpoint to the power supply."""
         self.config_ps()
 
         _setpoint = self._ps_setpoint
@@ -491,73 +506,69 @@ class SupplyWidget(_QWidget):
                                  'Current was not properly set.',
                                  _QMessageBox.Ok)
 
-    def verify_current_limits(self, index, current, offset=0):
-        """Check the conditions of the Current values sets;
-        if there's an error, returns string 'False' in order to
-        avoid confusion when returning the 0.0 value."""
+    def verify_current_limits(self, current, chk_offset=False, offset=0):
+        """Check the limits of the current values set.
 
+        Args:
+            current (float): current value in [A] to be verified.
+            check_offset (bool, optional): flag to check current value plus
+                offset; default False.
+            offset (float, optional): offset value in [A]; default 0.
+        Return:
+            True if current is within the limits, False otherwise.
+        """
         _current = float(current)
+        _offset = float(offset)
 
         try:
-            _current_max = self.config.maximum_current
+            _current_max = float(self.config.maximum_current)
         except Exception:
-            _QMessageBox.warning(self, 'Warning', 'Incorrect value for '
-                                 'maximum Supply Current.\nPlease, verify the '
+            _QMessageBox.warning(self, 'Warning', 'Invalid Maximum Current '
                                  'value.', _QMessageBox.Ok)
-            return 'False'
+            return False
         try:
-            _current_min = self.config.minimum_current
+            _current_min = float(self.config.minimum_current)
         except Exception:
-            _QMessageBox.warning(self, 'Warning', 'Incorrect value for '
-                                 'minimum Supply Current.\nPlease, verify the '
+            _QMessageBox.warning(self, 'Warning', 'Invalid Minimum Current '
                                  'value.', _QMessageBox.Ok)
-            return 'False'
+            return False
 
-        if index == 0 or index == 1:
+        if not chk_offset:
             if _current > _current_max:
-                if (index == 0):
-                    _QMessageBox.warning(self, 'Warning', 'Value of current '
-                                         'higher than the Supply Limit.',
-                                         _QMessageBox.Ok)
                 self.ui.dsb_current_setpoint.setValue(float(_current_max))
                 _current = _current_max
-                return 'False'
+                _QMessageBox.warning(self, 'Warning', 'Current value is'
+                                     'higher than the upper limit.',
+                                     _QMessageBox.Ok)
+                return False
             if _current < _current_min:
-                if index == 0:
-                    _QMessageBox.warning(self, 'Warning', 'Current value '
-                                         'lower than the Supply Limit.',
-                                         _QMessageBox.Ok)
                 self.ui.dsb_current_setpoint.setValue(float(_current_min))
                 _current = _current_min
-                return 'False'
-        elif index == 2:
-            if ((_current)+offset) > _current_max:
-                _QMessageBox.warning(self, 'Warning', 'Check Peak to Peak '
-                                     'Current and Offset values.\n Values out '
-                                     'of source limit.', _QMessageBox.Ok)
-                return 'False'
+                _QMessageBox.warning(self, 'Warning', 'Current value is'
+                                     'lower than the lower limit.',
+                                     _QMessageBox.Ok)
+                return False
+        else:
+            if any((_current + offset) > _current_max,
+                   ((-1*_current + offset) < _current_min)):
+                _QMessageBox.warning(self, 'Warning', 'Peak-to-peak current '
+                                     'values out of bounds.', _QMessageBox.Ok)
+                return False
 
-            if ((-_current)+offset) < _current_min:
-                _QMessageBox.warning(self, 'Warning', 'Check Peak to Peak '
-                                     'Current and Offset values.\nValues out '
-                                     'of source limit.', _QMessageBox.Ok)
-                return 'False'
-
-        return float(_current)
+        return True
 
     def send_curve(self):
-        """Sends curve points to power supply controller."""
-
+        """UI function to set power supply curve generator."""
         self.ui.tabWidget_2.setEnabled(False)
         if self.curve_gen() is True:
             _QMessageBox.information(self, 'Information',
-                                     'Sending Curve Successfully.',
+                                     'Curve sent successfully.',
                                      _QMessageBox.Ok)
             self.ui.tabWidget_2.setEnabled(True)
             self.ui.pb_cycle.setEnabled(True)
             _QApplication.processEvents()
         else:
-            _QMessageBox.warning(self, 'Warning', 'Fail to send curve.',
+            _QMessageBox.warning(self, 'Warning', 'Failed to send curve.',
                                  _QMessageBox.Ok)
             self.ui.tabWidget_2.setEnabled(True)
             _QApplication.processEvents()
@@ -574,56 +585,50 @@ class SupplyWidget(_QWidget):
         if _curve_type == 1:    # Sinusoidal
             # For Offset
             try:
-                _offset = self.config.sinusoidal_offset
-                _offset = self.verify_current_limits(0, _offset)
-                if _offset == 'False':
+                _offset = float(self.config.sinusoidal_offset)
+                if not self.verify_current_limits(_offset):
                     self.ui.le_sinusoidal_offset.setText('0')
                     self.config.sinusoidal_offset = 0
                     return False
-                self.ui.le_sinusoidal_offset.setText(str(_offset))
-                self.config.sinusoidal_offset = _offset
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Offset parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Amplitude
             try:
-                _amp = self.config.sinusoidal_amplitude
-                _amp = self.verify_current_limits(2, abs(_amp), _offset)
-                if _amp == 'False':
+                _amp = float(self.config.sinusoidal_amplitude)
+                if not self.verify_current_limits(abs(_amp), True, _offset):
                     self.ui.le_sinusoidal_amplitude.setText('0')
                     self.config.sinusoidal_amplitude = 0
                     return False
-                self.ui.le_sinusoidal_amplitude.setText(str(_amp))
-                self.config.sinusoidal_amplitude = _amp
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Amplitude parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Frequency
             try:
-                _freq = self.config.sinusoidal_frequency
+                _freq = float(self.config.sinusoidal_frequency)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Frequency parameter of the curve.',
                                      _QMessageBox.Ok)
             # For N-cycles
             try:
-                _n_cycles = self.config.sinusoidal_ncycles
+                _n_cycles = int(self.config.sinusoidal_ncycles)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      '#cycles parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Phase shift
             try:
-                _phase_shift = self.config.sinusoidal_phasei
+                _phase_shift = float(self.config.sinusoidal_phasei)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Final phase
             try:
-                _final_phase = self.config.sinusoidal_phasef
+                _final_phase = float(self.config.sinusoidal_phasef)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Final phase parameter of the curve.',
@@ -633,134 +638,108 @@ class SupplyWidget(_QWidget):
         if _curve_type == 0:
             # For Offset
             try:
-                _offset = self.config.dsinusoidal_offset
-                _offset = self.verify_current_limits(0, _offset)
-                if _offset == 'False':
+                _offset = float(self.config.dsinusoidal_offset)
+                if not self.verify_current_limits(_offset):
                     self.config.dsinusoidal_offset = 0
                     self.ui.le_damp_sin_offset.setText('0')
                     return False
-                self.config.dsinusoidal_offset = _offset
-                self.ui.le_damp_sin_offset.setText(str(_offset))
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Offset parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Amplitude
             try:
-                _amp = self.config.dsinusoidal_amplitude
-                _amp = self.verify_current_limits(2, abs(_amp), _offset)
-                if _amp == 'False':
+                _amp = float(self.config.dsinusoidal_amplitude)
+                if not self.verify_current_limits(abs(_amp), True, _offset):
                     self.config.dsinusoidal_amplitude = 0
                     self.ui.le_damp_sin_ampl.setText('0')
                     return False
-                self.config.dsinusoidal_amplitude = _amp
-                self.ui.le_damp_sin_ampl.setText(str(_amp))
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Amplitude parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Frequency
             try:
-                _freq = self.config.dsinusoidal_frequency
+                _freq = float(self.config.dsinusoidal_frequency)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Frequency parameter of the curve.',
                                      _QMessageBox.Ok)
             # For N-cycles
             try:
-                _n_cycles = self.config.dsinusoidal_ncycles
+                _n_cycles = int(self.config.dsinusoidal_ncycles)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      '#cycles parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Phase shift
             try:
-                _phase_shift = self.config.dsinusoidal_phasei
+                _phase_shift = float(self.config.dsinusoidal_phasei)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Final phase
             try:
-                _final_phase = self.config.dsinusoidal_phasef
+                _final_phase = float(self.config.dsinusoidal_phasef)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Final Phase parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Damping
             try:
-                _damping = self.config.dsinusoidal_damp
+                _damping = float(self.config.dsinusoidal_damp)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please, verify the '
                                      'Damping _time parameter of the curve.',
                                      _QMessageBox.Ok)
+        _QApplication.processEvents()
 
         # Generating curves
+        # Sinusoidal
         try:
-            # Sinusoidal
             if _curve_type == 1:
-                try:
-                    _sigType = 0
-                    # send Frequency
-                    self.drs.Write_sigGen_Freq(float(_freq))
-                    # send Amplitude
-                    self.drs.Write_sigGen_Amplitude(float(_amp))
-                    # send Offset
-                    self.drs.Write_sigGen_Offset(float(_offset))
-                    # Sending curves to ps Controller
-                    self.drs.ConfigSigGen(_sigType, _n_cycles, _phase_shift,
-                                          _final_phase)
-                except Exception:
-                    # traceback.print_exc(file=sys.stdout)
-                    _QMessageBox.warning(self, 'Warning', 'Failed to send '
-                                         'configuration to the controller.\n'
-                                         'Please, verify the parameters of the'
-                                         'Power Supply.', _QMessageBox.Ok)
-                    return
+                _sigType = 0
+                self.drs.Write_sigGen_Freq(float(_freq))
+                self.drs.Write_sigGen_Amplitude(float(_amp))
+                self.drs.Write_sigGen_Offset(float(_offset))
+                self.drs.ConfigSigGen(_sigType, _n_cycles, _phase_shift,
+                                      _final_phase)
 
             # Damped Sinusoidal
             if _curve_type == 0:
-                try:
-                    _sigType = 4
-                    self.drs.Write_sigGen_Freq(float(_freq))
-                    self.drs.Write_sigGen_Amplitude(float(_amp))
-                    self.drs.Write_sigGen_Offset(float(_offset))
-                except Exception:
-                    _QMessageBox.warning(self, 'Warning', 'Failed to send '
-                                         'configuration to the controller.\n'
-                                         'Please, verify the parameters of '
-                                         'the Power Supply.', _QMessageBox.Ok)
-                    return
+                _sigType = 4
+                self.drs.Write_sigGen_Freq(float(_freq))
+                self.drs.Write_sigGen_Amplitude(float(_amp))
+                self.drs.Write_sigGen_Offset(float(_offset))
 
                 # Sending sigGenDamped
-                try:
-                    self.drs.Write_sigGen_Aux(_damping)
-                    self.drs.ConfigSigGen(_sigType, _n_cycles,
-                                          _phase_shift, _final_phase)
-                except Exception:
-                    _QMessageBox.warning(self, 'Warning.',
-                                         'Damped Sinusoidal fault.',
-                                         _QMessageBox.Ok)
-                    # traceback.print_exc(file=sys.stdout)
-                    return False
+                self.drs.Write_sigGen_Aux(_damping)
+                self.drs.ConfigSigGen(_sigType, _n_cycles,
+                                      _phase_shift, _final_phase)
 
             return True
+
         except Exception:
+            # traceback.print_exc(file=sys.stdout)
+            _QMessageBox.warning(self, 'Warning', 'Failed to configure'
+                                 'the signal generator.\nPlease, verify the '
+                                 'parameters of the Power Supply.',
+                                 _QMessageBox.Ok)
             return False
 
     def reset_interlocks(self):
         """Resets power supply hardware/software interlocks"""
-
         _ps_type = self.config.ps_type
 
-        # 1000A power supply, reset capacitor bank interlock
-        if _ps_type == 2:
-            self.drs.SetSlaveAdd(_ps_type - 1)
-            self.drs.ResetInterlocks()
-
-        self.drs.SetSlaveAdd(_ps_type)
-
         try:
+            # 1000A power supply, reset capacitor bank interlock
+            if _ps_type == 2:
+                self.drs.SetSlaveAdd(_ps_type - 1)
+                self.drs.ResetInterlocks()
+
+            self.drs.SetSlaveAdd(_ps_type)
+
             self.drs.ResetInterlocks()
             if self.ui.pb_interlock.isChecked():
                 self.ui.pb_interlock.setChecked(False)
@@ -869,7 +848,6 @@ class SupplyWidget(_QWidget):
 
     def load_powersupply(self):
         """Load Power Supply settings from database"""
-
         self.config.ps_name = self.ui.cb_ps_name.currentText()
         try:
             _idn = self.config.get_database_id(self.database, 'name',

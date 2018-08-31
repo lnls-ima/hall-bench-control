@@ -599,6 +599,11 @@ class Agilent34970A(GPIB):
         '201', '202', '203', '204', '205', '206', '207', '208', '209']
     _config_channels = []
 
+    @property
+    def config_channels(self):
+        """Returns current channel configuration list."""
+        self._config_channels
+
     def __init__(self, logfile=None):
         """Initiaze variables and prepare logging file.
 

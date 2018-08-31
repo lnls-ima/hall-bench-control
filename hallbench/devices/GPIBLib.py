@@ -739,7 +739,7 @@ class Agilent34970A(GPIB):
             return []
 
     def get_scan_channels(self, wait=0.1):
-        """Return the scan channel list."""
+        """Return the scan channel list read from the device."""
         try:
             self.send_command(self.commands.qscan)
             _time.sleep(wait)

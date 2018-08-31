@@ -516,10 +516,6 @@ class MotorsWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
-    def updatePositions(self):
-        """Update axes positions."""
-        self.current_position_widget.updatePositions()
-
     def updateRelDisp(self):
         """Update relative displacement value."""
         try:

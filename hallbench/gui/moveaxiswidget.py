@@ -126,10 +126,6 @@ class MoveAxisWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
-    def updatePositions(self):
-        """Update axes positions."""
-        self.current_position_widget.updatePositions()
-
     def updateVelocityAndPosition(self):
         """Update velocity and position values for the selected axis."""
         try:

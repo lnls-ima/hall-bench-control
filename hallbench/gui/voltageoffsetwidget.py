@@ -136,7 +136,3 @@ class VoltageOffsetWidget(_TablePlotWidget):
         self.devices.voltx.reset()
         self.devices.volty.reset()
         self.devices.voltz.reset()
-
-    def updatePositions(self):
-        """Update axes positions."""
-        self.move_axis_widget.updatePositions()

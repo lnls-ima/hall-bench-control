@@ -114,7 +114,3 @@ class AngularErrorWidget(_TablePlotWidget):
 
         except Exception:
             pass
-
-    def updatePositions(self):
-        """Update axes positions."""
-        self.move_axis_widget.updatePositions()

@@ -681,10 +681,6 @@ class MeasurementWidget(_QWidget):
             self.local_measurement_config = None
             return False
 
-    def updatePositions(self):
-        """Update axes positions."""
-        self.current_position_widget.updatePositions()
-
     def updateHallProbe(self):
         """Update hall probe."""
         self.local_hall_probe = self.hall_probe.copy()

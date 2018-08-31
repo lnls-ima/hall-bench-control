@@ -461,7 +461,7 @@ class DatabaseObject(object):
             else:
                 updates = updates + '`' + key + '`' + '=?, '
                 if key == "id":
-                    values.append(None)
+                    values.append(idn)
                 elif attr_name is None:
                     values.append(locals()[key])
                 elif attr_name in self._db_json_str:
@@ -488,6 +488,7 @@ class DatabaseObject(object):
 
         except Exception:
             con.close()
-            message = ('Could not update {0} entry.'.format(table))
-            raise DatabaseError(message)
-            return False
+            raise
+#             message = ('Could not update {0} entry.'.format(table))
+#             raise DatabaseError(message)
+#             return False

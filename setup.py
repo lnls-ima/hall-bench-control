@@ -22,6 +22,7 @@ setup(
         'scipy',
         'pandas',
         'pyqtgraph',
+        'pyserial'
     ],
     test_suite='nose.collector',
     tests_require=['nose'],

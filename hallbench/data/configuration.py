@@ -497,7 +497,7 @@ class PowerSupplyConfig(Configuration):
         ('DCCT Head', ['dcct_head', 'INTEGER NOT NULL']),
     ])
 
-    def __init__(self):
+    def __init__(self, filename=None, database=None, idn=None):
         """Initialize object.
 
         Args:
@@ -538,6 +538,14 @@ class PowerSupplyConfig(Configuration):
         self.Kp = None
         self.Ki = None
         self.dcct_head = None
+
+        if filename is not None and idn is not None:
+            raise ValueError('Invalid arguments for PowerSupplyConfig.')
+
+        if idn is not None and database is not None:
+            self.read_from_database(database, idn)
+        else:
+            super().__init__(filename)
 
     def get_attribute_type(self, name):
         """Get attribute type."""

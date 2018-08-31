@@ -4,13 +4,13 @@
 
 import os.path as _path
 import numpy as _np
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.viewprobedialog import ViewProbeDialog \
@@ -39,6 +39,7 @@ class ConfigurationWidget(_QWidget):
             self.database, 'id')
         self.ui.idn_cmb.addItems([str(idn) for idn in idns])
         self.ui.idn_cmb.setCurrentIndex(-1)
+        self.ui.loaddb_btn.setEnabled(False)
 
         self.view_probe_dialog = _ViewProbeDialog()
         self.connectSignalSlots()
@@ -105,6 +106,7 @@ class ConfigurationWidget(_QWidget):
         self.voltx_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.volty_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.voltz_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
 
         self.ui.start_ax1_le.editingFinished.connect(
             lambda: self.setStrFormatFloat(self.ui.start_ax1_le))
@@ -249,6 +251,11 @@ class ConfigurationWidget(_QWidget):
                 if axis != 5:
                     second_rb.setEnabled(True)
 
+    def enableLoadDB(self):
+        """Enable button to load configuration from database."""
+        if self.ui.idn_cmb.currentIndex() != -1:
+            self.ui.loaddb_btn.setEnabled(True)
+
     def fixEndPositionValue(self, axis):
         """Fix end position value."""
         start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
@@ -379,6 +386,7 @@ class ConfigurationWidget(_QWidget):
 
         self.load()
         self.ui.idn_cmb.setCurrentIndex(index)
+        self.ui.loaddb_btn.setEnabled(False)
 
     def loadFile(self):
         """Load configuration file to set measurement parameters."""
@@ -435,6 +443,7 @@ class ConfigurationWidget(_QWidget):
                         self.database)
                     self.ui.idn_cmb.addItem(str(idn))
                     self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
+                    self.ui.loaddb_btn.setEnabled(False)
             except Exception as e:
                 _QMessageBox.critical(
                     self, 'Failure', str(e), _QMessageBox.Ok)

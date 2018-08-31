@@ -7,14 +7,14 @@ import time as _time
 import numpy as _np
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QApplication as _QApplication,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
     )
-import PyQt4.uic as _uic
-from PyQt4.QtCore import QThread as _QThread
+import PyQt5.uic as _uic
+from PyQt5.QtCore import QThread as _QThread
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.configurationwidget import ConfigurationWidget \

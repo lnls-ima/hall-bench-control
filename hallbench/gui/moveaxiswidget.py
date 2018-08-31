@@ -2,13 +2,13 @@
 
 """Move axis widget for the Hall Bench Control application."""
 
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
@@ -70,6 +70,12 @@ class MoveAxisWidget(_QWidget):
     def moveToTarget(self, axis):
         """Move axis to target position."""
         try:
+            targetpos_str = self.ui.targetpos_le.text()
+            targetvel_str = self.ui.targetvel_le.text()
+
+            if len(targetpos_str) == 0 or len(targetvel_str) == 0:
+                return
+
             targetpos = float(self.ui.targetpos_le.text())
             targetvel = float(self.ui.targetvel_le.text())
 

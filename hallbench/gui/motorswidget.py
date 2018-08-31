@@ -3,12 +3,12 @@
 """Motors widget for the Hall Bench Control application."""
 
 import time as _time
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \

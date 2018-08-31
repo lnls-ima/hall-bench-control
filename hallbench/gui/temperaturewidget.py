@@ -3,39 +3,35 @@
 """Temperature widget for the Hall Bench Control application."""
 
 import numpy as _np
-import pandas as _pd
 import time as _time
-import datetime as _datetime
-import warnings as _warnings
 import collections as _collections
-import pyqtgraph as _pyqtgraph
-from PyQt4.QtGui import (
-    QWidget as _QWidget,
-    QMessageBox as _QMessageBox,
-    QFileDialog as _QFileDialog,
-    QTableWidgetItem as _QTableWidgetItem,
+from PyQt5.QtWidgets import (
     QApplication as _QApplication,
+    QMessageBox as _QMessageBox,
+    QPushButton as _QPushButton,
+    QVBoxLayout as _QVBoxLayout,
+    QWidget as _QWidget,
     )
-from PyQt4.QtCore import (
-    QTimer as _QTimer,
+from PyQt5.QtCore import (
+    pyqtSignal as _pyqtSignal,
     QDateTime as _QDateTime,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+import hallbench.gui.utils as _utils
+from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
 
 
-class TemperatureWidget(_QWidget):
+class TemperatureWidget(_TablePlotWidget):
     """Temperature Widget class for the Hall Bench Control application."""
 
     _data_format = '{0:.2f}'
-    _probe_channels = ['101', '102', '103']
-    _channels = [
+    _data_labels = [
         '101', '102', '103', '201', '202', '203', '204',
         '205', '206', '207', '208', '209', '210',
     ]
     _yaxis_label = 'Temperature [deg C]'
-    _channel_colors = _collections.OrderedDict([
+    _colors = _collections.OrderedDict([
         ('101', (230, 25, 75)),
         ('102', (60, 180, 75)),
         ('103', (0, 130, 200)),
@@ -55,217 +51,73 @@ class TemperatureWidget(_QWidget):
         """Set up the ui and signal/slot connections."""
         super().__init__(parent)
 
-        # setup the ui
-        uifile = _getUiFile(self)
-        self.ui = _uic.loadUi(uifile, self)
+        # add move axis widget
+        self.channels_widget = TemperatureChannelsWidget(self)
+        _layout = _QVBoxLayout()
+        _layout.setContentsMargins(0, 0, 0, 0)
+        _layout.addWidget(self.channels_widget)
+        self.ui.widget_wg.setLayout(_layout)
 
-        # variables initialization
-        self._channels_configured = False
-        self._selected_channels = []
-        self._legend_items = []
-        self.timestamp = []
-        self.channel_readings = _collections.OrderedDict([
-            ('101', []),
-            ('102', []),
-            ('103', []),
-            ('201', []),
-            ('202', []),
-            ('203', []),
-            ('204', []),
-            ('205', []),
-            ('206', []),
-            ('207', []),
-            ('208', []),
-            ('209', []),
-            ('210', []),
-        ])
-        self.channel_graphs = _collections.OrderedDict([
-            ('101', None),
-            ('102', None),
-            ('103', None),
-            ('201', None),
-            ('202', None),
-            ('203', None),
-            ('204', None),
-            ('205', None),
-            ('206', None),
-            ('207', None),
-            ('208', None),
-            ('209', None),
-            ('210', None),
-        ])
+        self._configured = False
+        self.configure_btn = _QPushButton('Configure Channels')
+        self.configure_btn.setMinimumHeight(45)
+        font = self.configure_btn.font()
+        font.setBold(True)
+        self.configure_btn.setFont(font)
+        self.ui.layout_lt.addWidget(self.configure_btn)
+        self.configure_btn.clicked.connect(self.configureChannels)
 
-        # create timer to monitor values
-        self.timer = _QTimer(self)
-        self.updateMonitorInterval()
-        self.timer.timeout.connect(lambda: self.readValue(monitor=True))
+        self.channels_widget.channelChanged.connect(self.enableConfigureButton)
 
-        self.ui.configureled_la.setEnabled(False)
+        col_labels = ['Date', 'Time']
+        for label in self._data_labels:
+            col_labels.append(label)
+        self.ui.table_ta.setColumnCount(len(col_labels))
+        self.ui.table_ta.setHorizontalHeaderLabels(col_labels)
         self.ui.table_ta.setAlternatingRowColors(True)
+        self.ui.table_ta.horizontalHeader().setDefaultSectionSize(80)
 
-        dt = _QDateTime()
-        dt.setTime_t(_time.time())
-        self.ui.time_dte.setDateTime(dt)
-
-        self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
-        self.legend.setParentItem(self.ui.plot_pw.graphicsItem())
-        self.legend.setAutoFillBackground(1)
-
-        self.configureGraph()
-        self.connectSignalSlots()
+        self.ui.read_btn.setText('Read Temperature')
+        self.ui.monitor_btn.setText('Monitor Temperature')
 
     @property
     def devices(self):
         """Hall Bench Devices."""
         return _QApplication.instance().devices
 
-    def updateLegendItems(self):
-        """Update legend items."""
-        self.clearLegendItems()
-        self._legend_items = []
-        for channel in self._selected_channels:
-            label = 'Ch' + channel
-            self._legend_items.append(label)
-            self.legend.addItem(self.channel_graphs[channel], label)
-
-    def clearLegendItems(self):
-        """Clear plot legend."""
-        for label in self._legend_items:
-            self.legend.removeItem(label)
-
-    def clearValues(self):
-        """Clear all values."""
-        self.timestamp = []
-        for channel in self._channels:
-            self.channel_readings[channel] = []
-        self.updateTableValues()
-        self.updatePlot()
-
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.timer.stop()
-            event.accept()
-        except Exception:
-            event.accept()
-
     def configureChannels(self):
         """Configure channels for temperature measurement."""
-        self._selected_channels = []
-        for channel in self._channels:
-            chb = getattr(self.ui, 'channel' + channel + '_chb')
-            if chb.isChecked():
-                self._selected_channels.append(channel)
-            else:
-                le = getattr(self.ui, 'channel' + channel + '_le')
-                le.setText('')
-
-        self.updateLegendItems()
+        selected_channels = self.channels_widget.selected_channels
 
         if not self.devices.multich.connected:
-            self._channels_configured = False
             _QMessageBox.critical(
                 self, 'Failure',
                 'Multichannel not connected.', _QMessageBox.Ok)
             return
 
-        wait = self.ui.delay_sb.value()
-        if self.devices.multich.configure(self._selected_channels, wait=wait):
-            self._channels_configured = True
-            self.ui.configureled_la.setEnabled(True)
-            return
+        wait = self.channels_widget.delay
+        self._configured = self.devices.multich.configure(
+            selected_channels, wait=wait)
+        if self._configured:
+            self.configure_btn.setEnabled(False)
         else:
-            self._channels_configured = False
-            return
+            self.configure_btn.setEnabled(True)
+            _QMessageBox.critical(
+                self, 'Failure',
+                'Fail to configure Multichannel.', _QMessageBox.Ok)
 
-    def configureGraph(self):
-        """Configure data plots."""
-        self.ui.plot_pw.clear()
-
-        for channel in self._channels:
-            pen = self._channel_colors[channel]
-            graph = self.ui.plot_pw.plotItem.plot(
-                _np.array([]), _np.array([]), pen=pen,
-                symbol='o', symbolPen=pen, symbolSize=3, symbolBrush=pen)
-            self.channel_graphs[channel] = graph
-
-        self.ui.plot_pw.setLabel('bottom', 'Time interval [s]')
-        self.ui.plot_pw.setLabel('left', self._yaxis_label)
-        self.ui.plot_pw.showGrid(x=True, y=True)
-        self.updateLegendItems()
-
-    def connectSignalSlots(self):
-        """Create signal/slot connections."""
-        self.ui.configure_btn.clicked.connect(self.configureChannels)
-        self.ui.read_btn.clicked.connect(
-            lambda: self.readValue(monitor=False))
-        self.ui.monitor_btn.toggled.connect(self.monitorValue)
-        self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
-        self.ui.monitorunit_cmb.currentIndexChanged.connect(
-            self.updateMonitorInterval)
-        self.ui.clear_btn.clicked.connect(self.clearValues)
-        self.ui.remove_btn.clicked.connect(self.removeValue)
-        self.ui.copy_btn.clicked.connect(self.copyToClipboard)
-        self.ui.save_btn.clicked.connect(self.saveToFile)
-        self.ui.channel101_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel102_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel103_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel201_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel202_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel203_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel204_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel205_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel206_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel207_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel208_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel209_chb.stateChanged.connect(self.disableLed)
-        self.ui.channel210_chb.stateChanged.connect(self.disableLed)
-
-    def copyToClipboard(self):
-        """Copy table data to clipboard."""
-        df = self.getDataFrame()
-        if df is not None:
-            df.to_clipboard(excel=True)
-
-    def getDataFrame(self):
-        """Create data frame with table values."""
-        nr = self.ui.table_ta.rowCount()
-        nc = self.ui.table_ta.columnCount()
-
-        if nr == 0:
-            return None
-
-        col_labels = ['Date', 'Time']
-        for channel in self._channels:
-            col_labels.append(channel)
-        tdata = []
-        for i in range(nr):
-            ldata = []
-            for j in range(nc):
-                value = self.ui.table_ta.item(i, j).text()
-                if j >= 2:
-                    value = float(value)
-                ldata.append(value)
-            tdata.append(ldata)
-        df = _pd.DataFrame(_np.array(tdata), columns=col_labels)
-        return df
-
-    def disableLed(self):
-        """Disable configuration led."""
-        self.ui.configureled_la.setEnabled(False)
-
-    def monitorValue(self, checked):
-        """Monitor values."""
-        if checked:
-            self.ui.read_btn.setEnabled(False)
-            self.timer.start()
-        else:
-            self.timer.stop()
-            self.ui.read_btn.setEnabled(True)
+    def enableConfigureButton(self):
+        """Enable configure button."""
+        self.configure_btn.setEnabled(True)
 
     def readValue(self, monitor=False):
         """Read value."""
-        if len(self._selected_channels) == 0:
+        selected_channels = self.channels_widget.selected_channels
+        if len(selected_channels) == 0:
+            if not monitor:
+                _QMessageBox.critical(
+                    self, 'Failure',
+                    'No channel selected.', _QMessageBox.Ok)
             return
 
         if not self.devices.multich.connected:
@@ -275,7 +127,7 @@ class TemperatureWidget(_QWidget):
                     'Multichannel not connected.', _QMessageBox.Ok)
             return
 
-        if not self._channels_configured:
+        if not self._configured:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure',
@@ -283,126 +135,100 @@ class TemperatureWidget(_QWidget):
             return
 
         ts = _time.time()
-        wait = self.ui.delay_sb.value()
+        wait = self.channels_widget.delay
         rl = self.devices.multich.get_converted_readings(wait=wait)
-        if len(rl) != len(self._selected_channels):
+        if len(rl) != len(selected_channels):
             return
 
         readings = [r if r < 1e37 else _np.nan for r in rl]
 
         try:
-            for i in range(len(self._selected_channels)):
-                channel = self._selected_channels[i]
-                le = getattr(self.ui, 'channel' + channel + '_le')
+            for i in range(len(selected_channels)):
+                label = selected_channels[i]
                 temperature = readings[i]
-                le.setText(self._data_format.format(temperature))
-                self.channel_readings[channel].append(temperature)
+                text = self._data_format.format(temperature)
+                self.channels_widget.updateChannelText(label, text)
+                self._readings[label].append(temperature)
 
-            for channel in self._channels:
-                if channel not in self._selected_channels:
-                    le = getattr(self.ui, 'channel' + channel + '_le')
-                    le.setText('')
-                    self.channel_readings[channel].append(_np.nan)
+            for label in self._data_labels:
+                if label not in selected_channels:
+                    self.channels_widget.updateChannelText(label, '')
+                    self._readings[label].append(_np.nan)
 
             self.timestamp.append(ts)
-            dt = _QDateTime()
-            dt.setTime_t(ts)
-            self.ui.time_dte.setDateTime(dt)
-
+            self.channels_widget.updateDateTime(ts)
             self.updateTableValues()
             self.updatePlot()
 
         except Exception:
             pass
 
-    def removeValue(self):
-        """Remove value from list."""
-        selected = self.ui.table_ta.selectedItems()
-        rows = [s.row() for s in selected]
-        n = len(self.timestamp)
 
-        self.timestamp = [self.timestamp[i] for i in range(n) if i not in rows]
+class TemperatureChannelsWidget(_QWidget):
+    """Temperature channels widget class."""
+
+    channelChanged = _pyqtSignal()
+
+    _channels = [
+        '101', '102', '103', '201', '202', '203', '204',
+        '205', '206', '207', '208', '209', '210',
+    ]
+
+    def __init__(self, parent=None):
+        """Set up the ui and signal/slot connections."""
+        super().__init__(parent)
+
+        # setup the ui
+        uifile = _utils.getUiFile(self)
+        self.ui = _uic.loadUi(uifile, self)
+
+        dt = _QDateTime()
+        dt.setTime_t(_time.time())
+        self.ui.time_dte.setDateTime(dt)
+        self.ui.channel101_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel102_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel103_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel201_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel202_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel203_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel204_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel205_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel206_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel207_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel208_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel209_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel210_chb.stateChanged.connect(self.clearChannelText)
+
+    @property
+    def selected_channels(self):
+        """Return the selected channels."""
+        selected_channels = []
         for channel in self._channels:
-            readings = self.channel_readings[channel]
-            self.channel_readings[channel] = [
-                readings[i] for i in range(n) if i not in rows]
+            chb = getattr(self.ui, 'channel' + channel + '_chb')
+            if chb.isChecked():
+                selected_channels.append(channel)
+        return selected_channels
 
-        self.updateTableValues(scrollDown=False)
-        self.updatePlot()
+    @property
+    def delay(self):
+        """Return the reading delay."""
+        return self.ui.delay_sb.value()
 
-    def saveToFile(self):
-        """Save table values to file."""
-        df = self.getDataFrame()
-        if df is None:
-            _QMessageBox.critical(
-                self, 'Failure', 'Empty table.', _QMessageBox.Ok)
-            return
+    def clearChannelText(self):
+        """Clear channel text if channel is not selected."""
+        for channel in self._channels:
+            if channel not in self.selected_channels:
+                le = getattr(self.ui, 'channel' + channel + '_le')
+                le.setText('')
+        self.channelChanged.emit()
 
-        filename = _QFileDialog.getSaveFileName(
-            self, caption='Save measurements file.',
-            filter="Text files (*.txt *.dat)")
+    def updateChannelText(self, channel, text):
+        """Update channel text."""
+        le = getattr(self.ui, 'channel' + channel + '_le')
+        le.setText(text)
 
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            if (not filename.endswith('.txt')
-               and not filename.endswith('.dat')):
-                filename = filename + '.txt'
-            df.to_csv(filename, sep='\t')
-
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
-
-    def updateMonitorInterval(self):
-        """Update monitor interval value."""
-        index = self.ui.monitorunit_cmb.currentIndex()
-        if index == 0:
-            mf = 1000
-        elif index == 1:
-            mf = 1000*60
-        else:
-            mf = 1000*3600
-        self.timer.setInterval(self.ui.monitorstep_sb.value()*mf)
-
-    def updatePlot(self):
-        """Update plot values."""
-        if len(self.timestamp) == 0:
-            for channels in self._channels:
-                self.channel_graphs[channels].setData(
-                    _np.array([]), _np.array([]))
-            return
-
-        with _warnings.catch_warnings():
-            _warnings.simplefilter("ignore")
-            timeinterval = _np.array(self.timestamp) - self.timestamp[0]
-            for channel in self._channels:
-                readings = _np.array(self.channel_readings[channel])
-                dt = timeinterval[_np.isfinite(readings)]
-                rd = readings[_np.isfinite(readings)]
-                self.channel_graphs[channel].setData(dt, rd)
-
-    def updateTableValues(self, scrollDown=True):
-        """Update table values."""
-        n = len(self.timestamp)
-        self.ui.table_ta.clearContents()
-        self.ui.table_ta.setRowCount(n)
-
-        for j in range(len(self._channels)):
-            readings = self.channel_readings[self._channels[j]]
-            for i in range(n):
-                dt = _datetime.datetime.fromtimestamp(self.timestamp[i])
-                date = dt.strftime("%d/%m/%Y")
-                hour = dt.strftime("%H:%M:%S")
-                self.ui.table_ta.setItem(i, 0, _QTableWidgetItem(date))
-                self.ui.table_ta.setItem(i, 1, _QTableWidgetItem(hour))
-                self.ui.table_ta.setItem(
-                    i, j+2, _QTableWidgetItem(self._data_format.format(
-                        readings[i])))
-
-        if scrollDown:
-            vbar = self.table_ta.verticalScrollBar()
-            vbar.setValue(vbar.maximum())
+    def updateDateTime(self, timestamp):
+        """Update DateTime value."""
+        dt = _QDateTime()
+        dt.setTime_t(timestamp)
+        self.ui.time_dte.setDateTime(dt)

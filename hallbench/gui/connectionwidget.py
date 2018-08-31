@@ -4,14 +4,14 @@
 
 import os.path as _path
 import serial.tools.list_ports as _list_ports
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-from PyQt4.QtCore import Qt as _Qt
-import PyQt4.uic as _uic
+from PyQt5.QtCore import Qt as _Qt
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
@@ -31,6 +31,7 @@ class ConnectionWidget(_QWidget):
             self.database, 'id')
         self.ui.idn_cmb.addItems([str(idn) for idn in idns])
         self.ui.idn_cmb.setCurrentIndex(-1)
+        self.ui.loaddb_btn.setEnabled(False)
 
         self.connectSignalSlots()
         self.updateSerialPorts()
@@ -157,6 +158,7 @@ class ConnectionWidget(_QWidget):
             self.clearLoadOptions)
         self.ui.ps_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.ui.ps_port_cmb.currentIndexChanged.connect(self.clearLoadOptions)
+        self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
 
         self.ui.loadfile_btn.clicked.connect(self.loadFile)
         self.ui.savefile_btn.clicked.connect(self.saveFile)
@@ -175,6 +177,11 @@ class ConnectionWidget(_QWidget):
             message = 'Fail to disconnect devices.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
+
+    def enableLoadDB(self):
+        """Enable button to load configuration from database."""
+        if self.ui.idn_cmb.currentIndex() != -1:
+            self.ui.loaddb_btn.setEnabled(True)
 
     def loadDB(self):
         """Load configuration from database to set parameters."""
@@ -197,6 +204,7 @@ class ConnectionWidget(_QWidget):
 
         self.load()
         self.ui.idn_cmb.setCurrentIndex(index)
+        self.ui.loaddb_btn.setEnabled(False)
 
     def loadFile(self):
         """Load configuration file to set parameters."""
@@ -288,6 +296,7 @@ class ConnectionWidget(_QWidget):
                         self.database)
                     self.ui.idn_cmb.addItem(str(idn))
                     self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
+                    self.ui.loaddb_btn.setEnabled(False)
             except Exception as e:
                 _QMessageBox.critical(
                     self, 'Failure', str(e), _QMessageBox.Ok)

@@ -47,7 +47,7 @@ class Elcomat(object):
         if self.ser is None:
             return False
         else:
-            return self.ser.is_open
+            return self.ser.isOpen()
 
     def log_events(self):
         """Prepare log file to save info, warning and error status."""
@@ -101,8 +101,8 @@ class Elcomat(object):
 
     def flush(self):
         """Clear input and output."""
-        self.ser.reset_input_buffer()
-        self.ser.reset_output_buffer()
+        self.ser.flushInput()
+        self.ser.flushOutput()
 
     def send_command(self, command):
         """Write string message to the device and check size of the answer.
@@ -143,8 +143,9 @@ class Elcomat(object):
         """Read X-axis and Y-axis absolute values from the device."""
         try:
             self.flush()
+            _time.sleep(0.01)
             self.send_command(self.commands.read_absolute)
-            _time.sleep(0.05)
+            _time.sleep(0.01)
             _readings = self.read_from_device(n=50)
             _rlist = _readings.split('\r')[:-1]
             if len(_rlist) == 1:
@@ -171,8 +172,9 @@ class Elcomat(object):
         """Read X-axis and Y-axis relative values from the device."""
         try:
             self.flush()
+            _time.sleep(0.01)
             self.send_command(self.commands.read_relative)
-            _time.sleep(0.05)
+            _time.sleep(0.01)
             _readings = self.read_from_device(n=50)
             _rlist = _readings.split('\r')[:-1]
             if len(_rlist) == 1:

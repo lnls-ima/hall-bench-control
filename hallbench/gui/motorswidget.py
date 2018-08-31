@@ -437,6 +437,15 @@ class MotorsWidget(_QWidget):
             if self.stop_trigger:
                 return
 
+            self.pmac.move_axis(axis, start)
+            while ((self.pmac.axis_status(axis) & 1) == 0 and
+                   self.stop_trigger is False):
+                _QApplication.processEvents()
+                _time.sleep(10)
+   
+            if self.stop_trigger:
+                return    
+
             if not self.ui.trigpause_chb.isChecked():
                 self.pmac.move_axis(axis, end)
             else:

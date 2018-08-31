@@ -597,6 +597,7 @@ class Agilent34970A(GPIB):
     _dcct_channels = ['104']
     _temp_channels = [
         '201', '202', '203', '204', '205', '206', '207', '208', '209']
+    _config_channels = []
 
     def __init__(self, logfile=None):
         """Initiaze variables and prepare logging file.
@@ -650,6 +651,8 @@ class Agilent34970A(GPIB):
         all_channels = volt_channel_list + temp_channel_list
         if len(all_channels) == 0:
             return False
+        elif all_channels == self._config_channels:
+            return True
 
         try:
             self.send_command(self.commands.clean)
@@ -671,6 +674,7 @@ class Agilent34970A(GPIB):
             scanlist = '(@' + ','.join(all_channels) + ')'
             self.send_command(self.commands.rout_scan + ' ' + scanlist)
             _time.sleep(wait)
+            self._config_channels = all_channels.copy()
             return True
 
         except Exception:
@@ -716,10 +720,9 @@ class Agilent34970A(GPIB):
 
             if len(rstr) != 0:
                 rlist = [float(r) for r in rstr.split(',')]
-                channel_list = self.get_scan_channels()
                 conv_rlist = []
                 for i in range(len(rlist)):
-                    ch = channel_list[i]
+                    ch = self._config_channels[i]
                     rd = rlist[i]
                     if ch in self._probe_channels:
                         conv_rlist.append(
@@ -736,7 +739,7 @@ class Agilent34970A(GPIB):
             return []
 
     def get_scan_channels(self, wait=0.1):
-        """Return the scan channel list."""
+        """Return the scan channel list read from the device."""
         try:
             self.send_command(self.commands.qscan)
             _time.sleep(wait)

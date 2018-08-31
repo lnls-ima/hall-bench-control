@@ -2,15 +2,15 @@
 
 """Field map dialog for the Hall Bench Control application."""
 
-from PyQt5.QtCore import Qt as _Qt
-from PyQt5.QtWidgets import (
+from PyQt4.QtCore import Qt as _Qt
+from PyQt4.QtGui import (
     QApplication as _QApplication,
     QDialog as _QDialog,
     QFileDialog as _QFileDialog,
     QLineEdit as _QLineEdit,
     QMessageBox as _QMessageBox,
     )
-import PyQt5.uic as _uic
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 import hallbench.data.magnets_info as _magnets_info

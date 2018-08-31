@@ -2,9 +2,9 @@
 
 import sqlite3 as _sqlite3
 import numpy as _np
-import PyQt5.uic as _uic
-from PyQt5.QtCore import Qt as _Qt
-from PyQt5.QtWidgets import (
+import PyQt4.uic as _uic
+from PyQt4.QtCore import Qt as _Qt
+from PyQt4.QtGui import (
     QWidget as _QWidget,
     QApplication as _QApplication,
     QLabel as _QLabel,
@@ -31,6 +31,7 @@ _max_str_size = 1000
 
 _ConnectionConfig = _data.configuration.ConnectionConfig
 _MeasurementConfig = _data.configuration.MeasurementConfig
+_PowerSupplyConfig = _data.configuration.PowerSupplyConfig
 _HallSensor = _data.calibration.HallSensor
 _HallProbe = _data.calibration.HallProbe
 _VoltageData = _data.measurement.VoltageData
@@ -42,6 +43,7 @@ class DatabaseWidget(_QWidget):
     """Database widget class for the Hall Bench Control application."""
 
     _connection_table_name = _ConnectionConfig.database_table_name()
+    _power_supply_table_name = _PowerSupplyConfig.database_table_name()
     _hall_sensor_table_name = _HallSensor.database_table_name()
     _hall_probe_table_name = _HallProbe.database_table_name()
     _configuration_table_name = _MeasurementConfig.database_table_name()
@@ -134,6 +136,12 @@ class DatabaseWidget(_QWidget):
                 self._connection_table_name, _ConnectionConfig))
         self.ui.delete_connection_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._connection_table_name))
+
+        self.ui.save_power_supply_btn.clicked.connect(
+            lambda: self.saveFile(
+                self._power_supply_table_name, _PowerSupplyConfig))
+        self.ui.delete_power_supply_btn.clicked.connect(
+            lambda: self.deleteDatabaseRecords(self._power_supply_table_name))
 
         self.ui.save_hall_sensor_btn.clicked.connect(
             lambda: self.saveFile(self._hall_sensor_table_name, _HallSensor))
@@ -250,37 +258,39 @@ class DatabaseWidget(_QWidget):
 
     def disableInvalidButtons(self):
         """Disable invalid buttons."""
+        tables = [
+            self._connection_table_name,
+            self._power_supply_table_name,
+            self._hall_sensor_table_name,
+            self._hall_probe_table_name,
+            self._configuration_table_name,
+            self._voltage_scan_table_name,
+            self._field_scan_table_name,
+            self._fieldmap_table_name,
+        ]
+
+        pages = [
+            self.ui.connection_pg,
+            self.ui.power_supply_pg,
+            self.ui.hall_sensor_pg,
+            self.ui.hall_probe_pg,
+            self.ui.configuration_pg,
+            self.ui.voltage_scan_pg,
+            self.ui.field_scan_pg,
+            self.ui.fieldmap_pg,
+        ]
+
         current_table = self.getCurrentTable()
-        if current_table is not None:
+        if current_table is not None and current_table.table_name in tables:
+            current_table_name = current_table.table_name
             self.ui.buttons_tbx.setEnabled(True)
-            table_name = current_table.table_name
-
-            tables = [
-                self._connection_table_name,
-                self._hall_sensor_table_name,
-                self._hall_probe_table_name,
-                self._configuration_table_name,
-                self._voltage_scan_table_name,
-                self._field_scan_table_name,
-                self._fieldmap_table_name,
-            ]
-
-            pages = [
-                self.ui.connection_pg,
-                self.ui.hall_sensor_pg,
-                self.ui.hall_probe_pg,
-                self.ui.configuration_pg,
-                self.ui.voltage_scan_pg,
-                self.ui.field_scan_pg,
-                self.ui.fieldmap_pg,
-            ]
-
             for i in range(len(tables)):
-                _enable = table_name == tables[i]
+                _enable = current_table_name == tables[i]
                 pages[i].setEnabled(_enable)
                 if _enable:
                     self.ui.buttons_tbx.setCurrentWidget(pages[i])
         else:
+            self.ui.buttons_tbx.setCurrentWidget(self.ui.empty_pg)
             self.ui.buttons_tbx.setEnabled(False)
 
     def getCurrentTable(self):

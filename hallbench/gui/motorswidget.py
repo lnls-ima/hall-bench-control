@@ -3,12 +3,13 @@
 """Motors widget for the Hall Bench Control application."""
 
 import time as _time
-from PyQt5.QtWidgets import (
+import numpy as _np
+from PyQt4.QtGui import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt5.uic as _uic
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
@@ -39,10 +40,17 @@ class MotorsWidget(_QWidget):
 
         # variables initialization
         self.homing = False
+        self.stop_trigger = False
 
         # disable combo box itens
         for item in range(self.ui.selectaxis_cmb.count()):
             self.ui.selectaxis_cmb.model().item(item).setEnabled(False)
+        for item in range(self.ui.selecttrigaxis_cmb.count()):
+            self.ui.selecttrigaxis_cmb.model().item(item).setEnabled(False)
+
+        # disable trigger delay
+        self.ui.trigpause_chb.setChecked(False)
+        self.ui.trigdelay_sb.setEnabled(False)
 
         self.connectSignalSlots()
 
@@ -63,6 +71,7 @@ class MotorsWidget(_QWidget):
                 self.setHomingEnabled(False)
                 self.setAxisLimitsEnabled(False)
                 self.setMovementEnabled(False)
+                self.setTriggerEnabled(False)
                 message = 'Failed to activate bench.'
                 _QMessageBox.critical(
                     self, 'Failure', message, _QMessageBox.Ok)
@@ -101,11 +110,28 @@ class MotorsWidget(_QWidget):
         self.ui.targetpos_le.editingFinished.connect(
             lambda: self.setVelocityPositionStrFormat(self.ui.targetpos_le))
 
+        self.ui.trigvel_le.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.trigvel_le))
+        self.ui.trigstart_le.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.trigstart_le))
+        self.ui.trigstep_le.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.trigstep_le))
+        self.ui.trigend_le.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.trigend_le))
+
+        self.ui.trigstart_le.editingFinished.connect(self.fixPositionValues)
+        self.ui.trigstep_le.editingFinished.connect(self.fixPositionValues)
+        self.ui.trigend_le.editingFinished.connect(self.fixPositionValues)
+
         self.ui.reldisp_le.editingFinished.connect(self.updateTargetPos)
         self.ui.targetpos_le.editingFinished.connect(self.updateRelDisp)
 
         self.ui.selectaxis_cmb.currentIndexChanged.connect(
             self.updateVelocityAndPosition)
+
+        self.ui.selecttrigaxis_cmb.currentIndexChanged.connect(
+            self.updateTrigAxisVelocity)
+        self.ui.trigpause_chb.stateChanged.connect(self.enableTriggerDelay)
 
         self.ui.activate_btn.clicked.connect(self.activateBench)
         self.ui.stopall_btn.clicked.connect(self.stopAllAxis)
@@ -115,6 +141,50 @@ class MotorsWidget(_QWidget):
         self.ui.resetlimits_btn.clicked.connect(self.resetAxisLimits)
         self.ui.move_btn.clicked.connect(self.moveToTarget)
         self.ui.stop_btn.clicked.connect(self.stopAxis)
+        self.ui.trigandmove_btn.clicked.connect(self.setTriggerandMove)
+        self.ui.trigstop_btn.clicked.connect(self.stopTriggerAxis)
+
+    def enableTriggerDelay(self):
+        """Enable or disable trigger delay."""
+        if self.ui.trigpause_chb.isChecked():
+            self.ui.trigdelay_sb.setEnabled(True)
+        else:
+            self.ui.trigdelay_sb.setEnabled(False)
+
+    def fixPositionValues(self):
+        """Fix step and end position value."""
+        start_text = self.ui.trigstart_le.text()
+        if not bool(start_text and start_text.strip()):
+            return
+        start = float(start_text)
+
+        step_text = self.ui.trigstep_le.text()
+        if not bool(step_text and step_text.strip()):
+            return
+        step = float(step_text)
+
+        end_text = self.ui.trigend_le.text()
+        if not bool(end_text and end_text.strip()):
+            return
+        end = float(end_text)
+
+        if start is not None and step is not None and end is not None:
+            npts = _np.abs(_np.round(round((end - start) / step, 4) + 1))
+            if start <= end and step < 0:
+                self.ui.trigstep_le.setText('')
+                return
+            elif start > end and step > 0:
+                self.ui.trigstep_le.setText('')
+                return
+            elif start <= end:
+                corrected_step = _np.abs(step)
+                corrected_end = start + (npts-1)*corrected_step
+            else:
+                corrected_step = _np.abs(step)*(-1)
+                corrected_end = start + (npts-1)*corrected_step
+
+            self.ui.trigstep_le.setText('{0:0.4f}'.format(corrected_step))
+            self.ui.trigend_le.setText('{0:0.4f}'.format(corrected_end))
 
     def killAllAxis(self):
         """Kill all axis."""
@@ -123,6 +193,7 @@ class MotorsWidget(_QWidget):
             self.setHomingEnabled(False)
             self.setAxisLimitsEnabled(False)
             self.setMovementEnabled(False)
+            self.setTriggerEnabled(False)
 
         except Exception as e:
             _QMessageBox.critical(
@@ -131,7 +202,6 @@ class MotorsWidget(_QWidget):
     def moveToTarget(self, axis):
         """Move Hall probe to target position."""
         try:
-            self.ui.reldisp_le.setEnabled(False)
             targetpos = float(self.ui.targetpos_le.text())
             targetvel = float(self.ui.targetvel_le.text())
 
@@ -145,10 +215,9 @@ class MotorsWidget(_QWidget):
                 self.pmac.set_axis_speed(axis, targetvel)
 
             self.pmac.move_axis(axis, targetpos)
-            self.ui.reldisp_le.setEnabled(True)
+            self.ui.reldisp_le.setText('')
 
         except Exception as e:
-            self.ui.reldisp_le.setEnabled(True)
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
@@ -160,17 +229,27 @@ class MotorsWidget(_QWidget):
         try:
             list_of_axis = self.pmac.commands.list_of_axis
 
+            if not self.pmac.connected:
+                for axis in list_of_axis:
+                    axis_led = getattr(self.ui, 'ledax' + str(axis) + '_la')
+                    axis_led.setEnabled(False)
+                return
+
             item = 0
             homing_status = []
             for axis in list_of_axis:
                 axis_led = getattr(self.ui, 'ledax' + str(axis) + '_la')
-                if self.pmac.axis_homing_status:
+                if self.pmac.axis_homing_status(axis):
                     self.ui.selectaxis_cmb.model().item(
+                        item+1).setEnabled(True)
+                    self.ui.selecttrigaxis_cmb.model().item(
                         item+1).setEnabled(True)
                     axis_led.setEnabled(True)
                     homing_status.append(True)
                 else:
                     self.ui.selectaxis_cmb.model().item(
+                        item+1).setEnabled(False)
+                    self.ui.selectrigtaxis_cmb.model().item(
                         item+1).setEnabled(False)
                     axis_led.setEnabled(False)
                     homing_status.append(False)
@@ -178,9 +257,12 @@ class MotorsWidget(_QWidget):
 
             if any(homing_status):
                 self.setMovementEnabled(True)
+                self.setTriggerEnabled(True)
                 self.updateVelocityAndPosition()
+                self.updateTrigAxisVelocity()
             else:
                 self.setMovementEnabled(False)
+                self.setTriggerEnabled(False)
 
             if all(homing_status):
                 self.homing = True
@@ -224,6 +306,18 @@ class MotorsWidget(_QWidget):
     def selectedAxis(self):
         """Return the selected axis."""
         axis_str = self.ui.selectaxis_cmb.currentText()
+        if axis_str == '':
+            return None
+
+        axis = int(axis_str[1])
+        if axis in self.pmac.commands.list_of_axis:
+            return axis
+        else:
+            return None
+
+    def selectedTriggerAxis(self):
+        """Return the selected trigger axis."""
+        axis_str = self.ui.selecttrigaxis_cmb.currentText()
         if axis_str == '':
             return None
 
@@ -290,6 +384,12 @@ class MotorsWidget(_QWidget):
         self.ui.move_btn.setEnabled(enabled)
         self.ui.stop_btn.setEnabled(enabled)
 
+    def setTriggerEnabled(self, enabled):
+        """Enable/Disable trigger controls."""
+        self.ui.trigger_gb.setEnabled(enabled)
+        self.ui.trigandmove_btn.setEnabled(enabled)
+        self.ui.trigstop_btn.setEnabled(enabled)
+
     def setVelocityPositionStrFormat(self, obj):
         """Set the velocity and position string format."""
         try:
@@ -297,6 +397,64 @@ class MotorsWidget(_QWidget):
             obj.setText(self._position_format.format(value))
         except Exception:
             self.updateVelocityAndPosition()
+
+    def setTriggerandMove(self, axis):
+        """Set trigger and move axis."""
+        self.stop_trigger = False
+        axis = self.selectedTriggerAxis()
+        if axis is None:
+            return
+
+        try:
+            start_text = self.ui.trigstart_le.text()
+            if len(start_text) == 0:
+                return
+            start = float(start_text)
+
+            step_text = self.ui.trigstep_le.text()
+            if len(step_text) == 0:
+                return
+            step = float(step_text)
+
+            end_text = self.ui.trigend_le.text()
+            if len(end_text) == 0:
+                return
+            end = float(end_text)
+
+            targetvel_text = self.ui.trigvel_le.text()
+            if len(targetvel_text) == 0:
+                return
+            targetvel = float(targetvel_text)
+
+            npts = _np.abs(_np.ceil(round((end - start) / step, 4) + 1))
+
+            velocity = self.pmac.get_velocity(axis)
+            if targetvel != velocity:
+                self.pmac.set_axis_speed(axis, targetvel)
+
+            self.pmac.set_trigger(axis, start, step, 10, npts, 1)
+
+            if self.stop_trigger:
+                return
+
+            if not self.ui.trigpause_chb.isChecked():
+                self.pmac.move_axis(axis, end)
+            else:
+                pos_list = _np.linspace(start, end, npts)
+                delay = self.ui.trigdelay_sb.value()
+                for pos in pos_list:
+                    if self.stop_trigger:
+                        return
+
+                    self.pmac.move_axis(axis, pos)
+                    while ((self.pmac.axis_status(axis) & 1) == 0 and
+                           self.stop_trigger is False):
+                        _QApplication.processEvents()
+                    _time.sleep(delay)
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
 
     def startHoming(self):
         """Homing of the selected axes."""
@@ -345,6 +503,19 @@ class MotorsWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
+    def stopTriggerAxis(self):
+        """Stop the selected trigger axis."""
+        self.stop_trigger = True
+        try:
+            axis = self.selectedTriggerAxis()
+            if axis is None:
+                return
+            self.pmac.stop_axis(axis)
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
     def updatePositions(self):
         """Update axes positions."""
         self.current_position_widget.updatePositions()
@@ -377,6 +548,18 @@ class MotorsWidget(_QWidget):
             self.ui.targetpos_le.setText(self._position_format.format(
                 targetpos))
 
+        except Exception:
+            pass
+
+    def updateTrigAxisVelocity(self):
+        """Update velocity for the trigger axis."""
+        try:
+            axis = self.selectedTriggerAxis()
+            if axis is None:
+                return
+
+            velocity = self.pmac.get_velocity(axis)
+            self.ui.trigvel_le.setText(self._position_format.format(velocity))
         except Exception:
             pass
 

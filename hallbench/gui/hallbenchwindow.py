@@ -2,12 +2,12 @@
 
 """Main window for the Hall Bench Control application."""
 
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QApplication as _QApplication,
     QDesktopWidget as _QDesktopWidget,
     QMainWindow as _QMainWindow,
     )
-import PyQt5.uic as _uic
+import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.connectionwidget import ConnectionWidget \

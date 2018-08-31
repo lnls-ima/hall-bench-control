@@ -2,9 +2,9 @@
 
 import sqlite3 as _sqlite3
 import numpy as _np
-import PyQt5.uic as _uic
-from PyQt5.QtCore import Qt as _Qt
-from PyQt5.QtWidgets import (
+import PyQt4.uic as _uic
+from PyQt4.QtCore import Qt as _Qt
+from PyQt4.QtGui import (
     QWidget as _QWidget,
     QApplication as _QApplication,
     QLabel as _QLabel,

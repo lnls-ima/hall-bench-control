@@ -4,7 +4,7 @@
 
 import numpy as _np
 import time as _time
-from PyQt5.QtWidgets import (
+from PyQt4.QtGui import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,

@@ -437,7 +437,8 @@ class SupplyWidget(_QWidget):
                 self.ui.lcd_current_dcct.setEnabled(True)
                 self.ui.label_161.setEnabled(True)
                 self.ui.label_164.setEnabled(True)
-                self.devices.multich.configure(['104'])
+                if not self.devices.multich.configure(['104']):
+                    raise Exception('Could not configure the Multichannel.')
                 _current = round(self.devices.multich.get_converted_readings(
                                  self.config.dcct_head)[0], 3)
                 self.ui.lcd_current_dcct.display(_current)

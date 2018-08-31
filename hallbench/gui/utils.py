@@ -83,6 +83,7 @@ class TableAnalysisDialog(_QDialog):
         """Add table widget and copy button."""
         super().__init__(parent)
 
+        self.setWindowTitle("Statistics")
         self.results_ta = _QTableWidget()
         self.results_ta.setAlternatingRowColors(True)
         self.results_ta.horizontalHeader().setStretchLastSection(True)
@@ -132,9 +133,16 @@ class TableAnalysisDialog(_QDialog):
                 values = values.astype(float)
             except Exception:
                 values = [_np.nan]*len(values)
-            mean = _np.mean(values)
-            std = _np.std(values)
-            peak_valey = _np.max(values) - _np.min(values)
+            values = _np.array(values)
+            values = values[_np.isfinite(values)]
+            if len(values) == 0:
+                mean = _np.nan
+                std = _np.nan
+                peak_valey = _np.nan
+            else:
+                mean = _np.mean(values)
+                std = _np.std(values)
+                peak_valey = _np.max(values) - _np.min(values)
             self.addItemsToTable('{0:.4f}'.format(mean), i, 0)
             self.addItemsToTable('{0:.4f}'.format(std), i, 1)
             self.addItemsToTable('{0:.4f}'.format(peak_valey), i, 2)

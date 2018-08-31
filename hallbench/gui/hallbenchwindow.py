@@ -48,8 +48,8 @@ class HallBenchWindow(_QMainWindow):
         self.motors_tab = _MotorsWidget(self)
         self.ui.main_tab.addTab(self.motors_tab, 'Motors')
 
-        self.supply_tab = _SupplyWidget(self)
-        self.ui.main_tab.addTab(self.supply_tab, 'Power Supply')
+#         self.supply_tab = _SupplyWidget(self)
+#         self.ui.main_tab.addTab(self.supply_tab, 'Power Supply')
 
         self.measurement_tab = _MeasurementWidget(self)
         self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')

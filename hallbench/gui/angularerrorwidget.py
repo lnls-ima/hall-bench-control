@@ -81,7 +81,6 @@ class AngularErrorWidget(_TablePlotWidget):
                 _QMessageBox.critical(
                     self, 'Failure',
                     'Auto-collimator not connected.', _QMessageBox.Ok)
-            print('aqui')
             return
 
         try:
@@ -92,6 +91,8 @@ class AngularErrorWidget(_TablePlotWidget):
                 pos = _np.nan
             else:
                 pos = self.devices.pmac.get_position(axis)
+                if pos is None:
+                    pos = _np.nan
 
             if self.meastype_cmb.currentText().lower() == 'relative':
                 _rl = self.devices.elcomat.get_relative_measurement()

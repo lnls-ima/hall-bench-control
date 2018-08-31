@@ -401,24 +401,24 @@ class ConnectionWidget(_QWidget):
             self.ui.multich_led_la.setEnabled(self.devices.multich.connected)
             self.ui.nmr_led_la.setEnabled(self.devices.nmr.connected)
             self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
-            self.ui.ps_led_la.setEnabled(self.devices.ps.ser.is_open)
+            self.ui.ps_led_la.setEnabled(self.devices.ps.ser.isOpen())
 
         except Exception:
             pass
 
     def updateSerialPorts(self):
         """Update avaliable serial ports."""
-        _l = _list_ports.comports()
+        _l = [p[0] for p in _list_ports.comports()]
         _ports = []
 
         _s = ''
         _k = str
-        if 'COM' in _l[0][0]:
+        if 'COM' in _l[0]:
             _s = 'COM'
             _k = int
 
         for key in _l:
-            _ports.append(key.device.strip(_s))
+            _ports.append(key.strip(_s))
         _ports.sort(key=_k)
         _ports = [_s + key for key in _ports]
 

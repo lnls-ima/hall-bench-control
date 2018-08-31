@@ -96,6 +96,8 @@ class VoltageOffsetWidget(_TablePlotWidget):
                 pos = _np.nan
             else:
                 pos = self.devices.pmac.get_position(axis)
+                if pos is None:
+                    pos = _np.nan
 
             self.devices.voltx.send_command(
                 self.devices.voltx.commands.end_gpib_always)

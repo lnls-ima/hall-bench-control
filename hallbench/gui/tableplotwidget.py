@@ -6,14 +6,14 @@ import numpy as _np
 import datetime as _datetime
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
     QWidget as _QWidget,
     )
-from PyQt4.QtCore import QTimer as _QTimer
-import PyQt4.uic as _uic
+from PyQt5.QtCore import QTimer as _QTimer
+import PyQt5.uic as _uic
 
 import hallbench.gui.utils as _utils
 

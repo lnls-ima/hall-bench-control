@@ -4,14 +4,14 @@
 
 import os.path as _path
 import serial.tools.list_ports as _list_ports
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-from PyQt4.QtCore import Qt as _Qt
-import PyQt4.uic as _uic
+from PyQt5.QtCore import Qt as _Qt
+import PyQt5.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
@@ -410,7 +410,7 @@ class ConnectionWidget(_QWidget):
             self.ui.multich_led_la.setEnabled(self.devices.multich.connected)
             self.ui.nmr_led_la.setEnabled(self.devices.nmr.connected)
             self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
-            self.ui.ps_led_la.setEnabled(self.devices.ps.ser.isOpen())
+            self.ui.ps_led_la.setEnabled(self.devices.ps.ser.is_open)
 
         except Exception:
             pass

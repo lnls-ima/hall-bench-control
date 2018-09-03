@@ -5,8 +5,8 @@
 import numpy as _np
 import pandas as _pd
 import os.path as _path
-from PyQt4.QtCore import Qt as _Qt
-from PyQt4.QtGui import (
+from PyQt5.QtCore import Qt as _Qt
+from PyQt5.QtWidgets import (
     QDialog as _QDialog,
     QVBoxLayout as _QVBoxLayout,
     QPushButton as _QPushButton,

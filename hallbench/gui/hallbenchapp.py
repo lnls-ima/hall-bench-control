@@ -5,7 +5,7 @@
 import os as _os
 import sys as _sys
 import threading as _threading
-from PyQt4.QtGui import QApplication as _QApplication
+from PyQt5.QtWidgets import QApplication as _QApplication
 
 from hallbench.gui.hallbenchwindow import HallBenchWindow as _HallBenchWindow
 import hallbench.data as _data
@@ -68,9 +68,9 @@ class HallBenchApp(_QApplication):
 class GUIThread(_threading.Thread):
     """GUI Thread."""
 
-    def __init__(self, daemon=True):
+    def __init__(self):
         """Start thread."""
-        _threading.Thread.__init__(self, daemon=daemon)
+        _threading.Thread.__init__(self)
         self.app = None
         self.window = None
         self.start()
@@ -97,6 +97,6 @@ def run():
         _sys.exit(app.exec_())
 
 
-def run_in_thread(daemon):
+def run_in_thread():
     """Run hallbench application in a thread."""
-    return GUIThread(daemon)
+    return GUIThread()

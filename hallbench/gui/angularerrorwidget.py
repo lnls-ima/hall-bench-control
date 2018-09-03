@@ -4,7 +4,7 @@
 
 import numpy as _np
 import time as _time
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QComboBox as _QComboBox,
     QLabel as _QLabel,

@@ -2,12 +2,12 @@
 
 """Power Supply widget for the Hall Bench Control application."""
 
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
 import numpy as _np
 import time as _time

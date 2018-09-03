@@ -5,18 +5,18 @@
 import numpy as _np
 import time as _time
 import collections as _collections
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
     QVBoxLayout as _QVBoxLayout,
     QWidget as _QWidget,
     )
-from PyQt4.QtCore import (
+from PyQt5.QtCore import (
     pyqtSignal as _pyqtSignal,
     QDateTime as _QDateTime,
     )
-import PyQt4.uic as _uic
+import PyQt5.uic as _uic
 
 import hallbench.gui.utils as _utils
 from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget

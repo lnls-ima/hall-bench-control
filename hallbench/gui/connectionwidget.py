@@ -188,9 +188,18 @@ class ConnectionWidget(_QWidget):
         self.ui.filename_le.setText("")
 
         try:
-            index = self.ui.idn_cmb.currentIndex()
             idn = int(self.ui.idn_cmb.currentText())
         except Exception:
+            _QMessageBox.critical(
+                self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
+            return
+
+        idns = self.connection_config.get_table_column(
+            self.database, 'id')
+        self.ui.idn_cmb.clear()
+        self.ui.idn_cmb.addItems([str(i) for i in idns])
+        if idn not in idns:
+            self.ui.idn_cmb.setCurrentIndex(-1)
             _QMessageBox.critical(
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
@@ -203,7 +212,7 @@ class ConnectionWidget(_QWidget):
             return
 
         self.load()
-        self.ui.idn_cmb.setCurrentIndex(index)
+        self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.findText(str(idn)))
         self.ui.loaddb_btn.setEnabled(False)
 
     def loadFile(self):

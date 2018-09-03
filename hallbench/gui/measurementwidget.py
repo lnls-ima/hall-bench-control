@@ -24,6 +24,8 @@ from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
 from hallbench.gui.fieldmapdialog import FieldmapDialog \
     as _FieldmapDialog
 from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
+from hallbench.data.configuration import MeasurementConfig \
+    as _MeasurementConfig
 from hallbench.data.measurement import VoltageData as _VoltageData
 from hallbench.data.measurement import FieldData as _FieldData
 
@@ -169,7 +171,7 @@ class MeasurementWidget(_QWidget):
            or not self.saveConfiguration()):
             return
 
-        try:           
+        try:
             self.ui.stop_btn.setEnabled(True)
 
             first_axis = self.local_measurement_config.first_axis
@@ -466,7 +468,24 @@ class MeasurementWidget(_QWidget):
     def saveConfiguration(self):
         """Save configuration to database table."""
         try:
-            idn = self.local_measurement_config.save_to_database(self.database)
+            text = self.configuration_widget.ui.idn_cmb.currentText()
+            if len(text) != 0:
+                selected_idn = int(text)
+                selected_config = _MeasurementConfig(
+                    database=self.database, idn=selected_idn)
+            else:
+                selected_config = _MeasurementConfig()
+
+            if self.local_measurement_config == selected_config:
+                idn = selected_idn
+            else:
+                idn = self.local_measurement_config.save_to_database(
+                    self.database)
+                self.configuration_widget.updateConfigurationIDs()
+                idx = self.configuration_widget.ui.idn_cmb.findText(str(idn))
+                self.configuration_widget.ui.idn_cmb.setCurrentIndex(idx)
+                self.configuration_widget.ui.loaddb_btn.setEnabled(False)
+
             self.local_measurement_config_id = idn
             return True
         except Exception as e:
@@ -734,12 +753,12 @@ class ReadingThread(_QThread):
         super().__init__()
         self.voltimeter = voltimeter
         self.precision = precision
-        self.voltage = _np.array([])       
+        self.voltage = _np.array([])
         self.end_measurement = False
 
     def clear(self):
         """Clear voltage values."""
-        self.voltage = _np.array([])       
+        self.voltage = _np.array([])
         self.end_measurement = False
 
     def run(self):

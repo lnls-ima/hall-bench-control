@@ -160,6 +160,34 @@ class DatabaseObject(object):
             return None
 
     @classmethod
+    def get_last_id(cls, database, table=None):
+        """Return the last id of the database table.
+
+        Args:
+            database (str): full file path to database.
+            table (str, optional): database table name.
+
+        Return:
+            a last id.
+        """
+        if table is None:
+            table = cls._db_table
+
+        if not cls.table_exists(database, table):
+            return None
+
+        con = _sqlite.connect(database)
+        cur = con.cursor()
+
+        try:
+            cur.execute('SELECT MAX(id) FROM {0}'.format(table))
+            idn = cur.fetchone()[0]
+            con.close()
+            return idn
+        except Exception:
+            return None
+
+    @classmethod
     def get_table_column_names(cls, database, table=None):
         """Return the column names of the database table.
 
@@ -271,7 +299,7 @@ class DatabaseObject(object):
             con.close()
             return False
 
-    def read_from_database(self, database, idn, table=None):
+    def read_from_database(self, database, idn=None, table=None):
         """Read a table entry from database.
 
         Args:

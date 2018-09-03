@@ -441,7 +441,6 @@ class MotorsWidget(_QWidget):
             while ((self.pmac.axis_status(axis) & 1) == 0 and
                    self.stop_trigger is False):
                 _QApplication.processEvents()
-                _time.sleep(10)
    
             if self.stop_trigger:
                 return    
@@ -459,7 +458,9 @@ class MotorsWidget(_QWidget):
                     while ((self.pmac.axis_status(axis) & 1) == 0 and
                            self.stop_trigger is False):
                         _QApplication.processEvents()
-                    _time.sleep(delay)
+                    for i in range(100):
+                        _QApplication.processEvents()
+                        _time.sleep(delay/100)
 
         except Exception as e:
             _QMessageBox.critical(

@@ -48,6 +48,7 @@ class HallBenchApp(_QApplication):
         self.power_supply_config = _PowerSupplyConfig()
         self.hall_probe = _HallProbe()
         self.devices = _HallBenchDevices()
+        self.positions = {}
 
     def create_database(self):
         """Create database and tables."""

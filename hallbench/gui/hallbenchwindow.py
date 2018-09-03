@@ -7,6 +7,11 @@ from PyQt4.QtGui import (
     QDesktopWidget as _QDesktopWidget,
     QMainWindow as _QMainWindow,
     )
+from PyQt4.QtCore import (
+    QTimer as _QTimer,
+    QThread as _QThread,
+    QEventLoop as _QEventLoop,
+    )
 import PyQt4.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
@@ -56,10 +61,10 @@ class HallBenchWindow(_QMainWindow):
 
         self.voltageoffset_tab = _VoltageOffsetWidget(self)
         self.ui.main_tab.addTab(self.voltageoffset_tab, 'Voltage Offset')
-
+ 
         self.temperature_tab = _TemperatureWidget(self)
         self.ui.main_tab.addTab(self.temperature_tab, 'Temperature')
-
+ 
         self.angularerror_tab = _AngularErrorWidget(self)
         self.ui.main_tab.addTab(self.angularerror_tab, 'Angular Error')
 
@@ -70,6 +75,9 @@ class HallBenchWindow(_QMainWindow):
 
         self.updateMainTabStatus()
         self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
+
+        self.positions_thread = PositionsThread()
+        self.positions_thread.start()
 
     @property
     def database(self):
@@ -82,6 +90,7 @@ class HallBenchWindow(_QMainWindow):
             for idx in range(self.ui.main_tab.count()):
                 widget = self.ui.main_tab.widget(idx)
                 widget.close()
+            self.positions_thread.quit()
             event.accept()
         except Exception:
             event.accept()
@@ -102,3 +111,45 @@ class HallBenchWindow(_QMainWindow):
     def updateMainTabStatus(self):
         """Enable or disable main tabs."""
         pass
+
+
+
+class PositionsThread(_QThread):
+    """Thread to read position values from pmac."""
+
+    _timer_interval = 250  # [ms]
+
+    def __init__(self):
+        """Initialize object."""
+        super().__init__()
+        self.timer = _QTimer()
+        self.timer.moveToThread(self)
+        self.timer.timeout.connect(self.updatePositions)
+
+    @property
+    def pmac(self):
+        """Pmac communication class."""
+        return _QApplication.instance().devices.pmac
+
+    @property
+    def positions(self):
+        """Current posiitons."""
+        return _QApplication.instance().positions
+
+    def updatePositions(self):
+        """Update axes positions."""
+        if not self.pmac.connected:
+            return
+
+        try:
+            for axis in self.pmac.commands.list_of_axis:
+                pos = self.pmac.get_position(axis)
+                self.positions[axis] = pos
+        except Exception:
+            pass
+
+    def run(self):
+        """Target function."""
+        self.timer.start(self._timer_interval)
+        loop = _QEventLoop()
+        loop.exec_()

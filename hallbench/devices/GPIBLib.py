@@ -446,18 +446,7 @@ class Agilent3458A(GPIB):
         """
         self.commands = Agilent3458ACommands()
         self.logfile = logfile
-        self.end_measurement = False
-        self._voltage = _np.array([])
         super().__init__(self.logfile)
-
-    @property
-    def voltage(self):
-        """Voltage values read from the device."""
-        return self._voltage
-
-    def clear(self):
-        """Clear voltage data."""
-        self._voltage = _np.array([])
 
     def connect(self, address):
         """Connect to a GPIB device with the given address.
@@ -488,34 +477,14 @@ class Agilent3458A(GPIB):
         Args:
             formtype (int): format type [single=0 or double=1].
         """
-        while (self.end_measurement is False):
-            if self.inst.stb & 128:
-                r = self.read_raw_from_device()
-                if formtype == 0:
-                    dataset = [_struct.unpack(
-                        '>f', r[i:i+4])[0] for i in range(0, len(r), 4)]
-                else:
-                    dataset = [_struct.unpack(
-                        '>d', r[i:i+8])[0] for i in range(0, len(r), 8)]
-                self._voltage = _np.append(self._voltage, dataset)
+        r = self.read_raw_from_device()
+        if formtype == 0:
+            voltage = [_struct.unpack(
+                '>f', r[i:i+4])[0] for i in range(0, len(r), 4)]
         else:
-            # check memory
-            self.send_command(self.commands.mcount)
-            npoints = int(self.read_from_device())
-            if npoints > 0:
-                # ask data from memory
-                self.send_command(self.commands.rmem + str(npoints))
-
-                for idx in range(npoints):
-                    # read data from memory
-                    r = self.read_raw_from_device()
-                    if formtype == 0:
-                        dataset = [_struct.unpack(
-                            '>f', r[i:i+4])[0] for i in range(0, len(r), 4)]
-                    else:
-                        dataset = [_struct.unpack(
-                            '>d', r[i:i+8])[0] for i in range(0, len(r), 8)]
-                    self._voltage = _np.append(self._voltage, dataset)
+            voltage = [_struct.unpack(
+                '>d', r[i:i+8])[0] for i in range(0, len(r), 8)]
+        return voltage
 
     def config(self, aper, formtype):
         """Configure device.

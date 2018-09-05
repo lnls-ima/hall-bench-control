@@ -17,7 +17,7 @@ import pyqtgraph as _pyqtgraph
 from hallbench.gui.utils import getUiFile as _getUiFile
 
 
-class ViewDataDialog(_QDialog):
+class ViewScanDialog(_QDialog):
     """View data dialog class for the Hall Bench Control application."""
 
     def __init__(self, parent=None):
@@ -28,11 +28,11 @@ class ViewDataDialog(_QDialog):
         self.ui = _uic.loadUi(uifile, self)
 
         self.data_label = ''
-        self.data_list = []
+        self.scan_list = []
         self.graphx = []
         self.graphy = []
         self.graphz = []
-        self.data_dict = {}
+        self.scan_dict = {}
         self.xmin_line = None
         self.xmax_line = None
 
@@ -47,7 +47,7 @@ class ViewDataDialog(_QDialog):
         if selected_idx == -1:
             return
 
-        sel = self.data_dict[selected_idx]
+        sel = self.scan_dict[selected_idx]
         pos = sel['pos']
         data = sel['data']
         xoff = sel['xoff']
@@ -194,7 +194,7 @@ class ViewDataDialog(_QDialog):
         if selected_idx == -1:
             return
         else:
-            self.data_dict[selected_idx]['fit_function'] = func
+            self.scan_dict[selected_idx]['fit_function'] = func
 
     def polyOrderChanged(self):
         """Update dict value."""
@@ -203,7 +203,7 @@ class ViewDataDialog(_QDialog):
         if selected_idx == -1:
             return
         else:
-            self.data_dict[selected_idx]['fit_polyorder'] = order
+            self.scan_dict[selected_idx]['fit_polyorder'] = order
 
     def resetXLimits(self):
         """Reset X limits.."""
@@ -211,9 +211,9 @@ class ViewDataDialog(_QDialog):
         if selected_idx == -1:
             return
         else:
-            pos = self.data_dict[selected_idx]['pos']
-            xoff = self.data_dict[selected_idx]['xoff']
-            xmult = self.data_dict[selected_idx]['xmult']
+            pos = self.scan_dict[selected_idx]['pos']
+            xoff = self.scan_dict[selected_idx]['xoff']
+            xmult = self.scan_dict[selected_idx]['xmult']
 
             if len(pos) > 0:
                 xmin = (pos[0] + xoff)*xmult
@@ -222,10 +222,10 @@ class ViewDataDialog(_QDialog):
                 xmin = 0
                 xmax = 0
 
-            self.data_dict[selected_idx]['xmin'] = xmin
+            self.scan_dict[selected_idx]['xmin'] = xmin
             self.ui.xmin_sb.setValue(xmin)
 
-            self.data_dict[selected_idx]['xmax'] = xmax
+            self.scan_dict[selected_idx]['xmax'] = xmax
             self.ui.xmax_sb.setValue(xmax)
 
             self.updatePlot()
@@ -237,13 +237,13 @@ class ViewDataDialog(_QDialog):
         p1 = set()
         p2 = set()
         p3 = set()
-        for data in self.data_list:
+        for data in self.scan_list:
             p1.update(data.pos1)
             p2.update(data.pos2)
             p3.update(data.pos3)
 
         curve_labels = []
-        for data in self.data_list:
+        for data in self.scan_list:
             pos = ''
             if data.pos1.size == 1 and len(p1) != 1:
                 pos = pos + 'pos1={0:.0f}mm'.format(data.pos1[0])
@@ -269,21 +269,21 @@ class ViewDataDialog(_QDialog):
         self.ui.selectcurve_cmb.addItems(curve_labels)
         self.ui.selectcurve_cmb.setEnabled(True)
 
-    def show(self, data_list, data_label=''):
+    def show(self, scan_list, data_label=''):
         """Update data and show dialog."""
-        if data_list is None or len(data_list) == 0:
+        if scan_list is None or len(scan_list) == 0:
             message = 'Invalid data list.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        self.data_list = [d.copy() for d in data_list]
+        self.scan_list = [d.copy() for d in scan_list]
         self.data_label = data_label
 
         try:
             idx = 0
-            for i in range(len(self.data_list)):
-                data = self.data_list[i]
+            for i in range(len(self.scan_list)):
+                data = self.scan_list[i]
 
                 if data.npts == 0:
                     msg = 'Invalid scan found.'
@@ -302,7 +302,7 @@ class ViewDataDialog(_QDialog):
                 xmin = pos[0]
                 xmax = pos[-1]
 
-                self.data_dict[idx] = {
+                self.scan_dict[idx] = {
                     'component': 'x',
                     'pos': pos,
                     'data': data.avgx,
@@ -316,7 +316,7 @@ class ViewDataDialog(_QDialog):
                     'fit_polyorder': None,
                     }
 
-                self.data_dict[idx+1] = {
+                self.scan_dict[idx+1] = {
                     'component': 'y',
                     'pos': pos,
                     'data': data.avgy,
@@ -330,7 +330,7 @@ class ViewDataDialog(_QDialog):
                     'fit_polyorder': None,
                     }
 
-                self.data_dict[idx+2] = {
+                self.scan_dict[idx+2] = {
                     'component': 'z',
                     'pos': pos,
                     'data': data.avgz,
@@ -373,20 +373,20 @@ class ViewDataDialog(_QDialog):
         else:
             self.ui.offset_gb.setEnabled(True)
             self.ui.offsetled_la.setEnabled(False)
-            self.ui.xoff_sb.setValue(self.data_dict[selected_idx]['xoff'])
-            self.ui.yoff_sb.setValue(self.data_dict[selected_idx]['yoff'])
-            self.ui.xmult_sb.setValue(self.data_dict[selected_idx]['xmult'])
-            self.ui.ymult_sb.setValue(self.data_dict[selected_idx]['ymult'])
+            self.ui.xoff_sb.setValue(self.scan_dict[selected_idx]['xoff'])
+            self.ui.yoff_sb.setValue(self.scan_dict[selected_idx]['yoff'])
+            self.ui.xmult_sb.setValue(self.scan_dict[selected_idx]['xmult'])
+            self.ui.ymult_sb.setValue(self.scan_dict[selected_idx]['ymult'])
             self.ui.fit_gb.setEnabled(True)
 
-            func = self.data_dict[selected_idx]['fit_function']
+            func = self.scan_dict[selected_idx]['fit_function']
             if func is None:
                 self.ui.fitfunction_cmb.setCurrentIndex(-1)
             else:
                 idx = self.ui.fitfunction_cmb.findText(func)
                 self.ui.fitfunction_cmb.setCurrentIndex(idx)
 
-            order = self.data_dict[selected_idx]['fit_polyorder']
+            order = self.scan_dict[selected_idx]['fit_polyorder']
             if order is not None:
                 self.ui.polyorder_sb.setValue(order)
 
@@ -405,15 +405,15 @@ class ViewDataDialog(_QDialog):
         yoff = self.ui.yoff_sb.value()
         xmult = self.ui.xmult_sb.value()
         ymult = self.ui.ymult_sb.value()
-        xmin = self.data_dict[selected_idx]['xmin']
-        xmax = self.data_dict[selected_idx]['xmax']
+        xmin = self.scan_dict[selected_idx]['xmin']
+        xmax = self.scan_dict[selected_idx]['xmax']
 
-        self.data_dict[selected_idx]['xoff'] = xoff
-        self.data_dict[selected_idx]['yoff'] = yoff
-        self.data_dict[selected_idx]['xmult'] = xmult
-        self.data_dict[selected_idx]['ymult'] = ymult
-        self.data_dict[selected_idx]['xmin'] = (xmin + xoff)*xmult
-        self.data_dict[selected_idx]['xmax'] = (xmax + xoff)*xmult
+        self.scan_dict[selected_idx]['xoff'] = xoff
+        self.scan_dict[selected_idx]['yoff'] = yoff
+        self.scan_dict[selected_idx]['xmult'] = xmult
+        self.scan_dict[selected_idx]['ymult'] = ymult
+        self.scan_dict[selected_idx]['xmin'] = (xmin + xoff)*xmult
+        self.scan_dict[selected_idx]['xmax'] = (xmax + xoff)*xmult
 
         self.updatePlot()
         self.ui.offsetled_la.setEnabled(True)
@@ -422,15 +422,15 @@ class ViewDataDialog(_QDialog):
         """Update plot."""
         self.clearGraph()
         if self.ui.showall_rb.isChecked():
-            nr_curves = len(self.data_list)
-            data_dict = self.data_dict
+            nr_curves = len(self.scan_list)
+            scan_dict = self.scan_dict
             show_xlines = False
         else:
             selected_idx = self.ui.selectcurve_cmb.currentIndex()
             if selected_idx == -1:
                 return
             nr_curves = 1
-            data_dict = {selected_idx: self.data_dict[selected_idx]}
+            scan_dict = {selected_idx: self.scan_dict[selected_idx]}
             show_xlines = True
 
         self.configureGraph(nr_curves, self.data_label)
@@ -441,7 +441,7 @@ class ViewDataDialog(_QDialog):
                 x_count = 0
                 y_count = 0
                 z_count = 0
-                for value in data_dict.values():
+                for value in scan_dict.values():
                     component = value['component']
                     pos = value['pos']
                     data = value['data']
@@ -491,8 +491,8 @@ class ViewDataDialog(_QDialog):
         if selected_idx == -1:
             return
         else:
-            self.ui.xmin_sb.setValue(self.data_dict[selected_idx]['xmin'])
-            self.ui.xmax_sb.setValue(self.data_dict[selected_idx]['xmax'])
+            self.ui.xmin_sb.setValue(self.scan_dict[selected_idx]['xmin'])
+            self.ui.xmax_sb.setValue(self.scan_dict[selected_idx]['xmax'])
 
     def updateXMax(self):
         """Update xmax value."""
@@ -500,7 +500,7 @@ class ViewDataDialog(_QDialog):
         if selected_idx == -1:
             return
         else:
-            self.data_dict[selected_idx]['xmax'] = self.ui.xmax_sb.value()
+            self.scan_dict[selected_idx]['xmax'] = self.ui.xmax_sb.value()
 
     def updateXMaxSpinBox(self):
         """Update xmax value."""
@@ -512,7 +512,7 @@ class ViewDataDialog(_QDialog):
         if selected_idx == -1:
             return
         else:
-            self.data_dict[selected_idx]['xmin'] = self.ui.xmin_sb.value()
+            self.scan_dict[selected_idx]['xmin'] = self.ui.xmin_sb.value()
 
     def updateXMinSpinBox(self):
         """Update xmin value."""

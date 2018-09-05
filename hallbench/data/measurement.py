@@ -27,7 +27,7 @@ class MeasurementDataError(Exception):
         self.message = message
 
 
-class Data(_database.DatabaseObject):
+class Scan(_database.DatabaseObject):
     """Position and data values."""
 
     _axis_list = [1, 2, 3, 5, 6, 7, 8, 9]
@@ -74,7 +74,7 @@ class Data(_database.DatabaseObject):
         self._data_unit = data_unit
 
         if filename is not None and idn is not None:
-            raise ValueError('Invalid arguments for FieldData.')
+            raise ValueError('Invalid arguments for Scan object.')
 
         if idn is not None and database is not None:
             self.read_from_database(database, idn)
@@ -83,7 +83,7 @@ class Data(_database.DatabaseObject):
             self.read_file(filename)
 
     def __str__(self):
-        """Printable string representation of Data."""
+        """Printable string representation of Scan."""
         fmtstr = '{0:<18s} : {1}\n'
         r = ''
         r += fmtstr.format('magnet_name', str(self.magnet_name))
@@ -275,7 +275,7 @@ class Data(_database.DatabaseObject):
         return filename
 
     def clear(self):
-        """Clear Data."""
+        """Clear Scan."""
         self._magnet_name = None
         self._main_current = None
         self._timestamp = None
@@ -345,7 +345,7 @@ class Data(_database.DatabaseObject):
             raise MeasurementDataError(message)
 
     def reverse(self):
-        """Reverse Data."""
+        """Reverse Scan."""
         for key in self.__dict__:
             value = self.__dict__[key]
             if isinstance(value, _np.ndarray) and value.size > 1:
@@ -436,7 +436,7 @@ class Data(_database.DatabaseObject):
                 f.write(line + '\n')
 
 
-class VoltageData(Data):
+class VoltageScan(Scan):
     """Position and voltage values."""
 
     _data_label = 'VoltageScan'
@@ -481,86 +481,86 @@ class VoltageData(Data):
         super().__init__(
             filename=filename, database=database, idn=idn, data_unit='V')
 
-    @Data.pos1.setter
+    @Scan.pos1.setter
     def pos1(self, value):
         """Set pos1 value."""
         self._pos1 = _np.around(
             _utils.to_array(value), decimals=_position_precision)
 
-    @Data.pos2.setter
+    @Scan.pos2.setter
     def pos2(self, value):
         """Set pos2 value."""
         self._pos2 = _np.around(
             _utils.to_array(value), decimals=_position_precision)
 
-    @Data.pos3.setter
+    @Scan.pos3.setter
     def pos3(self, value):
         """Set pos3 value."""
         self._pos3 = _np.around(
             _utils.to_array(value), decimals=_position_precision)
 
-    @Data.pos5.setter
+    @Scan.pos5.setter
     def pos5(self, value):
         """Set pos5 value."""
         self._pos5 = _np.around(
             _utils.to_array(value), decimals=_position_precision)
 
-    @Data.pos6.setter
+    @Scan.pos6.setter
     def pos6(self, value):
         """Set pos6 value."""
         self._pos6 = _np.around(
             _utils.to_array(value), decimals=_position_precision)
 
-    @Data.pos7.setter
+    @Scan.pos7.setter
     def pos7(self, value):
         """Set pos7 value."""
         self._pos7 = _np.around(
             _utils.to_array(value), decimals=_position_precision)
 
-    @Data.pos8.setter
+    @Scan.pos8.setter
     def pos8(self, value):
         """Set pos8 value."""
         self._pos8 = _np.around(
             _utils.to_array(value), decimals=_position_precision)
 
-    @Data.pos9.setter
+    @Scan.pos9.setter
     def pos9(self, value):
         """Set pos9 value."""
         self._pos9 = _np.around(
             _utils.to_array(value), decimals=_position_precision)
 
-    @Data.avgx.setter
+    @Scan.avgx.setter
     def avgx(self, value):
         """Set avgx value."""
         self._avgx = _utils.to_array(value)
 
-    @Data.avgy.setter
+    @Scan.avgy.setter
     def avgy(self, value):
         """Set avgy value."""
         self._avgy = _utils.to_array(value)
 
-    @Data.avgz.setter
+    @Scan.avgz.setter
     def avgz(self, value):
         """Set avgz value."""
         self._avgz = _utils.to_array(value)
 
-    @Data.stdx.setter
+    @Scan.stdx.setter
     def stdx(self, value):
         """Set stdx value."""
         self._stdx = _utils.to_array(value)
 
-    @Data.stdy.setter
+    @Scan.stdy.setter
     def stdy(self, value):
         """Set stdy value."""
         self._stdy = _utils.to_array(value)
 
-    @Data.stdz.setter
+    @Scan.stdz.setter
     def stdz(self, value):
         """Set stdz value."""
         self._stdz = _utils.to_array(value)
 
 
-class FieldData(Data):
+class FieldScan(Scan):
     """Position and magnetic field values."""
 
     _data_label = 'FieldScan'
@@ -605,25 +605,25 @@ class FieldData(Data):
         super().__init__(
             filename=filename, database=database, idn=idn, data_unit='T')
 
-    def set_field_data(self, voltage_data_list, hall_probe):
+    def set_field_scan(self, voltage_scan_list, hall_probe):
         """Convert average voltage values to magnetic field."""
         if not isinstance(hall_probe, _calibration.HallProbe):
             raise TypeError(
                 'hall_probe must be a HallProbe object.')
 
-        vd = _get_avg_voltage(voltage_data_list)
+        vs = _get_avg_voltage(voltage_scan_list)
 
         for axis in self._axis_list:
-            pos = getattr(vd, 'pos' + str(axis))
+            pos = getattr(vs, 'pos' + str(axis))
             setattr(self, '_pos' + str(axis), pos)
 
-        bx_avg = hall_probe.sensorx.convert_voltage(vd.avgx)
-        by_avg = hall_probe.sensory.convert_voltage(vd.avgy)
-        bz_avg = hall_probe.sensorz.convert_voltage(vd.avgz)
+        bx_avg = hall_probe.sensorx.convert_voltage(vs.avgx)
+        by_avg = hall_probe.sensory.convert_voltage(vs.avgy)
+        bz_avg = hall_probe.sensorz.convert_voltage(vs.avgz)
 
-        bx_std = hall_probe.sensorx.convert_voltage(vd.stdx)
-        by_std = hall_probe.sensory.convert_voltage(vd.stdy)
-        bz_std = hall_probe.sensorz.convert_voltage(vd.stdz)
+        bx_std = hall_probe.sensorx.convert_voltage(vs.stdx)
+        by_std = hall_probe.sensory.convert_voltage(vs.stdy)
+        bz_std = hall_probe.sensorz.convert_voltage(vs.stdz)
 
         self._avgx = bx_avg
         self._avgy = by_avg
@@ -677,7 +677,7 @@ class Fieldmap(_database.DatabaseObject):
             database (str, optional): database file path.
         """
         if filename is not None and idn is not None:
-            raise ValueError('Invalid arguments for FieldData.')
+            raise ValueError('Invalid arguments for FieldScan.')
 
         self._timestamp = None
         self.magnet_name = None
@@ -920,13 +920,13 @@ class Fieldmap(_database.DatabaseObject):
                     self._map[i, 3], self._map[i, 4], self._map[i, 5]))
 
     def set_fieldmap_data(
-            self, field_data_list, hall_probe,
+            self, field_scan_list, hall_probe,
             correct_displacements, magnet_center,
             magnet_x_axis, magnet_y_axis):
-        """Set fieldmap from list of FieldData objects.
+        """Set fieldmap from list of FieldScan objects.
 
         Args:
-            field_data_list (list): list of FieldData objects.
+            field_scan_list (list): list of FieldScan objects.
             hall_probe (HallProbe): hall probe data.
             correct_displacements (bool): correct sensor displacements flag.
             magnet_center (list): magnet center position.
@@ -940,7 +940,7 @@ class Fieldmap(_database.DatabaseObject):
                 'hall_probe must be a HallProbe object.')
 
         _r = _get_fieldmap_position_and_field_values(
-            field_data_list, hall_probe, correct_displacements)
+            field_scan_list, hall_probe, correct_displacements)
         pos1, pos2, pos3 = _r[0], _r[1], _r[2]
         field1, field2, field3 = _r[3], _r[4], _r[5]
         first_axis, second_axis = _r[6], _r[7]
@@ -982,16 +982,18 @@ class Fieldmap(_database.DatabaseObject):
         self._map = _map
 
 
-def get_field_data_list(voltage_data_list, hall_probe):
-    """Get field_data_list from voltage_data_list."""
-    field_data_list = []
-    grouped_voltage_data_list = _group_voltage_data_list(voltage_data_list)
-    for lt in grouped_voltage_data_list:
-        field_data = FieldData()
-        field_data.set_field_data(lt, hall_probe)
-        field_data.configuration_id = lt[0].configuration_id
-        field_data_list.append(field_data)
-    return field_data_list
+def get_field_scan_list(voltage_scan_list, hall_probe):
+    """Get field_scan_list from voltage_scan_list."""
+    field_scan_list = []
+    grouped_voltage_scan_list = _group_voltage_scan_list(voltage_scan_list)
+    for lt in grouped_voltage_scan_list:
+        field_scan = FieldScan()
+        field_scan.set_field_scan(lt, hall_probe)
+        field_scan.configuration_id = lt[0].configuration_id
+        field_scan.magnet_name = lt[0].magnet_name
+        field_scan.main_current = lt[0].main_current
+        field_scan_list.append(field_scan)
+    return field_scan_list
 
 
 def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
@@ -1023,51 +1025,51 @@ def _cut_data_frames(dfx, dfy, dfz, nbeg, nend, axis=0):
     return dfx, dfy, dfz
 
 
-def _get_avg_voltage(voltage_data_list):
+def _get_avg_voltage(voltage_scan_list):
     """Get average voltage and position values."""
-    if isinstance(voltage_data_list, VoltageData):
-        voltage_data_list = [voltage_data_list]
+    if isinstance(voltage_scan_list, VoltageScan):
+        voltage_scan_list = [voltage_scan_list]
 
-    if not _valid_voltage_data_list(voltage_data_list):
-        raise MeasurementDataError('Invalid voltage data list.')
+    if not _valid_voltage_scan_list(voltage_scan_list):
+        raise MeasurementDataError('Invalid voltage scan list.')
 
-    fixed_axes = [a for a in voltage_data_list[0].axis_list
-                  if a != voltage_data_list[0].scan_axis]
+    fixed_axes = [a for a in voltage_scan_list[0].axis_list
+                  if a != voltage_scan_list[0].scan_axis]
     for axis in fixed_axes:
         pos_set = set()
-        for vd in voltage_data_list:
-            pos_attr = getattr(vd, 'pos' + str(axis))
+        for vs in voltage_scan_list:
+            pos_attr = getattr(vs, 'pos' + str(axis))
             if len(pos_attr) == 1:
                 pos_value = _np.around(
                     pos_attr[0], decimals=_check_position_precision)
                 pos_set.add(pos_value)
             else:
-                raise MeasurementDataError('Invalid voltage data list.')
+                raise MeasurementDataError('Invalid voltage scan list.')
         if len(pos_set) != 1:
-            raise MeasurementDataError('Invalid voltage data list.')
+            raise MeasurementDataError('Invalid voltage scan list.')
 
-    npts = voltage_data_list[0].npts
-    scan_axis = voltage_data_list[0].scan_axis
-    interp_pos = _np.mean([vd.scan_pos for vd in voltage_data_list], axis=0)
+    npts = voltage_scan_list[0].npts
+    scan_axis = voltage_scan_list[0].scan_axis
+    interp_pos = _np.mean([vs.scan_pos for vs in voltage_scan_list], axis=0)
 
     voltx_list = []
     volty_list = []
     voltz_list = []
-    for vd in voltage_data_list:
-        if len(vd.avgx) == npts:
-            fr = _interpolate.splrep(vd.scan_pos, vd.avgx, s=0, k=1)
+    for vs in voltage_scan_list:
+        if len(vs.avgx) == npts:
+            fr = _interpolate.splrep(vs.scan_pos, vs.avgx, s=0, k=1)
             voltx = _interpolate.splev(interp_pos, fr, der=0)
         else:
             voltx = _np.zeros(npts)
 
-        if len(vd.avgy) == npts:
-            fs = _interpolate.splrep(vd.scan_pos, vd.avgy, s=0, k=1)
+        if len(vs.avgy) == npts:
+            fs = _interpolate.splrep(vs.scan_pos, vs.avgy, s=0, k=1)
             volty = _interpolate.splev(interp_pos, fs, der=0)
         else:
             volty = _np.zeros(npts)
 
-        if len(vd.avgz) == npts:
-            ft = _interpolate.splrep(vd.scan_pos, vd.avgz, s=0, k=1)
+        if len(vs.avgz) == npts:
+            ft = _interpolate.splrep(vs.scan_pos, vs.avgz, s=0, k=1)
             voltz = _interpolate.splev(interp_pos, ft, der=0)
         else:
             voltz = _np.zeros(npts)
@@ -1076,7 +1078,7 @@ def _get_avg_voltage(voltage_data_list):
         volty_list.append(volty)
         voltz_list.append(voltz)
 
-    voltage = voltage_data_list[0].copy()
+    voltage = voltage_scan_list[0].copy()
     setattr(voltage, 'pos' + str(scan_axis), interp_pos)
     voltage.avgx = _np.mean(voltx_list, axis=0)
     voltage.avgy = _np.mean(volty_list, axis=0)
@@ -1089,13 +1091,13 @@ def _get_avg_voltage(voltage_data_list):
 
 
 def _get_fieldmap_position_and_field_values(
-        field_data_list, hall_probe, correct_displacements):
-    if isinstance(field_data_list, FieldData):
-        field_data_list = [field_data_list]
+        field_scan_list, hall_probe, correct_displacements):
+    if isinstance(field_scan_list, FieldScan):
+        field_scan_list = [field_scan_list]
 
-    axes = _get_fieldmap_axes(field_data_list)
+    axes = _get_fieldmap_axes(field_scan_list)
     if len(axes) == 0:
-        raise MeasurementDataError('Invalid field data list.')
+        raise MeasurementDataError('Invalid field scan list.')
     elif len(axes) == 1:
         first_axis = axes[0]
         second_axis = None
@@ -1106,10 +1108,10 @@ def _get_fieldmap_position_and_field_values(
     dfx = []
     dfy = []
     dfz = []
-    for fd in field_data_list:
-        index = getattr(fd, 'pos' + str(first_axis))
+    for fs in field_scan_list:
+        index = getattr(fs, 'pos' + str(first_axis))
         if second_axis is not None:
-            columns = getattr(fd, 'pos' + str(second_axis))
+            columns = getattr(fs, 'pos' + str(second_axis))
         else:
             columns = [0]
 
@@ -1117,18 +1119,18 @@ def _get_fieldmap_position_and_field_values(
         columns = _pd.Index(columns, float)
 
         dfx.append(_pd.DataFrame(
-            fd.avgx, index=index, columns=columns))
+            fs.avgx, index=index, columns=columns))
         dfy.append(_pd.DataFrame(
-            fd.avgy, index=index, columns=columns))
+            fs.avgy, index=index, columns=columns))
         dfz.append(_pd.DataFrame(
-            fd.avgz, index=index, columns=columns))
+            fs.avgz, index=index, columns=columns))
 
     fieldx = _pd.concat(dfx, axis=1)
     fieldy = _pd.concat(dfy, axis=1)
     fieldz = _pd.concat(dfz, axis=1)
 
     if correct_displacements:
-        # shift field data
+        # shift field scan
         fieldx.index = hall_probe.corrected_position(
             first_axis, fieldx.index, 'x')
         fieldz.index = hall_probe.corrected_position(
@@ -1137,16 +1139,16 @@ def _get_fieldmap_position_and_field_values(
         nbeg, nend = _get_number_of_cuts(
             fieldx.index, fieldy.index, fieldz.index)
 
-        # interpolate field data
+        # interpolate field scan
         fieldx, fieldy, fieldz = _interpolate_data_frames(
             fieldx, fieldy, fieldz, axis=0)
 
-        # cut field data
+        # cut field scan
         fieldx, fieldy, fieldz = _cut_data_frames(
             fieldx, fieldy, fieldz, nbeg, nend)
 
         if second_axis is not None:
-            # shift field data
+            # shift field scan
             fieldx.columns = hall_probe.corrected_position(
                 second_axis, fieldx.columns, 'x')
             fieldz.columns = hall_probe.corrected_position(
@@ -1155,16 +1157,16 @@ def _get_fieldmap_position_and_field_values(
             nbeg, nend = _get_number_of_cuts(
                 fieldx.columns, fieldy.columns, fieldz.columns)
 
-            # interpolate field data
+            # interpolate field scan
             fieldx, fieldy, fieldz = _interpolate_data_frames(
                 fieldx, fieldy, fieldz, axis=1)
 
-            # cut field data
+            # cut field scan
             fieldx, fieldy, fieldz = _cut_data_frames(
                 fieldx, fieldy, fieldz, nbeg, nend, axis=1)
 
     # update position values
-    pos_dict = _get_fieldmap_position_dict(field_data_list)
+    pos_dict = _get_fieldmap_position_dict(field_scan_list)
     index = fieldy.index
     columns = fieldy.columns
     pos_sorted = [pos_dict[1], pos_dict[2], pos_dict[3]]
@@ -1183,32 +1185,32 @@ def _get_fieldmap_position_and_field_values(
     return [pos1, pos2, pos3, field1, field2, field3, first_axis, second_axis]
 
 
-def _get_fieldmap_position_dict(field_data_list):
+def _get_fieldmap_position_dict(field_scan_list):
     _dict = {}
-    for axis in field_data_list[0].axis_list:
+    for axis in field_scan_list[0].axis_list:
         pos = set()
-        for fd in field_data_list:
-            p = _np.around(getattr(fd, 'pos' + str(axis)),
+        for fs in field_scan_list:
+            p = _np.around(getattr(fs, 'pos' + str(axis)),
                            decimals=_check_position_precision)
             pos.update(p)
         _dict[axis] = sorted(list(pos))
     return _dict
 
 
-def _get_fieldmap_axes(field_data_list):
-    if (len(field_data_list) == 0
-       or not all([isinstance(fd, FieldData) for fd in field_data_list])):
+def _get_fieldmap_axes(field_scan_list):
+    if (len(field_scan_list) == 0
+       or not all([isinstance(fs, FieldScan) for fs in field_scan_list])):
         return []
 
-    if any([fd.scan_axis is None or fd.npts == 0 for fd in field_data_list]):
+    if any([fs.scan_axis is None or fs.npts == 0 for fs in field_scan_list]):
         return []
 
-    if not all([fd.scan_axis == field_data_list[0].scan_axis
-                for fd in field_data_list]):
+    if not all([fs.scan_axis == field_scan_list[0].scan_axis
+                for fs in field_scan_list]):
         return []
 
-    _dict = _get_fieldmap_position_dict(field_data_list)
-    first_axis = field_data_list[0].scan_axis
+    _dict = _get_fieldmap_position_dict(field_scan_list)
+    first_axis = field_scan_list[0].scan_axis
 
     axes = [first_axis]
 
@@ -1222,11 +1224,11 @@ def _get_fieldmap_axes(field_data_list):
 
     if second_axis is not None:
         axes.append(second_axis)
-        for fd in field_data_list:
-            pos = getattr(fd, 'pos' + str(second_axis))
+        for fs in field_scan_list:
+            pos = getattr(fs, 'pos' + str(second_axis))
             second_axis_pos.append(pos)
     else:
-        if len(field_data_list) > 1:
+        if len(field_scan_list) > 1:
             return []
 
     if len(second_axis_pos) != len(_np.unique(second_axis_pos)):
@@ -1262,56 +1264,66 @@ def _get_transformation_matrix(axis_x, axis_y):
     return m
 
 
-def _group_voltage_data_list(voltage_data_list):
-    """Group voltage data list."""
-    if isinstance(voltage_data_list, VoltageData):
-        voltage_data_list = [voltage_data_list]
+def _group_voltage_scan_list(voltage_scan_list):
+    """Group voltage scan list."""
+    if isinstance(voltage_scan_list, VoltageScan):
+        voltage_scan_list = [voltage_scan_list]
 
-    if not _valid_voltage_data_list(voltage_data_list):
-        raise MeasurementDataError('Invalid voltage data list.')
+    if not _valid_voltage_scan_list(voltage_scan_list):
+        raise MeasurementDataError('Invalid voltage scan list.')
 
-    fixed_axes = [a for a in voltage_data_list[0].axis_list
-                  if a != voltage_data_list[0].scan_axis]
+    fixed_axes = [a for a in voltage_scan_list[0].axis_list
+                  if a != voltage_scan_list[0].scan_axis]
     search_axis = []
     for axis in fixed_axes:
         pos_set = set()
-        for vd in voltage_data_list:
-            pos_attr = getattr(vd, 'pos' + str(axis))
+        for vs in voltage_scan_list:
+            pos_attr = getattr(vs, 'pos' + str(axis))
             if len(pos_attr) == 1:
                 pos_value = _np.around(
                     pos_attr[0], decimals=_check_position_precision)
                 pos_set.add(pos_value)
             else:
-                raise MeasurementDataError('Invalid voltage data list.')
+                raise MeasurementDataError('Invalid voltage scan list.')
         if len(pos_set) != 1:
             search_axis.append(axis)
 
     if len(search_axis) > 1:
-        raise MeasurementDataError('Invalid voltage data list.')
+        raise MeasurementDataError('Invalid voltage scan list.')
 
     elif len(search_axis) == 1:
         search_axis = search_axis[0]
         _dict = {}
-        for vd in voltage_data_list:
-            pos_attr = getattr(vd, 'pos' + str(search_axis))
+        for vs in voltage_scan_list:
+            pos_attr = getattr(vs, 'pos' + str(search_axis))
             pos_value = _np.around(
                 pos_attr[0], decimals=_check_position_precision)
             if pos_value in _dict.keys():
-                _dict[pos_value].append(vd)
+                _dict[pos_value].append(vs)
             else:
-                _dict[pos_value] = [vd]
-        grouped_voltage_data_list = (_dict.values())
+                _dict[pos_value] = [vs]
+        grouped_voltage_scan_list = (_dict.values())
 
     else:
-        grouped_voltage_data_list = [voltage_data_list]
+        grouped_voltage_scan_list = [voltage_scan_list]
 
-    for lt in grouped_voltage_data_list:
+    for lt in grouped_voltage_scan_list:
         configuration_id = lt[0].configuration_id
-        if not all([vd.configuration_id == configuration_id for vd in lt]):
+        if not all([vs.configuration_id == configuration_id for vs in lt]):
             raise MeasurementDataError(
-                'Inconsistent configuration ID found in voltage data list.')
+                'Inconsistent configuration ID found in voltage scan list.')
 
-    return grouped_voltage_data_list
+        magnet_name = lt[0].magnet_name
+        if not all([vs.magnet_name == magnet_name for vs in lt]):
+            raise MeasurementDataError(
+                'Inconsistent magnet name found in voltage scan list.')
+
+        main_current = lt[0].main_current
+        if not all([vs.main_current == main_current for vs in lt]):
+            raise MeasurementDataError(
+                'Inconsistent main current value found in voltage scan list.')
+
+    return grouped_voltage_scan_list
 
 
 def _interpolate_data_frames(dfx, dfy, dfz, axis=0):
@@ -1336,22 +1348,22 @@ def _interpolate_data_frames(dfx, dfy, dfz, axis=0):
     return interp_dfx, dfy, interp_dfz
 
 
-def _valid_voltage_data_list(voltage_data_list):
-    if not all([isinstance(vd, VoltageData) for vd in voltage_data_list]):
+def _valid_voltage_scan_list(voltage_scan_list):
+    if not all([isinstance(vs, VoltageScan) for vs in voltage_scan_list]):
         return False
 
-    if len(voltage_data_list) == 0:
+    if len(voltage_scan_list) == 0:
         return False
 
-    if any([vd.scan_axis is None or vd.npts == 0 for vd in voltage_data_list]):
+    if any([vs.scan_axis is None or vs.npts == 0 for vs in voltage_scan_list]):
         return False
 
-    if not all([vd.scan_axis == voltage_data_list[0].scan_axis
-                for vd in voltage_data_list]):
+    if not all([vs.scan_axis == voltage_scan_list[0].scan_axis
+                for vs in voltage_scan_list]):
         return False
 
     if not all([
-            vd.npts == voltage_data_list[0].npts for vd in voltage_data_list]):
+            vs.npts == voltage_scan_list[0].npts for vs in voltage_scan_list]):
         return False
 
     return True

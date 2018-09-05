@@ -40,7 +40,7 @@ class ViewProbeDialog(_QDialog):
         self.graphz = []
         self.configureGraph()
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
-        self.legend.setParentItem(self.ui.viewdata_pw.graphicsItem())
+        self.legend.setParentItem(self.ui.plot_pw.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
         # create connections
@@ -76,7 +76,7 @@ class ViewProbeDialog(_QDialog):
 
     def configureGraph(self, symbol=False):
         """Configure data plots."""
-        self.ui.viewdata_pw.clear()
+        self.ui.plot_pw.clear()
 
         self.graphx = []
         self.graphy = []
@@ -87,7 +87,7 @@ class ViewProbeDialog(_QDialog):
         penz = (0, 0, 255)
 
         if symbol:
-            plot_item_x = self.ui.viewdata_pw.plotItem.plot(
+            plot_item_x = self.ui.plot_pw.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=penx,
@@ -96,7 +96,7 @@ class ViewProbeDialog(_QDialog):
                 symbolSize=4,
                 symbolBrush=penx)
 
-            plot_item_y = self.ui.viewdata_pw.plotItem.plot(
+            plot_item_y = self.ui.plot_pw.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=peny,
@@ -105,7 +105,7 @@ class ViewProbeDialog(_QDialog):
                 symbolSize=4,
                 symbolBrush=peny)
 
-            plot_item_z = self.ui.viewdata_pw.plotItem.plot(
+            plot_item_z = self.ui.plot_pw.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=penz,
@@ -114,17 +114,17 @@ class ViewProbeDialog(_QDialog):
                 symbolSize=4,
                 symbolBrush=penz)
         else:
-            plot_item_x = self.ui.viewdata_pw.plotItem.plot(
+            plot_item_x = self.ui.plot_pw.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=penx)
 
-            plot_item_y = self.ui.viewdata_pw.plotItem.plot(
+            plot_item_y = self.ui.plot_pw.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=peny)
 
-            plot_item_z = self.ui.viewdata_pw.plotItem.plot(
+            plot_item_z = self.ui.plot_pw.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=penz)
@@ -133,9 +133,9 @@ class ViewProbeDialog(_QDialog):
         self.graphy.append(plot_item_y)
         self.graphz.append(plot_item_z)
 
-        self.ui.viewdata_pw.setLabel('bottom', 'Voltage [V]')
-        self.ui.viewdata_pw.setLabel('left', 'Magnetic Field [T]')
-        self.ui.viewdata_pw.showGrid(x=True, y=True)
+        self.ui.plot_pw.setLabel('bottom', 'Voltage [V]')
+        self.ui.plot_pw.setLabel('left', 'Magnetic Field [T]')
+        self.ui.plot_pw.showGrid(x=True, y=True)
 
     def load(self):
         """Load hall probe parameters."""
@@ -303,7 +303,7 @@ class ViewProbeDialog(_QDialog):
             voltage = _np.linspace(vmin, vmax, npts)
             empty_data = _np.ones(len(voltage))*_np.nan
 
-            self.ui.viewdata_pw.clear()
+            self.ui.plot_pw.clear()
             self.legend.removeItem('X')
             self.legend.removeItem('Y')
             self.legend.removeItem('Z')

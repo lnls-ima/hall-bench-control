@@ -101,7 +101,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>8</number>
        </property>
        <widget class="QWidget" name="connection_pg">
         <property name="geometry">
@@ -178,8 +178,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
-          <height>342</height>
+          <width>236</width>
+          <height>124</height>
          </rect>
         </property>
         <attribute name="label">
@@ -248,8 +248,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
-          <height>342</height>
+          <width>219</width>
+          <height>124</height>
          </rect>
         </property>
         <attribute name="label">
@@ -318,8 +318,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
-          <height>342</height>
+          <width>214</width>
+          <height>180</height>
          </rect>
         </property>
         <attribute name="label">
@@ -420,8 +420,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
-          <height>342</height>
+          <width>237</width>
+          <height>124</height>
          </rect>
         </property>
         <attribute name="label">
@@ -574,7 +574,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Delete Field Scan</string>
+            <string>Delete Voltage Scan</string>
            </property>
            <property name="icon">
             <iconset>
@@ -775,8 +775,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
-          <height>342</height>
+          <width>205</width>
+          <height>180</height>
          </rect>
         </property>
         <attribute name="label">

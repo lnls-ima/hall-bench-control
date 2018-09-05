@@ -982,6 +982,18 @@ class Fieldmap(_database.DatabaseObject):
         self._map = _map
 
 
+def get_field_data_list(voltage_data_list, hall_probe):
+    """Get field_data_list from voltage_data_list."""
+    field_data_list = []
+    grouped_voltage_data_list = _group_voltage_data_list(voltage_data_list)
+    for lt in grouped_voltage_data_list:
+        field_data = FieldData()
+        field_data.set_field_data(lt, hall_probe)
+        field_data.configuration_id = lt[0].configuration_id
+        field_data_list.append(field_data)
+    return field_data_list
+
+
 def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
     vector_array = _np.array(vector)
     center = _np.array(center)
@@ -1018,6 +1030,21 @@ def _get_avg_voltage(voltage_data_list):
 
     if not _valid_voltage_data_list(voltage_data_list):
         raise MeasurementDataError('Invalid voltage data list.')
+
+    fixed_axes = [a for a in voltage_data_list[0].axis_list
+                  if a != voltage_data_list[0].scan_axis]
+    for axis in fixed_axes:
+        pos_set = set()
+        for vd in voltage_data_list:
+            pos_attr = getattr(vd, 'pos' + str(axis))
+            if len(pos_attr) == 1:
+                pos_value = _np.around(
+                    pos_attr[0], decimals=_check_position_precision)
+                pos_set.add(pos_value)
+            else:
+                raise MeasurementDataError('Invalid voltage data list.')
+        if len(pos_set) != 1:
+            raise MeasurementDataError('Invalid voltage data list.')
 
     npts = voltage_data_list[0].npts
     scan_axis = voltage_data_list[0].scan_axis
@@ -1235,6 +1262,58 @@ def _get_transformation_matrix(axis_x, axis_y):
     return m
 
 
+def _group_voltage_data_list(voltage_data_list):
+    """Group voltage data list."""
+    if isinstance(voltage_data_list, VoltageData):
+        voltage_data_list = [voltage_data_list]
+
+    if not _valid_voltage_data_list(voltage_data_list):
+        raise MeasurementDataError('Invalid voltage data list.')
+
+    fixed_axes = [a for a in voltage_data_list[0].axis_list
+                  if a != voltage_data_list[0].scan_axis]
+    search_axis = []
+    for axis in fixed_axes:
+        pos_set = set()
+        for vd in voltage_data_list:
+            pos_attr = getattr(vd, 'pos' + str(axis))
+            if len(pos_attr) == 1:
+                pos_value = _np.around(
+                    pos_attr[0], decimals=_check_position_precision)
+                pos_set.add(pos_value)
+            else:
+                raise MeasurementDataError('Invalid voltage data list.')
+        if len(pos_set) != 1:
+            search_axis.append(axis)
+
+    if len(search_axis) > 1:
+        raise MeasurementDataError('Invalid voltage data list.')
+
+    elif len(search_axis) == 1:
+        search_axis = search_axis[0]
+        _dict = {}
+        for vd in voltage_data_list:
+            pos_attr = getattr(vd, 'pos' + str(search_axis))
+            pos_value = _np.around(
+                pos_attr[0], decimals=_check_position_precision)
+            if pos_value in _dict.keys():
+                _dict[pos_value].append(vd)
+            else:
+                _dict[pos_value] = [vd]
+        grouped_voltage_data_list = (_dict.values())
+
+    else:
+        grouped_voltage_data_list = [voltage_data_list]
+
+    for lt in grouped_voltage_data_list:
+        configuration_id = lt[0].configuration_id
+        if not all([vd.configuration_id == configuration_id for vd in lt]):
+            raise MeasurementDataError(
+                'Inconsistent configuration ID found in voltage data list.')
+
+    return grouped_voltage_data_list
+
+
 def _interpolate_data_frames(dfx, dfy, dfz, axis=0):
 
     def _interpolate_vec(x, pos):
@@ -1274,20 +1353,5 @@ def _valid_voltage_data_list(voltage_data_list):
     if not all([
             vd.npts == voltage_data_list[0].npts for vd in voltage_data_list]):
         return False
-
-    fixed_axes = [a for a in voltage_data_list[0].axis_list
-                  if a != voltage_data_list[0].scan_axis]
-    for axis in fixed_axes:
-        pos_set = set()
-        for vd in voltage_data_list:
-            pos_attr = getattr(vd, 'pos' + str(axis))
-            if len(pos_attr) == 1:
-                pos_value = _np.around(
-                    pos_attr[0], decimals=_check_position_precision)
-                pos_set.add(pos_value)
-            else:
-                return False
-        if len(pos_set) != 1:
-            return False
 
     return True

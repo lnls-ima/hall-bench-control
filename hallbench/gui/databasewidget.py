@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout as _QHBoxLayout,
     QSpinBox as _QSpinBox,
     QFileDialog as _QFileDialog,
+    QInputDialog as _QInputDialog,
     )
 
 from hallbench.gui.utils import getUiFile as _getUiFile
@@ -166,7 +167,10 @@ class DatabaseWidget(_QWidget):
                 self._voltage_scan_table_name, _VoltageData, True))
         self.ui.delete_voltage_scan_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._voltage_scan_table_name))
-        self.ui.clear_voltage_scan_btn.clicked.connect(self.clearRawDataTable)
+        self.ui.clear_voltage_scan_btn.clicked.connect(
+            self.clearRawDataTable)
+        self.ui.convert_to_field_scan_btn.clicked.connect(
+            self.convertToFieldScan)
 
         self.ui.view_field_scan_btn.clicked.connect(self.viewScan)
         self.ui.save_field_scan_btn.clicked.connect(
@@ -182,6 +186,62 @@ class DatabaseWidget(_QWidget):
         self.ui.delete_fieldmap_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._fieldmap_table_name))
 
+    def convertToFieldScan(self):
+        """Convert voltage scans to field scans."""
+        idns = self.getTableSelectedIDs(self._voltage_scan_table_name)
+        if len(idns) == 0:
+            return
+
+        voltage_scan_list = []
+        try:
+            for idn in idns:
+                vd = _VoltageData(database=self.database, idn=idn)
+                voltage_scan_list.append(vd)
+
+            valid, msg = consistentConfigurations(
+                self.database, voltage_scan_list, check_probe_name=False)
+            if not valid:
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return
+
+            probe_names = _HallProbe.get_table_column(
+                self.database, 'probe_name')
+
+            if len(probe_names) == 0:
+                msg = 'No Hall Probe found.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return
+
+            probe_name, ok = _QInputDialog.getItem(
+                self, "Hall Probe", "Select the Hall Probe:",
+                probe_names, 0, editable=False)
+
+            if not ok:
+                return
+
+            idn = _HallProbe.get_hall_probe_id(self.database, probe_name)
+            if idn is None:
+                msg = 'Hall probe data not found in database.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return
+
+            hall_probe = _HallProbe(database=self.database, idn=idn)
+            field_scan_list = _data.measurement.get_field_data_list(
+                voltage_scan_list, hall_probe)
+
+            idns = []
+            for field_scan in field_scan_list:
+                idn = field_scan.save_to_database(self.database)
+                idns.append(idn)
+
+            msg = 'Field scans saved in database.\nIDs: ' + str(idns)
+            _QMessageBox.information(
+                self, 'Information', msg, _QMessageBox.Ok)
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
     def createFieldmap(self):
         """Create fieldmap from field scan records."""
         self.fieldmap_dialog.accept()
@@ -189,45 +249,34 @@ class DatabaseWidget(_QWidget):
         if len(idns) == 0:
             return
 
-        field_data_list = []
-        configuration_ids = []
+        field_scan_list = []
         try:
             for idn in idns:
                 fd = _FieldData(database=self.database, idn=idn)
-                cid = _FieldData.get_configuration_id_from_database(
-                    self.database, idn)
-                field_data_list.append(fd)
-                configuration_ids.append(cid)
+                field_scan_list.append(fd)
 
-            if (any([c is None for c in configuration_ids]) or not all(
-                    [c == configuration_ids[0] for c in configuration_ids])):
-                msg = 'Invalid configuration ID list.'
-                _QMessageBox.critical(
-                    self, 'Failure', msg, _QMessageBox.Ok)
+            valid, msg = consistentConfigurations(
+                self.database, field_scan_list, check_probe_name=False)
+            if not valid:
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
             probe_name = _MeasurementConfig.get_probe_name_from_database(
-                self.database, configuration_ids[0])
+                self.database, field_scan_list[0].configuration_id)
 
             if probe_name is None or len(probe_name) == 0:
-                msg = 'Invalid hall probe.'
-                _QMessageBox.critical(
-                    self, 'Failure', msg, _QMessageBox.Ok)
+                msg = 'Invalid Hall probe.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
-            idn = _HallProbe.get_hall_probe_id(
-                self.database, probe_name)
+            idn = _HallProbe.get_hall_probe_id(self.database, probe_name)
             if idn is None:
                 msg = 'Hall probe data not found in database.'
-                _QMessageBox.critical(
-                    self, 'Failure', msg, _QMessageBox.Ok)
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
-            hall_probe = _HallProbe(
-                database=self.database, idn=idn)
-
-            self.fieldmap_dialog.show(
-                field_data_list, hall_probe, idns)
+            hall_probe = _HallProbe(database=self.database, idn=idn)
+            self.fieldmap_dialog.show(field_scan_list, hall_probe, idns)
 
         except Exception as e:
             _QMessageBox.critical(
@@ -714,3 +763,39 @@ class DatabaseTable(_QTableWidget):
                 selected_ids.append(idn)
 
         return selected_ids
+
+
+def consistentConfigurations(database, scan_list, check_probe_name=True):
+    """Check scan list configuration."""
+    configurations = []
+    for scan in scan_list:
+        idn = scan.configuration_id
+        if idn is None:
+            return (False, 'Invalid configuration ID found in scan list.')
+
+        config = _MeasurementConfig(database=database, idn=idn)
+        configurations.append(config)
+
+    attr_to_check = [
+        'magnet_name',
+        'main_current',
+        'voltx_enable',
+        'volty_enable',
+        'voltz_enable',
+        'voltage_precision',
+        'nr_measurements',
+        'integration_time',
+        'first_axis',
+        'second_axis',
+    ]
+
+    if check_probe_name:
+        attr_to_check.append('probe_name')
+
+    for att_name in attr_to_check:
+        value = getattr(configurations[0], att_name)
+        if not all([getattr(c, att_name) == value for c in configurations]):
+            msg = 'Inconsistent %s value found in scan list.' % att_name
+            return (False, msg)
+
+    return (True, '')

@@ -385,7 +385,7 @@ class DatabaseObject(object):
             return None
 
         if hasattr(self, '_timestamp') and self._timestamp is not None:
-            timestamp = self._timestamp
+            timestamp = self._timestamp.split('_')
         else:
             timestamp = _utils.get_timestamp().split('_')
 

@@ -292,7 +292,7 @@ class TestHallSensor(TestCase):
 
         voltage = np.linspace(-15, 15, 101)
         field = calibration._old_hall_sensor_calibration(voltage)
-        field_polynomial = c.convert_voltage(voltage)
+        field_polynomial = c.get_field(voltage)
         np.testing.assert_array_equal(field, field_polynomial)
 
     def test_conversion_interpolation(self):
@@ -302,7 +302,7 @@ class TestHallSensor(TestCase):
 
         voltage = np.linspace(-20, -11, 100)
         field = calibration._old_hall_sensor_calibration(voltage)
-        field_interpolation = c.convert_voltage(voltage)
+        field_interpolation = c.get_field(voltage)
         np.testing.assert_array_almost_equal(
             field, field_interpolation, decimal=2)
 

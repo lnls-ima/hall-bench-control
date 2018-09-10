@@ -3,6 +3,7 @@
 """View probe dialog for the Hall Bench Control application."""
 
 import numpy as _np
+import json as _json
 import warnings as _warnings
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
@@ -141,60 +142,52 @@ class ViewProbeDialog(_QDialog):
         """Load hall probe parameters."""
         try:
             self.ui.probe_name_le.setText(self.local_hall_probe.probe_name)
-            self.ui.sensorx_name_le.setText(
-                self.local_hall_probe.sensorx_name)
-            self.ui.sensory_name_le.setText(
-                self.local_hall_probe.sensory_name)
-            self.ui.sensorz_name_le.setText(
-                self.local_hall_probe.sensorz_name)
+            self.ui.rod_shape_le.setText(self.local_hall_probe.rod_shape)
 
-            probe_axis = self.local_hall_probe.probe_axis
-            if probe_axis in self._axis_str_dict.keys():
-                self.ui.probe_axis_le.setText(self._axis_str_dict[probe_axis])
-                self.ui.probe_axis_le.setEnabled(True)
+            if self.local_hall_probe.sensorx_name is not None:
+                sensorx_name = self.local_hall_probe.sensorx_name
+                sensorx_position = _json.dumps(
+                    self.local_hall_probe.sensorx_position.tolist())
+                sensorx_direction = _json.dumps(
+                    self.local_hall_probe.sensorx_direction.tolist())
             else:
-                self.ui.probe_axis_le.setText('')
-                self.ui.probe_axis_le.setEnabled(False)
+                sensorx_name = ''
+                sensorx_position = ''
+                sensorx_direction = ''
 
-            distance_xy = self.local_hall_probe.distance_xy
-            if distance_xy is not None:
-                self.ui.distance_xy_le.setText('{0:0.4f}'.format(distance_xy))
-                self.ui.distance_xy_le.setEnabled(True)
+            if self.local_hall_probe.sensory_name is not None:
+                sensory_name = self.local_hall_probe.sensory_name
+                sensory_position = _json.dumps(
+                    self.local_hall_probe.sensory_position.tolist())
+                sensory_direction = _json.dumps(
+                    self.local_hall_probe.sensory_direction.tolist())
             else:
-                self.ui.distance_xy_le.setText('')
-                self.ui.distance_xy_le.setEnabled(False)
+                sensory_name = ''
+                sensory_position = ''
+                sensory_direction = ''
 
-            distance_zy = self.local_hall_probe.distance_zy
-            if distance_zy is not None:
-                self.ui.distance_zy_le.setText('{0:0.4f}'.format(distance_zy))
-                self.ui.distance_zy_le.setEnabled(True)
+            if self.local_hall_probe.sensorz_name is not None:
+                sensorz_name = self.local_hall_probe.sensorz_name
+                sensorz_position = _json.dumps(
+                    self.local_hall_probe.sensorz_position.tolist())
+                sensorz_direction = _json.dumps(
+                    self.local_hall_probe.sensorz_direction.tolist())
             else:
-                self.ui.distance_zy_le.setText('')
-                self.ui.distance_zy_le.setEnabled(False)
+                sensorz_name = ''
+                sensorz_position = ''
+                sensorz_direction = ''
 
-            angle_xy = self.local_hall_probe.angle_xy
-            if angle_xy is not None:
-                self.ui.angle_xy_le.setText('{0:0.4f}'.format(angle_xy))
-                self.ui.angle_xy_le.setEnabled(True)
-            else:
-                self.ui.angle_xy_le.setText('')
-                self.ui.angle_xy_le.setEnabled(False)
+            self.ui.sensorx_name_le.setText(sensorx_name)
+            self.ui.sensorx_position_le.setText(sensorx_position)
+            self.ui.sensorx_direction_le.setText(sensorx_direction)
 
-            angle_yz = self.local_hall_probe.angle_yz
-            if angle_yz is not None:
-                self.ui.angle_yz_le.setText('{0:0.4f}'.format(angle_yz))
-                self.ui.angle_yz_le.setEnabled(True)
-            else:
-                self.ui.angle_yz_le.setText('')
-                self.ui.angle_yz_le.setEnabled(False)
+            self.ui.sensory_name_le.setText(sensory_name)
+            self.ui.sensory_position_le.setText(sensory_position)
+            self.ui.sensory_direction_le.setText(sensory_direction)
 
-            angle_xz = self.local_hall_probe.angle_xz
-            if angle_xz is not None:
-                self.ui.angle_xz_le.setText('{0:0.4f}'.format(angle_xz))
-                self.ui.angle_xz_le.setEnabled(True)
-            else:
-                self.ui.angle_xz_le.setText('')
-                self.ui.angle_xz_le.setEnabled(False)
+            self.ui.sensorz_name_le.setText(sensorz_name)
+            self.ui.sensorz_position_le.setText(sensorz_position)
+            self.ui.sensorz_direction_le.setText(sensorz_direction)
 
             self.setDataEnabled(True)
             self.updateGraph()
@@ -268,17 +261,17 @@ class ViewProbeDialog(_QDialog):
             volt = [self.ui.voltage_sb.value()]
 
             if self.local_hall_probe.sensorx is not None:
-                fieldx = self.local_hall_probe.sensorx.convert_voltage(volt)[0]
+                fieldx = self.local_hall_probe.sensorx.get_field(volt)[0]
             else:
                 fieldx = _np.nan
 
             if self.local_hall_probe.sensory is not None:
-                fieldy = self.local_hall_probe.sensory.convert_voltage(volt)[0]
+                fieldy = self.local_hall_probe.sensory.get_field(volt)[0]
             else:
                 fieldy = _np.nan
 
             if self.local_hall_probe.sensorz is not None:
-                fieldz = self.local_hall_probe.sensorz.convert_voltage(volt)[0]
+                fieldz = self.local_hall_probe.sensorz.get_field(volt)[0]
             else:
                 fieldz = _np.nan
 
@@ -312,17 +305,17 @@ class ViewProbeDialog(_QDialog):
                 return
 
             if self.local_hall_probe.sensorx is not None:
-                fieldx = self.local_hall_probe.sensorx.convert_voltage(voltage)
+                fieldx = self.local_hall_probe.sensorx.get_field(voltage)
             else:
                 fieldx = empty_data
 
             if self.local_hall_probe.sensory is not None:
-                fieldy = self.local_hall_probe.sensory.convert_voltage(voltage)
+                fieldy = self.local_hall_probe.sensory.get_field(voltage)
             else:
                 fieldy = empty_data
 
             if self.local_hall_probe.sensorz is not None:
-                fieldz = self.local_hall_probe.sensorz.convert_voltage(voltage)
+                fieldz = self.local_hall_probe.sensorz.get_field(voltage)
             else:
                 fieldz = empty_data
 

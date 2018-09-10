@@ -279,7 +279,7 @@ class TestFunctions(TestCase):
 
     def test_get_fieldmap_position_and_field_values(self):
         voltage = [1, 2, 3, 4]
-        field = self.pc.sensorx.convert_voltage(voltage)
+        field = self.pc.sensorx.get_field(voltage)
         np.testing.assert_array_almost_equal(field, voltage)
 
 
@@ -1176,7 +1176,7 @@ class TestFunctions(TestCase):
 #         v1.sensorx = interpolate.splev(p, f1, der=0)
 #         v2.sensorx = interpolate.splev(p, f2, der=0)
 #         vx = (v1.sensorx + v2.sensorx)/2
-#         fx = self.hall_probe.sensorx.convert_voltage(vx)
+#         fx = self.hall_probe.sensorx.get_field(vx)
 #         d.hall_probe = self.hall_probe
 #         d.voltage_scan_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, p)
@@ -1600,7 +1600,7 @@ class TestFunctions(TestCase):
 #         v1.sensorx = interpolate.splev(p, f1, der=0)
 #         v2.sensorx = interpolate.splev(p, f2, der=0)
 #         vx = (v1.sensorx + v2.sensorx)/2
-#         fx = self.hall_probe.sensorx.convert_voltage(vx).reshape(5, -1)
+#         fx = self.hall_probe.sensorx.get_field(vx).reshape(5, -1)
 #         d.hall_probe = self.hall_probe
 #         d.voltage_scan_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, p)

@@ -56,7 +56,7 @@ class Scan(_database.DatabaseObject):
         self._magnet_name = None
         self._main_current = None
         self._timestamp = None
-        self.configuration_id = None
+        self._configuration_id = None
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
         self._pos3 = _np.array([])
@@ -90,6 +90,7 @@ class Scan(_database.DatabaseObject):
         r += fmtstr.format('main_current[A]', str(self.main_current))
         r += fmtstr.format('timestamp', str(self._timestamp))
         r += fmtstr.format('scan_axis', str(self.scan_axis))
+        r += fmtstr.format('npts', str(self.npts))
         r += fmtstr.format('pos1[mm]', str(self._pos1))
         r += fmtstr.format('pos2[mm]', str(self._pos2))
         r += fmtstr.format('pos3[mm]', str(self._pos3))
@@ -136,6 +137,20 @@ class Scan(_database.DatabaseObject):
             if len(value) == 0 or value == _empty_str:
                 value = None
         self._main_current = value
+
+    @property
+    def configuration_id(self):
+        """Return the measurement configuration ID."""
+        return self._configuration_id
+
+    @configuration_id.setter
+    def configuration_id(self, value):
+        if value is None:
+            self._configuration_id = value
+        elif isinstance(value, int):
+            self._configuration_id = value
+        else:
+            raise MeasurementDataError('Invalid value for configuration_id.')
 
     @property
     def timestamp(self):
@@ -279,7 +294,7 @@ class Scan(_database.DatabaseObject):
         self._magnet_name = None
         self._main_current = None
         self._timestamp = None
-        self.configuration_id = None
+        self._configuration_id = None
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
                 self.__dict__[key] = _np.array([])
@@ -617,13 +632,13 @@ class FieldScan(Scan):
             pos = getattr(vs, 'pos' + str(axis))
             setattr(self, '_pos' + str(axis), pos)
 
-        bx_avg = hall_probe.sensorx.convert_voltage(vs.avgx)
-        by_avg = hall_probe.sensory.convert_voltage(vs.avgy)
-        bz_avg = hall_probe.sensorz.convert_voltage(vs.avgz)
+        bx_avg = hall_probe.sensorx.get_field(vs.avgx)
+        by_avg = hall_probe.sensory.get_field(vs.avgy)
+        bz_avg = hall_probe.sensorz.get_field(vs.avgz)
 
-        bx_std = hall_probe.sensorx.convert_voltage(vs.stdx)
-        by_std = hall_probe.sensory.convert_voltage(vs.stdy)
-        bz_std = hall_probe.sensorz.convert_voltage(vs.stdz)
+        bx_std = hall_probe.sensorx.get_field(vs.stdx)
+        by_std = hall_probe.sensory.get_field(vs.stdy)
+        bz_std = hall_probe.sensorz.get_field(vs.stdz)
 
         self._avgx = bx_avg
         self._avgy = by_avg
@@ -921,14 +936,14 @@ class Fieldmap(_database.DatabaseObject):
 
     def set_fieldmap_data(
             self, field_scan_list, hall_probe,
-            correct_displacements, magnet_center,
+            correct_positions, magnet_center,
             magnet_x_axis, magnet_y_axis):
         """Set fieldmap from list of FieldScan objects.
 
         Args:
             field_scan_list (list): list of FieldScan objects.
             hall_probe (HallProbe): hall probe data.
-            correct_displacements (bool): correct sensor displacements flag.
+            correct_positions (bool): correct sensor displacements flag.
             magnet_center (list): magnet center position.
             magnet_x_axis (int): magnet x-axis direction.
                                  [3, -3, 2, -2, 1 or -1]
@@ -939,41 +954,14 @@ class Fieldmap(_database.DatabaseObject):
             raise TypeError(
                 'hall_probe must be a HallProbe object.')
 
-        _r = _get_fieldmap_position_and_field_values(
-            field_scan_list, hall_probe, correct_displacements)
-        pos1, pos2, pos3 = _r[0], _r[1], _r[2]
-        field1, field2, field3 = _r[3], _r[4], _r[5]
-        first_axis, second_axis = _r[6], _r[7]
-
-        def _get_field_at_point(pos):
-            pos = _np.around(pos, decimals=_position_precision)
-            p1, p2, p3 = pos[2], pos[1], pos[0]
-            if (p1 not in pos1 or p2 not in pos2 or p3 not in pos3):
-                return [_np.nan, _np.nan, _np.nan]
-
-            psorted = [p1, p2, p3]
-            loc_idx = psorted[first_axis-1]
-            if second_axis is not None:
-                loc_col = psorted[second_axis-1]
-            else:
-                loc_col = 0
-            b3 = field3.loc[loc_idx, loc_col]
-            b2 = field2.loc[loc_idx, loc_col]
-            b1 = field1.loc[loc_idx, loc_col]
-            return [b3, b2, b1]
-
         tm = _get_transformation_matrix(magnet_x_axis, magnet_y_axis)
-
-        _map = []
-        for p1 in pos1:
-            for p2 in pos2:
-                for p3 in pos3:
-                    p = [p3, p2, p1]
-                    b = _get_field_at_point(p)
-                    tp = _change_coordinate_system(p, tm, magnet_center)
-                    tb = _change_coordinate_system(b, tm)
-                    _map.append(_np.append(tp, tb))
-        _map = _np.array(_map)
+        _map = _get_fieldmap(field_scan_list, hall_probe, correct_positions)
+        for i in range(len(_map)):
+            p = _map[i, :3]
+            b = _map[i, 3:]
+            tp = _change_coordinate_system(p, tm, magnet_center)
+            tb = _change_coordinate_system(b, tm)
+            _map[i] = _np.append(tp, tb)
         _map = _np.array(sorted(_map, key=lambda x: (x[2], x[1], x[0])))
 
         self._magnet_center = magnet_center
@@ -1003,26 +991,25 @@ def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
     return transf_vector
 
 
-def _cut_data_frames(dfx, dfy, dfz, nbeg, nend, axis=0):
-    if axis == 1:
-        if nbeg > 0:
-            dfx = dfx.drop(dfx.columns[:nbeg], axis=axis)
-            dfy = dfy.drop(dfy.columns[:nbeg], axis=axis)
-            dfz = dfz.drop(dfz.columns[:nbeg], axis=axis)
-        if nend > 0:
-            dfx = dfx.drop(dfx.columns[-nend:], axis=axis)
-            dfy = dfy.drop(dfy.columns[-nend:], axis=axis)
-            dfz = dfz.drop(dfz.columns[-nend:], axis=axis)
+def _cut_data_frame(df, idx_min, idx_max, axis=0):
+    df = df.drop(df.columns[:idx_min], axis=axis)
+    df = df.drop(df.columns[idx_max:], axis=axis)
+    return df
+
+
+def _interpolate_data_frame(df, pos, axis=0):
+
+    def _interpolate_vec(x, pos):
+        f = _interpolate.splrep(x.index, x.values, s=0, k=1)
+        return _interpolate.splev(pos, f, der=0)
+
+    interp_df = df.apply(_interpolate_vec, axis=axis, args=[pos])
+    if axis == 0:
+        interp_df.index = pos
     else:
-        if nbeg > 0:
-            dfx = dfx.drop(dfx.index[:nbeg])
-            dfy = dfy.drop(dfy.index[:nbeg])
-            dfz = dfz.drop(dfz.index[:nbeg])
-        if nend > 0:
-            dfx = dfx.drop(dfx.index[-nend:])
-            dfy = dfy.drop(dfy.index[-nend:])
-            dfz = dfz.drop(dfz.index[-nend:])
-    return dfx, dfy, dfz
+        interp_df.columns = pos
+
+    return interp_df
 
 
 def _get_avg_voltage(voltage_scan_list):
@@ -1090,99 +1077,219 @@ def _get_avg_voltage(voltage_scan_list):
     return voltage
 
 
-def _get_fieldmap_position_and_field_values(
-        field_scan_list, hall_probe, correct_displacements):
+def _get_axis_vector(axis):
+    if axis == 1:
+        return _np.array([0, 0, 1])
+    elif axis == 2:
+        return _np.array([0, 1, 0])
+    elif axis == 3:
+        return _np.array([1, 0, 0])
+    else:
+        return None
+
+
+def _get_data_frame_limits(values, fieldx, fieldy, fieldz, axis=0):
+    if axis == 0:
+        lim_min = _np.max([
+            fieldx.index.min(), fieldy.index.min(), fieldz.index.min()])
+
+        lim_max = _np.min([
+            fieldx.index.max(), fieldy.index.max(), fieldz.index.max()])
+    else:
+        lim_min = _np.max([
+            fieldx.columns.min(), fieldy.columns.min(), fieldz.columns.min()])
+
+        lim_max = _np.min([
+            fieldx.columns.max(), fieldy.columns.max(), fieldz.columns.max()])
+
+    try:
+        idx_min = _np.where(values >= lim_min)[0][0]
+        idx_max = _np.where(values <= lim_max)[0][-1]
+        return (idx_min, idx_max)
+    except Exception:
+        return None
+
+
+def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
     if isinstance(field_scan_list, FieldScan):
         field_scan_list = [field_scan_list]
 
+    # get fieldmap axes
     axes = _get_fieldmap_axes(field_scan_list)
-    if len(axes) == 0:
-        raise MeasurementDataError('Invalid field scan list.')
-    elif len(axes) == 1:
-        first_axis = axes[0]
-        second_axis = None
-    else:
-        first_axis = axes[0]
-        second_axis = axes[1]
+    if axes is None:
+        raise Exception('Invalid field scan list.')
+    first_axis, second_axis, third_axis = axes
+    first_axis_direction = _get_axis_vector(first_axis)
+    second_axis_direction = _get_axis_vector(second_axis)
+    third_axis_direction = _get_axis_vector(third_axis)
 
+    # get displacement of each sensor
+    px_disp = hall_probe.to_bench_coordinate_system(
+        hall_probe.sensorx_position)
+    py_disp = hall_probe.to_bench_coordinate_system(
+        hall_probe.sensory_position)
+    pz_disp = hall_probe.to_bench_coordinate_system(
+        hall_probe.sensorz_position)
+
+    # get interpolation direction
+    p_disp = [px_disp, py_disp, pz_disp]
+    nonzero_norm = _np.nonzero([_utils.vector_norm(pd) for pd in p_disp])[0]
+    if len(nonzero_norm) != 0:
+        interp_direction = _utils.normalized_vector(p_disp[nonzero_norm[0]])
+    else:
+        interp_direction = None
+
+    # create data frames with field values
     dfx = []
     dfy = []
     dfz = []
+    third_axis_pos = set()
     for fs in field_scan_list:
-        index = getattr(fs, 'pos' + str(first_axis))
-        if second_axis is not None:
-            columns = getattr(fs, 'pos' + str(second_axis))
-        else:
-            columns = [0]
-
-        index = _pd.Index(index, float)
-        columns = _pd.Index(columns, float)
-
+        index = _pd.Index(getattr(fs, 'pos' + str(first_axis)), float)
+        columns = _pd.Index(getattr(fs, 'pos' + str(second_axis)), float)
+        third_axis_pos.update(getattr(fs, 'pos' + str(third_axis)))
         dfx.append(_pd.DataFrame(
             fs.avgx, index=index, columns=columns))
         dfy.append(_pd.DataFrame(
             fs.avgy, index=index, columns=columns))
         dfz.append(_pd.DataFrame(
             fs.avgz, index=index, columns=columns))
-
     fieldx = _pd.concat(dfx, axis=1)
     fieldy = _pd.concat(dfy, axis=1)
     fieldz = _pd.concat(dfz, axis=1)
 
-    if correct_displacements:
-        # shift field scan
-        fieldx.index = hall_probe.corrected_position(
-            first_axis, fieldx.index, 'x')
-        fieldz.index = hall_probe.corrected_position(
-            first_axis, fieldz.index, 'z')
+    if len(third_axis_pos) == 1:
+        third_axis_pos = list(third_axis_pos)[0]
+    else:
+        raise Exception('Invalid field scan list.')
 
-        nbeg, nend = _get_number_of_cuts(
-            fieldx.index, fieldy.index, fieldz.index)
+    # correct sensors positions and interpolate magnetic field
+    if interp_direction is not None and correct_positions:
+        index = fieldx.index
+        columns = fieldx.columns
 
-        # interpolate field scan
-        fieldx, fieldy, fieldz = _interpolate_data_frames(
-            fieldx, fieldy, fieldz, axis=0)
+        # correct first axis positions
+        fieldx.index = index + _np.dot(first_axis_direction, px_disp)
+        fieldy.index = index + _np.dot(first_axis_direction, py_disp)
+        fieldz.index = index + _np.dot(first_axis_direction, pz_disp)
 
-        # cut field scan
-        fieldx, fieldy, fieldz = _cut_data_frames(
-            fieldx, fieldy, fieldz, nbeg, nend)
+        # correct second axis positions
+        fieldx.columns = columns + _np.dot(second_axis_direction, px_disp)
+        fieldy.columns = columns + _np.dot(second_axis_direction, py_disp)
+        fieldz.columns = columns + _np.dot(second_axis_direction, pz_disp)
 
-        if second_axis is not None:
-            # shift field scan
-            fieldx.columns = hall_probe.corrected_position(
-                second_axis, fieldx.columns, 'x')
-            fieldz.columns = hall_probe.corrected_position(
-                second_axis, fieldz.columns, 'z')
+        # correct third axis positions
+        ptx = third_axis_pos + _np.dot(third_axis_direction, px_disp)
+        pty = third_axis_pos + _np.dot(third_axis_direction, py_disp)
+        ptz = third_axis_pos + _np.dot(third_axis_direction, pz_disp)
+        if ptx == pty and ptx == ptz:
+            third_axis_pos = ptx
+        else:
+            raise Exception("Can\'t correct sensors positions.")
 
-            nbeg, nend = _get_number_of_cuts(
-                fieldx.columns, fieldy.columns, fieldz.columns)
+        if _utils.parallel_vectors(interp_direction, first_axis_direction):
+            axis = 0
+            interpolation_grid = index
+            if not (
+                _np.array_equal(fieldx.columns.values, fieldy.columns.values)
+                    and _np.array_equal(
+                        fieldx.columns.values, fieldz.columns.values)):
+                raise Exception("Can\'t correct sensors positions.")
 
-            # interpolate field scan
-            fieldx, fieldy, fieldz = _interpolate_data_frames(
-                fieldx, fieldy, fieldz, axis=1)
+        elif _utils.parallel_vectors(interp_direction, second_axis_direction):
+            axis = 1
+            interpolation_grid = columns
+            if not (
+                _np.array_equal(fieldx.index.values, fieldy.index.values)
+                    and _np.array_equal(
+                        fieldx.index.values, fieldz.index.values)):
+                raise Exception("Can\'t correct sensors positions.")
 
-            # cut field scan
-            fieldx, fieldy, fieldz = _cut_data_frames(
-                fieldx, fieldy, fieldz, nbeg, nend, axis=1)
+        else:
+            raise Exception("Can\'t correct sensors positions.")
 
-    # update position values
-    pos_dict = _get_fieldmap_position_dict(field_scan_list)
-    index = fieldy.index
-    columns = fieldy.columns
-    pos_sorted = [pos_dict[1], pos_dict[2], pos_dict[3]]
-    pos_sorted[first_axis - 1] = index.values
+        limits = _get_data_frame_limits(
+            interpolation_grid.values, fieldx, fieldx, fieldx, axis=axis)
+        if limits is None:
+            raise Exception('Insufficient range to correct sensors positions.')
+
+        # interpolate field and cut data frames
+        idx_min, idx_max = limits
+        fieldx = _interpolate_data_frame(fieldx, interpolation_grid, axis=axis)
+        fieldy = _interpolate_data_frame(fieldy, interpolation_grid, axis=axis)
+        fieldz = _interpolate_data_frame(fieldz, interpolation_grid, axis=axis)
+        fieldx = _cut_data_frame(fieldx, idx_min, idx_max, axis=axis)
+        fieldy = _cut_data_frame(fieldy, idx_min, idx_max, axis=axis)
+        fieldz = _cut_data_frame(fieldz, idx_min, idx_max, axis=axis)
+
+    # get direction of each sensor
+    bx_dir = _np.array(hall_probe.sensorx_direction)
+    by_dir = _np.array(hall_probe.sensory_direction)
+    bz_dir = _np.array(hall_probe.sensorz_direction)
+
+    # create fieldmap
+    index = fieldx.index
+    columns = fieldx.columns
+    fieldmap = []
+    for i in range(fieldx.shape[0]):
+        for j in range(fieldx.shape[1]):
+            pos = (
+                first_axis_direction*index[i] +
+                second_axis_direction*columns[j] +
+                third_axis_direction*third_axis_pos)
+            bx = bx_dir*fieldx.iloc[i, j]
+            by = by_dir*fieldy.iloc[i, j]
+            bz = bz_dir*fieldz.iloc[i, j]
+            b = bx + by + bz
+            field = hall_probe.to_bench_coordinate_system(b)
+            fieldmap.append(_np.append(pos, field))
+    fieldmap = _np.array(fieldmap)
+    fieldmap = _np.array(sorted(fieldmap, key=lambda x: (x[2], x[1], x[0])))
+
+    return fieldmap
+
+
+def _get_fieldmap_axes(field_scan_list):
+    if not _valid_field_scan_list(field_scan_list):
+        return None
+
+    fieldmap_axes = [1, 2, 3]
+
+    _dict = _get_fieldmap_position_dict(field_scan_list)
+    first_axis = field_scan_list[0].scan_axis
+    if first_axis not in fieldmap_axes:
+        return None
+
+    second_axis_list = []
+    for key, value in _dict.items():
+        if key != first_axis and len(value) > 1:
+            second_axis_list.append(key)
+
+    second_axis = second_axis_list[0] if len(second_axis_list) == 1 else None
+    second_axis_pos = []
+
     if second_axis is not None:
-        pos_sorted[second_axis - 1] = columns.values
+        for fs in field_scan_list:
+            pos = getattr(fs, 'pos' + str(second_axis))
+            second_axis_pos.append(pos)
+    else:
+        if len(field_scan_list) > 1:
+            return None
 
-    pos3 = _np.array(pos_sorted[2])  # x-axis
-    pos2 = _np.array(pos_sorted[1])  # y-axis
-    pos1 = _np.array(pos_sorted[0])  # z-axis
+    if len(second_axis_pos) != len(_np.unique(second_axis_pos)):
+        return None
 
-    field3, field2, field1 = (
-        hall_probe.field_in_bench_coordinate_system(
-            fieldx, fieldy, fieldz))
+    fixed_axes = [ax for ax in fieldmap_axes]
 
-    return [pos1, pos2, pos3, field1, field2, field3, first_axis, second_axis]
+    fixed_axes.remove(first_axis)
+    if second_axis is None:
+        second_axis = fixed_axes[0]
+        third_axis = fixed_axes[1]
+    else:
+        fixed_axes.remove(second_axis)
+        third_axis = fixed_axes[0]
+
+    return (first_axis, second_axis, third_axis)
 
 
 def _get_fieldmap_position_dict(field_scan_list):
@@ -1195,52 +1302,6 @@ def _get_fieldmap_position_dict(field_scan_list):
             pos.update(p)
         _dict[axis] = sorted(list(pos))
     return _dict
-
-
-def _get_fieldmap_axes(field_scan_list):
-    if (len(field_scan_list) == 0
-       or not all([isinstance(fs, FieldScan) for fs in field_scan_list])):
-        return []
-
-    if any([fs.scan_axis is None or fs.npts == 0 for fs in field_scan_list]):
-        return []
-
-    if not all([fs.scan_axis == field_scan_list[0].scan_axis
-                for fs in field_scan_list]):
-        return []
-
-    _dict = _get_fieldmap_position_dict(field_scan_list)
-    first_axis = field_scan_list[0].scan_axis
-
-    axes = [first_axis]
-
-    second_axis_list = []
-    for key, value in _dict.items():
-        if key != first_axis and len(value) > 1:
-            second_axis_list.append(key)
-
-    second_axis = second_axis_list[0] if len(second_axis_list) == 1 else None
-    second_axis_pos = []
-
-    if second_axis is not None:
-        axes.append(second_axis)
-        for fs in field_scan_list:
-            pos = getattr(fs, 'pos' + str(second_axis))
-            second_axis_pos.append(pos)
-    else:
-        if len(field_scan_list) > 1:
-            return []
-
-    if len(second_axis_pos) != len(_np.unique(second_axis_pos)):
-        return []
-
-    return axes
-
-
-def _get_number_of_cuts(px, py, pz):
-    nbeg = max(len(_np.where(px < py[0])[0]), len(_np.where(pz < py[0])[0]))
-    nend = max(len(_np.where(px > py[-1])[0]), len(_np.where(pz > py[-1])[0]))
-    return nbeg, nend
 
 
 def _get_transformation_matrix(axis_x, axis_y):
@@ -1326,26 +1387,20 @@ def _group_voltage_scan_list(voltage_scan_list):
     return grouped_voltage_scan_list
 
 
-def _interpolate_data_frames(dfx, dfy, dfz, axis=0):
+def _valid_field_scan_list(field_scan_list):
+    if (len(field_scan_list) == 0
+       or not all([
+            isinstance(fs, FieldScan) for fs in field_scan_list])):
+        return False
 
-    def _interpolate_vec(x, pos):
-        f = _interpolate.splrep(x.index, x.values, s=0, k=1)
-        return _interpolate.splev(pos, f, der=0)
+    if any([fs.scan_axis is None or fs.npts == 0 for fs in field_scan_list]):
+        return False
 
-    if axis == 1:
-        pos = dfy.columns
-        interp_dfx = dfx.apply(_interpolate_vec, axis=axis, args=[pos])
-        interp_dfz = dfz.apply(_interpolate_vec, axis=axis, args=[pos])
-        interp_dfx.columns = pos
-        interp_dfz.columns = pos
-    else:
-        pos = dfy.index
-        interp_dfx = dfx.apply(_interpolate_vec, args=[pos])
-        interp_dfz = dfz.apply(_interpolate_vec, args=[pos])
-        interp_dfx.index = pos
-        interp_dfz.index = pos
+    if not all([fs.scan_axis == field_scan_list[0].scan_axis
+                for fs in field_scan_list]):
+        return False
 
-    return interp_dfx, dfy, interp_dfz
+    return True
 
 
 def _valid_voltage_scan_list(voltage_scan_list):

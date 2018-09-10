@@ -3,11 +3,15 @@
 """Implementation of functions to handle database records."""
 
 import os as _os
+import numpy as _np
 import sqlite3 as _sqlite
 import json as _json
 
 from hallbench import __version__
 from . import utils as _utils
+
+
+_empty_str = '--'
 
 
 class DatabaseError(Exception):
@@ -372,6 +376,10 @@ class DatabaseObject(object):
         if table is None:
             table = self._db_table
 
+        def myconverter(o):
+            if isinstance(o, _np.float32):
+                return float(o)
+
         if len(table) == 0:
             return
 
@@ -408,7 +416,7 @@ class DatabaseObject(object):
                     values.append(locals()[key])
                 elif attr_name in self._db_json_str:
                     val = getattr(self, attr_name)
-                    if not isinstance(val, list):
+                    if isinstance(val, _np.ndarray):
                         val = val.tolist()
                     values.append(_json.dumps(val))
                 else:
@@ -445,12 +453,13 @@ class DatabaseObject(object):
         """Update a table entry from database.
 
         Args:
-                database (str): full file path to database.
-                idn (int): entry id.
-                table (str, optional): database table name.
-        Returns:
-                True if update was sucessful.
-                False if update failed.
+            database (str): full file path to database.
+            idn (int): entry id.
+            table (str, optional): database table name.
+
+        Return:
+            True if update was sucessful.
+            False if update failed.
         """
         if table is None:
             table = self._db_table
@@ -499,7 +508,7 @@ class DatabaseObject(object):
                     values.append(_json.dumps(val))
                 else:
                     values.append(getattr(self, attr_name))
-        #strips last ', ' from updates
+        # strips last ', ' from updates
         updates = updates[:-2]
 
         try:
@@ -516,7 +525,6 @@ class DatabaseObject(object):
 
         except Exception:
             con.close()
-            raise
-#             message = ('Could not update {0} entry.'.format(table))
-#             raise DatabaseError(message)
-#             return False
+            message = ('Could not update {0} entry.'.format(table))
+            raise DatabaseError(message)
+            return False

@@ -8,7 +8,6 @@ Created on 10/02/2015
 import visa as _visa
 import time as _time
 import logging as _logging
-import numpy as _np
 import struct as _struct
 import threading as _threading
 

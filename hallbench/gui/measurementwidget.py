@@ -441,9 +441,20 @@ class MeasurementWidget(_QWidget):
         Args:
             idx (int): index of the plot to update.
         """
-        voltagex = [v for v in self.threadx.voltage]
-        voltagey = [v for v in self.thready.voltage]
-        voltagez = [v for v in self.threadz.voltage]
+        if self.threadx is not None:
+            voltagex = [v for v in self.threadx.voltage]
+        else:
+            voltagex = []
+            
+        if self.thready is not None:
+            voltagey = [v for v in self.thready.voltage]
+        else:
+            voltagey = []
+        
+        if self.threadz is not None:
+            voltagez = [v for v in self.threadz.voltage]
+        else:
+            voltagez = []
 
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
@@ -617,9 +628,12 @@ class MeasurementWidget(_QWidget):
 
             self.stopTrigger()
             self.waitReadingThreads()
-            self.voltage_scan.avgx = self.threadx.voltage
-            self.voltage_scan.avgy = self.thready.voltage
-            self.voltage_scan.avgz = self.threadz.voltage
+            self.voltage_scan.avgx = (
+                self.threadx.voltage if self.threadx is not None else [])
+            self.voltage_scan.avgy = (
+                self.thready.voltage if self.thready is not None else [])
+            self.voltage_scan.avgz = (
+                self.threadz.voltage if self.threadz is not None else [])
 
             if self.stop is True:
                 return False
@@ -687,9 +701,12 @@ class MeasurementWidget(_QWidget):
     def stopTrigger(self):
         """Stop trigger."""
         self.devices.pmac.stop_trigger()
-        self.threadx.end_measurement = True
-        self.thready.end_measurement = True
-        self.threadz.end_measurement = True
+        if self.threadx is not None:
+            self.threadx.end_measurement = True
+        if self.thready is not None:
+            self.thready.end_measurement = True
+        if self.threadz is not None:
+            self.threadz.end_measurement = True
 
     def updateConfiguration(self):
         """Update measurement configuration."""

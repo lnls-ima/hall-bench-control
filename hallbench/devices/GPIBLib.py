@@ -571,7 +571,7 @@ class Agilent34970A(GPIB):
     @property
     def config_channels(self):
         """Returns current channel configuration list."""
-        self._config_channels
+        return self._config_channels
 
     def __init__(self, logfile=None):
         """Initiaze variables and prepare logging file.

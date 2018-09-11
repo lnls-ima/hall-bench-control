@@ -19,17 +19,25 @@ class ConfigurationError(Exception):
 class Configuration(_database.DatabaseObject):
     """Base class for configurations."""
 
+    _label = ''
     _db_table = ''
     _db_dict = {}
     _db_json_str = []
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, database=None, idn=None):
         """Initialize obejct.
 
         Args:
-            filename (str): configuration filepath.
+            filename (str): connection configuration filepath.
+            database (str): database file path.
+            idn (int): id in database table.
         """
-        if filename is not None:
+        if filename is not None and idn is not None:
+            raise ValueError('Invalid arguments for Configuration object.')
+
+        if idn is not None and database is not None:
+            self.read_from_database(database, idn)
+        elif filename is not None:
             self.read_file(filename)
 
     def __eq__(self, other):
@@ -65,6 +73,13 @@ class Configuration(_database.DatabaseObject):
                 name = key
             r += fmtstr.format(name, str(value))
         return r
+
+    @property
+    def default_filename(self):
+        """Return the default filename."""
+        timestamp = _utils.get_timestamp()
+        filename = '{0:1s}_{1:1s}.txt'.format(timestamp, self._label)
+        return filename
 
     def clear(self):
         """Clear configuration."""
@@ -114,6 +129,7 @@ class Configuration(_database.DatabaseObject):
 class ConnectionConfig(Configuration):
     """Read, write and stored connection configuration data."""
 
+    _label = 'Connection'
     _db_table = 'connections'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
@@ -164,14 +180,7 @@ class ConnectionConfig(Configuration):
         self.elcomat_baudrate = None
         self.ps_enable = None
         self.ps_port = None
-
-        if filename is not None and idn is not None:
-            raise ValueError('Invalid arguments for ConnectionConfig.')
-
-        if idn is not None and database is not None:
-            self.read_from_database(database, idn)
-        else:
-            super().__init__(filename)
+        super().__init__(filename=filename, database=database, idn=idn)
 
     def get_attribute_type(self, name):
         """Get attribute type."""
@@ -227,6 +236,7 @@ class ConnectionConfig(Configuration):
 class MeasurementConfig(Configuration):
     """Read, write and stored measurement configuration data."""
 
+    _label = 'Configuration'
     _db_table = 'configurations'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
@@ -309,14 +319,7 @@ class MeasurementConfig(Configuration):
         self.step_ax5 = None
         self.extra_ax5 = None
         self.vel_ax5 = None
-
-        if filename is not None and idn is not None:
-            raise ValueError('Invalid arguments for MeasurementConfig.')
-
-        if idn is not None and database is not None:
-            self.read_from_database(database, idn)
-        else:
-            super().__init__(filename)
+        super().__init__(filename=filename, database=database, idn=idn)
 
     @classmethod
     def get_probe_name_from_database(cls, database, idn):
@@ -465,6 +468,7 @@ class MeasurementConfig(Configuration):
 class PowerSupplyConfig(Configuration):
     """Read, write and store Power Supply configuration data."""
 
+    _label = 'PowerSupply'
     _db_table = 'power_supply'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
@@ -538,14 +542,7 @@ class PowerSupplyConfig(Configuration):
         self.dsinusoidal_phasei = None
         self.dsinusoidal_phasef = None
         self.dsinusoidal_damp = None
-
-        if filename is not None and idn is not None:
-            raise ValueError('Invalid arguments for PowerSupplyConfig.')
-
-        if idn is not None and database is not None:
-            self.read_from_database(database, idn)
-        else:
-            super().__init__(filename)
+        super().__init__(filename=filename, database=database, idn=idn)
 
     def get_attribute_type(self, name):
         """Get attribute type."""

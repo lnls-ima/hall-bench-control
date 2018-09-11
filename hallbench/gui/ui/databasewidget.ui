@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1006</width>
-    <height>797</height>
+    <width>1141</width>
+    <height>827</height>
    </rect>
   </property>
   <property name="font">
@@ -109,7 +109,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>342</height>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -145,7 +145,7 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="2" column="0">
           <widget class="QPushButton" name="delete_connection_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -171,6 +171,35 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="read_connection_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Connection File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="power_supply_pg">
@@ -178,8 +207,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>236</width>
-          <height>124</height>
+          <width>250</width>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -215,7 +244,7 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="2" column="0">
           <widget class="QPushButton" name="delete_power_supply_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -241,6 +270,35 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="read_power_supply_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Power Supply File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="hall_sensor_pg">
@@ -248,8 +306,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>219</width>
-          <height>124</height>
+          <width>250</width>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -285,7 +343,7 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="2" column="0">
           <widget class="QPushButton" name="delete_hall_sensor_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -311,6 +369,35 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="read_hall_sensor_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Hall Sensor File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="hall_probe_pg">
@@ -318,8 +405,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>214</width>
-          <height>180</height>
+          <width>250</width>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -355,7 +442,7 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="2" column="0">
           <widget class="QPushButton" name="save_hall_probe_btn">
            <property name="minimumSize">
             <size>
@@ -384,7 +471,7 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
+         <item row="4" column="0">
           <widget class="QPushButton" name="delete_hall_probe_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -410,18 +497,48 @@
            </property>
           </widget>
          </item>
+         <item row="3" column="0">
+          <widget class="QPushButton" name="read_hall_probe_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Hall Probe File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
         </layout>
         <zorder>save_hall_probe_btn</zorder>
         <zorder>view_hall_probe_btn</zorder>
         <zorder>delete_hall_probe_btn</zorder>
+        <zorder>read_hall_probe_btn</zorder>
        </widget>
        <widget class="QWidget" name="configuration_pg">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>237</width>
-          <height>124</height>
+          <width>250</width>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -457,7 +574,7 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="2" column="0">
           <widget class="QPushButton" name="delete_configuration_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -483,6 +600,35 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="read_configuration_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Configuration File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="voltage_scan_pg">
@@ -491,7 +637,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>342</height>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -556,7 +702,7 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
+         <item row="4" column="0">
           <widget class="QPushButton" name="delete_voltage_scan_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -582,7 +728,7 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
+         <item row="5" column="0">
           <widget class="QPushButton" name="clear_voltage_scan_btn">
            <property name="minimumSize">
             <size>
@@ -611,7 +757,36 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
+         <item row="2" column="0">
+          <widget class="QPushButton" name="read_voltage_scan_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Voltage Scan File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
           <widget class="QPushButton" name="convert_to_field_scan_btn">
            <property name="minimumSize">
             <size>
@@ -648,7 +823,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>342</height>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -713,7 +888,7 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
+         <item row="4" column="0">
           <widget class="QPushButton" name="delete_field_scan_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -736,6 +911,35 @@
            <property name="icon">
             <iconset>
              <normaloff>../../resources/img/delete.png</normaloff>../../resources/img/delete.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QPushButton" name="read_field_scan_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Field Scan File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -775,8 +979,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>205</width>
-          <height>180</height>
+          <width>250</width>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -816,32 +1020,6 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QPushButton" name="delete_fieldmap_btn">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Delete Fieldmap</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/delete.png</normaloff>../../resources/img/delete.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
           <widget class="QPushButton" name="save_fieldmap_btn">
            <property name="enabled">
             <bool>true</bool>
@@ -873,6 +1051,61 @@
            </property>
           </widget>
          </item>
+         <item row="2" column="0">
+          <widget class="QPushButton" name="read_fieldmap_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Fieldmap File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QPushButton" name="delete_fieldmap_btn">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Delete Fieldmap</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/delete.png</normaloff>../../resources/img/delete.png</iconset>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="empty_pg">
@@ -881,7 +1114,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>342</height>
+          <height>422</height>
          </rect>
         </property>
         <attribute name="label">
@@ -901,7 +1134,7 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>150</height>
+         <height>100</height>
         </size>
        </property>
       </spacer>
@@ -929,6 +1162,7 @@
       <attribute name="title">
        <string>Tab 1</string>
       </attribute>
+      <zorder>buttons_tbx</zorder>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">

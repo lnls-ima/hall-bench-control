@@ -25,6 +25,7 @@ class CalibrationError(Exception):
 class HallSensor(_database.DatabaseObject):
     """Voltage to magnetic field conversion data."""
 
+    _label = 'HallSensor'
     _db_table = 'hall_sensors'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
@@ -109,6 +110,19 @@ class HallSensor(_database.DatabaseObject):
                     name = key
                 r += fmtstr.format(name, str(value))
         return r
+
+    @property
+    def default_filename(self):
+        """Return the default filename."""
+        timestamp = _utils.get_timestamp()
+        label = self._label
+        if self.sensor_name is not None and len(self.sensor_name) != 0:
+            name = self.sensor_name + '_' + label
+        else:
+            name = label
+
+        filename = '{0:1s}_{1:1s}.txt'.format(timestamp, name)
+        return filename
 
     @property
     def function_type(self):
@@ -260,6 +274,7 @@ class HallSensor(_database.DatabaseObject):
 class HallProbe(_database.DatabaseObject):
     """Hall probe data."""
 
+    _label = 'HallProbe'
     _db_table = 'hall_probes'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
@@ -363,6 +378,19 @@ class HallProbe(_database.DatabaseObject):
                     name = key
                 r += fmtstr.format(name, str(value))
         return r
+
+    @property
+    def default_filename(self):
+        """Return the default filename."""
+        timestamp = _utils.get_timestamp()
+        label = self._label
+        if self.probe_name is not None and len(self.probe_name) != 0:
+            name = self.probe_name + '_' + label
+        else:
+            name = label
+
+        filename = '{0:1s}_{1:1s}.txt'.format(timestamp, name)
+        return filename
 
     @classmethod
     def get_hall_probe_id(cls, database, probe_name):
@@ -637,7 +665,7 @@ class HallProbe(_database.DatabaseObject):
             raise CalibrationError('Fail to load sensors data from database.')
 
     def save_file(self, filename):
-        """Save calibration data to file.
+        """Save probe calibration data to file.
 
         Args:
             filename (str): calibration file path.

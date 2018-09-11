@@ -39,7 +39,7 @@ class Scan(_database.DatabaseObject):
     _pos7_unit = 'mm'
     _pos8_unit = 'deg'
     _pos9_unit = 'deg'
-    _data_label = ''
+    _label = ''
     _db_table = ''
     _db_dict = {}
     _db_json_str = []
@@ -271,7 +271,7 @@ class Scan(_database.DatabaseObject):
     @property
     def default_filename(self):
         """Return the default filename."""
-        label = self._data_label + '_' + _measurements_label
+        label = self._label + '_' + _measurements_label
         if self.magnet_name is not None and len(self.magnet_name) != 0:
             name = self.magnet_name + '_' + label
         else:
@@ -454,7 +454,7 @@ class Scan(_database.DatabaseObject):
 class VoltageScan(Scan):
     """Position and voltage values."""
 
-    _data_label = 'VoltageScan'
+    _label = 'VoltageScan'
     _db_table = 'voltage_scans'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
@@ -578,7 +578,7 @@ class VoltageScan(Scan):
 class FieldScan(Scan):
     """Position and magnetic field values."""
 
-    _data_label = 'FieldScan'
+    _label = 'FieldScan'
     _db_table = 'field_scans'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),

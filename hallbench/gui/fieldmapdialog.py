@@ -31,7 +31,7 @@ class FieldmapDialog(_QDialog):
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
-        self.field_data_list = None
+        self.field_scan_list = None
         self.local_hall_probe = None
         self.scan_id_list = None
 
@@ -124,7 +124,7 @@ class FieldmapDialog(_QDialog):
 
     def getFieldMap(self):
         """Get fieldmap data."""
-        if self.field_data_list is None or self.local_hall_probe is None:
+        if self.field_scan_list is None or self.local_hall_probe is None:
             return None
 
         self.blockSignals(True)
@@ -162,7 +162,7 @@ class FieldmapDialog(_QDialog):
 
         try:
             fieldmap.set_fieldmap_data(
-                self.field_data_list, self.local_hall_probe,
+                self.field_scan_list, self.local_hall_probe,
                 correct_displacements, magnet_center,
                 magnet_x_axis, magnet_y_axis)
 
@@ -255,7 +255,7 @@ class FieldmapDialog(_QDialog):
             fieldmap.initial_scan = initial_scan
             fieldmap.final_scan = final_scan
             idn = fieldmap.save_to_database(self.database)
-            message = 'Fieldmap data saved to database table. ID: %i' % idn
+            message = 'Fieldmap data saved to database table.\nID: %i' % idn
             _QMessageBox.information(
                 self, 'Information', message, _QMessageBox.Ok)
 
@@ -302,10 +302,10 @@ class FieldmapDialog(_QDialog):
             for le in lineedits:
                 le.clear()
 
-    def show(self, field_data_list, hall_probe, scan_id_list):
+    def show(self, field_scan_list, hall_probe, scan_id_list):
         """Update fieldmap variable and show dialog."""
-        if field_data_list is None or len(field_data_list) == 0:
-            message = 'Invalid field data list.'
+        if field_scan_list is None or len(field_scan_list) == 0:
+            message = 'Invalid field scan list.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return
@@ -316,7 +316,7 @@ class FieldmapDialog(_QDialog):
                 self, 'Failure', message, _QMessageBox.Ok)
             return
 
-        self.field_data_list = field_data_list
+        self.field_scan_list = field_scan_list
         self.local_hall_probe = hall_probe
         self.scan_id_list = scan_id_list
         super().show()

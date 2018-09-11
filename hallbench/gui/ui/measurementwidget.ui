@@ -194,7 +194,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="viewdata_btn">
+      <widget class="QToolButton" name="viewscan_btn">
        <property name="enabled">
         <bool>false</bool>
        </property>

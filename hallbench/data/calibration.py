@@ -3,11 +3,15 @@
 """Implementation of classes to handle calibration files."""
 
 import numpy as _np
+import json as _json
 import collections as _collections
 from scipy import interpolate as _interpolate
 
 from . import utils as _utils
 from . import database as _database
+
+
+_empty_str = '--'
 
 
 class CalibrationError(Exception):
@@ -174,7 +178,7 @@ class HallSensor(_database.DatabaseObject):
                 _copy.__dict__[key] = self.__dict__[key]
         return _copy
 
-    def convert_voltage(self, voltage_array):
+    def get_field(self, voltage_array):
         """Convert voltage values to magnetic field values.
 
         Args:
@@ -262,16 +266,21 @@ class HallProbe(_database.DatabaseObject):
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
         ('probe_name', ['probe_name', 'TEXT NOT NULL UNIQUE']),
-        ('sensorx_name', ['sensorx_name', 'TEXT NOT NULL']),
-        ('sensory_name', ['sensory_name', 'TEXT NOT NULL']),
-        ('sensorz_name', ['sensorz_name', 'TEXT NOT NULL']),
-        ('probe_axis', ['probe_axis', 'INTEGER NOT NULL']),
-        ('distance_xy', ['distance_xy', 'REAL NOT NULL']),
-        ('distance_zy', ['distance_zy', 'REAL NOT NULL']),
-        ('angle_xy', ['angle_xy', 'REAL NOT NULL']),
-        ('angle_yz', ['angle_yz', 'REAL NOT NULL']),
-        ('angle_xz', ['angle_xz', 'REAL NOT NULL']),
+        ('rod_shape', ['rod_shape', 'TEXT NOT NULL']),
+        ('sensorx_name', ['sensorx_name', 'TEXT']),
+        ('sensory_name', ['sensory_name', 'TEXT']),
+        ('sensorz_name', ['sensorz_name', 'TEXT']),
+        ('sensorx_position', ['sensorx_position', 'TEXT NOT NULL']),
+        ('sensory_position', ['sensory_position', 'TEXT NOT NULL']),
+        ('sensorz_position', ['sensorz_position', 'TEXT NOT NULL']),
+        ('sensorx_direction', ['sensorx_direction', 'TEXT NOT NULL']),
+        ('sensory_direction', ['sensory_direction', 'TEXT NOT NULL']),
+        ('sensorz_direction', ['sensorz_direction', 'TEXT NOT NULL']),
     ])
+    _db_json_str = [
+        'sensorx_position', 'sensory_position', 'sensorz_position',
+        'sensorx_direction', 'sensory_direction', 'sensorz_direction',
+    ]
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -282,18 +291,19 @@ class HallProbe(_database.DatabaseObject):
             idn (int): id in database table.
         """
         self.probe_name = None
-        self._sensorx_name = None
-        self._sensory_name = None
-        self._sensorz_name = None
+        self._rod_shape = None
         self._sensorx = None
         self._sensory = None
         self._sensorz = None
-        self._probe_axis = None
-        self._distance_xy = None
-        self._distance_zy = None
-        self._angle_xy = None
-        self._angle_yz = None
-        self._angle_xz = None
+        self._sensorx_name = None
+        self._sensory_name = None
+        self._sensorz_name = None
+        self._sensorx_position = _np.array([0, 0, 0])
+        self._sensory_position = _np.array([0, 0, 0])
+        self._sensorz_position = _np.array([0, 0, 0])
+        self._sensorx_direction = _np.array([1, 0, 0])
+        self._sensory_direction = _np.array([0, 1, 0])
+        self._sensorz_direction = _np.array([0, 0, 1])
 
         if filename is not None and idn is not None:
             raise ValueError('Invalid arguments for HallProbe.')
@@ -371,115 +381,19 @@ class HallProbe(_database.DatabaseObject):
         return probe_name
 
     @property
-    def distance_xy(self):
-        """Distance between Sensor X and Sensor Y (Reference Sensor)."""
-        return self._distance_xy
+    def rod_shape(self):
+        """Return the rod shape."""
+        return self._rod_shape
 
-    @distance_xy.setter
-    def distance_xy(self, value):
-        if value >= 0:
-            self._distance_xy = value
-        else:
-            raise ValueError('The sensor distance must be a positive number.')
-
-    @property
-    def distance_zy(self):
-        """Distance between Sensor Z and Sensor Y (Reference Sensor)."""
-        return self._distance_zy
-
-    @distance_zy.setter
-    def distance_zy(self, value):
-        if value >= 0:
-            self._distance_zy = value
-        else:
-            raise ValueError('The sensor distance must be a positive number.')
-
-    @property
-    def angle_xy(self):
-        """Angle between Sensor X and Sensor Y (Reference Sensor)."""
-        return self._angle_xy
-
-    @angle_xy.setter
-    def angle_xy(self, value):
-        if value >= -360.0 and value <= 360.0:
-            self._angle_xy = value
-        else:
-            raise ValueError('Invalid value for angle_xy.')
-
-    @property
-    def angle_yz(self):
-        """Angle between Sensor Y and Sensor Z (Reference Sensor)."""
-        return self._angle_yz
-
-    @angle_yz.setter
-    def angle_yz(self, value):
-        if value >= -360.0 and value <= 360.0:
-            self._angle_yz = value
-        else:
-            raise ValueError('Invalid value for angle_yz.')
-
-    @property
-    def angle_xz(self):
-        """Angle between Sensor X and Sensor Z (Reference Sensor)."""
-        return self._angle_xz
-
-    @angle_xz.setter
-    def angle_xz(self, value):
-        if value >= -360.0 and value <= 360.0:
-            self._angle_xz = value
-        else:
-            raise ValueError('Invalid value for angle_xz.')
-
-    @property
-    def probe_axis(self):
-        """Probe axis."""
-        return self._probe_axis
-
-    @probe_axis.setter
-    def probe_axis(self, value):
-        if value in [1, 3]:
-            self._probe_axis = value
-        else:
-            raise ValueError('Invalid value for probe axis.')
-
-    @property
-    def sensorx_name(self):
-        """Hall Sensor X name."""
-        return self._sensorx_name
-
-    @sensorx_name.setter
-    def sensorx_name(self, value):
+    @rod_shape.setter
+    def rod_shape(self, value):
         if isinstance(value, str):
-            self._sensorx = None
-            self._sensorx_name = value
+            if value in ('straight', 'L'):
+                self._rod_shape = value
+            else:
+                raise ValueError('Invalid value for rod shape.')
         else:
-            raise ValueError('Invalid value for sensor X name.')
-
-    @property
-    def sensory_name(self):
-        """Hall Sensor Y name."""
-        return self._sensory_name
-
-    @sensory_name.setter
-    def sensory_name(self, value):
-        if isinstance(value, str):
-            self._sensory = None
-            self._sensory_name = value
-        else:
-            raise ValueError('Invalid value for sensor Y name.')
-
-    @property
-    def sensorz_name(self):
-        """Hall Sensor Z name."""
-        return self._sensorz_name
-
-    @sensorz_name.setter
-    def sensorz_name(self, value):
-        if isinstance(value, str):
-            self._sensorz = None
-            self._sensorz_name = value
-        else:
-            raise ValueError('Invalid value for sensor Z name.')
+            raise TypeError('rod_shape must be a string.')
 
     @property
     def sensorx(self):
@@ -520,21 +434,131 @@ class HallProbe(_database.DatabaseObject):
         else:
             raise ValueError('Invalid value for sensor Z.')
 
+    @property
+    def sensorx_name(self):
+        """Hall Sensor X name."""
+        return self._sensorx_name
+
+    @sensorx_name.setter
+    def sensorx_name(self, value):
+        if isinstance(value, str):
+            self._sensorx = None
+            if len(value) == 0 or value == _empty_str:
+                self._sensorx_name = None
+            else:
+                self._sensorx_name = value
+        else:
+            raise ValueError('Invalid value for sensor X name.')
+
+    @property
+    def sensory_name(self):
+        """Hall Sensor Y name."""
+        return self._sensory_name
+
+    @sensory_name.setter
+    def sensory_name(self, value):
+        if isinstance(value, str):
+            self._sensory = None
+            if len(value) == 0 or value == _empty_str:
+                self._sensory_name = None
+            else:
+                self._sensory_name = value
+        else:
+            raise ValueError('Invalid value for sensor Y name.')
+
+    @property
+    def sensorz_name(self):
+        """Hall Sensor Z name."""
+        return self._sensorz_name
+
+    @sensorz_name.setter
+    def sensorz_name(self, value):
+        if isinstance(value, str):
+            self._sensorz = None
+            if len(value) == 0 or value == _empty_str:
+                self._sensorz_name = None
+            else:
+                self._sensorz_name = value
+        else:
+            raise ValueError('Invalid value for sensor Z name.')
+
+    @property
+    def sensorx_position(self):
+        """Hall Sensor X position (Probe coordinate system)."""
+        return self._sensorx_position
+
+    @sensorx_position.setter
+    def sensorx_position(self, value):
+        self._sensorx_position = _np.array(value)
+
+    @property
+    def sensory_position(self):
+        """Hall Sensor Y position (Probe coordinate system)."""
+        return self._sensory_position
+
+    @sensory_position.setter
+    def sensory_position(self, value):
+        self._sensory_position = _np.array(value)
+
+    @property
+    def sensorz_position(self):
+        """Hall Sensor Z position (Probe coordinate system)."""
+        return self._sensorz_position
+
+    @sensorz_position.setter
+    def sensorz_position(self, value):
+        self._sensorz_position = _np.array(value)
+
+    @property
+    def sensorx_direction(self):
+        """Hall Sensor X direction (Probe coordinate system)."""
+        return self._sensorx_direction
+
+    @sensorx_direction.setter
+    def sensorx_direction(self, value):
+        self._sensorx_direction = _np.array(value)
+
+    @property
+    def sensory_direction(self):
+        """Hall Sensor Y direction (Probe coordinate system)."""
+        return self._sensory_direction
+
+    @sensory_direction.setter
+    def sensory_direction(self, value):
+        self._sensory_direction = _np.array(value)
+
+    @property
+    def sensorz_direction(self):
+        """Hall Sensor Z direction (Probe coordinate system)."""
+        return self._sensorz_direction
+
+    @sensorz_direction.setter
+    def sensorz_direction(self, value):
+        self._sensorz_direction = _np.array(value)
+
+    def _get_transformation_matrix(self):
+        if self._rod_shape == 'L':
+            tm = _utils.rotation_matrix([0, 1, 0], -_np.pi/2)
+        else:
+            tm = _np.eye(3)
+        return tm
+
     def clear(self):
         """Clear calibration data."""
         self.probe_name = None
-        self._sensorx_name = None
-        self._sensory_name = None
-        self._sensorz_name = None
+        self._rod_shape = None
         self._sensorx = None
         self._sensory = None
         self._sensorz = None
-        self._probe_axis = None
-        self._distance_xy = None
-        self._distance_zy = None
-        self._angle_xy = None
-        self._angle_yz = None
-        self._angle_xz = None
+        self._sensorx_name = None
+        self._sensory_name = None
+        self._sensorz_name = None
+        self._sensorx_position = _np.array([0, 0, 0])
+        self._sensory_position = _np.array([0, 0, 0])
+        self._sensorz_position = _np.array([0, 0, 0])
+        self._sensorx_direction = _np.array([1, 0, 0])
+        self._sensory_direction = _np.array([0, 1, 0])
+        self._sensorz_direction = _np.array([0, 0, 1])
 
     def copy(self):
         """Return a copy of the object."""
@@ -549,44 +573,6 @@ class HallProbe(_database.DatabaseObject):
             else:
                 _copy.__dict__[key] = self.__dict__[key]
         return _copy
-
-    def corrected_position(self, axis, position_array, sensor):
-        """Return the corrected position list for the given sensor."""
-        if axis == self.probe_axis:
-            if sensor == 'x':
-                corr_position_array = position_array - self._distance_xy
-            elif sensor == 'y':
-                corr_position_array = position_array
-            elif sensor == 'z':
-                corr_position_array = position_array + self._distance_zy
-            else:
-                raise ValueError('Invalid value for sensor.')
-        else:
-            corr_position_array = position_array
-        return corr_position_array
-
-    def field_in_bench_coordinate_system(self, fieldx, fieldy, fieldz):
-        """Return field components transform to the bench coordinate system.
-
-        Return:
-            [field3 (+X Axis), field2 (+Y Axis), field1 (+Z Axis)]
-
-        """
-        if self._probe_axis == 1:
-            field3 = fieldx
-            field2 = fieldy
-            field1 = fieldz
-        elif self._probe_axis == 3:
-            field3 = fieldz
-            field2 = fieldy
-            if fieldx is not None:
-                field1 = -fieldx
-            else:
-                field1 = None
-        else:
-            field3, field2, field1 = None, None, None
-
-        return field3, field2, field1
 
     def load_sensors_data(self, database):
         """Load Hall sensors data from database."""
@@ -627,17 +613,22 @@ class HallProbe(_database.DatabaseObject):
         """
         flines = _utils.read_file(filename)
         self.probe_name = _utils.find_value(flines, 'probe_name')
+        self.rod_shape = _utils.find_value(flines, 'rod_shape')
         self.sensorx_name = _utils.find_value(flines, 'sensorx_name')
         self.sensory_name = _utils.find_value(flines, 'sensory_name')
         self.sensorz_name = _utils.find_value(flines, 'sensorz_name')
-        self.probe_axis = _utils.find_value(flines, 'probe_axis', vtype=int)
-        self.distance_xy = _utils.find_value(
-            flines, 'distance_xy', vtype=float)
-        self.distance_zy = _utils.find_value(
-            flines, 'distance_zy', vtype=float)
-        self.angle_xy = _utils.find_value(flines, 'angle_xy', vtype=float)
-        self.angle_yz = _utils.find_value(flines, 'angle_yz', vtype=float)
-        self.angle_xz = _utils.find_value(flines, 'angle_xz', vtype=float)
+        self.sensorx_position = _json.loads(
+            _utils.find_value(flines, 'sensorx_position'))
+        self.sensory_position = _json.loads(
+            _utils.find_value(flines, 'sensory_position'))
+        self.sensorz_position = _json.loads(
+            _utils.find_value(flines, 'sensorz_position'))
+        self.sensorx_direction = _json.loads(
+            _utils.find_value(flines, 'sensorx_direction'))
+        self.sensory_direction = _json.loads(
+            _utils.find_value(flines, 'sensory_direction'))
+        self.sensorz_direction = _json.loads(
+            _utils.find_value(flines, 'sensorz_direction'))
 
     def read_from_database(self, database, idn):
         """Read data from database entry."""
@@ -651,20 +642,43 @@ class HallProbe(_database.DatabaseObject):
         Args:
             filename (str): calibration file path.
         """
+        if not self.valid_data():
+            message = 'Invalid Hall Probe.'
+            raise CalibrationError(message)
+
         timestamp = _utils.get_timestamp()
 
+        sensorx_name = (
+            self.sensorx_name if self.sensorx_name is not None else _empty_str)
+        sensory_name = (
+            self.sensory_name if self.sensory_name is not None else _empty_str)
+        sensorz_name = (
+            self.sensorz_name if self.sensorz_name is not None else _empty_str)
+
         with open(filename, mode='w') as f:
-            f.write('timestamp:      \t{0:1s}\n'.format(timestamp))
-            f.write('probe_name:     \t{0:1s}\n'.format(self.probe_name))
-            f.write('sensorx_name:   \t{0:1s}\n'.format(self.sensorx_name))
-            f.write('sensory_name:   \t{0:1s}\n'.format(self.sensory_name))
-            f.write('sensorz_name:   \t{0:1s}\n'.format(self.sensorz_name))
-            f.write('probe_axis:     \t{0:1d}\n'.format(self.probe_axis))
-            f.write('distance_xy[mm]:\t{0:1s}\n'.format(str(self.distance_xy)))
-            f.write('distance_zy[mm]:\t{0:1s}\n'.format(str(self.distance_zy)))
-            f.write('angle_xy[deg]:  \t{0:1s}\n'.format(str(self.angle_xy)))
-            f.write('angle_yz[deg]:  \t{0:1s}\n'.format(str(self.angle_yz)))
-            f.write('angle_xz[deg]:  \t{0:1s}\n'.format(str(self.angle_xz)))
+            f.write('timestamp:         \t{0:1s}\n'.format(timestamp))
+            f.write('probe_name:        \t{0:1s}\n'.format(self.probe_name))
+            f.write('rod_shape:        \t{0:1s}\n'.format(self.rod_shape))
+            f.write('sensorx_name:      \t{0:1s}\n'.format(sensorx_name))
+            f.write('sensory_name:      \t{0:1s}\n'.format(sensory_name))
+            f.write('sensorz_name:      \t{0:1s}\n'.format(sensorz_name))
+            _str = _get_json_str(self.sensorx_position)
+            f.write('sensorx_position:  \t{0:1s}\n'.format(_str))
+            _str = _get_json_str(self.sensory_position)
+            f.write('sensory_position:  \t{0:1s}\n'.format(_str))
+            _str = _get_json_str(self.sensorz_position)
+            f.write('sensorz_position:  \t{0:1s}\n'.format(_str))
+            _str = _get_json_str(self.sensorx_direction)
+            f.write('sensorx_direction: \t{0:1s}\n'.format(_str))
+            _str = _get_json_str(self.sensory_direction)
+            f.write('sensory_direction: \t{0:1s}\n'.format(_str))
+            _str = _get_json_str(self.sensorz_direction)
+            f.write('sensorz_direction: \t{0:1s}\n'.format(_str))
+
+    def to_bench_coordinate_system(self, vector):
+        """Transform from probe coord. system to bench coord. system."""
+        tm = self._get_transformation_matrix()
+        return _np.dot(tm, vector)
 
     def valid_data(self):
         """Check if parameters are valid."""
@@ -683,6 +697,17 @@ class HallProbe(_database.DatabaseObject):
             return False
 
 
+def _get_json_str(value):
+    return _json.dumps(value.tolist()).replace(' ', '')
+
+
+def _interpolation_conversion(data, voltage_array):
+    d = _np.array(data)
+    interp_func = _interpolate.splrep(d[:, 0], d[:, 1], k=1)
+    field_array = _interpolate.splev(voltage_array, interp_func)
+    return field_array
+
+
 def _polynomial_conversion(data, voltage_array):
     field_array = _np.ones(len(voltage_array))*_np.nan
     for i in range(len(voltage_array)):
@@ -694,13 +719,6 @@ def _polynomial_conversion(data, voltage_array):
             if voltage > vmin and voltage <= vmax:
                 field_array[i] = sum(
                     coeffs[j]*(voltage**j) for j in range(len(coeffs)))
-    return field_array
-
-
-def _interpolation_conversion(data, voltage_array):
-    d = _np.array(data)
-    interp_func = _interpolate.splrep(d[:, 0], d[:, 1], k=1)
-    field_array = _interpolate.splev(voltage_array, interp_func)
     return field_array
 
 

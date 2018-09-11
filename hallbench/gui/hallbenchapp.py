@@ -24,8 +24,8 @@ _MeasurementConfig = _data.configuration.MeasurementConfig
 _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
 _HallSensor = _data.calibration.HallSensor
 _HallProbe = _data.calibration.HallProbe
-_VoltageData = _data.measurement.VoltageData
-_FieldData = _data.measurement.FieldData
+_VoltageScan = _data.measurement.VoltageScan
+_FieldScan = _data.measurement.FieldScan
 _Fieldmap = _data.measurement.Fieldmap
 _HallBenchDevices = _devices.devices.HallBenchDevices
 
@@ -58,8 +58,8 @@ class HallBenchApp(_QApplication):
         status.append(_HallSensor.create_database_table(self.database))
         status.append(_HallProbe.create_database_table(self.database))
         status.append(_MeasurementConfig.create_database_table(self.database))
-        status.append(_VoltageData.create_database_table(self.database))
-        status.append(_FieldData.create_database_table(self.database))
+        status.append(_VoltageScan.create_database_table(self.database))
+        status.append(_FieldScan.create_database_table(self.database))
         status.append(_Fieldmap.create_database_table(self.database))
         if not all(status):
             raise Exception("Fail to create database.")

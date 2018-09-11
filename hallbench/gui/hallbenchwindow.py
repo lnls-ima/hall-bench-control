@@ -61,10 +61,10 @@ class HallBenchWindow(_QMainWindow):
 
         self.voltageoffset_tab = _VoltageOffsetWidget(self)
         self.ui.main_tab.addTab(self.voltageoffset_tab, 'Voltage Offset')
- 
+
         self.temperature_tab = _TemperatureWidget(self)
         self.ui.main_tab.addTab(self.temperature_tab, 'Temperature')
- 
+
         self.angularerror_tab = _AngularErrorWidget(self)
         self.ui.main_tab.addTab(self.angularerror_tab, 'Angular Error')
 
@@ -113,7 +113,6 @@ class HallBenchWindow(_QMainWindow):
         pass
 
 
-
 class PositionsThread(_QThread):
     """Thread to read position values from pmac."""
 
@@ -133,12 +132,17 @@ class PositionsThread(_QThread):
 
     @property
     def positions(self):
-        """Current posiitons."""
+        """Get current posiitons dict."""
         return _QApplication.instance().positions
+
+    @positions.setter
+    def positions(self, value):
+        _QApplication.instance().positions = value
 
     def updatePositions(self):
         """Update axes positions."""
         if not self.pmac.connected:
+            self.positions = {}
             return
 
         try:

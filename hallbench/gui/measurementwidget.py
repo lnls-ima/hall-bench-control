@@ -23,11 +23,11 @@ from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
 from hallbench.gui.fieldmapdialog import FieldmapDialog \
     as _FieldmapDialog
-from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
+from hallbench.gui.viewscandialog import ViewScanDialog as _ViewScanDialog
 from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
-from hallbench.data.measurement import VoltageData as _VoltageData
-from hallbench.data.measurement import FieldData as _FieldData
+from hallbench.data.measurement import VoltageScan as _VoltageScan
+from hallbench.data.measurement import FieldScan as _FieldScan
 
 
 class MeasurementWidget(_QWidget):
@@ -59,7 +59,7 @@ class MeasurementWidget(_QWidget):
 
         # create dialog
         self.fieldmap_dialog = _FieldmapDialog()
-        self.viewdata_dialog = _ViewDataDialog()
+        self.viewscan_dialog = _ViewScanDialog()
 
         self.local_measurement_config = None
         self.local_measurement_config_id = None
@@ -67,10 +67,10 @@ class MeasurementWidget(_QWidget):
         self.threadx = None
         self.thready = None
         self.threadz = None
-        self.voltage_data = None
-        self.field_data = None
-        self.voltage_data_list = []
-        self.field_data_list = []
+        self.voltage_scan = None
+        self.field_scan = None
+        self.voltage_scan_list = []
+        self.field_scan_list = []
         self.position_list = []
         self.scan_id_list = []
         self.graphx = []
@@ -113,15 +113,15 @@ class MeasurementWidget(_QWidget):
         self.local_measurement_config = None
         self.local_measurement_config_id = None
         self.local_hall_probe = None
-        self.voltage_data = None
-        self.field_data = None
-        self.voltage_data_list = []
-        self.field_data_list = []
+        self.voltage_scan = None
+        self.field_scan = None
+        self.voltage_scan_list = []
+        self.field_scan_list = []
         self.position_list = []
         self.scan_id_list = []
         self.stop = False
         self.clearGraph()
-        self.ui.viewdata_btn.setEnabled(False)
+        self.ui.viewscan_btn.setEnabled(False)
         self.ui.cleargraph_btn.setEnabled(False)
         self.ui.savefieldmap_btn.setEnabled(False)
 
@@ -138,7 +138,7 @@ class MeasurementWidget(_QWidget):
         try:
             self.current_position_widget.close()
             self.fieldmap_dialog.accept()
-            self.viewdata_dialog.accept()
+            self.viewscan_dialog.accept()
             self.configuration_widget.closeDialogs()
         except Exception:
             pass
@@ -156,7 +156,7 @@ class MeasurementWidget(_QWidget):
         self.ui.measure_btn.clicked.connect(self.configureAndMeasure)
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
         self.ui.savefieldmap_btn.clicked.connect(self.showFieldmapDialog)
-        self.ui.viewdata_btn.clicked.connect(self.showViewDataDialog)
+        self.ui.viewscan_btn.clicked.connect(self.showViewScanDialog)
         self.ui.cleargraph_btn.clicked.connect(self.clearGraph)
 
     def configureAndMeasure(self):
@@ -199,7 +199,7 @@ class MeasurementWidget(_QWidget):
                     self.moveAxis(second_axis, pos)
                     if not self.scanLine(first_axis):
                         return
-                    self.field_data_list.append(self.field_data)
+                    self.field_scan_list.append(self.field_scan)
 
                 # move to initial position
                 if self.stop is True:
@@ -213,7 +213,7 @@ class MeasurementWidget(_QWidget):
                     return
                 if not self.scanLine(first_axis):
                     return
-                self.field_data_list.append(self.field_data)
+                self.field_scan_list.append(self.field_scan)
 
             # move to initial position
             if self.stop is True:
@@ -227,7 +227,7 @@ class MeasurementWidget(_QWidget):
             self.killReadingThreads()
             self.resetMultimeters()
 
-            self.ui.viewdata_btn.setEnabled(True)
+            self.ui.viewscan_btn.setEnabled(True)
             self.ui.cleargraph_btn.setEnabled(True)
             if self.local_hall_probe is not None:
                 self.ui.savefieldmap_btn.setEnabled(True)
@@ -418,18 +418,18 @@ class MeasurementWidget(_QWidget):
         return True
 
     def plotField(self):
-        """Plot field data."""
+        """Plot field scan."""
         if self.local_hall_probe is None:
             return
 
         self.clearGraph()
-        nr_curves = len(self.field_data_list)
+        nr_curves = len(self.field_scan_list)
         self.configureGraph(nr_curves, 'Magnetic Field [T]')
 
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
             for i in range(nr_curves):
-                fd = self.field_data_list[i]
+                fd = self.field_scan_list[i]
                 positions = fd.scan_pos
                 self.graphx[i].setData(positions, fd.avgx)
                 self.graphy[i].setData(positions, fd.avgy)
@@ -492,35 +492,43 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return False
 
-    def saveRawData(self):
-        """Save raw data to database table."""
-        if self.voltage_data is None:
-            message = 'Invalid voltage data.'
+    def saveVoltageScan(self):
+        """Save voltage scan to database table."""
+        if self.voltage_scan is None:
+            message = 'Invalid voltage scan.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return False
 
         try:
-            self.voltage_data.configuration_id = (
+            mn = self.local_measurement_config.magnet_name
+            mc = self.local_measurement_config.main_current
+            self.voltage_scan.magnet_name = mn
+            self.voltage_scan.main_current = mc
+            self.voltage_scan.configuration_id = (
                 self.local_measurement_config_id)
-            self.voltage_data.save_to_database(self.database)
+            self.voltage_scan.save_to_database(self.database)
             return True
 
         except Exception as e:
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
             return False
 
-    def saveScan(self):
-        """Save field data to database table."""
-        if self.field_data is None:
-            message = 'Invalid field data.'
+    def saveFieldScan(self):
+        """Save field scan to database table."""
+        if self.field_scan is None:
+            message = 'Invalid field scan.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
             return False
 
         try:
-            self.field_data.configuration_id = self.local_measurement_config_id
-            idn = self.field_data.save_to_database(self.database)
+            mn = self.local_measurement_config.magnet_name
+            mc = self.local_measurement_config.main_current
+            self.field_scan.magnet_name = mn
+            self.field_scan.main_current = mc
+            self.field_scan.configuration_id = self.local_measurement_config_id
+            idn = self.field_scan.save_to_database(self.database)
             self.scan_id_list.append(idn)
             return True
 
@@ -530,7 +538,7 @@ class MeasurementWidget(_QWidget):
 
     def scanLine(self, first_axis):
         """Start line scan."""
-        self.field_data = _FieldData()
+        self.field_scan = _FieldScan()
 
         start = self.local_measurement_config.get_start(first_axis)
         end = self.local_measurement_config.get_end(first_axis)
@@ -548,12 +556,12 @@ class MeasurementWidget(_QWidget):
         self.clearGraph()
         self.configureGraph(2*nr_measurements, 'Voltage [V]')
 
-        voltage_data_list = []
+        voltage_scan_list = []
         for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
 
-            self.voltage_data = _VoltageData()
+            self.voltage_scan = _VoltageScan()
             self.configuration_widget.nr_measurements_sb.setValue(
                 _np.ceil((idx + 1)/2))
 
@@ -568,12 +576,12 @@ class MeasurementWidget(_QWidget):
                 self.position_list = to_neg_scan_list
                 self.moveAxis(first_axis, end + extra)
 
-            for axis in self.voltage_data.axis_list:
+            for axis in self.voltage_scan.axis_list:
                 if axis != first_axis:
                     pos = self.devices.pmac.get_position(axis)
-                    setattr(self.voltage_data, 'pos' + str(axis), pos)
+                    setattr(self.voltage_scan, 'pos' + str(axis), pos)
                 else:
-                    setattr(self.voltage_data, 'pos' + str(first_axis),
+                    setattr(self.voltage_scan, 'pos' + str(first_axis),
                             self.position_list)
 
             if self.stop is True:
@@ -609,29 +617,29 @@ class MeasurementWidget(_QWidget):
 
             self.stopTrigger()
             self.waitReadingThreads()
-            self.voltage_data.avgx = self.threadx.voltage
-            self.voltage_data.avgy = self.thready.voltage
-            self.voltage_data.avgz = self.threadz.voltage
+            self.voltage_scan.avgx = self.threadx.voltage
+            self.voltage_scan.avgy = self.thready.voltage
+            self.voltage_scan.avgz = self.threadz.voltage
 
             if self.stop is True:
                 return False
 
             if not to_pos:
-                self.voltage_data.reverse()
+                self.voltage_scan.reverse()
 
             if self.ui.save_raw_data_chb.isChecked():
-                if not self.saveRawData():
+                if not self.saveVoltageScan():
                     return False
 
-            voltage_data_list.append(self.voltage_data.copy())
+            voltage_scan_list.append(self.voltage_scan.copy())
 
-        for vd in voltage_data_list:
-            self.voltage_data_list.append(vd)
+        for vd in voltage_scan_list:
+            self.voltage_scan_list.append(vd)
 
         if self.local_hall_probe is not None:
-            self.field_data.set_field_data(
-                voltage_data_list, self.local_hall_probe)
-            success = self.saveScan()
+            self.field_scan.set_field_scan(
+                voltage_scan_list, self.local_hall_probe)
+            success = self.saveFieldScan()
         else:
             success = True
 
@@ -640,16 +648,16 @@ class MeasurementWidget(_QWidget):
     def showFieldmapDialog(self):
         """Open fieldmap dialog."""
         self.fieldmap_dialog.show(
-            self.field_data_list, self.local_hall_probe, self.scan_id_list)
+            self.field_scan_list, self.local_hall_probe, self.scan_id_list)
 
-    def showViewDataDialog(self):
+    def showViewScanDialog(self):
         """Open view data dialog."""
         if self.local_hall_probe is None:
-            self.viewdata_dialog.show(
-                self.voltage_data_list, 'Voltage [V]')
+            self.viewscan_dialog.show(
+                self.voltage_scan_list, 'Voltage [V]')
         else:
-            self.viewdata_dialog.show(
-                self.field_data_list, 'Magnetic Field [T]')
+            self.viewscan_dialog.show(
+                self.field_scan_list, 'Magnetic Field [T]')
 
     def startReadingThreads(self):
         """Start threads to read voltage values."""

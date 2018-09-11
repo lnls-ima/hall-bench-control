@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1183</width>
-    <height>882</height>
+    <height>887</height>
    </rect>
   </property>
   <property name="font">
@@ -1106,7 +1106,7 @@
       </font>
      </property>
      <property name="title">
-      <string>Set Trigger</string>
+      <string>Trigger</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_9">
       <property name="horizontalSpacing">
@@ -1411,14 +1411,6 @@
        </widget>
       </item>
      </layout>
-     <zorder>trigandmove_btn</zorder>
-     <zorder>trigstop_btn</zorder>
-     <zorder>label_19</zorder>
-     <zorder>trigdelay_sb</zorder>
-     <zorder>label_19</zorder>
-     <zorder>trigdelay_sb</zorder>
-     <zorder>trigpause_chb</zorder>
-     <zorder>horizontalSpacer_2</zorder>
     </widget>
    </item>
   </layout>

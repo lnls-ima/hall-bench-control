@@ -17,7 +17,7 @@ class TestFunctions(TestCase):
 
     def setUp(self):
         """Set up."""
-        vd = measurement.VoltageData()
+        vd = measurement.VoltageScan()
         vd.pos1 = [1, 2]
         vd.pos2 = 1
         vd.pos3 = 1
@@ -31,7 +31,7 @@ class TestFunctions(TestCase):
         vd.avgz = [0, 0]
         self.vd = vd
 
-        fd = measurement.FieldData()
+        fd = measurement.FieldScan()
         fd._pos1 = utils.to_array([1, 2])
         fd._pos2 = utils.to_array(1)
         fd._pos3 = utils.to_array(1)
@@ -166,38 +166,38 @@ class TestFunctions(TestCase):
         tvec = measurement._change_coordinate_system(vec, m, center)
         np.testing.assert_array_equal(tvec, [1003, 102, -11])
 
-    def test_valid_voltage_data_list(self):
-        vd = measurement.VoltageData()
-        valid = measurement._valid_voltage_data_list([vd])
+    def test_valid_voltage_scan_list(self):
+        vd = measurement.VoltageScan()
+        valid = measurement._valid_voltage_scan_list([vd])
         self.assertFalse(valid)
 
-        valid = measurement._valid_voltage_data_list([vd, None])
+        valid = measurement._valid_voltage_scan_list([vd, None])
         self.assertFalse(valid)
 
-        valid = measurement._valid_voltage_data_list([])
+        valid = measurement._valid_voltage_scan_list([])
         self.assertFalse(valid)
 
-        valid = measurement._valid_voltage_data_list([self.vd])
+        valid = measurement._valid_voltage_scan_list([self.vd])
         self.assertTrue(valid)
 
-        valid = measurement._valid_voltage_data_list([self.vd, self.vd])
+        valid = measurement._valid_voltage_scan_list([self.vd, self.vd])
         self.assertTrue(valid)
 
         vdc = self.vd.copy()
         vdc.pos1 = self.vd.pos2
         vdc.pos2 = self.vd.pos1
         self.assertNotEqual(self.vd.scan_axis, vdc.scan_axis)
-        valid = measurement._valid_voltage_data_list([self.vd, vdc])
+        valid = measurement._valid_voltage_scan_list([self.vd, vdc])
         self.assertFalse(valid)
 
         vdc = self.vd.copy()
         vdc.pos1 = np.append(vdc.pos1, 3)
-        valid = measurement._valid_voltage_data_list([self.vd, vdc])
+        valid = measurement._valid_voltage_scan_list([self.vd, vdc])
         self.assertFalse(valid)
 
         vdc = self.vd.copy()
         vdc.pos2 = vdc.pos2 + 1
-        valid = measurement._valid_voltage_data_list([self.vd, vdc])
+        valid = measurement._valid_voltage_scan_list([self.vd, vdc])
         self.assertFalse(valid)
 
     def test_get_avg_voltage(self):
@@ -219,7 +219,7 @@ class TestFunctions(TestCase):
         np.testing.assert_array_almost_equal(
             avg.avgz, (self.vd.avgz + [0, 0])/2)
 
-        vd = measurement.VoltageData()
+        vd = measurement.VoltageScan()
         with self.assertRaises(measurement.MeasurementDataError):
             avg = measurement._get_avg_voltage(vd)
 
@@ -240,7 +240,7 @@ class TestFunctions(TestCase):
             avg.avgz, self.vd.avgz + 1)
 
     def test_get_fieldmap_axes(self):
-        fd = measurement.FieldData()
+        fd = measurement.FieldScan()
         axes = measurement._get_fieldmap_axes([fd])
         self.assertEqual(len(axes), 0)
 
@@ -279,12 +279,12 @@ class TestFunctions(TestCase):
 
     def test_get_fieldmap_position_and_field_values(self):
         voltage = [1, 2, 3, 4]
-        field = self.pc.sensorx.convert_voltage(voltage)
+        field = self.pc.sensorx.get_field(voltage)
         np.testing.assert_array_almost_equal(field, voltage)
 
 
-# class TestData(TestCase):
-#     """Test Data."""
+# class TestScan(TestCase):
+#     """Test Scan."""
 #
 #     def setUp(self):
 #         """Set up."""
@@ -308,7 +308,7 @@ class TestFunctions(TestCase):
 #         pass
 #
 #     def test_initialization_without_filename(self):
-#         d = measurement.Data()
+#         d = measurement.Scan()
 #         np.testing.assert_array_equal(d._pos1, [])
 #         np.testing.assert_array_equal(d._pos2, [])
 #         np.testing.assert_array_equal(d._pos3, [])
@@ -336,7 +336,7 @@ class TestFunctions(TestCase):
 #         self.assertIsNone(d.filename)
 #
 #     def test_initialization_with_filename(self):
-#         d = measurement.Data(self.filename)
+#         d = measurement.Scan(self.filename)
 #         np.testing.assert_array_equal(d._pos1, self.pos1)
 #         np.testing.assert_array_equal(d._pos2, self.pos2)
 #         np.testing.assert_array_equal(d._pos3, self.pos3)
@@ -363,7 +363,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos9_unit, 'deg')
 #
 #     def test_read_file(self):
-#         d = measurement.Data()
+#         d = measurement.Scan()
 #         d.read_file(self.filename)
 #         np.testing.assert_array_equal(d._pos1, self.pos1)
 #         np.testing.assert_array_equal(d._pos2, self.pos2)
@@ -391,7 +391,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos9_unit, 'deg')
 #
 #     def test_clear(self):
-#         d = measurement.Data(self.filename)
+#         d = measurement.Scan(self.filename)
 #         np.testing.assert_array_equal(d._pos1, self.pos1)
 #         np.testing.assert_array_equal(d._pos2, self.pos2)
 #         np.testing.assert_array_equal(d._pos3, self.pos3)
@@ -444,7 +444,7 @@ class TestFunctions(TestCase):
 #         self.assertIsNone(d.filename)
 #
 #     def test_copy(self):
-#         d = measurement.Data(self.filename)
+#         d = measurement.Scan(self.filename)
 #         dc = d.copy()
 #         np.testing.assert_array_equal(d._pos1, self.pos1)
 #         np.testing.assert_array_equal(d._pos2, self.pos2)
@@ -470,14 +470,14 @@ class TestFunctions(TestCase):
 #         self.assertEqual(dc._pos7_unit, 'mm')
 #         self.assertEqual(dc._pos8_unit, 'deg')
 #         self.assertEqual(dc._pos9_unit, 'deg')
-#         self.assertTrue(isinstance(dc, measurement.Data))
+#         self.assertTrue(isinstance(dc, measurement.Scan))
 #
 #         d._pos2 = 0
 #         self.assertEqual(d._pos2, 0)
 #         self.assertEqual(dc._pos2, 6)
 #
 #     def test_reverse(self):
-#         d = measurement.Data(self.filename)
+#         d = measurement.Scan(self.filename)
 #         d.reverse()
 #         np.testing.assert_array_equal(d._pos1, self.pos1[::-1])
 #         np.testing.assert_array_equal(d._pos2, self.pos2)
@@ -507,7 +507,7 @@ class TestFunctions(TestCase):
 #     def test_save_file(self):
 #         filename = 'data_tmp.txt'
 #         filename = os.path.join(self.base_directory, filename)
-#         dw = measurement.Data()
+#         dw = measurement.Scan()
 #         dw._pos1 = utils.to_array(1)
 #         dw._pos2 = utils.to_array(2)
 #         dw._pos3 = utils.to_array(3)
@@ -520,7 +520,7 @@ class TestFunctions(TestCase):
 #         dw.save_file(filename)
 #         self.assertEqual(dw.filename, filename)
 #
-#         dr = measurement.Data(filename)
+#         dr = measurement.Scan(filename)
 #         np.testing.assert_array_equal(dr._pos1, [1])
 #         np.testing.assert_array_equal(dr._pos2, [2])
 #         np.testing.assert_array_equal(dr._pos3, [3])
@@ -550,15 +550,15 @@ class TestFunctions(TestCase):
 #     def test_extras(self):
 #         filename = 'data_extras_tmp.txt'
 #         filename = os.path.join(self.base_directory, filename)
-#         d = measurement.Data(self.filename)
+#         d = measurement.Scan(self.filename)
 #         d.save_file(filename, extras={'extra_name': 'extra_value'})
 #
-#         dr = measurement.Data(filename)
+#         dr = measurement.Scan(filename)
 #         self.assertEqual(dr.extra_name, 'extra_value')
 #         os.remove(filename)
 #
 #     def test_scan_axis(self):
-#         d = measurement.Data()
+#         d = measurement.Scan()
 #         self.assertIsNone(d.scan_axis)
 #
 #         d._pos7 = utils.to_array([1, 2])
@@ -574,7 +574,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d.scan_axis, 3)
 #
 #     def test_npts(self):
-#         d = measurement.Data()
+#         d = measurement.Scan()
 #         self.assertEqual(d.npts, 0)
 #
 #         d._pos1 = utils.to_array([1, 2])
@@ -590,14 +590,14 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d.npts, 2)
 #
 #
-# class TestVoltageData(TestCase):
-#     """Test VoltageData."""
+# class TestVoltageScan(TestCase):
+#     """Test VoltageScan."""
 #
 #     def setUp(self):
 #         """Set up."""
 #         self.base_directory = os.path.dirname(os.path.abspath(__file__))
 #         self.filename = os.path.join(
-#             self.base_directory, 'voltage_data.txt')
+#             self.base_directory, 'voltage_scan.txt')
 #
 #         self.pos1 = [1, 2, 3, 4, 5]
 #         self.pos2 = [6]
@@ -616,7 +616,7 @@ class TestFunctions(TestCase):
 #         pass
 #
 #     def test_initialization_without_filename(self):
-#         d = measurement.VoltageData()
+#         d = measurement.VoltageScan()
 #         np.testing.assert_array_equal(d.pos1, [])
 #         np.testing.assert_array_equal(d.pos2, [])
 #         np.testing.assert_array_equal(d.pos3, [])
@@ -644,7 +644,7 @@ class TestFunctions(TestCase):
 #         self.assertIsNone(d.filename)
 #
 #     def test_initialization_with_filename(self):
-#         d = measurement.VoltageData(self.filename)
+#         d = measurement.VoltageScan(self.filename)
 #         np.testing.assert_array_equal(d.pos1, self.pos1)
 #         np.testing.assert_array_equal(d.pos2, self.pos2)
 #         np.testing.assert_array_equal(d.pos3, self.pos3)
@@ -671,7 +671,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos9_unit, 'deg')
 #
 #     def test_copy(self):
-#         d = measurement.VoltageData(self.filename)
+#         d = measurement.VoltageScan(self.filename)
 #         dc = d.copy()
 #         np.testing.assert_array_equal(d.pos1, self.pos1)
 #         np.testing.assert_array_equal(d.pos2, self.pos2)
@@ -697,14 +697,14 @@ class TestFunctions(TestCase):
 #         self.assertEqual(dc._pos7_unit, 'mm')
 #         self.assertEqual(dc._pos8_unit, 'deg')
 #         self.assertEqual(dc._pos9_unit, 'deg')
-#         self.assertTrue(isinstance(dc, measurement.VoltageData))
+#         self.assertTrue(isinstance(dc, measurement.VoltageScan))
 #
 #         d.pos2 = 0
 #         self.assertEqual(d.pos2, 0)
 #         self.assertEqual(dc.pos2, 6)
 #
 #     def test_read_file(self):
-#         d = measurement.VoltageData()
+#         d = measurement.VoltageScan()
 #         d.read_file(self.filename)
 #         np.testing.assert_array_equal(d.pos1, self.pos1)
 #         np.testing.assert_array_equal(d.pos2, self.pos2)
@@ -732,9 +732,9 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos9_unit, 'deg')
 #
 #     def test_save_file(self):
-#         filename = 'voltage_data_tmp.txt'
+#         filename = 'voltage_scan_tmp.txt'
 #         filename = os.path.join(self.base_directory, filename)
-#         dw = measurement.VoltageData()
+#         dw = measurement.VoltageScan()
 #         dw.pos1 = 1
 #         dw.pos2 = 2
 #         dw.pos3 = 3
@@ -747,7 +747,7 @@ class TestFunctions(TestCase):
 #         dw.save_file(filename)
 #         self.assertEqual(dw.filename, filename)
 #
-#         dr = measurement.VoltageData(filename)
+#         dr = measurement.VoltageScan(filename)
 #         np.testing.assert_array_equal(dr.pos1, [1])
 #         np.testing.assert_array_equal(dr.pos2, [2])
 #         np.testing.assert_array_equal(dr.pos3, [3])
@@ -775,17 +775,17 @@ class TestFunctions(TestCase):
 #         os.remove(filename)
 #
 #
-# class TestFieldData(TestCase):
-#     """Test FieldData."""
+# class TestFieldScan(TestCase):
+#     """Test FieldScan."""
 #
 #     def setUp(self):
 #         """Set up."""
 #         self.base_directory = os.path.dirname(os.path.abspath(__file__))
-#         self.filename = os.path.join(self.base_directory, 'field_data.txt')
+#         self.filename = os.path.join(self.base_directory, 'field_scan.txt')
 #
-#         self.voltage_data_filename = os.path.join(
-#             self.base_directory, 'voltage_data.txt')
-#         self.voltage_data = measurement.VoltageData(self.voltage_data_filename)
+#         self.voltage_scan_filename = os.path.join(
+#             self.base_directory, 'voltage_scan.txt')
+#         self.voltage_scan = measurement.VoltageScan(self.voltage_scan_filename)
 #
 #         self.hall_probe_filename = 'hall_probe_polynomial.txt'
 #         self.hall_probe = calibration.HallProbe(
@@ -801,7 +801,7 @@ class TestFunctions(TestCase):
 #         pass
 #
 #     def test_initialization_without_filename(self):
-#         d = measurement.FieldData()
+#         d = measurement.FieldScan()
 #         np.testing.assert_array_equal(d.pos1, [])
 #         np.testing.assert_array_equal(d.pos2, [])
 #         np.testing.assert_array_equal(d.pos3, [])
@@ -828,10 +828,10 @@ class TestFunctions(TestCase):
 #         self.assertIsNone(d.scan_axis)
 #         self.assertIsNone(d.filename)
 #         self.assertIsNone(d.hall_probe)
-#         self.assertIsNone(d.voltage_data_list)
+#         self.assertIsNone(d.voltage_scan_list)
 #
 #     def test_initialization_with_filename(self):
-#         d = measurement.FieldData(self.filename)
+#         d = measurement.FieldScan(self.filename)
 #         np.testing.assert_array_equal(d.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(d.pos2, [6])
 #         np.testing.assert_array_equal(d.pos3, [7])
@@ -859,10 +859,10 @@ class TestFunctions(TestCase):
 #         self.assertEqual(
 #             os.path.split(d.hall_probe.filename)[1],
 #             self.hall_probe_filename)
-#         self.assertIsNone(d.voltage_data_list)
+#         self.assertIsNone(d.voltage_scan_list)
 #
 #     def test_clear(self):
-#         d = measurement.FieldData(self.filename)
+#         d = measurement.FieldScan(self.filename)
 #         np.testing.assert_array_equal(d.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(d.pos2, [6])
 #         np.testing.assert_array_equal(d.pos3, [7])
@@ -890,7 +890,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(
 #             os.path.split(d.hall_probe.filename)[1],
 #             self.hall_probe_filename)
-#         self.assertIsNone(d.voltage_data_list)
+#         self.assertIsNone(d.voltage_scan_list)
 #         d.clear()
 #         np.testing.assert_array_equal(d.pos1, [])
 #         np.testing.assert_array_equal(d.pos2, [])
@@ -918,10 +918,10 @@ class TestFunctions(TestCase):
 #         self.assertIsNone(d.scan_axis)
 #         self.assertIsNone(d.filename)
 #         self.assertIsNone(d.hall_probe)
-#         self.assertIsNone(d.voltage_data_list)
+#         self.assertIsNone(d.voltage_scan_list)
 #
 #     def test_copy(self):
-#         d = measurement.FieldData(self.filename)
+#         d = measurement.FieldScan(self.filename)
 #         dc = d.copy()
 #         np.testing.assert_array_equal(dc.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(dc.pos2, [6])
@@ -947,14 +947,14 @@ class TestFunctions(TestCase):
 #         self.assertEqual(dc._pos7_unit, 'mm')
 #         self.assertEqual(dc._pos8_unit, 'deg')
 #         self.assertEqual(dc._pos9_unit, 'deg')
-#         self.assertTrue(isinstance(dc, measurement.FieldData))
+#         self.assertTrue(isinstance(dc, measurement.FieldScan))
 #
 #         d.clear()
 #         np.testing.assert_array_equal(d.pos2, [])
 #         self.assertEqual(dc.pos2, 6)
 #
 #     def test_read_file(self):
-#         d = measurement.FieldData()
+#         d = measurement.FieldScan()
 #         d.read_file(self.filename)
 #         np.testing.assert_array_equal(d.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(d.pos2, [6])
@@ -982,16 +982,16 @@ class TestFunctions(TestCase):
 #         self.assertEqual(d._pos9_unit, 'deg')
 #
 #     def test_save_file(self):
-#         filename = 'field_data_tmp.txt'
+#         filename = 'field_scan_tmp.txt'
 #         filename = os.path.join(self.base_directory, filename)
-#         dw = measurement.FieldData()
+#         dw = measurement.FieldScan()
 #         dw.hall_probe = self.hall_probe
-#         dw.voltage_data_list = self.voltage_data
+#         dw.voltage_scan_list = self.voltage_scan
 #         self.assertIsNone(dw.filename)
 #         dw.save_file(filename)
 #         self.assertEqual(dw.filename, filename)
 #
-#         dr = measurement.FieldData(filename)
+#         dr = measurement.FieldScan(filename)
 #         np.testing.assert_array_equal(dr.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(dr.pos2, [6])
 #         np.testing.assert_array_equal(dr.pos3, [7])
@@ -1018,19 +1018,19 @@ class TestFunctions(TestCase):
 #         self.assertEqual(dr._pos9_unit, 'deg')
 #         os.remove(filename)
 #
-#         dw = measurement.FieldData()
-#         dw.voltage_data_list = self.voltage_data
+#         dw = measurement.FieldScan()
+#         dw.voltage_scan_list = self.voltage_scan
 #         with self.assertRaises(measurement.MeasurementDataError):
 #             dw.save_file(filename)
 #
-#         dw = measurement.FieldData()
+#         dw = measurement.FieldScan()
 #         dw.hall_probe = self.hall_probe
 #         with self.assertRaises(measurement.MeasurementDataError):
 #             dw.save_file(filename)
 #
 #         fn_hall_probe = 'hall_probe_tmp.txt'
-#         dw = measurement.FieldData()
-#         dw.voltage_data_list = self.voltage_data
+#         dw = measurement.FieldScan()
+#         dw.voltage_scan_list = self.voltage_scan
 #         dw.hall_probe = self.hall_probe
 #         dw.hall_probe._filename = fn_hall_probe
 #         dw.save_file(filename)
@@ -1038,7 +1038,7 @@ class TestFunctions(TestCase):
 #         os.remove(os.path.join(self.base_directory, fn_hall_probe))
 #
 #     def test_hall_probe(self):
-#         d = measurement.FieldData()
+#         d = measurement.FieldScan()
 #         with self.assertRaises(TypeError):
 #             d.hall_probe = None
 #
@@ -1061,17 +1061,17 @@ class TestFunctions(TestCase):
 #         self.assertEqual(
 #             d.hall_probe, self.hall_probe)
 #
-#     def test_voltage_data_list(self):
-#         d = measurement.FieldData()
+#     def test_voltage_scan_list(self):
+#         d = measurement.FieldScan()
 #
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = []
+#             d.voltage_scan_list = []
 #
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = measurement.VoltageData()
+#             d.voltage_scan_list = measurement.VoltageScan()
 #
-#         d.voltage_data_list = self.voltage_data
-#         v = d.voltage_data_list[0]
+#         d.voltage_scan_list = self.voltage_scan
+#         v = d.voltage_scan_list[0]
 #         np.testing.assert_array_equal(v.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(v.pos2, [6])
 #         np.testing.assert_array_equal(v.pos3, [7])
@@ -1086,7 +1086,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(v._data_unit, 'V')
 #         self.assertEqual(v.npts, 5)
 #         self.assertEqual(v.scan_axis, 1)
-#         self.assertEqual(v.filename, self.voltage_data_filename)
+#         self.assertEqual(v.filename, self.voltage_scan_filename)
 #         self.assertEqual(v.axis_list, [1, 2, 3, 5, 6, 7, 8, 9])
 #         self.assertEqual(v._pos1_unit, 'mm')
 #         self.assertEqual(v._pos2_unit, 'mm')
@@ -1098,20 +1098,20 @@ class TestFunctions(TestCase):
 #         self.assertEqual(v._pos9_unit, 'deg')
 #         d.clear()
 #
-#         invalid_npts_voltage_data = self.voltage_data.copy()
-#         invalid_npts_voltage_data.sensorz = [1, 2]
+#         invalid_npts_voltage_scan = self.voltage_scan.copy()
+#         invalid_npts_voltage_scan.sensorz = [1, 2]
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = invalid_npts_voltage_data
+#             d.voltage_scan_list = invalid_npts_voltage_scan
 #         d.clear()
 #
-#         v1 = self.voltage_data.copy()
-#         v2 = self.voltage_data.copy()
+#         v1 = self.voltage_scan.copy()
+#         v2 = self.voltage_scan.copy()
 #         v2.sensorx = [0, 0, 0, 0, 0]
 #         v2.sensory = [0, 0, 0, 0, 0]
 #         v2.sensorz = [0, 0, 0, 0, 0]
 #         voltage_list = [v1, v2]
 #         d.hall_probe = self.hall_probe
-#         d.voltage_data_list = voltage_list
+#         d.voltage_scan_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(d.pos2, [6])
 #         np.testing.assert_array_equal(d.pos3, [7])
@@ -1141,29 +1141,29 @@ class TestFunctions(TestCase):
 #         self.assertIsNone(d.filename)
 #         d.clear()
 #
-#         v1 = self.voltage_data.copy()
-#         v2 = self.voltage_data.copy()
+#         v1 = self.voltage_scan.copy()
+#         v2 = self.voltage_scan.copy()
 #         tmp_pos2 = v2.pos2
 #         v2.pos2 = v2.pos1
 #         v2.pos1 = tmp_pos2
 #         inconsistent_voltage_list = [v1, v2]
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = inconsistent_voltage_list
+#             d.voltage_scan_list = inconsistent_voltage_list
 #         d.clear()
 #
-#         v1 = self.voltage_data.copy()
-#         v2 = self.voltage_data.copy()
+#         v1 = self.voltage_scan.copy()
+#         v2 = self.voltage_scan.copy()
 #         v2.pos3 = 6
 #         inconsistent_voltage_list = [v1, v2]
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = inconsistent_voltage_list
+#             d.voltage_scan_list = inconsistent_voltage_list
 #         d.clear()
 #
-#         v1 = self.voltage_data.copy()
+#         v1 = self.voltage_scan.copy()
 #         v1.sensorx = v1.pos1
 #         v1.sensory = v1.pos1
 #         v1.sensorz = v1.pos1
-#         v2 = self.voltage_data.copy()
+#         v2 = self.voltage_scan.copy()
 #         v2.pos1 = v1.pos1 + 2
 #         v2.sensorx = v2.pos1 + 2
 #         v2.sensory = v2.pos1 + 2
@@ -1176,9 +1176,9 @@ class TestFunctions(TestCase):
 #         v1.sensorx = interpolate.splev(p, f1, der=0)
 #         v2.sensorx = interpolate.splev(p, f2, der=0)
 #         vx = (v1.sensorx + v2.sensorx)/2
-#         fx = self.hall_probe.sensorx.convert_voltage(vx)
+#         fx = self.hall_probe.sensorx.get_field(vx)
 #         d.hall_probe = self.hall_probe
-#         d.voltage_data_list = voltage_list
+#         d.voltage_scan_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, p)
 #         np.testing.assert_array_equal(d.pos2, [6])
 #         np.testing.assert_array_equal(d.pos3, [7])
@@ -1195,20 +1195,20 @@ class TestFunctions(TestCase):
 #             d.sensorz, fx)
 #
 #
-# class TestFieldMapData(TestCase):
-#     """Test FieldMapData."""
+# class TestFieldmap(TestCase):
+#     """Test Fieldmap."""
 #
 #     def setUp(self):
 #         """Set up."""
 #         self.base_directory = os.path.dirname(os.path.abspath(__file__))
 #
-#         self.voltage_data_filename = os.path.join(
-#             self.base_directory, 'voltage_data.txt')
-#         self.voltage_data = measurement.VoltageData(self.voltage_data_filename)
+#         self.voltage_scan_filename = os.path.join(
+#             self.base_directory, 'voltage_scan.txt')
+#         self.voltage_scan = measurement.VoltageScan(self.voltage_scan_filename)
 #
-#         self.field_data_filename = os.path.join(
-#             self.base_directory, 'field_data.txt')
-#         self.field_data = measurement.FieldData(self.field_data_filename)
+#         self.field_scan_filename = os.path.join(
+#             self.base_directory, 'field_scan.txt')
+#         self.field_scan = measurement.FieldScan(self.field_scan_filename)
 #
 #         self.hall_probe_filename = 'hall_probe_polynomial.txt'
 #         self.hall_probe = calibration.HallProbe(
@@ -1233,13 +1233,13 @@ class TestFunctions(TestCase):
 #         pass
 #
 #     def test_initialization_without_filename(self):
-#         d = measurement.FieldMapData()
+#         d = measurement.Fieldmap()
 #         np.testing.assert_array_equal(d.header_info, [])
 #         np.testing.assert_array_equal(d.pos1, [])
 #         np.testing.assert_array_equal(d.pos2, [])
 #         np.testing.assert_array_equal(d.pos3, [])
-#         self.assertIsNone(d.voltage_data_list)
-#         self.assertIsNone(d.field_data_list)
+#         self.assertIsNone(d.voltage_scan_list)
+#         self.assertIsNone(d.field_scan_list)
 #         self.assertIsNone(d.hall_probe)
 #         self.assertIsNone(d.index_axis)
 #         self.assertIsNone(d.columns_axis)
@@ -1258,7 +1258,7 @@ class TestFunctions(TestCase):
 #         field_sensory = [0.36, 0.38, 0.4, 0.42, 0.44]
 #         field_sensorz = [0.46, 0.48, 0.5, 0.52, 0.54]
 #
-#         d = measurement.FieldMapData(self.fn_fmd_ndcz)
+#         d = measurement.Fieldmap(self.fn_fmd_ndcz)
 #         np.testing.assert_array_equal(d.pos1, pos_scan)
 #         np.testing.assert_array_equal(d.pos2, fixed_pos_a)
 #         np.testing.assert_array_equal(d.pos3, fixed_pos_b)
@@ -1269,7 +1269,7 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_almost_equal(
 #             d.field3.values, np.transpose([field_sensorx]), decimal=3)
 #
-#         d = measurement.FieldMapData(self.fn_fmd_ndcy)
+#         d = measurement.Fieldmap(self.fn_fmd_ndcy)
 #         np.testing.assert_array_equal(d.pos1, fixed_pos_a)
 #         np.testing.assert_array_equal(d.pos2, pos_scan)
 #         np.testing.assert_array_equal(d.pos3, fixed_pos_b)
@@ -1280,7 +1280,7 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_almost_equal(
 #             d.field3.values, np.transpose([field_sensorx]), decimal=3)
 #
-#         d = measurement.FieldMapData(self.fn_fmd_ndcx)
+#         d = measurement.Fieldmap(self.fn_fmd_ndcx)
 #         np.testing.assert_array_equal(d.pos1, fixed_pos_b)
 #         np.testing.assert_array_equal(d.pos2, fixed_pos_a)
 #         np.testing.assert_array_equal(d.pos3, pos_scan)
@@ -1301,7 +1301,7 @@ class TestFunctions(TestCase):
 #         pos_scan = [1, 2, 3, 4, 5]
 #         pos_var = [7, 8]
 #         pos_fixed = [6]
-#         d = measurement.FieldMapData(self.fn_fmd_ndcxz)
+#         d = measurement.Fieldmap(self.fn_fmd_ndcxz)
 #         field3 = np.array([field_a1, field_a2])
 #         field2 = np.array([field_b1, field_b2])
 #         field1 = np.array([field_c1, field_c2])
@@ -1318,7 +1318,7 @@ class TestFunctions(TestCase):
 #         pos_scan = [1, 2, 3, 4, 5]
 #         pos_var = [6, 7]
 #         pos_fixed = [7]
-#         d = measurement.FieldMapData(self.fn_fmd_ndcyz)
+#         d = measurement.Fieldmap(self.fn_fmd_ndcyz)
 #         field3 = np.array([field_a1, field_a2])
 #         field2 = np.array([field_b1, field_b2])
 #         field1 = np.array([field_c1, field_c2])
@@ -1335,7 +1335,7 @@ class TestFunctions(TestCase):
 #         pos_scan = [1, 2, 3, 4, 5]
 #         pos_var = [6, 7]
 #         pos_fixed = [7]
-#         d = measurement.FieldMapData(self.fn_fmd_ndcxy)
+#         d = measurement.Fieldmap(self.fn_fmd_ndcxy)
 #         field3 = np.array([field_a1, field_a2])
 #         field2 = np.array([field_b1, field_b2])
 #         field1 = np.array([field_c1, field_c2])
@@ -1352,7 +1352,7 @@ class TestFunctions(TestCase):
 #     def test_read_and_save_file(self):
 #         filename = os.path.join(self.base_directory, 'fmd_tmp.txt')
 #
-#         d = measurement.FieldMapData()
+#         d = measurement.Fieldmap()
 #         d.read_file(self.fn_fmd_ndcz)
 #         d.save_file(filename)
 #         self.assertTrue(filecmp.cmp(self.fn_fmd_ndcz, filename))
@@ -1397,7 +1397,7 @@ class TestFunctions(TestCase):
 #         field_sensory = [0.36, 0.38, 0.4, 0.42, 0.44]
 #         field_sensorz = [0.46, 0.48, 0.5, 0.52, 0.54]
 #
-#         d = measurement.FieldMapData(self.fn_fmd_ndcz)
+#         d = measurement.Fieldmap(self.fn_fmd_ndcz)
 #         np.testing.assert_array_equal(d.pos1, pos_scan)
 #         np.testing.assert_array_equal(d.pos2, fixed_pos_a)
 #         np.testing.assert_array_equal(d.pos3, fixed_pos_b)
@@ -1412,8 +1412,8 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_equal(d.pos1, [])
 #         np.testing.assert_array_equal(d.pos2, [])
 #         np.testing.assert_array_equal(d.pos3, [])
-#         self.assertIsNone(d.voltage_data_list)
-#         self.assertIsNone(d.field_data_list)
+#         self.assertIsNone(d.voltage_scan_list)
+#         self.assertIsNone(d.field_scan_list)
 #         self.assertIsNone(d.hall_probe)
 #         self.assertIsNone(d.index_axis)
 #         self.assertIsNone(d.columns_axis)
@@ -1425,14 +1425,14 @@ class TestFunctions(TestCase):
 #         self.assertTrue(d.correct_sensor_displacement)
 #
 #     def test_get_axis_position_dict(self):
-#         fmd = measurement.FieldMapData()
+#         fmd = measurement.Fieldmap()
 #         fmd.hall_probe = self.hall_probe
 #
 #         d = fmd._get_axis_position_dict()
 #         self.assertEqual(len(d), 0)
 #
-#         vd1 = self.voltage_data.copy()
-#         fmd.voltage_data_list = vd1
+#         vd1 = self.voltage_scan.copy()
+#         fmd.voltage_scan_list = vd1
 #         d = fmd._get_axis_position_dict()
 #         np.testing.assert_array_equal(d[1], [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(d[2], [6])
@@ -1443,7 +1443,7 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_equal(d[8], [11])
 #         np.testing.assert_array_equal(d[9], [12])
 #
-#         vd2 = self.voltage_data.copy()
+#         vd2 = self.voltage_scan.copy()
 #         vd2.pos1 = [5, 6]
 #         vd2.pos2 = [6]
 #         vd2.pos3 = [8]
@@ -1451,7 +1451,7 @@ class TestFunctions(TestCase):
 #         vd2.sensory = vd2.sensory[:2]
 #         vd2.sensorz = vd2.sensorz[:2]
 #
-#         vd3 = self.voltage_data.copy()
+#         vd3 = self.voltage_scan.copy()
 #         vd3.pos1 = [5, 7]
 #         vd3.pos2 = [6]
 #         vd3.pos3 = [6]
@@ -1459,10 +1459,10 @@ class TestFunctions(TestCase):
 #         vd3.sensory = vd3.sensory[:2]
 #         vd3.sensorz = vd3.sensorz[:2]
 #
-#         fmd = measurement.FieldMapData()
+#         fmd = measurement.Fieldmap()
 #         fmd.hall_probe = self.hall_probe
 #         fmd.correct_sensor_displacement = False
-#         fmd.voltage_data_list = [vd1, vd2, vd3]
+#         fmd.voltage_scan_list = [vd1, vd2, vd3]
 #         d = fmd._get_axis_position_dict()
 #         np.testing.assert_array_equal(d[1], [1, 2, 3, 4, 5, 6, 7])
 #         np.testing.assert_array_equal(d[2], [6])
@@ -1474,7 +1474,7 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_equal(d[9], [12])
 #
 #     def test_header_info(self):
-#         fmd = measurement.FieldMapData()
+#         fmd = measurement.Fieldmap()
 #         fmd.header_info = []
 #         self.assertEqual(fmd.header_info, [])
 #
@@ -1489,7 +1489,7 @@ class TestFunctions(TestCase):
 #         self.assertEqual(fmd.header_info[1], (3, 4))
 #
 #     def test_hall_probe(self):
-#         fmd = measurement.FieldMapData()
+#         fmd = measurement.Fieldmap()
 #         with self.assertRaises(TypeError):
 #             fmd.hall_probe = None
 #
@@ -1512,18 +1512,18 @@ class TestFunctions(TestCase):
 #         self.assertEqual(
 #             fmd.hall_probe, self.hall_probe)
 #
-#     def test_voltage_data_list(self):
-#         d = measurement.FieldMapData()
+#     def test_voltage_scan_list(self):
+#         d = measurement.Fieldmap()
 #         d.correct_sensor_displacement = False
 #
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = []
+#             d.voltage_scan_list = []
 #
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = measurement.VoltageData()
+#             d.voltage_scan_list = measurement.VoltageScan()
 #
-#         d.voltage_data_list = self.voltage_data
-#         v = d.voltage_data_list[0]
+#         d.voltage_scan_list = self.voltage_scan
+#         v = d.voltage_scan_list[0]
 #         np.testing.assert_array_equal(v.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(v.pos2, [6])
 #         np.testing.assert_array_equal(v.pos3, [7])
@@ -1538,10 +1538,10 @@ class TestFunctions(TestCase):
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
-#         invalid_npts_voltage_data = self.voltage_data.copy()
-#         invalid_npts_voltage_data.sensorz = [1, 2]
+#         invalid_npts_voltage_scan = self.voltage_scan.copy()
+#         invalid_npts_voltage_scan.sensorz = [1, 2]
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = invalid_npts_voltage_data
+#             d.voltage_scan_list = invalid_npts_voltage_scan
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
@@ -1549,13 +1549,13 @@ class TestFunctions(TestCase):
 #         field_sensorx = [0.26, 0.28, 0.3, 0.32, 0.34]
 #         field_sensory = [0.36, 0.38, 0.4, 0.42, 0.44]
 #         field_sensorz = [0.46, 0.48, 0.5, 0.52, 0.54]
-#         v1 = self.voltage_data.copy()
-#         v2 = self.voltage_data.copy()
+#         v1 = self.voltage_scan.copy()
+#         v2 = self.voltage_scan.copy()
 #         v2.sensorx = [0, 0, 0, 0, 0]
 #         v2.sensory = [0, 0, 0, 0, 0]
 #         v2.sensorz = [0, 0, 0, 0, 0]
 #         voltage_list = [v1, v2]
-#         d.voltage_data_list = voltage_list
+#         d.voltage_scan_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(d.pos2, [6])
 #         np.testing.assert_array_equal(d.pos3, [7])
@@ -1566,28 +1566,28 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_almost_equal(
 #             d.field1.values, (np.array(field_sensorz)/2).reshape(5, -1))
 #         self.assertIsNone(d.filename)
-#         self.assertEqual(len(d.field_data_list), 1)
+#         self.assertEqual(len(d.field_scan_list), 1)
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
 #         d.hall_probe = self.hall_probe
-#         v1 = self.voltage_data.copy()
-#         v2 = self.voltage_data.copy()
+#         v1 = self.voltage_scan.copy()
+#         v2 = self.voltage_scan.copy()
 #         tmp_pos2 = v2.pos2
 #         v2.pos2 = v2.pos1
 #         v2.pos1 = tmp_pos2
 #         inconsistent_voltage_list = [v1, v2]
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.voltage_data_list = inconsistent_voltage_list
+#             d.voltage_scan_list = inconsistent_voltage_list
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
 #         d.hall_probe = self.hall_probe
-#         v1 = self.voltage_data.copy()
+#         v1 = self.voltage_scan.copy()
 #         v1.sensorx = v1.pos1
 #         v1.sensory = v1.pos1
 #         v1.sensorz = v1.pos1
-#         v2 = self.voltage_data.copy()
+#         v2 = self.voltage_scan.copy()
 #         v2.pos1 = v1.pos1 + 2
 #         v2.sensorx = v2.pos1 + 2
 #         v2.sensory = v2.pos1 + 2
@@ -1600,9 +1600,9 @@ class TestFunctions(TestCase):
 #         v1.sensorx = interpolate.splev(p, f1, der=0)
 #         v2.sensorx = interpolate.splev(p, f2, der=0)
 #         vx = (v1.sensorx + v2.sensorx)/2
-#         fx = self.hall_probe.sensorx.convert_voltage(vx).reshape(5, -1)
+#         fx = self.hall_probe.sensorx.get_field(vx).reshape(5, -1)
 #         d.hall_probe = self.hall_probe
-#         d.voltage_data_list = voltage_list
+#         d.voltage_scan_list = voltage_list
 #         np.testing.assert_array_equal(d.pos1, p)
 #         np.testing.assert_array_equal(d.pos2, [6])
 #         np.testing.assert_array_equal(d.pos3, [7])
@@ -1612,38 +1612,38 @@ class TestFunctions(TestCase):
 #             d.field2.values, fx)
 #         np.testing.assert_array_almost_equal(
 #             d.field1.values, fx)
-#         self.assertEqual(len(d.field_data_list), 1)
+#         self.assertEqual(len(d.field_scan_list), 1)
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
 #         d.hall_probe = self.hall_probe
-#         vd = self.voltage_data.copy()
-#         d.voltage_data_list = [vd, vd, vd, vd]
-#         self.assertEqual(len(d.field_data_list), 1)
+#         vd = self.voltage_scan.copy()
+#         d.voltage_scan_list = [vd, vd, vd, vd]
+#         self.assertEqual(len(d.field_scan_list), 1)
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
 #         d.hall_probe = self.hall_probe
-#         fd = self.field_data.copy()
+#         fd = self.field_scan.copy()
 #         with self.assertRaises(TypeError):
-#             d.voltage_data_list = [fd]
+#             d.voltage_scan_list = [fd]
 #
-#     def test_field_data_list(self):
-#         d = measurement.FieldMapData()
+#     def test_field_scan_list(self):
+#         d = measurement.Fieldmap()
 #         d.correct_sensor_displacement = False
 #
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.field_data_list = []
+#             d.field_scan_list = []
 #
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.field_data_list = measurement.FieldData()
+#             d.field_scan_list = measurement.FieldScan()
 #
 #         field_sensorx = [0.26, 0.28, 0.3, 0.32, 0.34]
 #         field_sensory = [0.36, 0.38, 0.4, 0.42, 0.44]
 #         field_sensorz = [0.46, 0.48, 0.5, 0.52, 0.54]
 #
-#         d.field_data_list = self.field_data
-#         fd = d.field_data_list[0]
+#         d.field_scan_list = self.field_scan
+#         fd = d.field_scan_list[0]
 #         np.testing.assert_array_equal(fd.pos1, [1, 2, 3, 4, 5])
 #         np.testing.assert_array_equal(fd.pos2, [6])
 #         np.testing.assert_array_equal(fd.pos3, [7])
@@ -1660,68 +1660,68 @@ class TestFunctions(TestCase):
 #         d.correct_sensor_displacement = False
 #         d.hall_probe = self.hall_probe
 #
-#         fda = self.field_data.copy()
-#         fdb = self.field_data.copy()
+#         fda = self.field_scan.copy()
+#         fdb = self.field_scan.copy()
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.field_data_list = [fda, fdb]
+#             d.field_scan_list = [fda, fdb]
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
 #         d.hall_probe = self.hall_probe
-#         va = self.voltage_data.copy()
-#         vb = self.voltage_data.copy()
+#         va = self.voltage_scan.copy()
+#         vb = self.voltage_scan.copy()
 #         tmp_pos2 = vb.pos2
 #         vb.pos2 = vb.pos1
 #         vb.pos1 = tmp_pos2
-#         fda = self.field_data.copy()
-#         fda.voltage_data_list = va
-#         fdb = self.field_data.copy()
-#         fdb.voltage_data_list = vb
+#         fda = self.field_scan.copy()
+#         fda.voltage_scan_list = va
+#         fdb = self.field_scan.copy()
+#         fdb.voltage_scan_list = vb
 #         inconsistent_field_list = [fda, fdb]
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             d.field_data_list = inconsistent_field_list
+#             d.field_scan_list = inconsistent_field_list
 #
 #         d.clear()
 #         d.correct_sensor_displacement = False
 #         d.hall_probe = self.hall_probe
-#         vd = self.voltage_data.copy()
+#         vd = self.voltage_scan.copy()
 #         with self.assertRaises(TypeError):
-#             d.field_data_list = [vd]
+#             d.field_scan_list = [vd]
 #
 #     def test_axes(self):
-#         fmd = measurement.FieldMapData()
+#         fmd = measurement.Fieldmap()
 #         self.assertIsNone(fmd.index_axis)
 #         self.assertIsNone(fmd.columns_axis)
 #
-#         vd1 = self.voltage_data
+#         vd1 = self.voltage_scan
 #         fmd.hall_probe = self.hall_probe
-#         fmd.voltage_data_list = vd1
+#         fmd.voltage_scan_list = vd1
 #         self.assertEqual(fmd.index_axis, 1)
 #         self.assertIsNone(fmd.columns_axis)
 #
 #         vd2 = vd1.copy()
 #         vd2.pos2 = vd2.pos2 + 1
-#         fmd.voltage_data_list = [vd1, vd2]
+#         fmd.voltage_scan_list = [vd1, vd2]
 #         self.assertEqual(fmd.index_axis, 1)
 #         self.assertEqual(fmd.columns_axis, 2)
 #
 #         vd3 = vd1.copy()
 #         vd3.pos3 = vd3.pos3 + 1
 #         with self.assertRaises(measurement.MeasurementDataError):
-#             fmd.voltage_data_list = [vd1, vd2, vd3]
+#             fmd.voltage_scan_list = [vd1, vd2, vd3]
 #
 #     def test_sensor_displacement_correction(self):
 #         pass  # AQUI!!!!!
 #
 #     def test_get_field_at_point(self):
-#         vda = self.voltage_data.copy()
-#         vdb = self.voltage_data.copy()
+#         vda = self.voltage_scan.copy()
+#         vdb = self.voltage_scan.copy()
 #         vdb.pos2 = 8
 #
-#         fmd = measurement.FieldMapData()
+#         fmd = measurement.Fieldmap()
 #         fmd.hall_probe = self.hall_probe
 #         fmd.correct_sensor_displacement = False
-#         fmd.voltage_data_list = [vda, vdb]
+#         fmd.voltage_scan_list = [vda, vdb]
 #
 #         np.testing.assert_array_almost_equal(
 #             fmd._get_field_at_point([7, 6, 1]), [0.26,  0.36,  0.46])
@@ -1731,14 +1731,14 @@ class TestFunctions(TestCase):
 #             fmd._get_field_at_point([0, 8, 3]), [np.nan, np.nan, np.nan])
 #
 #     def test_get_field_map(self):
-#         vda = self.voltage_data.copy()
-#         vdb = self.voltage_data.copy()
+#         vda = self.voltage_scan.copy()
+#         vdb = self.voltage_scan.copy()
 #         vdb.pos2 = vdb.pos2 + 1
 #
-#         fmd = measurement.FieldMapData()
+#         fmd = measurement.Fieldmap()
 #         fmd.hall_probe = self.hall_probe
 #         fmd.correct_sensor_displacement = False
-#         fmd.voltage_data_list = [vda, vdb]
+#         fmd.voltage_scan_list = [vda, vdb]
 #         fieldmap = fmd.get_field_map()
 #
 #         npts = 2*len(vda.pos1)
@@ -1760,14 +1760,14 @@ class TestFunctions(TestCase):
 #         np.testing.assert_array_almost_equal(fieldmap[:, 5], bz)
 #
 #     def test_get_transformed_fieldmap(self):
-#         vda = self.voltage_data.copy()
-#         vdb = self.voltage_data.copy()
+#         vda = self.voltage_scan.copy()
+#         vdb = self.voltage_scan.copy()
 #         vdb.pos2 = vdb.pos2 + 1
 #
-#         fmd = measurement.FieldMapData()
+#         fmd = measurement.Fieldmap()
 #         fmd.hall_probe = self.hall_probe
 #         fmd.correct_sensor_displacement = False
-#         fmd.voltage_data_list = [vda, vdb]
+#         fmd.voltage_scan_list = [vda, vdb]
 #
 #         fieldmap = fmd.get_transformed_field_map(
 #             magnet_center=[0, 0, 0], magnet_x_axis=3, magnet_y_axis=2)

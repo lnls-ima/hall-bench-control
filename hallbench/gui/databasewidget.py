@@ -15,12 +15,13 @@ from PyQt5.QtWidgets import (
     QHBoxLayout as _QHBoxLayout,
     QSpinBox as _QSpinBox,
     QFileDialog as _QFileDialog,
+    QInputDialog as _QInputDialog,
     )
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.viewprobedialog import ViewProbeDialog \
     as _ViewProbeDialog
-from hallbench.gui.viewdatadialog import ViewDataDialog as _ViewDataDialog
+from hallbench.gui.viewscandialog import ViewScanDialog as _ViewScanDialog
 from hallbench.gui.fieldmapdialog import FieldmapDialog \
     as _FieldmapDialog
 import hallbench.data as _data
@@ -34,8 +35,8 @@ _MeasurementConfig = _data.configuration.MeasurementConfig
 _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
 _HallSensor = _data.calibration.HallSensor
 _HallProbe = _data.calibration.HallProbe
-_VoltageData = _data.measurement.VoltageData
-_FieldData = _data.measurement.FieldData
+_VoltageScan = _data.measurement.VoltageScan
+_FieldScan = _data.measurement.FieldScan
 _Fieldmap = _data.measurement.Fieldmap
 
 
@@ -47,8 +48,8 @@ class DatabaseWidget(_QWidget):
     _hall_sensor_table_name = _HallSensor.database_table_name()
     _hall_probe_table_name = _HallProbe.database_table_name()
     _configuration_table_name = _MeasurementConfig.database_table_name()
-    _voltage_scan_table_name = _VoltageData.database_table_name()
-    _field_scan_table_name = _FieldData.database_table_name()
+    _voltage_scan_table_name = _VoltageScan.database_table_name()
+    _field_scan_table_name = _FieldScan.database_table_name()
     _fieldmap_table_name = _Fieldmap.database_table_name()
 
     def __init__(self, parent=None):
@@ -61,7 +62,7 @@ class DatabaseWidget(_QWidget):
 
         # create dialogs
         self.view_probe_dialog = _ViewProbeDialog()
-        self.viewdata_dialog = _ViewDataDialog()
+        self.viewscan_dialog = _ViewScanDialog()
         self.fieldmap_dialog = _FieldmapDialog()
 
         self.tables = []
@@ -83,7 +84,7 @@ class DatabaseWidget(_QWidget):
         self.tables = []
         self.ui.database_tab.clear()
 
-    def clearRawDataTable(self):
+    def clearVoltageScanTable(self):
         """Clear voltage scan table."""
         con = _sqlite3.connect(self.database)
         cur = con.cursor()
@@ -113,7 +114,7 @@ class DatabaseWidget(_QWidget):
         """Close dialogs."""
         try:
             self.view_probe_dialog.accept()
-            self.viewdata_dialog.accept()
+            self.viewscan_dialog.accept()
             self.fieldmap_dialog.accept()
         except Exception:
             pass
@@ -160,18 +161,21 @@ class DatabaseWidget(_QWidget):
         self.ui.delete_configuration_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._configuration_table_name))
 
-        self.ui.view_voltage_scan_btn.clicked.connect(self.viewRawData)
+        self.ui.view_voltage_scan_btn.clicked.connect(self.viewVoltageScan)
         self.ui.save_voltage_scan_btn.clicked.connect(
             lambda: self.saveFile(
-                self._voltage_scan_table_name, _VoltageData, True))
+                self._voltage_scan_table_name, _VoltageScan, True))
         self.ui.delete_voltage_scan_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._voltage_scan_table_name))
-        self.ui.clear_voltage_scan_btn.clicked.connect(self.clearRawDataTable)
+        self.ui.clear_voltage_scan_btn.clicked.connect(
+            self.clearVoltageScanTable)
+        self.ui.convert_to_field_scan_btn.clicked.connect(
+            self.convertToFieldScan)
 
-        self.ui.view_field_scan_btn.clicked.connect(self.viewScan)
+        self.ui.view_field_scan_btn.clicked.connect(self.viewFieldScan)
         self.ui.save_field_scan_btn.clicked.connect(
             lambda: self.saveFile(
-                self._field_scan_table_name, _FieldData, True))
+                self._field_scan_table_name, _FieldScan, True))
         self.ui.delete_field_scan_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._field_scan_table_name))
         self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
@@ -182,6 +186,83 @@ class DatabaseWidget(_QWidget):
         self.ui.delete_fieldmap_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._fieldmap_table_name))
 
+    def convertToFieldScan(self):
+        """Convert voltage scans to field scans."""
+        idns = self.getTableSelectedIDs(self._voltage_scan_table_name)
+        if len(idns) == 0:
+            return
+
+        configuration_id_list = []
+        configuration_list = []
+        voltage_scan_list = []
+        try:
+            for idn in idns:
+                vd = _VoltageScan(database=self.database, idn=idn)
+                configuration_id = vd.configuration_id
+                if configuration_id is None:
+                    msg = 'Invalid configuration ID found in scan list.'
+                    _QMessageBox.critical(
+                        self, 'Failure', msg, _QMessageBox.Ok)
+                    return
+
+                config = _MeasurementConfig(
+                    database=self.database, idn=configuration_id)
+                configuration_id_list.append(configuration_id)
+                configuration_list.append(config)
+                voltage_scan_list.append(vd)
+
+            probe_names = _HallProbe.get_table_column(
+                self.database, 'probe_name')
+
+            if len(probe_names) == 0:
+                msg = 'No Hall Probe found.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return
+
+            probe_name, ok = _QInputDialog.getItem(
+                self, "Hall Probe", "Select the Hall Probe:",
+                probe_names, 0, editable=False)
+
+            if not ok:
+                return
+
+            idn = _HallProbe.get_hall_probe_id(self.database, probe_name)
+            if idn is None:
+                msg = 'Hall probe data not found in database.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return
+
+            hall_probe = _HallProbe(database=self.database, idn=idn)
+            field_scan_list = _data.measurement.get_field_scan_list(
+                voltage_scan_list, hall_probe)
+
+            unique_configuration_id_list, index, inv = _np.unique(
+                configuration_id_list, return_index=True, return_inverse=True)
+            for i in range(len(unique_configuration_id_list)):
+                configuration_id = unique_configuration_id_list[i]
+                config = configuration_list[index[i]]
+                config.probe_name = probe_name
+                new_config_id = config.save_to_database(self.database)
+                unique_configuration_id_list[i] = new_config_id
+
+            idns = []
+            for i in range(len(field_scan_list)):
+                field_scan = field_scan_list[i]
+                config_id = unique_configuration_id_list[inv[i]]
+                field_scan.configuration_id = int(config_id)
+                idn = field_scan.save_to_database(self.database)
+                idns.append(idn)
+
+            self.updateDatabaseTables()
+
+            msg = 'Field scans saved in database.\nIDs: ' + str(idns)
+            _QMessageBox.information(
+                self, 'Information', msg, _QMessageBox.Ok)
+
+        except Exception as e:
+            _QMessageBox.critical(
+                self, 'Failure', str(e), _QMessageBox.Ok)
+
     def createFieldmap(self):
         """Create fieldmap from field scan records."""
         self.fieldmap_dialog.accept()
@@ -189,45 +270,42 @@ class DatabaseWidget(_QWidget):
         if len(idns) == 0:
             return
 
-        field_data_list = []
-        configuration_ids = []
+        probe_name_list = []
+        field_scan_list = []
         try:
             for idn in idns:
-                fd = _FieldData(database=self.database, idn=idn)
-                cid = _FieldData.get_configuration_id_from_database(
-                    self.database, idn)
-                field_data_list.append(fd)
-                configuration_ids.append(cid)
+                fd = _FieldScan(database=self.database, idn=idn)
+                configuration_id = fd.configuration_id
+                if configuration_id is None:
+                    msg = 'Invalid configuration ID found in scan list.'
+                    _QMessageBox.critical(
+                        self, 'Failure', msg, _QMessageBox.Ok)
+                    return
 
-            if (any([c is None for c in configuration_ids]) or not all(
-                    [c == configuration_ids[0] for c in configuration_ids])):
-                msg = 'Invalid configuration ID list.'
-                _QMessageBox.critical(
-                    self, 'Failure', msg, _QMessageBox.Ok)
+                probe_name = _MeasurementConfig.get_probe_name_from_database(
+                    self.database, configuration_id)
+                probe_name_list.append(probe_name)
+                field_scan_list.append(fd)
+
+            if not all([pn == probe_name_list[0] for pn in probe_name_list]):
+                msg = 'Inconsistent probe name found in scan list'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
-            probe_name = _MeasurementConfig.get_probe_name_from_database(
-                self.database, configuration_ids[0])
-
+            probe_name = probe_name_list[0]
             if probe_name is None or len(probe_name) == 0:
-                msg = 'Invalid hall probe.'
-                _QMessageBox.critical(
-                    self, 'Failure', msg, _QMessageBox.Ok)
+                msg = 'Invalid Hall probe.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
-            idn = _HallProbe.get_hall_probe_id(
-                self.database, probe_name)
+            idn = _HallProbe.get_hall_probe_id(self.database, probe_name)
             if idn is None:
                 msg = 'Hall probe data not found in database.'
-                _QMessageBox.critical(
-                    self, 'Failure', msg, _QMessageBox.Ok)
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
-            hall_probe = _HallProbe(
-                database=self.database, idn=idn)
-
-            self.fieldmap_dialog.show(
-                field_data_list, hall_probe, idns)
+            hall_probe = _HallProbe(database=self.database, idn=idn)
+            self.fieldmap_dialog.show(field_scan_list, hall_probe, idns)
 
         except Exception as e:
             _QMessageBox.critical(
@@ -448,29 +526,29 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
 
-    def viewRawData(self):
+    def viewVoltageScan(self):
         """Open view data dialog."""
         idns = self.getTableSelectedIDs(self._voltage_scan_table_name)
         if len(idns) == 0:
             return
 
-        data_list = []
+        scan_list = []
         for idn in idns:
-            data_list.append(_VoltageData(database=self.database, idn=idn))
-        self.viewdata_dialog.accept()
-        self.viewdata_dialog.show(data_list, 'Voltage [V]')
+            scan_list.append(_VoltageScan(database=self.database, idn=idn))
+        self.viewscan_dialog.accept()
+        self.viewscan_dialog.show(scan_list, 'Voltage [V]')
 
-    def viewScan(self):
+    def viewFieldScan(self):
         """Open view data dialog."""
         idns = self.getTableSelectedIDs(self._field_scan_table_name)
         if len(idns) == 0:
             return
 
-        data_list = []
+        scan_list = []
         for idn in idns:
-            data_list.append(_FieldData(database=self.database, idn=idn))
-        self.viewdata_dialog.accept()
-        self.viewdata_dialog.show(data_list, 'Magnetic Field [T]')
+            scan_list.append(_FieldScan(database=self.database, idn=idn))
+        self.viewscan_dialog.accept()
+        self.viewscan_dialog.show(scan_list, 'Magnetic Field [T]')
 
 
 class DatabaseTable(_QTableWidget):

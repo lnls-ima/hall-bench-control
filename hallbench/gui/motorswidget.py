@@ -169,6 +169,10 @@ class MotorsWidget(_QWidget):
         end = float(end_text)
 
         if start is not None and step is not None and end is not None:
+            if step == 0:
+                self.ui.trigend_le.setText('{0:0.4f}'.format(start))
+                return
+
             npts = _np.abs(_np.round(round((end - start) / step, 4) + 1))
             if start <= end and step < 0:
                 self.ui.trigstep_le.setText('')
@@ -441,9 +445,9 @@ class MotorsWidget(_QWidget):
             while ((self.pmac.axis_status(axis) & 1) == 0 and
                    self.stop_trigger is False):
                 _QApplication.processEvents()
-   
+
             if self.stop_trigger:
-                return    
+                return
 
             if not self.ui.trigpause_chb.isChecked():
                 self.pmac.move_axis(axis, end)

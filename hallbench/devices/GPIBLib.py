@@ -563,14 +563,8 @@ class Agilent34970A(GPIB):
 
     _probe_channels = ['101', '102', '103']
     _dcct_channels = ['104']
-    _temp_channels = [
+    _temperature_channels = [
         '201', '202', '203', '204', '205', '206', '207', '208', '209']
-    _config_channels = []
-
-    @property
-    def config_channels(self):
-        """Returns current channel configuration list."""
-        return self._config_channels
 
     def __init__(self, logfile=None):
         """Initiaze variables and prepare logging file.
@@ -579,9 +573,30 @@ class Agilent34970A(GPIB):
             logfile (str): log file path.
             address (int): device address.
         """
+        self._config_channels = []
         self.commands = Agilent34970ACommands()
         self.logfile = logfile
         super().__init__(self.logfile)
+
+    @property
+    def probe_channels(self):
+        """Probe temperature channels."""
+        return self._probe_channels
+
+    @property
+    def temperature_channels(self):
+        """Bench temperature channels."""
+        return self._temperature_channels
+
+    @property
+    def dcct_channels(self):
+        """DCCT current channels."""
+        return self._dcct_channels
+
+    @property
+    def config_channels(self):
+        """Return current channel configuration list."""
+        return self._config_channels
 
     def connect(self, address):
         """Connect to a GPIB device with the given address.
@@ -609,7 +624,7 @@ class Agilent34970A(GPIB):
         """Configure channels."""
         if channel_list == 'all':
             volt_channel_list = self._probe_channels + self._dcct_channels
-            temp_channel_list = self._temp_channels
+            temp_channel_list = self._temperature_channels
 
         else:
             volt_channel_list = []
@@ -621,7 +636,7 @@ class Agilent34970A(GPIB):
                 else:
                     temp_channel_list.append(ch)
 
-        all_channels = volt_channel_list + temp_channel_list
+        all_channels = sorted(volt_channel_list + temp_channel_list)
         if len(all_channels) == 0:
             return False
         elif all_channels == self._config_channels:

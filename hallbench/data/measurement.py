@@ -72,6 +72,8 @@ class Scan(_database.DatabaseObject):
         self._stdy = _np.array([])
         self._stdz = _np.array([])
         self._data_unit = data_unit
+        self._current = _np.array([])
+        self._temperature = _np.array([])
 
         if filename is not None and idn is not None:
             raise ValueError('Invalid arguments for Scan object.')
@@ -228,6 +230,16 @@ class Scan(_database.DatabaseObject):
         return self._stdz
 
     @property
+    def current(self):
+        """Power supply current."""
+        return self._current
+
+    @property
+    def temperature(self):
+        """Temperature readings."""
+        return self._temperature
+
+    @property
     def axis_list(self):
         """List of all bench axes."""
         return self._axis_list
@@ -363,8 +375,9 @@ class Scan(_database.DatabaseObject):
         """Reverse Scan."""
         for key in self.__dict__:
             value = self.__dict__[key]
-            if isinstance(value, _np.ndarray) and value.size > 1:
-                self.__dict__[key] = value[::-1]
+            if key not in ['_temperature', '_current']:
+                if isinstance(value, _np.ndarray) and value.size > 1:
+                    self.__dict__[key] = value[::-1]
 
     def save_file(self, filename, include_std=True):
         """Save data to file.
@@ -478,12 +491,16 @@ class VoltageScan(Scan):
         ('voltagex_std', ['_stdx', 'TEXT NOT NULL']),
         ('voltagey_std', ['_stdy', 'TEXT NOT NULL']),
         ('voltagez_std', ['_stdz', 'TEXT NOT NULL']),
+        ('current', ['_current', 'TEXT NOT NULL']),
+        ('temperature', ['_temperature', 'TEXT NOT NULL']),
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
         '_pos6', '_pos7', '_pos8', '_pos9',
         '_avgx', '_avgy', '_avgz',
-        '_stdx', '_stdy', '_stdz']
+        '_stdx', '_stdy', '_stdz',
+        '_current', '_temperature',
+        ]
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -574,6 +591,16 @@ class VoltageScan(Scan):
         """Set stdz value."""
         self._stdz = _utils.to_array(value)
 
+    @Scan.current.setter
+    def current(self, value):
+        """Set current values."""
+        self._current = _utils.to_array(value)
+
+    @Scan.temperature.setter
+    def temperature(self, value):
+        """Set temperature values."""
+        self._temperature = _utils.to_array(value)
+
 
 class FieldScan(Scan):
     """Position and magnetic field values."""
@@ -602,12 +629,16 @@ class FieldScan(Scan):
         ('fieldx_std', ['_stdx', 'TEXT NOT NULL']),
         ('fieldy_std', ['_stdy', 'TEXT NOT NULL']),
         ('fieldz_std', ['_stdz', 'TEXT NOT NULL']),
+        ('current', ['_current', 'TEXT NOT NULL']),
+        ('temperature', ['_temperature', 'TEXT NOT NULL']),
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
         '_pos6', '_pos7', '_pos8', '_pos9',
         '_avgx', '_avgy', '_avgz',
-        '_stdx', '_stdy', '_stdz']
+        '_stdx', '_stdy', '_stdz',
+        '_current', '_temperature',
+        ]
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -647,6 +678,10 @@ class FieldScan(Scan):
         self._stdx = bx_std
         self._stdy = by_std
         self._stdz = bz_std
+
+        temp, cur = _get_current_and_temperature_values(voltage_scan_list)
+        self._temperature = temp
+        self._current = cur
 
 
 class Fieldmap(_database.DatabaseObject):
@@ -1086,6 +1121,20 @@ def _get_axis_vector(axis):
         return _np.array([1, 0, 0])
     else:
         return None
+
+
+def _get_current_and_temperature_values(voltage_scan_list):
+    """Get power supply current and temperature values."""
+    current = []
+    temperature = []
+    for vs in voltage_scan_list:
+        current.append(vs.current)
+        temperature.append(vs.temperature)
+    current = _np.array(current)
+    current = _np.array(sorted(current, key=lambda x: x[0]))
+    temperature = _np.array(temperature)
+    temperature = _np.array(sorted(temperature, key=lambda x: x[0]))
+    return current, temperature
 
 
 def _get_data_frame_limits(values, fieldx, fieldy, fieldz, axis=0):

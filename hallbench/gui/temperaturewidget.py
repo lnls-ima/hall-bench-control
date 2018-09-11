@@ -140,7 +140,7 @@ class TemperatureWidget(_TablePlotWidget):
         if len(rl) != len(selected_channels):
             return
 
-        readings = [r if r < 1e37 else _np.nan for r in rl]
+        readings = [r if _np.abs(r) < 1e37 else _np.nan for r in rl]
 
         try:
             for i in range(len(selected_channels)):

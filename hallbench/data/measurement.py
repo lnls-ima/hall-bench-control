@@ -679,7 +679,7 @@ class FieldScan(Scan):
         self._stdy = by_std
         self._stdz = bz_std
 
-        temp, cur = _get_current_and_temperature_values(voltage_scan_list)
+        cur, temp = _get_current_and_temperature_values(voltage_scan_list)
         self._temperature = temp
         self._current = cur
 
@@ -1128,12 +1128,19 @@ def _get_current_and_temperature_values(voltage_scan_list):
     current = []
     temperature = []
     for vs in voltage_scan_list:
-        current.append(vs.current)
-        temperature.append(vs.temperature)
+        if len(vs.current) > 0: 
+            [current.append(c) for c in vs.current]
+        if len(vs.temperature) > 0:
+            [temperature.append(t) for t in vs.temperature]
+    
     current = _np.array(current)
-    current = _np.array(sorted(current, key=lambda x: x[0]))
+    if len(current) > 0:
+        current = _np.array(sorted(current, key=lambda x: x[0]))
+    
     temperature = _np.array(temperature)
-    temperature = _np.array(sorted(temperature, key=lambda x: x[0]))
+    if len(temperature) > 0:
+        temperature = _np.array(sorted(temperature, key=lambda x: x[0]))
+    
     return current, temperature
 
 

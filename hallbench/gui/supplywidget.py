@@ -292,7 +292,7 @@ class SupplyWidget(_QWidget):
         _QApplication.processEvents()
 
     def config_ps(self):
-        """Sets Power Supply configurations acording to current UI inputs."""
+        """Sets Power Supply configurations according to current UI inputs."""
 
         self.config.ps_name = self.ui.cb_ps_name.currentText()
         self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
@@ -438,6 +438,7 @@ class SupplyWidget(_QWidget):
         try:
             _refresh_current = round(float(self.drs.Read_iLoad1()), 3)
             self.ui.lcd_ps_reading.display(_refresh_current)
+            _QApplication.processEvents()
             if all([self.ui.chb_dcct.isChecked(),
                     self.connection_config.multich_enable]):
                 self.ui.lcd_current_dcct.setEnabled(True)
@@ -456,6 +457,7 @@ class SupplyWidget(_QWidget):
                 self.ui.lcd_current_dcct.display(_current)
             _QApplication.processEvents()
         except Exception:
+#             traceback.print_exc(file=sys.stdout)
             _QMessageBox.warning(self, 'Warning', 'Could not display Current.',
                                  _QMessageBox.Ok)
             return

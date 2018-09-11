@@ -47,7 +47,7 @@ class VoltageOffsetWidget(_TablePlotWidget):
         self.ui.layout_lt.addWidget(self.reset_btn)
         self.reset_btn.clicked.connect(self.resetMultimeters)
 
-        self.pos = []
+        self.position = []
         col_labels = ['Date', 'Time', 'Position']
         for label in self._data_labels:
             col_labels.append(label)
@@ -117,7 +117,7 @@ class VoltageOffsetWidget(_TablePlotWidget):
             voltz = voltz*self._data_mult_factor
             self._readings[self._data_labels[2]].append(voltz)
 
-            self.pos.append(pos)
+            self.position.append(pos)
             self.timestamp.append(ts)
             self.updateTableValues()
             self.updatePlot()

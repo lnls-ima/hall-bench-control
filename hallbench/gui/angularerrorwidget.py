@@ -44,7 +44,7 @@ class AngularErrorWidget(_TablePlotWidget):
         self.ui.layout_lt.addWidget(_label)
         self.ui.layout_lt.addWidget(self.meastype_cmb)
 
-        self.pos = []
+        self.position = []
         col_labels = ['Date', 'Time', 'Position']
         for label in self._data_labels:
             col_labels.append(label)
@@ -108,7 +108,7 @@ class AngularErrorWidget(_TablePlotWidget):
                 value = readings[i]
                 self._readings[label].append(value)
 
-            self.pos.append(pos)
+            self.position.append(pos)
             self.timestamp.append(ts)
             self.updateTableValues()
             self.updatePlot()

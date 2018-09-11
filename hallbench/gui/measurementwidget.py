@@ -252,6 +252,7 @@ class MeasurementWidget(_QWidget):
 
         except Exception as e:
             self.killVoltageThreads()
+            self.current_temperature_thread.quit()
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
 
     def configurePmac(self):
@@ -404,7 +405,7 @@ class MeasurementWidget(_QWidget):
 
             dcct_head = self.power_supply_config.dcct_head
 
-            self.multich.configure(channel_list=channels)
+            self.devices.multich.configure(channel_list=channels)
             self.current_temperature_thread.timer_interval = timer_interval
             self.current_temperature_thread.dcct_head = dcct_head
             self.current_temperature_thread.clear()
@@ -841,8 +842,8 @@ class CurrentTemperatureThread(_QThread):
         self.timer.timeout.connect(self.readChannels)
         self.timer_interval = None
         self.dcct_head = None
-        self.current = _np.array([])
-        self.temperature = _np.array([])
+        self.current = []
+        self.temperature = []
 
     @property
     def multich(self):
@@ -851,8 +852,8 @@ class CurrentTemperatureThread(_QThread):
 
     def clear(self):
         """Clear values."""
-        self.current = _np.array([])
-        self.temperature = _np.array([])
+        self.current = []
+        self.temperature = []
 
     def readChannels(self):
         """Read channels."""
@@ -861,7 +862,7 @@ class CurrentTemperatureThread(_QThread):
             temperature = []
             r = self.multich.get_converted_readings(dcct_head=self.dcct_head)
             ts = _time.time()
-            channels = self.multich.config_channels()
+            channels = self.multich.config_channels
             dcct_channels = self.multich.dcct_channels
             for i, ch in enumerate(channels):
                 if ch in dcct_channels:
@@ -869,16 +870,18 @@ class CurrentTemperatureThread(_QThread):
                 else:
                     temperature.append(r[i])
             if len(current) != 0:
-                self.current.append(current.insert(0, ts))
+                current.insert(0, ts)
+                self.current.append(current)
             if len(temperature) != 0:
-                self.temperature.append(temperature.insert(0, ts))
+                temperature.insert(0, ts)
+                self.temperature.append(temperature)
         except Exception:
             pass
 
     def run(self):
         """Read current and temperatures from the device."""
         if self.timer_interval is not None:
-            self.timer.start(self._timer_interval)
+            self.timer.start(self.timer_interval)
             loop = _QEventLoop()
             loop.exec_()
 

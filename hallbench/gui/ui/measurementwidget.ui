@@ -38,7 +38,7 @@
    <item row="1" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <property name="spacing">
-      <number>20</number>
+      <number>15</number>
      </property>
      <property name="topMargin">
       <number>9</number>
@@ -52,7 +52,7 @@
         <number>0</number>
        </property>
        <property name="verticalSpacing">
-        <number>2</number>
+        <number>4</number>
        </property>
        <item row="1" column="1">
         <widget class="QCheckBox" name="save_temperature_chb">

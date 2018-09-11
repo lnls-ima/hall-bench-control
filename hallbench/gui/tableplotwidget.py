@@ -64,8 +64,8 @@ class TablePlotWidget(_QWidget):
 
     def clearValues(self):
         """Clear all values."""
-        if hasattr(self, 'pos'):
-            self.pos = []
+        if hasattr(self, 'position'):
+            self.position = []
         self.timestamp = []
         for label in self._data_labels:
             self._readings[label] = []
@@ -143,9 +143,9 @@ class TablePlotWidget(_QWidget):
         rows = [s.row() for s in selected]
         n = len(self.timestamp)
 
-        if hasattr(self, 'pos'):
-            self.pos = [
-                self.pos[i] for i in range(n) if i not in rows]
+        if hasattr(self, 'position'):
+            self.position = [
+                self.position[i] for i in range(n) if i not in rows]
 
         self.timestamp = [
             self.timestamp[i] for i in range(n) if i not in rows]
@@ -250,8 +250,8 @@ class TablePlotWidget(_QWidget):
                 self.ui.table_ta.setItem(i, 0, _QTableWidgetItem(date))
                 self.ui.table_ta.setItem(i, 1, _QTableWidgetItem(hour))
 
-                if hasattr(self, 'pos'):
-                    pos = '{0:.4f}'.format(self.pos[i])
+                if hasattr(self, 'position'):
+                    pos = '{0:.4f}'.format(self.position[i])
                     self.ui.table_ta.setItem(
                         i, 2, _QTableWidgetItem(pos))
                     self.ui.table_ta.setItem(

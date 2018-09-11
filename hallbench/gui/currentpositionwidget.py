@@ -47,9 +47,11 @@ class CurrentPositionWidget(_QWidget):
         """Update positions."""
         try:
             for axis in self._list_of_axis:
+                le = getattr(self.ui, 'posax' + str(axis) + '_le')
                 if axis in self.positions:
                     pos = self.positions[axis]
-                    le = getattr(self.ui, 'posax' + str(axis) + '_le')
                     le.setText('{0:0.4f}'.format(pos))
+                else:
+                    le.setText('')
         except Exception:
             pass

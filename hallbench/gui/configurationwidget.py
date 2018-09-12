@@ -107,22 +107,22 @@ class ConfigurationWidget(_QWidget):
         self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
 
         self.ui.start_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.start_ax1_le))
+            lambda: self.setStrFormatFloatSumSub(self.ui.start_ax1_le))
         self.ui.start_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.start_ax2_le))
+            lambda: self.setStrFormatFloatSumSub(self.ui.start_ax2_le))
         self.ui.start_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.start_ax3_le))
+            lambda: self.setStrFormatFloatSumSub(self.ui.start_ax3_le))
         self.ui.start_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.start_ax5_le))
+            lambda: self.setStrFormatFloatSumSub(self.ui.start_ax5_le))
 
         self.ui.end_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.end_ax1_le))
+            lambda: self.setStrFormatFloatSumSub(self.ui.end_ax1_le))
         self.ui.end_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.end_ax2_le))
+            lambda: self.setStrFormatFloatSumSub(self.ui.end_ax2_le))
         self.ui.end_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.end_ax3_le))
+            lambda: self.setStrFormatFloatSumSub(self.ui.end_ax3_le))
         self.ui.end_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.end_ax5_le))
+            lambda: self.setStrFormatFloatSumSub(self.ui.end_ax5_le))
 
         self.ui.step_ax1_le.editingFinished.connect(
             lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax1_le))
@@ -486,6 +486,27 @@ class ConfigurationWidget(_QWidget):
             if obj.isModified():
                 self.clearLoadOptions()
                 value = float(obj.text())
+                obj.setText('{0:0.4f}'.format(value))
+        except Exception:
+            obj.setText('')
+
+    def setStrFormatFloatSumSub(self, obj):
+        """Set the line edit string format for float value."""
+        try:
+            if obj.isModified():
+                self.clearLoadOptions()
+                text = obj.text()
+                if '-' in text or '+' in text:
+                    tl = [ti for ti in text.split('-')]
+                    for i in range(1, len(tl)):
+                        tl[i] = '-' + tl[i]
+                    ntl = []
+                    for ti in tl:
+                        ntl = ntl + ti.split('+')
+                    values = [float(ti) for ti in ntl if len(ti) > 0]
+                    value = sum(values)
+                else:
+                    value = float(text)
                 obj.setText('{0:0.4f}'.format(value))
         except Exception:
             obj.setText('')

@@ -1,7 +1,9 @@
 """Database tables widgets."""
 
-import sqlite3 as _sqlite3
+import sys as _sys
 import numpy as _np
+import sqlite3 as _sqlite3
+import traceback as _traceback
 import PyQt5.uic as _uic
 from PyQt5.QtCore import Qt as _Qt
 from PyQt5.QtWidgets import (
@@ -117,6 +119,7 @@ class DatabaseWidget(_QWidget):
             self.viewscan_dialog.accept()
             self.fieldmap_dialog.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
     def closeEvent(self, event):
@@ -125,6 +128,7 @@ class DatabaseWidget(_QWidget):
             self.closeDialogs()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def connectSignalSlots(self):
@@ -271,12 +275,12 @@ class DatabaseWidget(_QWidget):
             self.updateDatabaseTables()
 
             msg = 'Field scans saved in database.\nIDs: ' + str(idns)
-            _QMessageBox.information(
-                self, 'Information', msg, _QMessageBox.Ok)
+            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to convert VoltageScan to FieldScan.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def createFieldmap(self):
         """Create fieldmap from field scan records."""
@@ -322,9 +326,10 @@ class DatabaseWidget(_QWidget):
             hall_probe = _HallProbe(database=self.database, idn=idn)
             self.fieldmap_dialog.show(field_scan_list, hall_probe, idns)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to create Fieldmap.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def deleteDatabaseRecords(self, table_name):
         """Delete record from database table."""
@@ -410,8 +415,8 @@ class DatabaseWidget(_QWidget):
             return None
 
         if len(idns) > 1:
-            message = 'Select only one entry of the database table.'
-            _QMessageBox.critical(self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Select only one entry of the database table.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return None
 
         idn = idns[0]
@@ -482,11 +487,11 @@ class DatabaseWidget(_QWidget):
             idn = obj.save_to_database(self.database)
             msg = 'Added to database table.\nID: ' + str(idn)
             self.updateDatabaseTables()
-            _QMessageBox.information(
-                self, 'Information', msg, _QMessageBox.Ok)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to read file.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
     def saveFile(self, table_name, object_class):
@@ -498,9 +503,10 @@ class DatabaseWidget(_QWidget):
         try:
             obj = object_class(database=self.database, idn=idn)
             default_filename = obj.default_filename
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to read entry from database.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         filename = _QFileDialog.getSaveFileName(
@@ -518,9 +524,10 @@ class DatabaseWidget(_QWidget):
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
                 filename = filename + '.txt'
             obj.save_file(filename)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save file.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def scrollDownTables(self):
         """Scroll down all tables."""
@@ -544,6 +551,7 @@ class DatabaseWidget(_QWidget):
             _QApplication.restoreOverrideCursor()
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
             _QMessageBox.critical(
@@ -558,9 +566,10 @@ class DatabaseWidget(_QWidget):
         try:
             hall_probe = _HallProbe(database=self.database, idn=idn)
             self.view_probe_dialog.show(hall_probe)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show Hall probe dialog,'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def viewVoltageScan(self):
         """Open view data dialog."""
@@ -801,6 +810,7 @@ class DatabaseTable(_QTableWidget):
         try:
             cur.execute(cmd)
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
         data = cur.fetchall()

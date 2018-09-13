@@ -2,6 +2,8 @@
 
 """Main window for the Hall Bench Control application."""
 
+import sys as _sys
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QDesktopWidget as _QDesktopWidget,
@@ -73,7 +75,6 @@ class HallBenchWindow(_QMainWindow):
 
         self.ui.database_le.setText(self.database)
 
-        self.updateMainTabStatus()
         self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
 
         self.positions_thread = PositionsThread()
@@ -93,6 +94,7 @@ class HallBenchWindow(_QMainWindow):
             self.positions_thread.quit()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def centralizeWindow(self):
@@ -107,10 +109,6 @@ class HallBenchWindow(_QMainWindow):
         database_tab_idx = self.ui.main_tab.indexOf(self.database_tab)
         if self.ui.main_tab.currentIndex() == database_tab_idx:
             self.database_tab.updateDatabaseTables()
-
-    def updateMainTabStatus(self):
-        """Enable or disable main tabs."""
-        pass
 
 
 class PositionsThread(_QThread):

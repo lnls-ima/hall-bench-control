@@ -2,10 +2,12 @@
 
 """View data dialog for the Hall Bench Control application."""
 
+import sys as _sys
 import numpy as _np
 import scipy.optimize as _optimize
 import collections as _collections
 import warnings as _warnings
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
     QMessageBox as _QMessageBox,
@@ -353,8 +355,10 @@ class ViewScanDialog(_QDialog):
             self.ui.polyorder_sb.hide()
             super().show()
 
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
     def updateControls(self):
@@ -480,9 +484,10 @@ class ViewScanDialog(_QDialog):
                 self.xmin_line = None
                 self.xmax_line = None
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to update plot.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
     def updateXLimits(self):
@@ -544,6 +549,7 @@ def _linear_fit(x, y):
                 ('x (y=0)', x0),
             ])
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             xfit = []
             yfit = []
             param = {}
@@ -570,6 +576,7 @@ def _polynomial_fit(x, y, order):
                 _dict['K' + str(i)] = prev[i]
             param = _collections.OrderedDict(_dict)
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             xfit = []
             yfit = []
             param = {}
@@ -605,8 +612,8 @@ def _gaussian_fit(x, y):
             ('x0', popt[2]),
             ('Sigma', popt[3]),
         ])
-    except Exception as e:
-        print(e)
+    except Exception:
+        _traceback.print_exc(file=_sys.stdout)
         xfit = []
         yfit = []
         param = {}

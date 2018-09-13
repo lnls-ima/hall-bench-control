@@ -2,6 +2,8 @@
 
 """Field map dialog for the Hall Bench Control application."""
 
+import sys as _sys
+import traceback as _traceback
 from PyQt5.QtCore import Qt as _Qt
 from PyQt5.QtWidgets import (
     QApplication as _QApplication,
@@ -170,11 +172,12 @@ class FieldmapDialog(_QDialog):
             _QApplication.restoreOverrideCursor()
             return fieldmap
 
-        except Exception as e:
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+            msg = 'Failed to create Fieldmap.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return None
 
     def loadMagnetInfo(self):
@@ -231,15 +234,13 @@ class FieldmapDialog(_QDialog):
     def saveToDB(self):
         """Save fieldmap to database."""
         if self.database is None or len(self.database) == 0:
-            message = 'Invalid database filename.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid database filename.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         if self.scan_id_list is None or len(self.scan_id_list) == 0:
-            message = 'Invalid list of scan IDs.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid list of scan IDs.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         fieldmap = self.getFieldMap()
@@ -255,13 +256,13 @@ class FieldmapDialog(_QDialog):
             fieldmap.initial_scan = initial_scan
             fieldmap.final_scan = final_scan
             idn = fieldmap.save_to_database(self.database)
-            message = 'Fieldmap data saved to database table.\nID: %i' % idn
-            _QMessageBox.information(
-                self, 'Information', message, _QMessageBox.Ok)
+            msg = 'Fieldmap data saved to database table.\nID: %i' % idn
+            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save Fieldmap to database.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def saveToFile(self):
         """Save fieldmap to database."""
@@ -284,13 +285,13 @@ class FieldmapDialog(_QDialog):
             if not filename.endswith('.txt') and not filename.endswith('.dat'):
                 filename = filename + '.dat'
             fieldmap.save_file(filename)
-            message = 'Fieldmap data saved to file: \n%s' % filename
-            _QMessageBox.information(
-                self, 'Information', message, _QMessageBox.Ok)
+            msg = 'Fieldmap data saved to file: \n%s' % filename
+            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save Fieldmap to file.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def setCoilFrameEnabled(self, checkbox, frame):
         """Enable or disable coil frame."""
@@ -305,15 +306,13 @@ class FieldmapDialog(_QDialog):
     def show(self, field_scan_list, hall_probe, scan_id_list):
         """Update fieldmap variable and show dialog."""
         if field_scan_list is None or len(field_scan_list) == 0:
-            message = 'Invalid field scan list.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid field scan list.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         if hall_probe is None:
-            message = 'Invalid hall probe data.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid hall probe data.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         self.field_scan_list = field_scan_list

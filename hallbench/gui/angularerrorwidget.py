@@ -2,8 +2,10 @@
 
 """Angular error widget for the Hall Bench Control application."""
 
+import sys as _sys
 import numpy as _np
 import time as _time
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QComboBox as _QComboBox,
@@ -69,6 +71,7 @@ class AngularErrorWidget(_TablePlotWidget):
             self.closeDialogs()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def readValue(self, monitor=False):

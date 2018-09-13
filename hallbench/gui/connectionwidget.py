@@ -2,7 +2,9 @@
 
 """Connection widget for the Hall Bench Control application."""
 
+import sys as _sys
 import os.path as _path
+import traceback as _traceback
 import serial.tools.list_ports as _list_ports
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
@@ -59,6 +61,7 @@ class ConnectionWidget(_QWidget):
             self.devices.disconnect()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def connectDevices(self):
@@ -78,18 +81,16 @@ class ConnectionWidget(_QWidget):
             _QApplication.restoreOverrideCursor()
 
             if not connected:
-                message = 'Fail to connect devices.'
+                msg = 'Failed to connect devices.'
                 _QMessageBox.critical(
-                    self, 'Failure', message, _QMessageBox.Ok)
+                    self, 'Failure', msg, _QMessageBox.Ok)
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
-            message = 'Fail to connect devices.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
-
-        self.window().updateMainTabStatus()
+            msg = 'Failed to connect devices.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def connectionStatus(self):
         """Return the connection status."""
@@ -130,6 +131,7 @@ class ConnectionWidget(_QWidget):
             return True
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             return False
 
     def connectSignalSlots(self):
@@ -172,9 +174,9 @@ class ConnectionWidget(_QWidget):
             self.updateLedStatus()
 
         except Exception:
-            message = 'Fail to disconnect devices.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to disconnect devices.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def enableLoadDB(self):
         """Enable button to load configuration from database."""
@@ -205,8 +207,10 @@ class ConnectionWidget(_QWidget):
         try:
             self.connection_config.clear()
             self.connection_config.read_from_database(self.database, idn)
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Fail to read connection from database.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         self.load()
@@ -231,8 +235,10 @@ class ConnectionWidget(_QWidget):
         try:
             self.connection_config.clear()
             self.connection_config.read_file(filename)
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to read connection from file.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         self.load()
@@ -289,9 +295,9 @@ class ConnectionWidget(_QWidget):
                     self.connection_config.ps_port))
 
         except Exception:
-            message = 'Fail to load configuration.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to load configuration.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def saveDB(self):
         """Save connection parameters to database."""
@@ -304,9 +310,10 @@ class ConnectionWidget(_QWidget):
                     self.ui.idn_cmb.addItem(str(idn))
                     self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
                     self.ui.loaddb_btn.setEnabled(False)
-            except Exception as e:
-                _QMessageBox.critical(
-                    self, 'Failure', str(e), _QMessageBox.Ok)
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+                msg = 'Failed to save connection to file.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
         else:
             msg = 'Invalid database filename.'
             _QMessageBox.critical(
@@ -331,9 +338,10 @@ class ConnectionWidget(_QWidget):
                    and not filename.endswith('.dat')):
                     filename = filename + '.txt'
                 self.connection_config.save_file(filename)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Fail to save connection to file.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def updateConnectionIDs(self):
         """Update connection IDs in combo box."""
@@ -400,14 +408,14 @@ class ConnectionWidget(_QWidget):
                 self.ui.ps_port_cmb.currentText())
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.connection_config.clear()
 
         if self.connection_config.valid_data():
             return True
         else:
-            message = 'Invalid connection configuration.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid connection configuration.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def updateLedStatus(self):
@@ -428,6 +436,7 @@ class ConnectionWidget(_QWidget):
             self.ui.ps_led_la.setEnabled(self.devices.ps.ser.is_open)
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
     def updateSerialPorts(self):

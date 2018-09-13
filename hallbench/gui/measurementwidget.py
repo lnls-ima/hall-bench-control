@@ -2,11 +2,13 @@
 
 """Measurement widget for the Hall Bench Control application."""
 
+import sys as _sys
 import os.path as _path
 import time as _time
 import numpy as _np
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QApplication as _QApplication,
@@ -151,6 +153,7 @@ class MeasurementWidget(_QWidget):
             self.viewscan_dialog.accept()
             self.configuration_widget.closeDialogs()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
     def closeEvent(self, event):
@@ -159,6 +162,7 @@ class MeasurementWidget(_QWidget):
             self.closeDialogs()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def connectSignalSlots(self):
@@ -248,22 +252,24 @@ class MeasurementWidget(_QWidget):
             if self.local_hall_probe is not None:
                 self.ui.savefieldmap_btn.setEnabled(True)
 
-            message = 'End of measurements.'
+            msg = 'End of measurements.'
             _QMessageBox.information(
-                self, 'Measurements', message, _QMessageBox.Ok)
+                self, 'Measurements', msg, _QMessageBox.Ok)
 
-        except Exception as e:
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.ui.measure_btn.setEnabled(True)
             self.killVoltageThreads()
             self.current_temperature_thread.quit()
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+            msg = 'Measurement failure.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def configurePmac(self):
         """Configure devices."""
         if not self.devices.pmac.connected:
-            message = 'Pmac not connected.'
+            msg = 'Pmac not connected.'
             _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+                self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
         try:
@@ -277,9 +283,9 @@ class MeasurementWidget(_QWidget):
                 5, self.local_measurement_config.vel_ax5)
             return True
         except Exception:
-            message = 'Failed to configure devices.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to configure devices.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def configureGraph(self, nr_curves, label):
@@ -376,14 +382,14 @@ class MeasurementWidget(_QWidget):
             self.thready = None
             self.threadz = None
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
     def monitorCurrentAndTemperature(self):
         """Monitor power supply current and temperatures."""
         if not self.devices.multich.connected:
-            message = 'Multichannel not connected.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Multichannel not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
         try:
@@ -415,8 +421,10 @@ class MeasurementWidget(_QWidget):
             self.current_temperature_thread.start()
             return True
 
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to configure and start multichannel readings.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def moveAxis(self, axis, position):
@@ -455,23 +463,20 @@ class MeasurementWidget(_QWidget):
 
         if (self.local_measurement_config.voltx_enable
            and not self.devices.voltx.connected):
-                message = 'Multimeter X not connected.'
-                _QMessageBox.critical(
-                    self, 'Failure', message, _QMessageBox.Ok)
+                msg = 'Multimeter X not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
 
         if (self.local_measurement_config.volty_enable
            and not self.devices.volty.connected):
-                message = 'Multimeter Y not connected.'
-                _QMessageBox.critical(
-                    self, 'Failure', message, _QMessageBox.Ok)
+                msg = 'Multimeter Y not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
 
         if (self.local_measurement_config.voltz_enable
            and not self.devices.voltz.connected):
-                message = 'Multimeter Z not connected.'
-                _QMessageBox.critical(
-                    self, 'Failure', message, _QMessageBox.Ok)
+                msg = 'Multimeter Z not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
 
         return True
@@ -558,16 +563,17 @@ class MeasurementWidget(_QWidget):
 
             self.local_measurement_config_id = idn
             return True
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save configuration to database.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def saveVoltageScan(self):
         """Save voltage scan to database table."""
         if self.voltage_scan is None:
-            message = 'Invalid voltage scan.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid voltage scan.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
         try:
@@ -580,16 +586,17 @@ class MeasurementWidget(_QWidget):
             self.voltage_scan.save_to_database(self.database)
             return True
 
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save VoltageScan to database'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def saveFieldScan(self):
         """Save field scan to database table."""
         if self.field_scan is None:
-            message = 'Invalid field scan.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid field scan.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
         try:
@@ -602,8 +609,10 @@ class MeasurementWidget(_QWidget):
             self.scan_id_list.append(idn)
             return True
 
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save FieldScan to database'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def scanLine(self, first_axis):
@@ -755,12 +764,14 @@ class MeasurementWidget(_QWidget):
             self.ui.stop_btn.setEnabled(False)
             self.ui.cleargraph_btn.setEnabled(True)
             self.current_temperature_thread.quit()
-            message = 'The user stopped the measurements.'
+            msg = 'The user stopped the measurements.'
             _QMessageBox.information(
-                self, 'Abort', message, _QMessageBox.Ok)
+                self, 'Abort', msg, _QMessageBox.Ok)
 
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to stop measurements.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def stopTrigger(self):
         """Stop trigger."""
@@ -781,9 +792,8 @@ class MeasurementWidget(_QWidget):
                     config.voltx_enable,
                     config.volty_enable,
                     config.voltz_enable]):
-                message = 'No multimeter selected.'
-                _QMessageBox.critical(
-                    self, 'Failure', message, _QMessageBox.Ok)
+                msg = 'No multimeter selected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
             else:
                 self.local_measurement_config = config
@@ -799,9 +809,9 @@ class MeasurementWidget(_QWidget):
             return True
         else:
             self.local_hall_probe = None
-            message = 'Invalid hall probe. Measure only voltage data?'
+            msg = 'Invalid hall probe. Measure only voltage data?'
             reply = _QMessageBox.question(
-                self, 'Message', message, _QMessageBox.Yes, _QMessageBox.No)
+                self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
             if reply == _QMessageBox.Yes:
                 self.ui.save_voltage_scan_chb.setChecked(True)
                 return True
@@ -814,9 +824,8 @@ class MeasurementWidget(_QWidget):
            and len(self.database) != 0 and _path.isfile(self.database)):
             return True
         else:
-            message = 'Invalid database filename.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid database filename.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def waitVoltageThreads(self):

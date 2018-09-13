@@ -2,6 +2,8 @@
 
 """Current Position widget for the Hall Bench Control application."""
 
+import sys as _sys
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QApplication as _QApplication,
@@ -41,6 +43,7 @@ class CurrentPositionWidget(_QWidget):
             self.timer.stop()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def updatePositions(self):

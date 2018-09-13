@@ -2,6 +2,8 @@
 
 """Move axis widget for the Hall Bench Control application."""
 
+import sys as _sys
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QVBoxLayout as _QVBoxLayout,
@@ -52,6 +54,7 @@ class MoveAxisWidget(_QWidget):
             self.current_position_widget.close()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def connectSignalSlots(self):
@@ -90,9 +93,10 @@ class MoveAxisWidget(_QWidget):
 
             self.pmac.move_axis(axis, targetpos)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to move axis.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def selectedAxis(self):
         """Return the selected axis."""
@@ -122,9 +126,10 @@ class MoveAxisWidget(_QWidget):
                 return
             self.pmac.stop_axis(axis)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to stop axis.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def updateVelocityAndPosition(self):
         """Update velocity and position values for the selected axis."""

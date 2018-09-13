@@ -2,8 +2,10 @@
 
 """Motors widget for the Hall Bench Control application."""
 
+import sys as _sys
 import time as _time
 import numpy as _np
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
@@ -72,13 +74,13 @@ class MotorsWidget(_QWidget):
                 self.setAxisLimitsEnabled(False)
                 self.setMovementEnabled(False)
                 self.setTriggerEnabled(False)
-                message = 'Failed to activate bench.'
-                _QMessageBox.critical(
-                    self, 'Failure', message, _QMessageBox.Ok)
+                msg = 'Failed to activate bench.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to activate bench.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def closeEvent(self, event):
         """Close widget."""
@@ -86,6 +88,7 @@ class MotorsWidget(_QWidget):
             self.current_position_widget.close()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def connectSignalSlots(self):
@@ -199,9 +202,10 @@ class MotorsWidget(_QWidget):
             self.setMovementEnabled(False)
             self.setTriggerEnabled(False)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to kill axis.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def moveToTarget(self, axis):
         """Move Hall probe to target position."""
@@ -221,9 +225,10 @@ class MotorsWidget(_QWidget):
             self.pmac.move_axis(axis, targetpos)
             self.ui.reldisp_le.setText('')
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to move to target position.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def releaseAccessToMovement(self):
         """Check homing status and enable movement."""
@@ -275,9 +280,8 @@ class MotorsWidget(_QWidget):
 
             self.window().updateMainTabStatus()
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def resetAxisLimits(self):
         """Reset axis limits."""
@@ -303,9 +307,10 @@ class MotorsWidget(_QWidget):
             if self.pmac.get_response(self.pmac.set_par(pos_list[2], 0)):
                 self.ui.maxax3_le.setText('')
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to reset axis limitis.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def selectedAxis(self):
         """Return the selected axis."""
@@ -360,8 +365,9 @@ class MotorsWidget(_QWidget):
                 self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
 
         except Exception:
-            _QMessageBox.critical(
-                self, 'Failure', 'Could not set axis limits.', _QMessageBox.Ok)
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Could not set axis limits.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def setAxisLimitsEnabled(self, enabled):
         """Enable/Disable axis limits controls."""
@@ -466,9 +472,10 @@ class MotorsWidget(_QWidget):
                         _QApplication.processEvents()
                         _time.sleep(delay/100)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to configure trigger and move axis.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def startHoming(self):
         """Homing of the selected axes."""
@@ -489,21 +496,22 @@ class MotorsWidget(_QWidget):
                 _time.sleep(self._align_bench_time_interval)
             else:
                 self.releaseAccessToMovement()
-                message = 'Finished homing of the selected axes.'
-                _QMessageBox.information(
-                    self, 'Homing', message, _QMessageBox.Ok)
+                msg = 'Finished homing of the selected axes.'
+                _QMessageBox.information(self, 'Homing', msg, _QMessageBox.Ok)
         except Exception:
-            _QMessageBox.critical(
-                self, 'Failure', 'Homing failed.', _QMessageBox.Ok)
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Homing failed.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def stopAllAxis(self):
         """Stop all axis."""
         try:
             self.pmac.stop_all_axis()
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to stop axis.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def stopAxis(self):
         """Stop the selected axis."""
@@ -513,9 +521,10 @@ class MotorsWidget(_QWidget):
                 return
             self.pmac.stop_axis(axis)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to stop axis.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def stopTriggerAxis(self):
         """Stop the selected trigger axis."""
@@ -526,9 +535,10 @@ class MotorsWidget(_QWidget):
                 return
             self.pmac.stop_axis(axis)
 
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to stop axis.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def updateRelDisp(self):
         """Update relative displacement value."""

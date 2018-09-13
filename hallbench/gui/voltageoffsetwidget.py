@@ -2,8 +2,10 @@
 
 """Voltage offset widget for the Hall Bench Control application."""
 
+import sys as _sys
 import numpy as _np
 import time as _time
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
@@ -72,6 +74,7 @@ class VoltageOffsetWidget(_TablePlotWidget):
             self.closeDialogs()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def readValue(self, monitor=False):
@@ -83,9 +86,8 @@ class VoltageOffsetWidget(_TablePlotWidget):
            not self.devices.volty.connected or
            not self.devices.voltz.connected):
             if not monitor:
-                _QMessageBox.critical(
-                    self, 'Failure',
-                    'Multimeters not connected.', _QMessageBox.Ok)
+                msg = 'Multimeters not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         try:
@@ -130,9 +132,8 @@ class VoltageOffsetWidget(_TablePlotWidget):
         if (not self.devices.voltx.connected or
            not self.devices.volty.connected or
            not self.devices.voltz.connected):
-            _QMessageBox.critical(
-                self, 'Failure',
-                'Multimeters not connected.', _QMessageBox.Ok)
+            msg = 'Multimeters not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         self.devices.voltx.reset()

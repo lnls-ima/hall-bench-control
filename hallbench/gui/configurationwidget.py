@@ -2,8 +2,10 @@
 
 """Configuration widget for the Hall Bench Control application."""
 
+import sys as _sys
 import os.path as _path
 import numpy as _np
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
@@ -72,6 +74,7 @@ class ConfigurationWidget(_QWidget):
         try:
             self.view_probe_dialog.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
     def closeEvent(self, event):
@@ -80,6 +83,7 @@ class ConfigurationWidget(_QWidget):
             self.closeDialogs()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def connectSignalSlots(self):
@@ -375,9 +379,10 @@ class ConfigurationWidget(_QWidget):
             self.disableInvalidLineEdit()
 
         except Exception:
-            message = 'Fail to load configuration.'
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to load configuration.'
             _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+                self, 'Failure', msg, _QMessageBox.Ok)
 
     def loadDB(self):
         """Load configuration from database to set measurement parameters."""
@@ -386,6 +391,7 @@ class ConfigurationWidget(_QWidget):
         try:
             idn = int(self.ui.idn_cmb.currentText())
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.critical(
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
@@ -401,8 +407,10 @@ class ConfigurationWidget(_QWidget):
         try:
             self.measurement_config.clear()
             self.measurement_config.read_from_database(self.database, idn)
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to read configuration from database.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         self.load()
@@ -427,8 +435,10 @@ class ConfigurationWidget(_QWidget):
         try:
             self.measurement_config.clear()
             self.measurement_config.read_file(filename)
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to read configuration file.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         self.load()
@@ -448,11 +458,11 @@ class ConfigurationWidget(_QWidget):
             else:
                 self.ui.probe_name_cmb.setCurrentIndex(-1)
                 msg = 'Invalid probe name.'
-                _QMessageBox.critical(
-                    self, 'Failure', msg, _QMessageBox.Ok)
-        except Exception as e:
-            _QMessageBox.critical(
-                self, 'Failure', str(e), _QMessageBox.Ok)
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to load Hall probe from database.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def saveDB(self):
         """Save configuration to database."""
@@ -465,13 +475,13 @@ class ConfigurationWidget(_QWidget):
                     self.ui.idn_cmb.addItem(str(idn))
                     self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
                     self.ui.loaddb_btn.setEnabled(False)
-            except Exception as e:
-                _QMessageBox.critical(
-                    self, 'Failure', str(e), _QMessageBox.Ok)
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+                msg = 'Failed to save configuration to database.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
         else:
             msg = 'Invalid database filename.'
-            _QMessageBox.critical(
-                self, 'Failure', msg, _QMessageBox.Ok)
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def saveFile(self):
         """Save measurement parameters to file."""
@@ -493,8 +503,10 @@ class ConfigurationWidget(_QWidget):
                     filename = filename + '.txt'
                 self.measurement_config.save_file(filename)
 
-            except Exception as e:
-                _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+                msg = 'Failed to save configuration to file.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def setStrFormatFloat(self, obj):
         """Set the line edit string format for float value."""
@@ -658,13 +670,15 @@ class ConfigurationWidget(_QWidget):
                 return True
 
             else:
-                message = 'Invalid measurement configuration.'
+                msg = 'Invalid measurement configuration.'
                 _QMessageBox.critical(
-                    self, 'Failure', message, _QMessageBox.Ok)
+                    self, 'Failure', msg, _QMessageBox.Ok)
                 return False
 
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to update configuration.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def updateConfigurationIDs(self):
@@ -683,6 +697,7 @@ class ConfigurationWidget(_QWidget):
                 self.ui.idn_cmb.setCurrentText(current_text)
             self.ui.loaddb_btn.setEnabled(load_enabled)
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
     def updateProbeNames(self):
@@ -698,4 +713,5 @@ class ConfigurationWidget(_QWidget):
             else:
                 self.ui.probe_name_cmb.setCurrentText(current_text)
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass

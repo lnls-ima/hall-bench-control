@@ -102,9 +102,8 @@ class TemperatureWidget(_TablePlotWidget):
             self.configure_btn.setEnabled(False)
         else:
             self.configure_btn.setEnabled(True)
-            _QMessageBox.critical(
-                self, 'Failure',
-                'Fail to configure Multichannel.', _QMessageBox.Ok)
+            msg = 'Failed to configure Multichannel.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def enableConfigureButton(self):
         """Enable configure button."""

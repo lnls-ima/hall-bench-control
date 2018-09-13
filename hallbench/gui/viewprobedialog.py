@@ -2,9 +2,11 @@
 
 """View probe dialog for the Hall Bench Control application."""
 
+import sys as _sys
 import numpy as _np
 import json as _json
 import warnings as _warnings
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
     QApplication as _QApplication,
@@ -65,6 +67,7 @@ class ViewProbeDialog(_QDialog):
             self.interpolation_dialog.accept()
             self.polynomial_dialog.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
     def closeEvent(self, event):
@@ -73,6 +76,7 @@ class ViewProbeDialog(_QDialog):
             self.closeDialogs()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def configureGraph(self, symbol=False):
@@ -196,11 +200,11 @@ class ViewProbeDialog(_QDialog):
             self.ui.fieldz_le.setText('')
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.setDataEnabled(False)
             self.updateGraph()
-            message = 'Failed to load hall probe data.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Failed to load hall probe data.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
     def setDataEnabled(self, enabled):
@@ -283,8 +287,10 @@ class ViewProbeDialog(_QDialog):
 
             if not _np.isnan(fieldz):
                 self.ui.fieldz_le.setText('{0:0.4f}'.format(fieldz))
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to update magnetic field values.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
     def updateGraph(self):
@@ -338,8 +344,9 @@ class ViewProbeDialog(_QDialog):
                     self.legend.addItem(self.graphz[0], 'Z')
 
         except Exception:
-            message = 'Failed to update plot.'
-            _QMessageBox.critical(self, 'Failure', message, _QMessageBox.Ok)
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to update plot.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
 

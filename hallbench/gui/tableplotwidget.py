@@ -2,10 +2,12 @@
 
 """Table and plot widget for the Hall Bench Control application."""
 
+import sys as _sys
 import numpy as _np
 import datetime as _datetime
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
@@ -76,8 +78,9 @@ class TablePlotWidget(_QWidget):
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.self.table_analysis_dialog.accept()
+            self.table_analysis_dialog.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass
 
     def closeEvent(self, event):
@@ -87,6 +90,7 @@ class TablePlotWidget(_QWidget):
             self.closeDialogs()
             event.accept()
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
     def configureGraph(self):
@@ -183,8 +187,10 @@ class TablePlotWidget(_QWidget):
                 filename = filename + '.txt'
             df.to_csv(filename, sep='\t')
 
-        except Exception as e:
-            _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save data to file.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def showTableAnalysisDialog(self):
         """Show table analysis dialog."""

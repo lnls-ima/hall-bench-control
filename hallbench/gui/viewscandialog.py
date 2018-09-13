@@ -578,34 +578,35 @@ def _polynomial_fit(x, y, order):
 
 
 def _gaussian_fit(x, y):
-    label = 'y = A*exp(-(x-x0)^2/(2*Sigma^2))'
+    label = 'y = y0 + A*exp(-(x-x0)^2/(2*Sigma^2))'
 
-    def gaussian(x, a, x0, sigma):
-        return a*_np.exp(-(x-x0)**2/(2*sigma**2))
-
-    def minfunc(ps):
-        return sum((y - gaussian(x, ps[0], ps[1], ps[2]))**2)
+    def gaussian(x, y0, a, x0, sigma):
+        return y0 + a*_np.exp(-(x-x0)**2/(2*sigma**2))
 
     try:
-        n = len(x)
-        mean = sum(x*y)/n
-        sigma = sum(y*(x-mean)**2)/n
+        mean = sum(x * y) / sum(y)
+        sigma = _np.sqrt(sum(y * (x - mean)**2) / sum(y))
         if mean <= _np.max(y):
             a = _np.max(y)
+            y0 = _np.min(y)
         else:
             a = _np.min(y)
+            y0 = _np.max(y)
 
-        popt = _optimize.fmin(minfunc, [a, mean, sigma], disp=0)
+        popt, pcov = _optimize.curve_fit(
+            gaussian, x, y, p0=[y0, a, mean, sigma])
 
         xfit = _np.linspace(x[0], x[-1], 100)
-        yfit = gaussian(xfit, popt[0], popt[1], popt[2])
+        yfit = gaussian(xfit, popt[0], popt[1], popt[2], popt[3])
 
         param = _collections.OrderedDict([
-            ('A', popt[0]),
-            ('x0', popt[1]),
-            ('Sigma', popt[2]),
+            ('y0', popt[0]),
+            ('A', popt[1]),
+            ('x0', popt[2]),
+            ('Sigma', popt[3]),
         ])
-    except Exception:
+    except Exception as e:
+        print(e)
         xfit = []
         yfit = []
         param = {}

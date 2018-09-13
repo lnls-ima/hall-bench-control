@@ -30,13 +30,8 @@ class ConfigurationWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        probe_names = self.hall_probe.get_table_column(
-            self.database, 'probe_name')
-        self.ui.probe_name_cmb.addItems(probe_names)
-        self.ui.probe_name_cmb.setCurrentIndex(-1)
-
+        self.updateProbeNames()
         self.updateConfigurationIDs()
-        self.ui.idn_cmb.setCurrentIndex(-1)
         self.ui.loaddb_btn.setEnabled(False)
 
         self.view_probe_dialog = _ViewProbeDialog()
@@ -56,6 +51,11 @@ class ConfigurationWidget(_QWidget):
     def hall_probe(self):
         """Hall probe calibration data."""
         return _QApplication.instance().hall_probe
+
+    @property
+    def positions(self):
+        """Positions dict."""
+        return _QApplication.instance().positions
 
     def clearHallProbe(self):
         """Clear hall probe calibration data."""
@@ -105,6 +105,10 @@ class ConfigurationWidget(_QWidget):
         self.volty_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.voltz_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
+        self.ui.update_idn_btn.clicked.connect(self.updateConfigurationIDs)
+
+        self.ui.current_start_btn.clicked.connect(
+            self.copyCurrentStartPosition)
 
         self.ui.start_ax1_le.editingFinished.connect(
             lambda: self.setStrFormatFloatSumSub(self.ui.start_ax1_le))
@@ -210,8 +214,18 @@ class ConfigurationWidget(_QWidget):
         self.ui.loaddb_btn.clicked.connect(self.loadDB)
         self.ui.savedb_btn.clicked.connect(self.saveDB)
         self.ui.probe_name_cmb.currentIndexChanged.connect(self.loadHallProbe)
+        self.ui.update_probe_name_btn.clicked.connect(self.updateProbeNames)
         self.ui.clear_probe_btn.clicked.connect(self.clearHallProbe)
         self.ui.view_probe_btn.clicked.connect(self.showViewProbeDialog)
+
+    def copyCurrentStartPosition(self):
+        """Copy current start position to line edits."""
+        for axis in self._measurement_axes:
+            start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
+            if axis in self.positions.keys():
+                start_le.setText('{0:0.4f}'.format(self.positions[axis]))
+            else:
+                start_le.setText('')
 
     def disableInvalidLineEdit(self):
         """Disable invalid line edit."""
@@ -253,6 +267,8 @@ class ConfigurationWidget(_QWidget):
         """Enable button to load configuration from database."""
         if self.ui.idn_cmb.currentIndex() != -1:
             self.ui.loaddb_btn.setEnabled(True)
+        else:
+            self.ui.loaddb_btn.setEnabled(False)
 
     def fixEndPositionValue(self, axis):
         """Fix end position value."""
@@ -653,6 +669,33 @@ class ConfigurationWidget(_QWidget):
 
     def updateConfigurationIDs(self):
         """Update combo box ids."""
-        idns = self.measurement_config.get_table_column(self.database, 'id')
+        current_text = self.ui.idn_cmb.currentText()
+        load_enabled = self.ui.loaddb_btn.isEnabled()
         self.ui.idn_cmb.clear()
-        self.ui.idn_cmb.addItems([str(idn) for idn in idns])
+        try:
+            idns = self.measurement_config.get_table_column(
+                self.database, 'id')
+            self.ui.idn_cmb.clear()
+            self.ui.idn_cmb.addItems([str(idn) for idn in idns])
+            if len(current_text) == 0:
+                self.ui.idn_cmb.setCurrentIndex(-1)
+            else:
+                self.ui.idn_cmb.setCurrentText(current_text)
+            self.ui.loaddb_btn.setEnabled(load_enabled)
+        except Exception:
+            pass
+
+    def updateProbeNames(self):
+        """Update combo box with database probe names."""
+        current_text = self.ui.probe_name_cmb.currentText()
+        self.ui.probe_name_cmb.clear()
+        try:
+            probe_names = self.hall_probe.get_table_column(
+                self.database, 'probe_name')
+            self.ui.probe_name_cmb.addItems(probe_names)
+            if len(current_text) == 0:
+                self.ui.probe_name_cmb.setCurrentIndex(-1)
+            else:
+                self.ui.probe_name_cmb.setCurrentText(current_text)
+        except Exception:
+            pass

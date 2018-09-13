@@ -183,6 +183,7 @@ class MeasurementWidget(_QWidget):
             return
 
         try:
+            self.ui.measure_btn.setEnabled(False)
             self.ui.stop_btn.setEnabled(True)
 
             first_axis = self.local_measurement_config.first_axis
@@ -237,10 +238,11 @@ class MeasurementWidget(_QWidget):
             self.moveAxis(first_axis, first_axis_start)
 
             self.plotField()
-            self.ui.stop_btn.setEnabled(False)
             self.killVoltageThreads()
             self.resetMultimeters()
 
+            self.ui.stop_btn.setEnabled(False)
+            self.ui.measure_btn.setEnabled(True)
             self.ui.viewscan_btn.setEnabled(True)
             self.ui.cleargraph_btn.setEnabled(True)
             if self.local_hall_probe is not None:
@@ -251,6 +253,7 @@ class MeasurementWidget(_QWidget):
                 self, 'Measurements', message, _QMessageBox.Ok)
 
         except Exception as e:
+            self.ui.measure_btn.setEnabled(True)
             self.killVoltageThreads()
             self.current_temperature_thread.quit()
             _QMessageBox.critical(self, 'Failure', str(e), _QMessageBox.Ok)

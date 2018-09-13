@@ -27,10 +27,7 @@ class ConnectionWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        idns = self.connection_config.get_table_column(
-            self.database, 'id')
-        self.ui.idn_cmb.addItems([str(idn) for idn in idns])
-        self.ui.idn_cmb.setCurrentIndex(-1)
+        self.updateConnectionIDs()
         self.ui.loaddb_btn.setEnabled(False)
 
         self.connectSignalSlots()
@@ -159,6 +156,7 @@ class ConnectionWidget(_QWidget):
         self.ui.ps_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.ui.ps_port_cmb.currentIndexChanged.connect(self.clearLoadOptions)
         self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
+        self.ui.update_idn_btn.clicked.connect(self.updateConnectionIDs)
 
         self.ui.loadfile_btn.clicked.connect(self.loadFile)
         self.ui.savefile_btn.clicked.connect(self.saveFile)
@@ -182,6 +180,8 @@ class ConnectionWidget(_QWidget):
         """Enable button to load configuration from database."""
         if self.ui.idn_cmb.currentIndex() != -1:
             self.ui.loaddb_btn.setEnabled(True)
+        else:
+            self.ui.loaddb_btn.setEnabled(False)
 
     def loadDB(self):
         """Load configuration from database to set parameters."""
@@ -194,11 +194,9 @@ class ConnectionWidget(_QWidget):
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
 
-        idns = self.connection_config.get_table_column(
-            self.database, 'id')
-        self.ui.idn_cmb.clear()
-        self.ui.idn_cmb.addItems([str(i) for i in idns])
-        if idn not in idns:
+        self.updateConnectionIDs()
+        idx = self.ui.idn_cmb.findText(str(idn))
+        if idx == -1:
             self.ui.idn_cmb.setCurrentIndex(-1)
             _QMessageBox.critical(
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
@@ -336,6 +334,23 @@ class ConnectionWidget(_QWidget):
         except Exception as e:
             _QMessageBox.critical(
                 self, 'Failure', str(e), _QMessageBox.Ok)
+
+    def updateConnectionIDs(self):
+        """Update connection IDs in combo box."""
+        current_text = self.ui.idn_cmb.currentText()
+        load_enabled = self.ui.loaddb_btn.isEnabled()
+        self.ui.idn_cmb.clear()
+        try:
+            idns = self.connection_config.get_table_column(
+                self.database, 'id')
+            self.ui.idn_cmb.addItems([str(idn) for idn in idns])
+            if len(current_text) == 0:
+                self.ui.idn_cmb.setCurrentIndex(-1)
+            else:
+                self.ui.idn_cmb.setCurrentText(current_text)
+            self.ui.loaddb_btn.setEnabled(load_enabled)
+        except Exception:
+            pass
 
     def updateConfiguration(self):
         """Update connection configuration parameters."""

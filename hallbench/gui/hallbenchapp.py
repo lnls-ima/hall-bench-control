@@ -62,7 +62,7 @@ class HallBenchApp(_QApplication):
         status.append(_FieldScan.create_database_table(self.database))
         status.append(_Fieldmap.create_database_table(self.database))
         if not all(status):
-            raise Exception("Fail to create database.")
+            raise Exception("Failed to create database.")
 
 
 class GUIThread(_threading.Thread):

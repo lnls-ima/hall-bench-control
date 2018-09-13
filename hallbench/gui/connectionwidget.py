@@ -209,7 +209,7 @@ class ConnectionWidget(_QWidget):
             self.connection_config.read_from_database(self.database, idn)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Fail to read connection from database.'
+            msg = 'Failed to read connection from database.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
@@ -340,7 +340,7 @@ class ConnectionWidget(_QWidget):
                 self.connection_config.save_file(filename)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Fail to save connection to file.'
+            msg = 'Failed to save connection to file.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def updateConnectionIDs(self):

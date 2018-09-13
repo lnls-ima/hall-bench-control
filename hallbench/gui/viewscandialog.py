@@ -274,9 +274,8 @@ class ViewScanDialog(_QDialog):
     def show(self, scan_list, data_label=''):
         """Update data and show dialog."""
         if scan_list is None or len(scan_list) == 0:
-            message = 'Invalid data list.'
-            _QMessageBox.critical(
-                self, 'Failure', message, _QMessageBox.Ok)
+            msg = 'Invalid data list.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         self.scan_list = [d.copy() for d in scan_list]

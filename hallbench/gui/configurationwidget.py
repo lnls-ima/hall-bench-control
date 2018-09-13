@@ -531,6 +531,7 @@ class ConfigurationWidget(_QWidget):
                     ntl = []
                     for ti in tl:
                         ntl = ntl + ti.split('+')
+                    ntl = [ti.replace(' ', '') for ti in ntl]
                     values = [float(ti) for ti in ntl if len(ti) > 0]
                     value = sum(values)
                 else:

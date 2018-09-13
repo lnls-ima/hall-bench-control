@@ -158,6 +158,16 @@ def _get_magnets_info():
     _d['nr_turns_cv'] = 38.50
     magnets_info.append(_d)
 
+    # TBD
+    _d = {}
+    _d['magnet_name'] = 'TBD'
+    _d['description'] = 'TBD - TB Dipole'
+    _d['gap[mm]'] = 33
+    _d['magnet_length[mm]'] = 294.5
+    _d['nr_turns_main'] = 23
+    magnets_info.append(_d)
+
+
     return magnets_info
 
 

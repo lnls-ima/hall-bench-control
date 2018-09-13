@@ -5,6 +5,7 @@ Created on 10/02/2015
 @author: James Citadini
 """
 
+import numpy as _np
 import visa as _visa
 import time as _time
 import logging as _logging
@@ -681,8 +682,12 @@ class Agilent34970A(GPIB):
             current = voltage*16
         elif dcct_head == 320:
             current = voltage*32
+        elif dcct_head == 600:
+            current = voltage*60
+        elif dcct_head == 1125:
+            current = voltage*112.5            
         else:
-            current = 0
+            current = _np.nan
         return current
 
     def get_readings(self, wait=0.5):

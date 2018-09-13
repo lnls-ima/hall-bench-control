@@ -286,7 +286,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../resources/img/save.png</normaloff>../../resources/img/save.png</iconset>
+         <normaloff>../../resources/img/map_add.png</normaloff>../../resources/img/map_add.png</iconset>
        </property>
        <property name="iconSize">
         <size>

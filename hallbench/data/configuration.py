@@ -513,8 +513,8 @@ class PowerSupplyConfig(Configuration):
         self.status = False
         # Power supply loop status (False = open, True = closed)
         self.status_loop = False
-        # DC link voltage (30V is the default)
-        self.dclink = 30
+        # DC link voltage (90V is the default)
+        self.dclink = 90
         # True for DCCT enabled, False for DCCT disabled
         self.dcct = False
         # Main current

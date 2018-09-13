@@ -2,15 +2,16 @@
 
 """Power Supply widget for the Hall Bench Control application."""
 
+import sys as _sys
+import numpy as _np
+import time as _time
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
 import PyQt5.uic as _uic
-
-import numpy as _np
-import time as _time
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
@@ -33,6 +34,8 @@ class SupplyWidget(_QWidget):
         # fill combobox
         self.list_powersupply()
 
+        self.ui.pb_refresh.setEnabled(True)
+        
         # create signal/slot connections
         self.ui.pb_ps_button.clicked.connect(self.start_powersupply)
         self.ui.pb_refresh.clicked.connect(self.display_current)
@@ -98,7 +101,7 @@ class SupplyWidget(_QWidget):
                 try:
                     self.drs.Read_iLoad1()
                 except Exception:
-                    # traceback.print_exc(file=sys.stdout)
+                    _traceback.print_exc(file=_sys.stdout)
                     _QMessageBox.warning(self, 'Warning',
                                          'Could not read the digital current.',
                                          _QMessageBox.Ok)
@@ -129,7 +132,7 @@ class SupplyWidget(_QWidget):
                     # Turn ON ps DClink
                     try:
                         self.drs.TurnOn()
-                        _time.sleep(1)
+                        _time.sleep(1.2)
                         if self.drs.Read_ps_OnOff() != 1:
                             _QMessageBox.warning(self, 'Warning',
                                                  'Power Supply Capacitor '
@@ -269,7 +272,7 @@ class SupplyWidget(_QWidget):
                                          'Power supply was turned off.',
                                          _QMessageBox.Ok)
         except Exception:
-            # traceback.print_exc(file=sys.stdout)
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning', 'Failed to change the power '
                                  'supply state.', _QMessageBox.Ok)
             self.change_ps_button(False)
@@ -300,7 +303,11 @@ class SupplyWidget(_QWidget):
         self.config.ps_setpoint = self.ui.sb_current_setpoint.value()
         self.config.maximum_current = float(self.ui.le_maximum_current.text())
         self.config.minimum_current = float(self.ui.le_minimum_current.text())
-        self.config.dcct_head = self.ui.cb_dcct_select.currentIndex()
+        dcct_head_str = self.ui.cb_dcct_select.currentText().replace(' A', '')
+        try:
+            self.config.dcct_head = int(dcct_head_str)
+        except Exception:
+            self.config.dcct_head = None
         self.config.Kp = self.ui.sb_kp.value()
         self.config.Ki = self.ui.sb_ki.value()
         self.config.sinusoidal_amplitude = float(
@@ -372,20 +379,23 @@ class SupplyWidget(_QWidget):
                                      'configurations.\n Are you sure you want '
                                      'to configure the PID parameters?',
                                      _QMessageBox.Yes | _QMessageBox.No)
-        if _ans == _QMessageBox.Yes:
-            _ans = self.pid_setting()
-            if _ans:
-                _QMessageBox.information(self, 'Information',
-                                         'PID configured.', _QMessageBox.Ok)
-            else:
-                _QMessageBox.warning(self, 'Fail',
-                                     'Power Supply PID configuration fault.',
-                                     _QMessageBox.Ok)
+        try:
+            if _ans == _QMessageBox.Yes:
+                _ans = self.pid_setting()
+                if _ans:
+                    _QMessageBox.information(self, 'Information',
+                                             'PID configured.', _QMessageBox.Ok)
+                else:
+                    _QMessageBox.warning(self, 'Fail',
+                                         'Power Supply PID configuration fault.',
+                                         _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def pid_setting(self):
         """Set power supply PID configurations."""
         self.config.Kp = self.ui.sb_kp.value()
-        self.config.Ki = self.self.ui.sb_ki.text()
+        self.config.Ki = self.ui.sb_ki.value()
         _ps_type = self.config.ps_type
         self.drs.SetSlaveAdd(_ps_type)
         _id_mode = 0
@@ -396,7 +406,7 @@ class SupplyWidget(_QWidget):
             # Write DP Class for setting PI
             self.drs.Write_dp_Class(_elp_PI_dawu)
         except Exception:
-            # traceback.print_exc(file=sys.stdout)
+            _traceback.print_exc(file=_sys.stdout)
             return False
         try:
             _list_coeffs = _np.zeros(16)
@@ -409,7 +419,7 @@ class SupplyWidget(_QWidget):
             # Configure kp and ki
             self.drs.ConfigDPModule()
         except Exception:
-            # traceback.print_exc(file=sys.stdout)
+            _traceback.print_exc(file=_sys.stdout)
             return False
 
         return True
@@ -434,8 +444,8 @@ class SupplyWidget(_QWidget):
     def display_current(self):
         """Displays current on interface."""
         _ps_type = self.config.ps_type
-        self.drs.SetSlaveAdd(_ps_type)
         try:
+            self.drs.SetSlaveAdd(_ps_type)
             _refresh_current = round(float(self.drs.Read_iLoad1()), 3)
             self.ui.lcd_ps_reading.display(_refresh_current)
             _QApplication.processEvents()
@@ -457,7 +467,7 @@ class SupplyWidget(_QWidget):
                 self.ui.lcd_current_dcct.display(_current)
             _QApplication.processEvents()
         except Exception:
-#             traceback.print_exc(file=sys.stdout)
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning', 'Could not display Current.',
                                  _QMessageBox.Ok)
             return
@@ -495,18 +505,20 @@ class SupplyWidget(_QWidget):
 
     def send_setpoint(self):
         """Sends configured current setpoint to the power supply."""
-        self.config_ps()
-
-        _setpoint = self._ps_setpoint
-        _ans = self.current_setpoint(_setpoint)
-        if _ans:
-            _QMessageBox.information(self, 'Information',
-                                     'Current properly set.',
+        try:
+            self.config_ps()
+            _setpoint = self.config.ps_setpoint
+            _ans = self.current_setpoint(_setpoint)
+            if _ans:
+                _QMessageBox.information(self, 'Information',
+                                         'Current properly set.',
+                                         _QMessageBox.Ok)
+            else:
+                _QMessageBox.warning(self, 'Warning',
+                                     'Current was not properly set.',
                                      _QMessageBox.Ok)
-        else:
-            _QMessageBox.warning(self, 'Warning',
-                                 'Current was not properly set.',
-                                 _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def verify_current_limits(self, current, chk_offset=False, offset=0):
         """Check the limits of the current values set.
@@ -723,7 +735,7 @@ class SupplyWidget(_QWidget):
             return True
 
         except Exception:
-            # traceback.print_exc(file=sys.stdout)
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning', 'Failed to configure'
                                  'the signal generator.\nPlease verify the '
                                  'parameters of the Power Supply.',
@@ -871,7 +883,7 @@ class SupplyWidget(_QWidget):
                                      'Check if the name really exists.',
                                      _QMessageBox.Ok)
         except Exception:
-            # traceback.print_exc(file=sys.stdout)
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning',
                                  'Could not load the power supply settings.\n'
                                  'Check if the configuration values are '

@@ -210,8 +210,12 @@ class MotorsWidget(_QWidget):
     def moveToTarget(self, axis):
         """Move Hall probe to target position."""
         try:
-            targetpos = float(self.ui.targetpos_le.text())
-            targetvel = float(self.ui.targetvel_le.text())
+            targetpos_str = self.ui.targetpos_le.text()
+            targetvel_str = self.ui.targetvel_le.text()
+            if len(targetpos_str) == 0 or len(targetvel_str) == 0:
+                return
+            targetpos = float(targetpos_str)
+            targetvel = float(targetvel_str)
 
             axis = self.selectedAxis()
             if axis is None:
@@ -277,8 +281,6 @@ class MotorsWidget(_QWidget):
                 self.homing = True
             else:
                 self.homing = False
-
-            self.window().updateMainTabStatus()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

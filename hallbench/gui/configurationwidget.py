@@ -519,12 +519,13 @@ class ConfigurationWidget(_QWidget):
                     ntl = []
                     for ti in tl:
                         ntl = ntl + ti.split('+')
+                    ntl = [ti.replace(' ', '') for ti in ntl]
                     values = [float(ti) for ti in ntl if len(ti) > 0]
                     value = sum(values)
                 else:
                     value = float(text)
                 obj.setText('{0:0.4f}'.format(value))
-        except Exception:
+        except Exception as e:
             obj.setText('')
 
     def setStrFormatPositiveFloat(self, obj):

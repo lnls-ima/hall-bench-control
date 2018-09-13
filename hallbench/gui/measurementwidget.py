@@ -380,7 +380,9 @@ class MeasurementWidget(_QWidget):
 
     def monitorCurrentAndTemperature(self):
         """Monitor power supply current and temperatures."""
-        if not self.devices.multich.connected:
+        if (self.ui.save_temperature_chb.isChecked() or
+           self.ui.save_current_chb.isChecked() and
+           not self.devices.multich.connected):
             message = 'Multichannel not connected.'
             _QMessageBox.critical(
                 self, 'Failure', message, _QMessageBox.Ok)
@@ -751,6 +753,7 @@ class MeasurementWidget(_QWidget):
         """Stop measurement to True."""
         try:
             self.stop = True
+            self.ui.measure_btn.setEnabled(True)
             self.devices.pmac.stop_all_axis()
             self.ui.stop_btn.setEnabled(False)
             self.ui.cleargraph_btn.setEnabled(True)

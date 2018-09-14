@@ -38,9 +38,9 @@ class HallBenchApp(_QApplication):
         super().__init__(args)
         self.setStyle(_style)
 
-        _default_directory = _os.path.dirname(_os.path.dirname(
+        self.directory = _os.path.dirname(_os.path.dirname(
             _os.path.dirname(_os.path.abspath(__file__))))
-        self.database = _os.path.join(_default_directory, _database_filename)
+        self.database = _os.path.join(self.directory, _database_filename)
         self.create_database()
 
         self.connection_config = _ConnectionConfig()

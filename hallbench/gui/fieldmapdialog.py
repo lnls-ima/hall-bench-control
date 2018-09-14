@@ -2,6 +2,7 @@
 
 """Field map dialog for the Hall Bench Control application."""
 
+import os as _os
 import sys as _sys
 import traceback as _traceback
 from PyQt5.QtCore import Qt as _Qt
@@ -71,6 +72,11 @@ class FieldmapDialog(_QDialog):
     def database(self):
         """Database filename."""
         return _QApplication.instance().database
+
+    @property
+    def directory(self):
+        """Default directory."""
+        return _QApplication.instance().directory
 
     def clearInfo(self):
         """Clear inputs."""
@@ -270,9 +276,12 @@ class FieldmapDialog(_QDialog):
         if fieldmap is None:
             return
 
+        default_filename = _os.path.join(
+            self.directory, fieldmap.default_filename)
+
         filename = _QFileDialog.getSaveFileName(
             self, caption='Save fieldmap file',
-            directory=fieldmap.default_filename,
+            directory=default_filename,
             filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):

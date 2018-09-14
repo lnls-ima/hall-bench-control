@@ -1027,8 +1027,9 @@ def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
 
 
 def _cut_data_frame(df, idx_min, idx_max, axis=0):
-    df = df.drop(df.columns[:idx_min], axis=axis)
-    df = df.drop(df.columns[idx_max:], axis=axis)
+    idx_min = idx_min + 1
+    df = df.drop(df.columns[idx_min:], axis=axis)
+    df = df.drop(df.columns[:idx_max], axis=axis)
     return df
 
 
@@ -1038,7 +1039,7 @@ def _interpolate_data_frame(df, pos, axis=0):
         f = _interpolate.splrep(x.index, x.values, s=0, k=1)
         return _interpolate.splev(pos, f, der=0)
 
-    interp_df = df.apply(_interpolate_vec, axis=axis, args=[pos])
+    interp_df = df.apply(_interpolate_vec, axis=axis, args=[pos], result_type='broadcast')
     if axis == 0:
         interp_df.index = pos
     else:
@@ -1265,7 +1266,7 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
             raise Exception("Can\'t correct sensors positions.")
 
         limits = _get_data_frame_limits(
-            interpolation_grid.values, fieldx, fieldx, fieldx, axis=axis)
+            interpolation_grid.values, fieldx, fieldy, fieldz, axis=axis)
         if limits is None:
             raise Exception('Insufficient range to correct sensors positions.')
 

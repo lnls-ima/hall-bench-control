@@ -3,7 +3,7 @@
 """Measurement widget for the Hall Bench Control application."""
 
 import sys as _sys
-import os.path as _path
+import os as _os
 import time as _time
 import numpy as _np
 import warnings as _warnings
@@ -11,6 +11,7 @@ import pyqtgraph as _pyqtgraph
 import traceback as _traceback
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
+    QFileDialog as _QFileDialog,
     QApplication as _QApplication,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
@@ -78,7 +79,8 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan_list = []
         self.field_scan_list = []
         self.position_list = []
-        self.scan_id_list = []
+        self.field_scan_id_list = []
+        self.voltage_scan_id_list = []
         self.graphx = []
         self.graphy = []
         self.graphz = []
@@ -101,6 +103,11 @@ class MeasurementWidget(_QWidget):
     def devices(self):
         """Hall Bench Devices."""
         return _QApplication.instance().devices
+
+    @property
+    def directory(self):
+        """Default directory."""
+        return _QApplication.instance().directory
 
     @property
     def hall_probe(self):
@@ -130,12 +137,14 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan_list = []
         self.field_scan_list = []
         self.position_list = []
-        self.scan_id_list = []
+        self.field_scan_id_list = []
+        self.voltage_scan_id_list = []
         self.stop = False
         self.clearGraph()
-        self.ui.viewscan_btn.setEnabled(False)
-        self.ui.cleargraph_btn.setEnabled(False)
-        self.ui.savefieldmap_btn.setEnabled(False)
+        self.ui.view_scan_btn.setEnabled(False)
+        self.ui.clear_graph_btn.setEnabled(False)
+        self.ui.create_fieldmap_btn.setEnabled(False)
+        self.ui.save_scan_files_btn.setEnabled(False)
 
     def clearGraph(self):
         """Clear plots."""
@@ -169,9 +178,41 @@ class MeasurementWidget(_QWidget):
         """Create signal/slot connections."""
         self.ui.measure_btn.clicked.connect(self.configureAndMeasure)
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
-        self.ui.savefieldmap_btn.clicked.connect(self.showFieldmapDialog)
-        self.ui.viewscan_btn.clicked.connect(self.showViewScanDialog)
-        self.ui.cleargraph_btn.clicked.connect(self.clearGraph)
+        self.ui.create_fieldmap_btn.clicked.connect(self.showFieldmapDialog)
+        self.ui.save_scan_files_btn.clicked.connect(self.saveScanFiles)
+        self.ui.view_scan_btn.clicked.connect(self.showViewScanDialog)
+        self.ui.clear_graph_btn.clicked.connect(self.clearGraph)
+
+    def saveScanFiles(self):
+        """Save scan files."""
+        scan_list = self.field_scan_list
+        scan_id_list = self.field_scan_id_list
+
+        dir = _QFileDialog.getExistingDirectory(
+            self, caption='Save scan files', directory=self.directory)
+    
+        if isinstance(dir, tuple):
+           dir = dir[0]
+
+        if len(dir) == 0:
+            return
+
+        try:    
+            for i, scan in enumerate(scan_list):
+                idn = scan_id_list[i]
+                default_filename = scan.default_filename
+                if '.txt' in default_filename:
+                    default_filename = default_filename.replace(
+                        '.txt', '_ID={0:d}.txt'.format(idn))
+                elif '.dat' in default_filename:
+                    default_filename = default_filename.replace(
+                        '.dat', '_ID={0:d}.dat'.format(idn))              
+                default_filename = _os.path.join(dir, default_filename)
+                scan.save_file(default_filename)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save files.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def configureAndMeasure(self):
         """Configure devices and start measurement."""
@@ -247,10 +288,12 @@ class MeasurementWidget(_QWidget):
 
             self.ui.stop_btn.setEnabled(False)
             self.ui.measure_btn.setEnabled(True)
-            self.ui.viewscan_btn.setEnabled(True)
-            self.ui.cleargraph_btn.setEnabled(True)
+            
+            self.ui.save_scan_files_btn.setEnabled(True)
+            self.ui.view_scan_btn.setEnabled(True)
+            self.ui.clear_graph_btn.setEnabled(True)
             if self.local_hall_probe is not None:
-                self.ui.savefieldmap_btn.setEnabled(True)
+                self.ui.create_fieldmap_btn.setEnabled(True)
 
             msg = 'End of measurements.'
             _QMessageBox.information(
@@ -387,8 +430,8 @@ class MeasurementWidget(_QWidget):
 
     def monitorCurrentAndTemperature(self):
         """Monitor power supply current and temperatures."""
-        if (self.ui.save_temperature_chb.isChecked() or
-           self.ui.save_current_chb.isChecked() and
+        if ((self.ui.save_temperature_chb.isChecked() or
+           self.ui.save_current_chb.isChecked()) and
            not self.devices.multich.connected):
             msg = 'Multichannel not connected.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
@@ -585,7 +628,8 @@ class MeasurementWidget(_QWidget):
             self.voltage_scan.main_current = mc
             self.voltage_scan.configuration_id = (
                 self.local_measurement_config_id)
-            self.voltage_scan.save_to_database(self.database)
+            idn = self.voltage_scan.save_to_database(self.database)
+            self.voltage_scan_id_list.append(idn)
             return True
 
         except Exception:
@@ -608,7 +652,7 @@ class MeasurementWidget(_QWidget):
             self.field_scan.main_current = mc
             self.field_scan.configuration_id = self.local_measurement_config_id
             idn = self.field_scan.save_to_database(self.database)
-            self.scan_id_list.append(idn)
+            self.field_scan_id_list.append(idn)
             return True
 
         except Exception:
@@ -736,7 +780,9 @@ class MeasurementWidget(_QWidget):
     def showFieldmapDialog(self):
         """Open fieldmap dialog."""
         self.fieldmap_dialog.show(
-            self.field_scan_list, self.local_hall_probe, self.scan_id_list)
+            self.field_scan_list,
+            self.local_hall_probe,
+            self.field_scan_id_list)
 
     def showViewScanDialog(self):
         """Open view data dialog."""
@@ -765,7 +811,7 @@ class MeasurementWidget(_QWidget):
             self.ui.measure_btn.setEnabled(True)
             self.devices.pmac.stop_all_axis()
             self.ui.stop_btn.setEnabled(False)
-            self.ui.cleargraph_btn.setEnabled(True)
+            self.ui.clear_graph_btn.setEnabled(True)
             self.current_temperature_thread.quit()
             msg = 'The user stopped the measurements.'
             _QMessageBox.information(
@@ -824,7 +870,7 @@ class MeasurementWidget(_QWidget):
     def validDatabase(self):
         """Check if the database filename is valid."""
         if (self.database is not None
-           and len(self.database) != 0 and _path.isfile(self.database)):
+           and len(self.database) != 0 and _os.path.isfile(self.database)):
             return True
         else:
             msg = 'Invalid database filename.'

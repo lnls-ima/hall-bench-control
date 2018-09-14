@@ -2,8 +2,8 @@
 
 """Configuration widget for the Hall Bench Control application."""
 
+import os as _os
 import sys as _sys
-import os.path as _path
 import numpy as _np
 import traceback as _traceback
 from PyQt5.QtWidgets import (
@@ -43,6 +43,11 @@ class ConfigurationWidget(_QWidget):
     def database(self):
         """Database filename."""
         return _QApplication.instance().database
+
+    @property
+    def directory(self):
+        """Default directory."""
+        return _QApplication.instance().directory
 
     @property
     def measurement_config(self):
@@ -422,6 +427,11 @@ class ConfigurationWidget(_QWidget):
         self.ui.idn_cmb.setCurrentIndex(-1)
 
         default_filename = self.ui.filename_le.text()
+        if len(default_filename) == 0:
+            default_filename = self.directory
+        elif len(_os.path.split(default_filename)[0]) == 0:
+            default_filename = _os.path.join(self.directory, default_filename)
+        
         filename = _QFileDialog.getOpenFileName(
             self, caption='Open measurement configuration file',
             directory=default_filename, filter="Text files (*.txt *.dat)")
@@ -467,7 +477,7 @@ class ConfigurationWidget(_QWidget):
     def saveDB(self):
         """Save configuration to database."""
         self.ui.idn_cmb.setCurrentIndex(-1)
-        if self.database is not None and _path.isfile(self.database):
+        if self.database is not None and _os.path.isfile(self.database):
             try:
                 if self.updateConfiguration():
                     idn = self.measurement_config.save_to_database(
@@ -486,6 +496,11 @@ class ConfigurationWidget(_QWidget):
     def saveFile(self):
         """Save measurement parameters to file."""
         default_filename = self.ui.filename_le.text()
+        if len(default_filename) == 0:
+            default_filename = self.directory
+        elif len(_os.path.split(default_filename)[0]) == 0:
+            default_filename = _os.path.join(self.directory, default_filename)
+
         filename = _QFileDialog.getSaveFileName(
             self, caption='Save measurement configuration file',
             directory=default_filename, filter="Text files (*.txt *.dat)")

@@ -9,6 +9,7 @@ import warnings as _warnings
 import pyqtgraph as _pyqtgraph
 import traceback as _traceback
 from PyQt5.QtWidgets import (
+    QApplication as _QApplication,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
@@ -58,6 +59,11 @@ class TablePlotWidget(_QWidget):
 
         self.configureGraph()
         self.connectSignalSlots()
+
+    @property
+    def directory(self):
+        """Default directory."""
+        return _QApplication.instance().directory
 
     def clearLegendItems(self):
         """Clear plot legend."""
@@ -172,7 +178,7 @@ class TablePlotWidget(_QWidget):
             return
 
         filename = _QFileDialog.getSaveFileName(
-            self, caption='Save measurements file.',
+            self, caption='Save measurements file.', directory=self.directory,
             filter="Text files (*.txt *.dat)")
 
         if isinstance(filename, tuple):

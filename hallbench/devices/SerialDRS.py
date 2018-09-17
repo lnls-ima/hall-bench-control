@@ -4,7 +4,7 @@
 Created on 26/04/2016
 Versão 1.0
 @author: Ricieri (ELP)
-Python 3.4.4
+Python 3.4
 """
 
 import struct

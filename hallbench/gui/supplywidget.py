@@ -901,7 +901,7 @@ class SupplyWidget(_QWidget):
             return _np.array([])
 
     def array_to_table(self, array):
-        """Inserts array values into tw_currents tableWidget"""
+        """Inserts array values into tw_currents tableWidget."""
         _tw = self.ui.tw_currents
         _ncells = _tw.rowCount()
         _array = array

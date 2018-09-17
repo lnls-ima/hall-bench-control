@@ -2,8 +2,8 @@
 
 """Connection widget for the Hall Bench Control application."""
 
+import os as _os
 import sys as _sys
-import os.path as _path
 import traceback as _traceback
 import serial.tools.list_ports as _list_ports
 from PyQt5.QtWidgets import (
@@ -49,6 +49,11 @@ class ConnectionWidget(_QWidget):
     def database(self):
         """Database filename."""
         return _QApplication.instance().database
+
+    @property
+    def directory(self):
+        """Default directory."""
+        return _QApplication.instance().directory
 
     def clearLoadOptions(self):
         """Clear load options."""
@@ -220,8 +225,13 @@ class ConnectionWidget(_QWidget):
     def loadFile(self):
         """Load configuration file to set parameters."""
         self.ui.idn_cmb.setCurrentIndex(-1)
-
+ 
         default_filename = self.ui.filename_le.text()
+        if len(default_filename) == 0:
+            default_filename = self.directory
+        elif len(_os.path.split(default_filename)[0]) == 0:
+            default_filename = _os.path.join(self.directory, default_filename)
+
         filename = _QFileDialog.getOpenFileName(
             self, caption='Open connection configuration file',
             directory=default_filename, filter="Text files (*.txt *.dat)")
@@ -302,7 +312,7 @@ class ConnectionWidget(_QWidget):
     def saveDB(self):
         """Save connection parameters to database."""
         self.ui.idn_cmb.setCurrentIndex(-1)
-        if self.database is not None and _path.isfile(self.database):
+        if self.database is not None and _os.path.isfile(self.database):
             try:
                 if self.updateConfiguration():
                     idn = self.connection_config.save_to_database(
@@ -322,6 +332,11 @@ class ConnectionWidget(_QWidget):
     def saveFile(self):
         """Save connection parameters to file."""
         default_filename = self.ui.filename_le.text()
+        if len(default_filename) == 0:
+            default_filename = self.directory
+        elif len(_os.path.split(default_filename)[0]) == 0:
+            default_filename = _os.path.join(self.directory, default_filename)
+
         filename = _QFileDialog.getSaveFileName(
             self, caption='Save connection configuration file',
             directory=default_filename, filter="Text files (*.txt *.dat)")

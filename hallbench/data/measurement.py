@@ -117,6 +117,11 @@ class Scan(_database.DatabaseObject):
         return configuration_id
 
     @property
+    def unit(self):
+        """Return the data unit."""
+        return self._data_unit
+
+    @property
     def magnet_name(self):
         """Return the magnet name."""
         return self._magnet_name

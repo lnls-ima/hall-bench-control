@@ -6,6 +6,7 @@ import sys as _sys
 import numpy as _np
 import pandas as _pd
 import scipy.optimize as _optimize
+import scipy.integrate as _integrate
 import collections as _collections
 import warnings as _warnings
 import traceback as _traceback
@@ -59,12 +60,43 @@ class ViewScanDialog(_QDialog):
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.graph_pw.graphicsItem())
         self.legend.setAutoFillBackground(1)
+
+        self.addRightAxes()
         self.connectSignalSlots()
 
     def accept(self):
         """Close dialog."""
         self.closeDialogs()
         super().accept()
+
+    def addRightAxes(self):
+        """Add axis to graph."""
+        p = self.ui.graph_pw.plotItem
+
+        pr1 = _pyqtgraph.ViewBox()
+        p.showAxis('right')
+        ax_pr1 = p.getAxis('right')
+        p.scene().addItem(pr1)
+        ax_pr1.linkToView(pr1)
+        pr1.setXLink(p)
+        self.first_right_axis = ax_pr1
+
+        pr2 = _pyqtgraph.ViewBox()
+        ax_pr2 = _pyqtgraph.AxisItem('left')
+        p.layout.addItem(ax_pr2, 2, 3)
+        p.scene().addItem(pr2)
+        ax_pr2.linkToView(pr2)
+        pr2.setXLink(p)
+        self.second_right_axis = ax_pr2
+
+        def updateViews():
+            pr1.setGeometry(p.vb.sceneBoundingRect())
+            pr2.setGeometry(p.vb.sceneBoundingRect())
+            pr1.linkedViewChanged(p.vb, pr1.XAxis)
+            pr2.linkedViewChanged(p.vb, pr2.XAxis)
+
+        updateViews()
+        p.vb.sigResized.connect(updateViews)
 
     def closeDialogs(self):
         """Close dialogs."""
@@ -135,6 +167,72 @@ class ViewScanDialog(_QDialog):
         self.updatePlot()
         self.ui.graph_pw.plotItem.plot(xfit, yfit, pen=(0, 0, 0))
 
+    def calcIntegrals(self):
+        """Calculate integrals."""
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
+            return
+
+        sel = self.scan_dict[selected_idx][selected_comp]
+        pos = sel['pos']
+        data = sel['data']
+        unit = sel['unit']
+        xoff = sel['xoff']
+        yoff = sel['yoff']
+        xmult = sel['xmult']
+        ymult = sel['ymult']
+        xmin = self.ui.xmin_sb.value()
+        xmax = self.ui.xmax_sb.value()
+
+        x = _np.array((pos + xoff)*xmult)
+        y = _np.array((data + yoff)*ymult)
+
+        y = y[(x >= xmin) & (x <= xmax)]
+        x = x[(x >= xmin) & (x <= xmax)]
+
+        if len(y) > 0:
+            first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
+            second_integral = _integrate.cumtrapz(
+                x=x, y=first_integral, initial=0)
+
+            self.ui.first_integral_le.setText(
+                '{0:.4g}'.format(first_integral[-1]))
+            self.ui.second_integral_le.setText(
+                '{0:.4g}'.format(second_integral[-1]))
+
+            if len(unit) > 0:
+                first_integral_unit = unit + '.mm'
+                second_integral_unit = unit + '.mm²'
+            else:
+                first_integral_unit = ''
+                second_integral_unit = ''
+
+            self.ui.first_integral_unit_la.setText(first_integral_unit)
+            self.ui.second_integral_unit_la.setText(second_integral_unit)
+
+            self.updatePlot()
+
+            if len(first_integral_unit) > 0:
+                label = 'First Integral [%s]' % first_integral_unit
+            else:
+                label = 'First Integral'
+            self.first_right_axis.setLabel(label, color="#FFB266")
+            self.first_right_axis.setStyle(showValues=True)
+            self.first_right_axis.linkedView().addItem(
+                _pyqtgraph.PlotCurveItem(
+                    x, first_integral, pen=(255, 180, 100)))
+
+            if len(second_integral_unit) > 0:
+                label = 'Second Integral [%s]' % second_integral_unit
+            else:
+                label = 'Second Integral'
+            self.second_right_axis.setLabel(label, color="#FF66B2")
+            self.second_right_axis.setStyle(showValues=True)
+            self.second_right_axis.linkedView().addItem(
+                _pyqtgraph.PlotCurveItem(
+                    x, second_integral, pen=(255, 100, 180)))
+
     def clearFit(self):
         """Clear fit."""
         self.ui.fit_ta.clearContents()
@@ -146,6 +244,14 @@ class ViewScanDialog(_QDialog):
         """Clear plots."""
         self.ui.graph_pw.plotItem.curves.clear()
         self.ui.graph_pw.clear()
+        for item in self.first_right_axis.linkedView().addedItems:
+            self.first_right_axis.linkedView().removeItem(item)
+        self.first_right_axis.setStyle(showValues=False)
+        self.first_right_axis.setLabel('')
+        for item in self.second_right_axis.linkedView().addedItems:
+            self.second_right_axis.linkedView().removeItem(item)
+        self.second_right_axis.setStyle(showValues=False)
+        self.second_right_axis.setLabel('')
         self.graphx = []
         self.graphy = []
         self.graphz = []
@@ -223,6 +329,7 @@ class ViewScanDialog(_QDialog):
         self.ui.view_current_btn.clicked.connect(self.showCurrentDialog)
         self.ui.view_temperature_btn.clicked.connect(
             self.showTemperatureDialog)
+        self.ui.integrals_btn.clicked.connect(self.calcIntegrals)
 
     def disableOffsetLed(self):
         """Disable offset led."""
@@ -352,6 +459,7 @@ class ViewScanDialog(_QDialog):
                 self.scan_dict[idx]['x'] = {
                     'pos': pos,
                     'data': data.avgx,
+                    'unit': data.unit,
                     'xoff': 0,
                     'yoff': 0,
                     'xmult': 1,
@@ -365,6 +473,7 @@ class ViewScanDialog(_QDialog):
                 self.scan_dict[idx]['y'] = {
                     'pos': pos,
                     'data': data.avgy,
+                    'unit': data.unit,
                     'xoff': 0,
                     'yoff': 0,
                     'xmult': 1,
@@ -378,6 +487,7 @@ class ViewScanDialog(_QDialog):
                 self.scan_dict[idx]['z'] = {
                     'pos': pos,
                     'data': data.avgz,
+                    'unit': data.unit,
                     'xoff': 0,
                     'yoff': 0,
                     'xmult': 1,
@@ -466,8 +576,10 @@ class ViewScanDialog(_QDialog):
         selected_comp = self.ui.select_comp_cmb.currentText().lower()
         if selected_idx == -1 or len(selected_comp) == 0:
             self.ui.offset_gb.setEnabled(False)
-            self.ui.offsetled_la.setEnabled(False)
+            self.ui.xlimits_gb.setEnabled(False)
             self.ui.fit_gb.setEnabled(False)
+            self.ui.integrals_gb.setEnabled(False)
+            self.ui.offsetled_la.setEnabled(False)
             self.ui.xoff_sb.setValue(0)
             self.ui.yoff_sb.setValue(0)
             self.ui.xmult_sb.setValue(1)
@@ -475,6 +587,9 @@ class ViewScanDialog(_QDialog):
             self.ui.fitfunction_cmb.setCurrentIndex(-1)
         else:
             self.ui.offset_gb.setEnabled(True)
+            self.ui.xlimits_gb.setEnabled(True)
+            self.ui.fit_gb.setEnabled(True)
+            self.ui.integrals_gb.setEnabled(True)
             self.ui.offsetled_la.setEnabled(False)
             self.ui.xoff_sb.setValue(
                 self.scan_dict[selected_idx][selected_comp]['xoff'])
@@ -484,7 +599,6 @@ class ViewScanDialog(_QDialog):
                 self.scan_dict[selected_idx][selected_comp]['xmult'])
             self.ui.ymult_sb.setValue(
                 self.scan_dict[selected_idx][selected_comp]['ymult'])
-            self.ui.fit_gb.setEnabled(True)
 
             func = self.scan_dict[selected_idx][selected_comp]['fit_function']
             if func is None:

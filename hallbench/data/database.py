@@ -349,7 +349,10 @@ class DatabaseObject(object):
                         idx = db_column_names.index(key)
                         if attr_name in self._db_json_str:
                             _l = _json.loads(entry[idx])
-                            setattr(self, attr_name, _utils.to_array(_l))
+                            if isinstance(_l, dict):
+                                setattr(self, attr_name, _l)
+                            else:
+                                setattr(self, attr_name, _utils.to_array(_l))
                         else:
                             setattr(self, attr_name, entry[idx])
                 except AttributeError:
@@ -503,7 +506,7 @@ class DatabaseObject(object):
                     values.append(locals()[key])
                 elif attr_name in self._db_json_str:
                     val = getattr(self, attr_name)
-                    if not isinstance(val, list):
+                    if isinstance(val, _np.ndarray):
                         val = val.tolist()
                     values.append(_json.dumps(val))
                 else:

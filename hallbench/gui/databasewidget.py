@@ -1,5 +1,6 @@
 """Database tables widgets."""
 
+import os as _os
 import sys as _sys
 import numpy as _np
 import sqlite3 as _sqlite3
@@ -77,6 +78,11 @@ class DatabaseWidget(_QWidget):
         """Database filename."""
         return _QApplication.instance().database
 
+    @property
+    def directory(self):
+        """Return the default directory."""
+        return _QApplication.instance().directory
+
     def clear(self):
         """Clear."""
         ntabs = self.ui.database_tab.count()
@@ -88,6 +94,7 @@ class DatabaseWidget(_QWidget):
 
     def clearVoltageScanTable(self):
         """Clear voltage scan table."""
+        self.clearUnusedConfigurations()
         con = _sqlite3.connect(self.database)
         cur = con.cursor()
 
@@ -137,50 +144,52 @@ class DatabaseWidget(_QWidget):
         self.ui.database_tab.currentChanged.connect(self.disableInvalidButtons)
 
         self.ui.save_connection_btn.clicked.connect(
-            lambda: self.saveFile(
+            lambda: self.saveFiles(
                 self._connection_table_name, _ConnectionConfig))
         self.ui.read_connection_btn.clicked.connect(
-            lambda: self.readFile(_ConnectionConfig))
+            lambda: self.readFiles(_ConnectionConfig))
         self.ui.delete_connection_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._connection_table_name))
 
         self.ui.save_power_supply_btn.clicked.connect(
-            lambda: self.saveFile(
+            lambda: self.saveFiles(
                 self._power_supply_table_name, _PowerSupplyConfig))
         self.ui.read_power_supply_btn.clicked.connect(
-            lambda: self.readFile(_PowerSupplyConfig))
+            lambda: self.readFiles(_PowerSupplyConfig))
         self.ui.delete_power_supply_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._power_supply_table_name))
 
         self.ui.save_hall_sensor_btn.clicked.connect(
-            lambda: self.saveFile(self._hall_sensor_table_name, _HallSensor))
+            lambda: self.saveFiles(self._hall_sensor_table_name, _HallSensor))
         self.ui.read_hall_sensor_btn.clicked.connect(
-            lambda: self.readFile(_HallSensor))
+            lambda: self.readFiles(_HallSensor))
         self.ui.delete_hall_sensor_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._hall_sensor_table_name))
 
         self.ui.view_hall_probe_btn.clicked.connect(self.viewHallProbe)
         self.ui.save_hall_probe_btn.clicked.connect(
-            lambda: self.saveFile(self._hall_probe_table_name, _HallProbe))
+            lambda: self.saveFiles(self._hall_probe_table_name, _HallProbe))
         self.ui.read_hall_probe_btn.clicked.connect(
-            lambda: self.readFile(_HallProbe))
+            lambda: self.readFiles(_HallProbe))
         self.ui.delete_hall_probe_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._hall_probe_table_name))
 
         self.ui.save_configuration_btn.clicked.connect(
-            lambda: self.saveFile(
+            lambda: self.saveFiles(
                 self._configuration_table_name, _MeasurementConfig))
         self.ui.read_configuration_btn.clicked.connect(
-            lambda: self.readFile(_MeasurementConfig))
+            lambda: self.readFiles(_MeasurementConfig))
         self.ui.delete_configuration_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._configuration_table_name))
+        self.ui.remove_unused_configurations_btn.clicked.connect(
+            self.removeUnusedConfigurations)
 
         self.ui.view_voltage_scan_btn.clicked.connect(self.viewVoltageScan)
         self.ui.save_voltage_scan_btn.clicked.connect(
-            lambda: self.saveFile(
+            lambda: self.saveFiles(
                 self._voltage_scan_table_name, _VoltageScan))
         self.ui.read_voltage_scan_btn.clicked.connect(
-            lambda: self.readFile(_VoltageScan))
+            lambda: self.readFiles(_VoltageScan))
         self.ui.delete_voltage_scan_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._voltage_scan_table_name))
         self.ui.clear_voltage_scan_btn.clicked.connect(
@@ -190,18 +199,18 @@ class DatabaseWidget(_QWidget):
 
         self.ui.view_field_scan_btn.clicked.connect(self.viewFieldScan)
         self.ui.save_field_scan_btn.clicked.connect(
-            lambda: self.saveFile(
+            lambda: self.saveFiles(
                 self._field_scan_table_name, _FieldScan))
         self.ui.read_field_scan_btn.clicked.connect(
-            lambda: self.readFile(_FieldScan))
+            lambda: self.readFiles(_FieldScan))
         self.ui.delete_field_scan_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._field_scan_table_name))
         self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
 
         self.ui.save_fieldmap_btn.clicked.connect(
-            lambda: self.saveFile(self._fieldmap_table_name, _Fieldmap))
+            lambda: self.saveFiles(self._fieldmap_table_name, _Fieldmap))
         self.ui.read_fieldmap_btn.clicked.connect(
-            lambda: self.readFile(_Fieldmap))
+            lambda: self.readFiles(_Fieldmap))
         self.ui.delete_fieldmap_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._fieldmap_table_name))
 
@@ -470,63 +479,131 @@ class DatabaseWidget(_QWidget):
             self.tables.append(table)
             self.ui.database_tab.addTab(tab, table_name)
 
-    def readFile(self, object_class):
-        """Save database record to file."""
-        filename = _QFileDialog.getOpenFileName(
-            self, caption='Read file',
+    def readFiles(self, object_class):
+        """Read file and save in database."""
+        fns = _QFileDialog.getOpenFileNames(
+            self, caption='Read files', directory=self.directory,
             filter="Text files (*.txt *.dat)")
 
-        if isinstance(filename, tuple):
-            filename = filename[0]
+        if isinstance(fns, tuple):
+            fns = fns[0]
 
-        if len(filename) == 0:
+        if len(fns) == 0:
             return
 
         try:
-            obj = object_class(filename=filename)
-            idn = obj.save_to_database(self.database)
-            msg = 'Added to database table.\nID: ' + str(idn)
+            idns = []
+            for filename in fns:
+                obj = object_class(filename=filename)
+                idn = obj.save_to_database(self.database)
+                idns.append(idn)
+            msg = 'Added to database table.\nIDs: ' + str(idns)
             self.updateDatabaseTables()
             _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to read file.'
+            msg = 'Failed to read files and save values in database.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def saveFile(self, table_name, object_class):
+    def removeUnusedConfigurations(self):
+        """Remove unused configurations from database table."""
+        idns = _MeasurementConfig.get_table_column(self.database, 'id')
+
+        vs_idns = _VoltageScan.get_table_column(
+            self.database, 'configuration_id')
+        fs_idns = _FieldScan.get_table_column(
+            self.database, 'configuration_id')
+
+        unused_idns = []
+        for idn in idns:
+            if (idn not in vs_idns) and (idn not in fs_idns):
+                unused_idns.append(idn)
+
+        con = _sqlite3.connect(self.database)
+        cur = con.cursor()
+
+        msg = 'Remove all unused configurations from database table?'
+        reply = _QMessageBox.question(
+            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
+        if reply == _QMessageBox.Yes:
+            seq = ','.join(['?']*len(unused_idns))
+            cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(
+                self._configuration_table_name, seq)
+            cur.execute(cmd, unused_idns)
+            con.commit()
+            con.close()
+            self.updateDatabaseTables()
+        else:
+            con.close()
+            return
+
+    def saveFiles(self, table_name, object_class):
         """Save database record to file."""
-        idn = self.getTableSelectedID(table_name)
-        if idn is None:
+        idns = self.getTableSelectedIDs(table_name)
+        nr_idns = len(idns)
+        if nr_idns == 0:
             return
 
+        objs = []
+        fns = []
         try:
-            obj = object_class(database=self.database, idn=idn)
-            default_filename = obj.default_filename
+            for i in range(nr_idns):
+                idn = idns[i]
+                obj = object_class(database=self.database, idn=idn)
+                default_filename = obj.default_filename
+                if '.txt' in default_filename:
+                    default_filename = default_filename.replace(
+                        '.txt', '_ID={0:d}.txt'.format(idn))
+                elif '.dat' in default_filename:
+                    default_filename = default_filename.replace(
+                        '.dat', '_ID={0:d}.dat'.format(idn))
+                objs.append(obj)
+                fns.append(default_filename)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to read entry from database.'
+            msg = 'Failed to read database entries.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-        filename = _QFileDialog.getSaveFileName(
-            self, caption='Save file',
-            directory=default_filename,
-            filter="Text files (*.txt *.dat)")
+        if nr_idns == 1:
+            filename = _QFileDialog.getSaveFileName(
+                self, caption='Save file',
+                directory=_os.path.join(self.directory, fns[0]),
+                filter="Text files (*.txt *.dat)")
 
-        if isinstance(filename, tuple):
-            filename = filename[0]
+            if isinstance(filename, tuple):
+                filename = filename[0]
 
-        if len(filename) == 0:
-            return
+            if len(filename) == 0:
+                return
+
+            fns[0] = filename
+        else:
+            directory = _QFileDialog.getExistingDirectory(
+                self, caption='Save files', directory=self.directory)
+
+            if isinstance(directory, tuple):
+                directory = directory[0]
+
+            if len(directory) == 0:
+                return
+
+            for i in range(len(fns)):
+                fns[i] = _os.path.join(directory, fns[i])
 
         try:
-            if not filename.endswith('.txt') and not filename.endswith('.dat'):
-                filename = filename + '.txt'
-            obj.save_file(filename)
+            for i in range(nr_idns):
+                obj = objs[i]
+                idn = idns[i]
+                filename = fns[i]
+                if (not filename.endswith('.txt') and
+                   not filename.endswith('.dat')):
+                    filename = filename + '.txt'
+                obj.save_file(filename)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to save file.'
+            msg = 'Failed to save files.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def scrollDownTables(self):
@@ -581,7 +658,7 @@ class DatabaseWidget(_QWidget):
         for idn in idns:
             scan_list.append(_VoltageScan(database=self.database, idn=idn))
         self.viewscan_dialog.accept()
-        self.viewscan_dialog.show(scan_list, 'Voltage [V]')
+        self.viewscan_dialog.show(scan_list, idns, 'Voltage [V]')
 
     def viewFieldScan(self):
         """Open view data dialog."""
@@ -593,7 +670,7 @@ class DatabaseWidget(_QWidget):
         for idn in idns:
             scan_list.append(_FieldScan(database=self.database, idn=idn))
         self.viewscan_dialog.accept()
-        self.viewscan_dialog.show(scan_list, 'Magnetic Field [T]')
+        self.viewscan_dialog.show(scan_list, idns, 'Magnetic Field [T]')
 
 
 class DatabaseTable(_QTableWidget):

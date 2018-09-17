@@ -4,7 +4,6 @@
 
 import numpy as _np
 import time as _time
-import collections as _collections
 from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
@@ -25,39 +24,34 @@ from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
 class TemperatureWidget(_TablePlotWidget):
     """Temperature Widget class for the Hall Bench Control application."""
 
+    _plot_label = 'Temperature [deg C]'
     _data_format = '{0:.2f}'
     _data_labels = [
-        '101', '102', '103', '201', '202', '203', '204',
-        '205', '206', '207', '208', '209', '210',
+        '101', '102', '103', '201',
+        '202', '203', '204',
+        '205', '206', '207',
+        '208', '209', '210',
     ]
-    _yaxis_label = 'Temperature [deg C]'
-    _colors = _collections.OrderedDict([
-        ('101', (230, 25, 75)),
-        ('102', (60, 180, 75)),
-        ('103', (0, 130, 200)),
-        ('201', (245, 130, 48)),
-        ('202', (145, 30, 180)),
-        ('203', (255, 225, 25)),
-        ('204', (70, 240, 240)),
-        ('205', (240, 50, 230)),
-        ('206', (170, 110, 40)),
-        ('207', (128, 0, 0)),
-        ('208', (170, 255, 195)),
-        ('209', (128, 128, 128)),
-        ('210', (0, 0, 0)),
-    ])
+    _colors = [
+        (230, 25, 75), (60, 180, 75), (0, 130, 200), (245, 130, 48),
+        (145, 30, 180), (255, 225, 25), (70, 240, 240),
+        (240, 50, 230), (170, 110, 40), (128, 0, 0),
+        (170, 255, 195), (128, 128, 128), (0, 0, 0),
+    ]
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
         super().__init__(parent)
 
-        # add move axis widget
+        # add channels widget
         self.channels_widget = TemperatureChannelsWidget(self)
+        self.channels_widget.channelChanged.connect(self.enableConfigureButton)
         _layout = _QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(self.channels_widget)
         self.ui.widget_wg.setLayout(_layout)
 
+        # add channels_widget
         self._configured = False
         self.configure_btn = _QPushButton('Configure Channels')
         self.configure_btn.setMinimumHeight(45)
@@ -67,16 +61,8 @@ class TemperatureWidget(_TablePlotWidget):
         self.ui.layout_lt.addWidget(self.configure_btn)
         self.configure_btn.clicked.connect(self.configureChannels)
 
-        self.channels_widget.channelChanged.connect(self.enableConfigureButton)
-
-        col_labels = ['Date', 'Time']
-        for label in self._data_labels:
-            col_labels.append(label)
-        self.ui.table_ta.setColumnCount(len(col_labels))
-        self.ui.table_ta.setHorizontalHeaderLabels(col_labels)
-        self.ui.table_ta.setAlternatingRowColors(True)
+        # Change default appearance
         self.ui.table_ta.horizontalHeader().setDefaultSectionSize(80)
-
         self.ui.read_btn.setText('Read Temperature')
         self.ui.monitor_btn.setText('Monitor Temperature')
 
@@ -154,9 +140,9 @@ class TemperatureWidget(_TablePlotWidget):
                     self.channels_widget.updateChannelText(label, '')
                     self._readings[label].append(_np.nan)
 
-            self.timestamp.append(ts)
+            self._timestamp.append(ts)
             self.channels_widget.updateDateTime(ts)
-            self.updateTableValues()
+            self.addLastValueToTable()
             self.updatePlot()
 
         except Exception:

@@ -432,7 +432,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Aperture Time [s]:</string>
+         <string>Integration Time [s]:</string>
         </property>
        </widget>
       </item>
@@ -462,6 +462,9 @@
           <weight>50</weight>
           <bold>false</bold>
          </font>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
         </property>
         <item>
          <property name="text">

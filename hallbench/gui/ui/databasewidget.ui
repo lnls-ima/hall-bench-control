@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1141</width>
+    <width>1198</width>
     <height>827</height>
    </rect>
   </property>
@@ -90,7 +90,7 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>250</width>
+         <width>280</width>
          <height>0</height>
         </size>
        </property>
@@ -108,7 +108,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -207,7 +207,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -306,7 +306,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -405,7 +405,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -537,7 +537,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -545,6 +545,35 @@
          <string>Configuration</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_4">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="read_configuration_btn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Read Configuration File</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0">
           <widget class="QPushButton" name="save_configuration_btn">
            <property name="minimumSize">
@@ -600,8 +629,11 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QPushButton" name="read_configuration_btn">
+         <item row="3" column="0">
+          <widget class="QPushButton" name="remove_unused_configurations_btn">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -615,11 +647,11 @@
             </font>
            </property>
            <property name="text">
-            <string>Read Configuration File</string>
+            <string>Remove Unused Configurations</string>
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+             <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -636,7 +668,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -822,7 +854,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -979,7 +1011,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -1113,7 +1145,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>280</width>
           <height>422</height>
          </rect>
         </property>
@@ -1162,7 +1194,6 @@
       <attribute name="title">
        <string>Tab 1</string>
       </attribute>
-      <zorder>buttons_tbx</zorder>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">

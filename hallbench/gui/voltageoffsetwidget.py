@@ -20,15 +20,11 @@ from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
 class VoltageOffsetWidget(_TablePlotWidget):
     """Voltage Offset Widget class for the Hall Bench Control application."""
 
+    _plot_label = 'Voltage [mV]'
     _data_mult_factor = 1000  # [V] -> [mV]
     _data_format = '{0:.6f}'
     _data_labels = ['ProbeX [mV]', 'ProbeY [mV]', 'ProbeZ [mV]']
-    _yaxis_label = 'Voltage [mV]'
-    _colors = {
-        'ProbeX [mV]': (255, 0, 0),
-        'ProbeY [mV]': (0, 255, 0),
-        'ProbeZ [mV]': (0, 0, 255),
-    }
+    _colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
@@ -41,6 +37,7 @@ class VoltageOffsetWidget(_TablePlotWidget):
         _layout.addWidget(self.move_axis_widget)
         self.ui.widget_wg.setLayout(_layout)
 
+        # add reset multimeters button
         self.reset_btn = _QPushButton('Reset Multimeters')
         self.reset_btn.setMinimumHeight(45)
         font = self.reset_btn.font()
@@ -49,15 +46,8 @@ class VoltageOffsetWidget(_TablePlotWidget):
         self.ui.layout_lt.addWidget(self.reset_btn)
         self.reset_btn.clicked.connect(self.resetMultimeters)
 
-        self.position = []
-        col_labels = ['Date', 'Time', 'Position']
-        for label in self._data_labels:
-            col_labels.append(label)
-        self.ui.table_ta.setColumnCount(len(col_labels))
-        self.ui.table_ta.setHorizontalHeaderLabels(col_labels)
-        self.ui.table_ta.setAlternatingRowColors(True)
+        # Change default appearance
         self.ui.table_ta.horizontalHeader().setDefaultSectionSize(140)
-
         self.ui.read_btn.setText('Read Voltage')
         self.ui.monitor_btn.setText('Monitor Voltage')
 
@@ -119,9 +109,9 @@ class VoltageOffsetWidget(_TablePlotWidget):
             voltz = voltz*self._data_mult_factor
             self._readings[self._data_labels[2]].append(voltz)
 
-            self.position.append(pos)
-            self.timestamp.append(ts)
-            self.updateTableValues()
+            self._timestamp.append(ts)
+            self._position.append(pos)
+            self.addLastValueToTable()
             self.updatePlot()
 
         except Exception:

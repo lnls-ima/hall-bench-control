@@ -67,6 +67,7 @@ class MotorsWidget(_QWidget):
             if self.pmac.activate_bench():
                 self.setHomingEnabled(True)
                 self.setAxisLimitsEnabled(True)
+                self.ui.setlimits_btn.setEnabled(False)
                 self.releaseAccessToMovement()
 
             else:
@@ -136,6 +137,13 @@ class MotorsWidget(_QWidget):
             self.updateTrigAxisVelocity)
         self.ui.trigpause_chb.stateChanged.connect(self.enableTriggerDelay)
 
+        self.ui.minax1_le.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.maxax1_le.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.minax2_le.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.maxax2_le.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.minax3_le.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.maxax3_le.editingFinished.connect(self.enableSetLimitsButton)
+
         self.ui.activate_btn.clicked.connect(self.activateBench)
         self.ui.stopall_btn.clicked.connect(self.stopAllAxis)
         self.ui.killall_btn.clicked.connect(self.killAllAxis)
@@ -146,6 +154,10 @@ class MotorsWidget(_QWidget):
         self.ui.stop_btn.clicked.connect(self.stopAxis)
         self.ui.trigandmove_btn.clicked.connect(self.setTriggerandMove)
         self.ui.trigstop_btn.clicked.connect(self.stopTriggerAxis)
+
+    def enableSetLimitsButton(self):
+        """Enable set limits button."""
+        self.ui.setlimits_btn.setEnabled(True)
 
     def enableTriggerDelay(self):
         """Enable or disable trigger delay."""
@@ -365,6 +377,8 @@ class MotorsWidget(_QWidget):
                 maxax3 = float(self.ui.maxax3_le.text())*cts_mm_axis[2]
                 self.pmac.get_response(self.pmac.set_par(neg_list[2], minax3))
                 self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
+
+            self.ui.setlimits_btn.setEnabled(False)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

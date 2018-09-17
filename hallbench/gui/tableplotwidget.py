@@ -62,7 +62,7 @@ class TablePlotWidget(_QWidget):
 
     @property
     def directory(self):
-        """Default directory."""
+        """Return the default directory."""
         return _QApplication.instance().directory
 
     def clearLegendItems(self):

@@ -75,7 +75,7 @@ class FieldmapDialog(_QDialog):
 
     @property
     def directory(self):
-        """Default directory."""
+        """Return the default directory."""
         return _QApplication.instance().directory
 
     def clearInfo(self):

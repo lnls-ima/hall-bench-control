@@ -80,7 +80,7 @@ class DatabaseWidget(_QWidget):
 
     @property
     def directory(self):
-        """Default directory."""
+        """Return the default directory."""
         return _QApplication.instance().directory
 
     def clear(self):
@@ -508,8 +508,8 @@ class DatabaseWidget(_QWidget):
         idns = self.getTableSelectedIDs(table_name)
         nr_idns = len(idns)
         if nr_idns == 0:
-            return       
-        
+            return
+
         objs = []
         fns = []
         try:
@@ -524,7 +524,7 @@ class DatabaseWidget(_QWidget):
                     default_filename = default_filename.replace(
                         '.dat', '_ID={0:d}.dat'.format(idn))
                 objs.append(obj)
-                fns.append(default_filename)                 
+                fns.append(default_filename)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to read database entries.'
@@ -539,30 +539,31 @@ class DatabaseWidget(_QWidget):
 
             if isinstance(filename, tuple):
                 filename = filename[0]
-    
+
             if len(filename) == 0:
                 return
-            
+
             fns[0] = filename
         else:
-            dir = _QFileDialog.getExistingDirectory(
+            directory = _QFileDialog.getExistingDirectory(
                 self, caption='Save files', directory=self.directory)
-        
-            if isinstance(dir, tuple):
-               dir = dir[0]
-    
-            if len(dir) == 0:
+
+            if isinstance(directory, tuple):
+                directory = directory[0]
+
+            if len(directory) == 0:
                 return
-            
+
             for i in range(len(fns)):
-                fns[i] = _os.path.join(dir, fns[i])            
+                fns[i] = _os.path.join(directory, fns[i])
 
         try:
             for i in range(nr_idns):
                 obj = objs[i]
                 idn = idns[i]
                 filename = fns[i]
-                if not filename.endswith('.txt') and not filename.endswith('.dat'):
+                if (not filename.endswith('.txt') and
+                   not filename.endswith('.dat')):
                     filename = filename + '.txt'
                 obj.save_file(filename)
         except Exception:

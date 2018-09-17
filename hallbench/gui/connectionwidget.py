@@ -52,7 +52,7 @@ class ConnectionWidget(_QWidget):
 
     @property
     def directory(self):
-        """Default directory."""
+        """Return the default directory."""
         return _QApplication.instance().directory
 
     def clearLoadOptions(self):
@@ -225,7 +225,7 @@ class ConnectionWidget(_QWidget):
     def loadFile(self):
         """Load configuration file to set parameters."""
         self.ui.idn_cmb.setCurrentIndex(-1)
- 
+
         default_filename = self.ui.filename_le.text()
         if len(default_filename) == 0:
             default_filename = self.directory

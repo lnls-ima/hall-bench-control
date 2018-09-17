@@ -46,7 +46,7 @@ class ConfigurationWidget(_QWidget):
 
     @property
     def directory(self):
-        """Default directory."""
+        """Return the default directory."""
         return _QApplication.instance().directory
 
     @property
@@ -431,7 +431,7 @@ class ConfigurationWidget(_QWidget):
             default_filename = self.directory
         elif len(_os.path.split(default_filename)[0]) == 0:
             default_filename = _os.path.join(self.directory, default_filename)
-        
+
         filename = _QFileDialog.getOpenFileName(
             self, caption='Open measurement configuration file',
             directory=default_filename, filter="Text files (*.txt *.dat)")

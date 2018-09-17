@@ -11,7 +11,6 @@ import warnings as _warnings
 import traceback as _traceback
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
-    QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
     )

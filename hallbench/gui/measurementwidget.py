@@ -106,7 +106,7 @@ class MeasurementWidget(_QWidget):
 
     @property
     def directory(self):
-        """Default directory."""
+        """Return the default directory."""
         return _QApplication.instance().directory
 
     @property
@@ -188,16 +188,16 @@ class MeasurementWidget(_QWidget):
         scan_list = self.field_scan_list
         scan_id_list = self.field_scan_id_list
 
-        dir = _QFileDialog.getExistingDirectory(
+        directory = _QFileDialog.getExistingDirectory(
             self, caption='Save scan files', directory=self.directory)
-    
-        if isinstance(dir, tuple):
-           dir = dir[0]
 
-        if len(dir) == 0:
+        if isinstance(directory, tuple):
+            directory = directory[0]
+
+        if len(directory) == 0:
             return
 
-        try:    
+        try:
             for i, scan in enumerate(scan_list):
                 idn = scan_id_list[i]
                 default_filename = scan.default_filename
@@ -206,8 +206,8 @@ class MeasurementWidget(_QWidget):
                         '.txt', '_ID={0:d}.txt'.format(idn))
                 elif '.dat' in default_filename:
                     default_filename = default_filename.replace(
-                        '.dat', '_ID={0:d}.dat'.format(idn))              
-                default_filename = _os.path.join(dir, default_filename)
+                        '.dat', '_ID={0:d}.dat'.format(idn))
+                default_filename = _os.path.join(directory, default_filename)
                 scan.save_file(default_filename)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -288,7 +288,7 @@ class MeasurementWidget(_QWidget):
 
             self.ui.stop_btn.setEnabled(False)
             self.ui.measure_btn.setEnabled(True)
-            
+
             self.ui.save_scan_files_btn.setEnabled(True)
             self.ui.view_scan_btn.setEnabled(True)
             self.ui.clear_graph_btn.setEnabled(True)

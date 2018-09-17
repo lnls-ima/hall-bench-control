@@ -954,18 +954,19 @@ class SupplyWidget(_QWidget):
                 self.config.status = bool(_on)
                 _loop = self.drs.Read_ps_OpenLoop()
                 self.config.status_loop = bool(_loop)
-                if all(_loop, self.ui.le_status_loop.text() == 'Closed'):
+                if all([_loop, self.ui.le_status_loop.text() == 'Closed']):
                     self.ui.le_status_loop.setText('Open')
-                elif all(not _loop, self.ui.le_status_loop.text() == 'Open'):
+                elif all([not _loop,
+                          self.ui.le_status_loop.text() == 'Open']):
                     self.ui.le_status_loop.setText('Closed')
                 _interlock = (self.drs.Read_ps_HardInterlocks() +
                               self.drs.Read_ps_SoftInterlocks())
                 self.config.status_interlock = bool(_interlock)
-                if all(self.ui.le_status_con.text() == 'Not Ok',
-                       self.drs.ser.is_open()):
+                if all([self.ui.le_status_con.text() == 'Not Ok',
+                        self.drs.ser.is_open]):
                     self.ui.le_status_con.setText('Ok')
-                elif all(self.ui.le_status_con.text() == 'Ok',
-                         not self.drs.ser.is_open()):
+                elif all([self.ui.le_status_con.text() == 'Ok',
+                          not self.drs.ser.is_open]):
                     self.ui.le_status_con.setText('Not Ok')
                 if _interlock and not self.ui.pb_interlock.isEnabled():
                     self.ui.pb_interlock.setEnabled(True)

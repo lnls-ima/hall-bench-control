@@ -103,6 +103,7 @@ class SupplyWidget(_QWidget):
             self.ui.pb_ps_button.setEnabled(False)
             self.ui.pb_ps_button.setText('Processing...')
             self.ui.tabWidget_2.setEnabled(False)
+            self.ui.pb_send.setEnabled(False)
             _QApplication.processEvents()
 
             _ps_type = self.config.ps_type
@@ -246,6 +247,7 @@ class SupplyWidget(_QWidget):
                 self.config.main_current = 0
                 self.ui.le_status_loop.setText('Closed')
                 self.ui.tabWidget_2.setEnabled(True)
+                self.ui.pb_send.setEnabled(True)
                 self.ui.tabWidget_3.setEnabled(True)
                 self.ui.pb_refresh.setEnabled(True)
                 self.ui.pb_send.setEnabled(True)
@@ -314,6 +316,7 @@ class SupplyWidget(_QWidget):
             self.ui.pb_ps_button.setChecked(True)
             self.ui.pb_ps_button.setText('Turn OFF')
         self.ui.tabWidget_2.setEnabled(True)
+        self.ui.pb_send.setEnabled(True)
         _QApplication.processEvents()
 
     def config_ps(self):
@@ -503,6 +506,7 @@ class SupplyWidget(_QWidget):
             setpoint (float): current setpoint."""
         try:
             self.ui.tabWidget_2.setEnabled(False)
+            self.ui.pb_send.setEnabled(False)
             _ps_type = self.config.ps_type
 
             self.drs.SetSlaveAdd(_ps_type)
@@ -511,6 +515,7 @@ class SupplyWidget(_QWidget):
             _setpoint = setpoint
             if not self.verify_current_limits(setpoint):
                 self.ui.tabWidget_2.setEnabled(True)
+                self.ui.pb_send.setEnabled(True)
                 return False
             self.config.ps_setpoint = _setpoint
 
@@ -522,13 +527,17 @@ class SupplyWidget(_QWidget):
                 self.display_current()
                 if abs(_compare - _setpoint) <= 0.5:
                     self.ui.tabWidget_2.setEnabled(True)
+                    self.ui.pb_send.setEnabled(True)
                     return True
                 _QApplication.processEvents()
                 _time.sleep(1)
             self.ui.tabWidget_2.setEnabled(True)
-            return True
+            self.ui.pb_send.setEnabled(True)
+            return False
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
+            self.ui.tabWidget_2.setEnabled(True)
+            self.ui.pb_send.setEnabled(True)
             return False
 
     def send_setpoint(self):
@@ -623,12 +632,14 @@ class SupplyWidget(_QWidget):
                                      'Curve sent successfully.',
                                      _QMessageBox.Ok)
             self.ui.tabWidget_2.setEnabled(True)
+            self.ui.pb_send.setEnabled(True)
             self.ui.pb_cycle.setEnabled(True)
             _QApplication.processEvents()
         else:
             _QMessageBox.warning(self, 'Warning', 'Failed to send curve.',
                                  _QMessageBox.Ok)
             self.ui.tabWidget_2.setEnabled(True)
+            self.ui.pb_send.setEnabled(True)
             _QApplication.processEvents()
             return False
 
@@ -841,6 +852,7 @@ class SupplyWidget(_QWidget):
             _deadline = _time.monotonic() + (1/_freq*_n_cycles)
             while _time.monotonic() < _deadline:
                 self.ui.tabWidget_2.setEnabled(False)
+                self.ui.pb_send.setEnabled(False)
                 self.ui.pb_load_ps.setEnabled(False)
                 self.ui.pb_refresh.setEnabled(False)
                 _QApplication.processEvents()
@@ -851,6 +863,7 @@ class SupplyWidget(_QWidget):
             self.drs.DisableSigGen()
             self.display_current()
             self.ui.tabWidget_2.setEnabled(True)
+            self.ui.pb_send.setEnabled(True)
             self.ui.pb_load_ps.setEnabled(True)
             self.ui.pb_refresh.setEnabled(True)
             _QApplication.processEvents()
@@ -1016,6 +1029,7 @@ class SupplyWidget(_QWidget):
                 self.config_widget()
                 self.ui.gb_start_supply.setEnabled(True)
                 self.ui.tabWidget_2.setEnabled(True)
+                self.ui.pb_send.setEnabled(True)
                 self.ui.tabWidget_3.setEnabled(True)
                 self.ui.pb_refresh.setEnabled(True)
                 self.ui.pb_load_ps.setEnabled(False)

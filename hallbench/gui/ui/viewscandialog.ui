@@ -740,6 +740,9 @@ Limits</string>
           <bold>false</bold>
          </font>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="0" column="1" colspan="2">
@@ -755,6 +758,9 @@ Limits</string>
           <weight>50</weight>
           <bold>false</bold>
          </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

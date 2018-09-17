@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Field map dialog for the Hall Bench Control application."""
+"""Save fieldmap dialog for the Hall Bench Control application."""
 
 import os as _os
 import sys as _sys
@@ -20,8 +20,8 @@ import hallbench.data.magnets_info as _magnets_info
 from hallbench.data.measurement import Fieldmap as _Fieldmap
 
 
-class FieldmapDialog(_QDialog):
-    """Field map dialog class for the Hall Bench Control application."""
+class SaveFieldmapDialog(_QDialog):
+    """Save fieldmap dialog class for the Hall Bench Control application."""
 
     _coil_list = ['main', 'trim', 'ch', 'cv', 'qs']
 

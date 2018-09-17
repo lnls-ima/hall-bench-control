@@ -25,8 +25,10 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.viewprobedialog import ViewProbeDialog \
     as _ViewProbeDialog
 from hallbench.gui.viewscandialog import ViewScanDialog as _ViewScanDialog
-from hallbench.gui.fieldmapdialog import FieldmapDialog \
-    as _FieldmapDialog
+from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
+    as _SaveFieldmapDialog
+from hallbench.gui.viewfieldmapdialog import ViewFieldmapDialog \
+    as _ViewFieldmapDialog
 import hallbench.data as _data
 
 
@@ -65,8 +67,9 @@ class DatabaseWidget(_QWidget):
 
         # create dialogs
         self.view_probe_dialog = _ViewProbeDialog()
-        self.viewscan_dialog = _ViewScanDialog()
-        self.fieldmap_dialog = _FieldmapDialog()
+        self.view_scan_dialog = _ViewScanDialog()
+        self.save_fieldmap_dialog = _SaveFieldmapDialog()
+        self.view_fieldmap_dialog = _ViewFieldmapDialog()
 
         self.tables = []
         self.ui.database_tab.clear()
@@ -94,37 +97,42 @@ class DatabaseWidget(_QWidget):
 
     def clearVoltageScanTable(self):
         """Clear voltage scan table."""
-        self.clearUnusedConfigurations()
-        con = _sqlite3.connect(self.database)
-        cur = con.cursor()
+        try:
+            con = _sqlite3.connect(self.database)
+            cur = con.cursor()
 
-        cmd = 'SELECT * FROM {0}'.format(self._voltage_scan_table_name)
-        if len(cur.execute(cmd).fetchall()) == 0:
-            con.close()
-            return
+            cmd = 'SELECT * FROM {0}'.format(self._voltage_scan_table_name)
+            if len(cur.execute(cmd).fetchall()) == 0:
+                con.close()
+                return
 
-        msg = (
-            'Are you sure you want to delete all rows in the ' +
-            self._voltage_scan_table_name + ' table?')
-        reply = _QMessageBox.question(
-            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
+            msg = (
+                'Are you sure you want to delete all rows in the ' +
+                self._voltage_scan_table_name + ' table?')
+            reply = _QMessageBox.question(
+                self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
 
-        if reply == _QMessageBox.Yes:
-            cmd = 'DELETE FROM {0}'.format(self._voltage_scan_table_name)
-            cur.execute(cmd)
-            con.commit()
-            con.close()
-            self.updateDatabaseTables()
-        else:
-            con.close()
-            return
+            if reply == _QMessageBox.Yes:
+                cmd = 'DELETE FROM {0}'.format(self._voltage_scan_table_name)
+                cur.execute(cmd)
+                con.commit()
+                con.close()
+                self.updateDatabaseTables()
+            else:
+                con.close()
+                return
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to clear voltage scan table.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def closeDialogs(self):
         """Close dialogs."""
         try:
             self.view_probe_dialog.accept()
-            self.viewscan_dialog.accept()
-            self.fieldmap_dialog.accept()
+            self.view_scan_dialog.accept()
+            self.save_fieldmap_dialog.accept()
+            self.view_fieldmap_dialog.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             pass
@@ -207,6 +215,7 @@ class DatabaseWidget(_QWidget):
             lambda: self.deleteDatabaseRecords(self._field_scan_table_name))
         self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
 
+        self.ui.view_fieldmap_btn.clicked.connect(self.viewFieldmap)
         self.ui.save_fieldmap_btn.clicked.connect(
             lambda: self.saveFiles(self._fieldmap_table_name, _Fieldmap))
         self.ui.read_fieldmap_btn.clicked.connect(
@@ -293,7 +302,7 @@ class DatabaseWidget(_QWidget):
 
     def createFieldmap(self):
         """Create fieldmap from field scan records."""
-        self.fieldmap_dialog.accept()
+        self.save_fieldmap_dialog.accept()
         idns = self.getTableSelectedIDs(self._field_scan_table_name)
         if len(idns) == 0:
             return
@@ -333,7 +342,7 @@ class DatabaseWidget(_QWidget):
                 return
 
             hall_probe = _HallProbe(database=self.database, idn=idn)
-            self.fieldmap_dialog.show(field_scan_list, hall_probe, idns)
+            self.save_fieldmap_dialog.show(field_scan_list, hall_probe, idns)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -342,25 +351,32 @@ class DatabaseWidget(_QWidget):
 
     def deleteDatabaseRecords(self, table_name):
         """Delete record from database table."""
-        idns = self.getTableSelectedIDs(table_name)
-        if len(idns) == 0:
-            return
+        try:
+            idns = self.getTableSelectedIDs(table_name)
+            if len(idns) == 0:
+                return
 
-        con = _sqlite3.connect(self.database)
-        cur = con.cursor()
+            con = _sqlite3.connect(self.database)
+            cur = con.cursor()
 
-        msg = 'Delete selected database records?'
-        reply = _QMessageBox.question(
-            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
-        if reply == _QMessageBox.Yes:
-            seq = ','.join(['?']*len(idns))
-            cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(table_name, seq)
-            cur.execute(cmd, idns)
-            con.commit()
-            con.close()
-            self.updateDatabaseTables()
-        else:
-            con.close()
+            msg = 'Delete selected database records?'
+            reply = _QMessageBox.question(
+                self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
+            if reply == _QMessageBox.Yes:
+                seq = ','.join(['?']*len(idns))
+                cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(
+                    table_name, seq)
+                cur.execute(cmd, idns)
+                con.commit()
+                con.close()
+                self.updateDatabaseTables()
+            else:
+                con.close()
+                return
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to delete database records.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
     def disableInvalidButtons(self):
@@ -444,40 +460,47 @@ class DatabaseWidget(_QWidget):
 
     def loadDatabase(self):
         """Load database."""
-        con = _sqlite3.connect(self.database)
-        cur = con.cursor()
-        res = cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        try:
+            con = _sqlite3.connect(self.database)
+            cur = con.cursor()
+            res = cur.execute(
+                "SELECT name FROM sqlite_master WHERE type='table';")
 
-        for r in res:
-            table_name = r[0]
-            table = DatabaseTable(self.ui.database_tab)
-            tab = _QWidget()
-            vlayout = _QVBoxLayout()
-            hlayout = _QHBoxLayout()
+            for r in res:
+                table_name = r[0]
+                table = DatabaseTable(self.ui.database_tab)
+                tab = _QWidget()
+                vlayout = _QVBoxLayout()
+                hlayout = _QHBoxLayout()
 
-            initial_id_la = _QLabel("Initial ID:")
-            initial_id_sb = _QSpinBox()
-            initial_id_sb.setMinimumWidth(100)
-            hlayout.addStretch(0)
-            hlayout.addWidget(initial_id_la)
-            hlayout.addWidget(initial_id_sb)
-            hlayout.addSpacing(50)
+                initial_id_la = _QLabel("Initial ID:")
+                initial_id_sb = _QSpinBox()
+                initial_id_sb.setMinimumWidth(100)
+                hlayout.addStretch(0)
+                hlayout.addWidget(initial_id_la)
+                hlayout.addWidget(initial_id_sb)
+                hlayout.addSpacing(50)
 
-            number_rows_la = _QLabel("Maximum number of rows:")
-            number_rows_sb = _QSpinBox()
-            number_rows_sb.setMinimumWidth(100)
-            hlayout.addWidget(number_rows_la)
-            hlayout.addWidget(number_rows_sb)
+                number_rows_la = _QLabel("Maximum number of rows:")
+                number_rows_sb = _QSpinBox()
+                number_rows_sb.setMinimumWidth(100)
+                hlayout.addWidget(number_rows_la)
+                hlayout.addWidget(number_rows_sb)
 
-            table.loadDatabaseTable(
-                self.database, table_name, initial_id_sb, number_rows_sb)
+                table.loadDatabaseTable(
+                    self.database, table_name, initial_id_sb, number_rows_sb)
 
-            vlayout.addWidget(table)
-            vlayout.addLayout(hlayout)
-            tab.setLayout(vlayout)
+                vlayout.addWidget(table)
+                vlayout.addLayout(hlayout)
+                tab.setLayout(vlayout)
 
-            self.tables.append(table)
-            self.ui.database_tab.addTab(tab, table_name)
+                self.tables.append(table)
+                self.ui.database_tab.addTab(tab, table_name)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to load database.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
 
     def readFiles(self, object_class):
         """Read file and save in database."""
@@ -508,34 +531,40 @@ class DatabaseWidget(_QWidget):
 
     def removeUnusedConfigurations(self):
         """Remove unused configurations from database table."""
-        idns = _MeasurementConfig.get_table_column(self.database, 'id')
+        try:
+            idns = _MeasurementConfig.get_table_column(self.database, 'id')
 
-        vs_idns = _VoltageScan.get_table_column(
-            self.database, 'configuration_id')
-        fs_idns = _FieldScan.get_table_column(
-            self.database, 'configuration_id')
+            vs_idns = _VoltageScan.get_table_column(
+                self.database, 'configuration_id')
+            fs_idns = _FieldScan.get_table_column(
+                self.database, 'configuration_id')
 
-        unused_idns = []
-        for idn in idns:
-            if (idn not in vs_idns) and (idn not in fs_idns):
-                unused_idns.append(idn)
+            unused_idns = []
+            for idn in idns:
+                if (idn not in vs_idns) and (idn not in fs_idns):
+                    unused_idns.append(idn)
 
-        con = _sqlite3.connect(self.database)
-        cur = con.cursor()
+            con = _sqlite3.connect(self.database)
+            cur = con.cursor()
 
-        msg = 'Remove all unused configurations from database table?'
-        reply = _QMessageBox.question(
-            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
-        if reply == _QMessageBox.Yes:
-            seq = ','.join(['?']*len(unused_idns))
-            cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(
-                self._configuration_table_name, seq)
-            cur.execute(cmd, unused_idns)
-            con.commit()
-            con.close()
-            self.updateDatabaseTables()
-        else:
-            con.close()
+            msg = 'Remove all unused configurations from database table?'
+            reply = _QMessageBox.question(
+                self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
+            if reply == _QMessageBox.Yes:
+                seq = ','.join(['?']*len(unused_idns))
+                cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(
+                    self._configuration_table_name, seq)
+                cur.execute(cmd, unused_idns)
+                con.commit()
+                con.close()
+                self.updateDatabaseTables()
+            else:
+                con.close()
+                return
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to remove unused configurations.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
     def saveFiles(self, table_name, object_class):
@@ -654,11 +683,17 @@ class DatabaseWidget(_QWidget):
         if len(idns) == 0:
             return
 
-        scan_list = []
-        for idn in idns:
-            scan_list.append(_VoltageScan(database=self.database, idn=idn))
-        self.viewscan_dialog.accept()
-        self.viewscan_dialog.show(scan_list, idns, 'Voltage [V]')
+        try:
+            scan_list = []
+            for idn in idns:
+                scan_list.append(_VoltageScan(database=self.database, idn=idn))
+            self.view_scan_dialog.accept()
+            self.view_scan_dialog.show(scan_list, idns, 'Voltage [V]')
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show voltage scan dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
 
     def viewFieldScan(self):
         """Open view data dialog."""
@@ -666,11 +701,33 @@ class DatabaseWidget(_QWidget):
         if len(idns) == 0:
             return
 
-        scan_list = []
-        for idn in idns:
-            scan_list.append(_FieldScan(database=self.database, idn=idn))
-        self.viewscan_dialog.accept()
-        self.viewscan_dialog.show(scan_list, idns, 'Magnetic Field [T]')
+        try:
+            scan_list = []
+            for idn in idns:
+                scan_list.append(_FieldScan(database=self.database, idn=idn))
+            self.view_scan_dialog.accept()
+            self.view_scan_dialog.show(scan_list, idns, 'Magnetic Field [T]')
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show field scan dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+    def viewFieldmap(self):
+        """Open view fieldmap dialog."""
+        idn = self.getTableSelectedID(self._fieldmap_table_name)
+        if idn is None:
+            return
+
+        try:
+            fieldmap = _Fieldmap(database=self.database, idn=idn)
+            self.view_fieldmap_dialog.accept()
+            self.view_fieldmap_dialog.show(fieldmap)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show fieldmap dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
 
 
 class DatabaseTable(_QTableWidget):

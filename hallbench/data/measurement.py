@@ -725,8 +725,10 @@ class Fieldmap(_database.DatabaseObject):
         ('magnet_x_axis', ['_magnet_x_axis', 'INTEGER']),
         ('magnet_y_axis', ['_magnet_y_axis', 'INTEGER']),
         ('map', ['_map', 'TEXT NOT NULL']),
+        ('current', ['_current', 'TEXT NOT NULL']),
+        ('temperature', ['_temperature', 'TEXT NOT NULL']),
     ])
-    _db_json_str = ['_magnet_center', '_map']
+    _db_json_str = ['_magnet_center', '_map', '_current', '_temperature']
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -762,6 +764,8 @@ class Fieldmap(_database.DatabaseObject):
         self._magnet_center = None
         self._magnet_x_axis = None
         self._magnet_y_axis = None
+        self._current = {}
+        self._temperature = {}
 
         if idn is not None and database is not None:
             self.read_from_database(database, idn)
@@ -788,6 +792,16 @@ class Fieldmap(_database.DatabaseObject):
     def magnet_y_axis(self):
         """Magnet Y axis."""
         return self._magnet_y_axis
+
+    @property
+    def current(self):
+        """Power supply current."""
+        return self._current
+
+    @property
+    def temperature(self):
+        """Temperature readings."""
+        return self._temperature
 
     @property
     def timestamp(self):
@@ -856,6 +870,69 @@ class Fieldmap(_database.DatabaseObject):
         self._magnet_center = None
         self._magnet_x_axis = None
         self._magnet_y_axis = None
+        self._current = {}
+        self._temperature = {}
+
+    def get_fieldmap_text(self, filename=None):
+        """Get fieldmap text."""
+        magnet_name = (
+            self.magnet_name if self.magnet_name is not None else _empty_str)
+        gap = (
+            self.gap if self.gap is not None else _empty_str)
+        control_gap = (
+            self.control_gap if self.control_gap is not None else _empty_str)
+        magnet_length = (
+            self.magnet_length if self.magnet_length is not None
+            else _empty_str)
+
+        if self._timestamp is None:
+            self._timestamp = _utils.get_timestamp()
+
+        header_info = []
+        header_info.append(['fieldmap_name', magnet_name])
+        header_info.append(['timestamp', self._timestamp])
+        if filename is None:
+            header_info.append(['filename', ''])
+        else:
+            header_info.append(['filename', _os.path.split(filename)[1]])
+        header_info.append(['nr_magnets', 1])
+        header_info.append(['magnet_name', magnet_name])
+        header_info.append(['gap[mm]', gap])
+        header_info.append(['control_gap[mm]', control_gap])
+        header_info.append(['magnet_length[mm]', magnet_length])
+
+        for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
+            current = getattr(self, 'current_' + coil)
+            turns = getattr(self, 'nr_turns_' + coil)
+            if current is not None:
+                header_info.append(['current_' + coil + '[A]', current])
+                header_info.append(['nr_turns_' + coil, turns])
+
+        header_info.append(['center_pos_z[mm]', '0'])
+        header_info.append(['center_pos_x[mm]', '0'])
+        header_info.append(['rotation[deg]', '0'])
+
+        text = ''
+        for line in header_info:
+            variable = (str(line[0]) + ':').ljust(20)
+            value = str(line[1])
+            text = text + '{0:1s}\t{1:1s}\n'.format(variable, value)
+
+        if len(header_info) != 0:
+            text = text + '\n'
+
+        text = text + 'X[mm]\tY[mm]\tZ[mm]\tBx[T]\tBy[T]\tBz[T]\n'
+        text = (
+            text + '-----------------------------------------------' +
+            '----------------------------------------------\n')
+
+        for i in range(self._map.shape[0]):
+            text = text + '{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
+                self._map[i, 0], self._map[i, 1], self._map[i, 2])
+            text = text + '{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
+                self._map[i, 3], self._map[i, 4], self._map[i, 5])
+
+        return text
 
     def read_file(self, filename):
         """Read fieldmap file.
@@ -926,58 +1003,9 @@ class Fieldmap(_database.DatabaseObject):
         Args:
             filename (str): fieldmap file path.
         """
-        magnet_name = (
-            self.magnet_name if self.magnet_name is not None else _empty_str)
-        gap = (
-            self.gap if self.gap is not None else _empty_str)
-        control_gap = (
-            self.control_gap if self.control_gap is not None else _empty_str)
-        magnet_length = (
-            self.magnet_length if self.magnet_length is not None
-            else _empty_str)
-
-        if self._timestamp is None:
-            self._timestamp = _utils.get_timestamp()
-
-        header_info = []
-        header_info.append(['fieldmap_name', magnet_name])
-        header_info.append(['timestamp', self._timestamp])
-        header_info.append(['filename', _os.path.split(filename)[1]])
-        header_info.append(['nr_magnets', 1])
-        header_info.append(['magnet_name', magnet_name])
-        header_info.append(['gap[mm]', gap])
-        header_info.append(['control_gap[mm]', control_gap])
-        header_info.append(['magnet_length[mm]', magnet_length])
-
-        for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
-            current = getattr(self, 'current_' + coil)
-            turns = getattr(self, 'nr_turns_' + coil)
-            if current is not None:
-                header_info.append(['current_' + coil + '[A]', current])
-                header_info.append(['nr_turns_' + coil, turns])
-
-        header_info.append(['center_pos_z[mm]', '0'])
-        header_info.append(['center_pos_x[mm]', '0'])
-        header_info.append(['rotation[deg]', '0'])
-
+        text = self.get_fieldmap_text(filename=filename)
         with open(filename, 'w') as f:
-            for line in header_info:
-                variable = (str(line[0]) + ':').ljust(20)
-                value = str(line[1])
-                f.write('{0:1s}\t{1:1s}\n'.format(variable, value))
-
-            if len(header_info) != 0:
-                f.write('\n')
-
-            f.write('X[mm]\tY[mm]\tZ[mm]\tBx[T]\tBy[T]\tBz[T]\n')
-            f.write('-----------------------------------------------' +
-                    '----------------------------------------------\n')
-
-            for i in range(self._map.shape[0]):
-                f.write('{0:0.3f}\t{1:0.3f}\t{2:0.3f}\t'.format(
-                    self._map[i, 0], self._map[i, 1], self._map[i, 2]))
-                f.write('{0:0.10e}\t{1:0.10e}\t{2:0.10e}\n'.format(
-                    self._map[i, 3], self._map[i, 4], self._map[i, 5]))
+            f.write(text)
 
     def set_fieldmap_data(
             self, field_scan_list, hall_probe,
@@ -1013,6 +1041,10 @@ class Fieldmap(_database.DatabaseObject):
         self._magnet_x_axis = magnet_x_axis
         self._magnet_y_axis = magnet_y_axis
         self._map = _map
+
+        cur, temp = get_current_and_temperature_values(field_scan_list)
+        self._current = cur
+        self._temperature = temp
 
 
 def get_current_and_temperature_values(scan_list):
@@ -1076,7 +1108,8 @@ def _interpolate_data_frame(df, pos, axis=0):
         f = _interpolate.splrep(x.index, x.values, s=0, k=1)
         return _interpolate.splev(pos, f, der=0)
 
-    interp_df = df.apply(_interpolate_vec, axis=axis, args=[pos], result_type='broadcast')
+    interp_df = df.apply(
+        _interpolate_vec, axis=axis, args=[pos], result_type='broadcast')
     if axis == 0:
         interp_df.index = pos
     else:

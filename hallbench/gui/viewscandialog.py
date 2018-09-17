@@ -55,7 +55,6 @@ class ViewScanDialog(_QDialog):
         self.temperature_dialog.setWindowTitle('Temperature Readings')
         self.temperature_dialog.setPlotLabel('Temperature [deg C]')
         self.temperature_dialog.setTableColumnSize(100)
-        # self.temperature_dialog.setColors(self.temperature_colors)
 
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.graph_pw.graphicsItem())

@@ -28,8 +28,8 @@ from hallbench.gui.configurationwidget import ConfigurationWidget \
     as _ConfigurationWidget
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
-from hallbench.gui.fieldmapdialog import FieldmapDialog \
-    as _FieldmapDialog
+from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
+    as _SaveFieldmapDialog
 from hallbench.gui.viewscandialog import ViewScanDialog as _ViewScanDialog
 from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
@@ -65,8 +65,8 @@ class MeasurementWidget(_QWidget):
         self.ui.position_wg.setLayout(_layout)
 
         # create dialog
-        self.fieldmap_dialog = _FieldmapDialog()
-        self.viewscan_dialog = _ViewScanDialog()
+        self.save_fieldmap_dialog = _SaveFieldmapDialog()
+        self.view_scan_dialog = _ViewScanDialog()
 
         self.local_measurement_config = None
         self.local_measurement_config_id = None
@@ -158,8 +158,8 @@ class MeasurementWidget(_QWidget):
         """Close dialogs."""
         try:
             self.current_position_widget.close()
-            self.fieldmap_dialog.accept()
-            self.viewscan_dialog.accept()
+            self.save_fieldmap_dialog.accept()
+            self.view_scan_dialog.accept()
             self.configuration_widget.closeDialogs()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -779,7 +779,7 @@ class MeasurementWidget(_QWidget):
 
     def showFieldmapDialog(self):
         """Open fieldmap dialog."""
-        self.fieldmap_dialog.show(
+        self.save_fieldmap_dialog.show(
             self.field_scan_list,
             self.local_hall_probe,
             self.field_scan_id_list)
@@ -787,12 +787,12 @@ class MeasurementWidget(_QWidget):
     def showViewScanDialog(self):
         """Open view data dialog."""
         if self.local_hall_probe is None:
-            self.viewscan_dialog.show(
+            self.view_scan_dialog.show(
                 self.voltage_scan_list,
                 self.voltage_scan_id_list,
                 'Voltage [V]')
         else:
-            self.viewscan_dialog.show(
+            self.view_scan_dialog.show(
                 self.field_scan_list,
                 self.field_scan_id_list,
                 'Magnetic Field [T]')

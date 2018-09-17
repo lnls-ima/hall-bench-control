@@ -848,9 +848,21 @@ class MeasurementWidget(_QWidget):
                 msg = 'No multimeter selected.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
-            else:
-                self.local_measurement_config = config
-                return True
+
+            velocity = config.get_velocity(config.first_axis)
+            step = config.get_step(config.first_axis)
+            max_integration_time = _np.abs(step/velocity)
+            integration_time = config.integration_time
+            if integration_time > max_integration_time:
+                msg = (
+                    'The integration time must be ' +
+                    'less than {0:.4f} seconds.'.format(
+                        max_integration_time))
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return False
+
+            self.local_measurement_config = config
+            return True
         else:
             self.local_measurement_config = None
             return False

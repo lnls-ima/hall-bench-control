@@ -94,6 +94,7 @@ class DatabaseWidget(_QWidget):
 
     def clearVoltageScanTable(self):
         """Clear voltage scan table."""
+        self.clearUnusedConfigurations()
         con = _sqlite3.connect(self.database)
         cur = con.cursor()
 
@@ -180,6 +181,8 @@ class DatabaseWidget(_QWidget):
             lambda: self.readFiles(_MeasurementConfig))
         self.ui.delete_configuration_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._configuration_table_name))
+        self.ui.remove_unused_configurations_btn.clicked.connect(
+            self.removeUnusedConfigurations)
 
         self.ui.view_voltage_scan_btn.clicked.connect(self.viewVoltageScan)
         self.ui.save_voltage_scan_btn.clicked.connect(
@@ -501,6 +504,38 @@ class DatabaseWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to read files and save values in database.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+    def removeUnusedConfigurations(self):
+        """Remove unused configurations from database table."""
+        idns = _MeasurementConfig.get_table_column(self.database, 'id')
+
+        vs_idns = _VoltageScan.get_table_column(
+            self.database, 'configuration_id')
+        fs_idns = _FieldScan.get_table_column(
+            self.database, 'configuration_id')
+
+        unused_idns = []
+        for idn in idns:
+            if (idn not in vs_idns) and (idn not in fs_idns):
+                unused_idns.append(idn)
+
+        con = _sqlite3.connect(self.database)
+        cur = con.cursor()
+
+        msg = 'Remove all unused configurations from database table?'
+        reply = _QMessageBox.question(
+            self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
+        if reply == _QMessageBox.Yes:
+            seq = ','.join(['?']*len(unused_idns))
+            cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(
+                self._configuration_table_name, seq)
+            cur.execute(cmd, unused_idns)
+            con.commit()
+            con.close()
+            self.updateDatabaseTables()
+        else:
+            con.close()
             return
 
     def saveFiles(self, table_name, object_class):

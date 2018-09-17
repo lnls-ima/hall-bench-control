@@ -581,7 +581,7 @@ class DatabaseWidget(_QWidget):
         for idn in idns:
             scan_list.append(_VoltageScan(database=self.database, idn=idn))
         self.viewscan_dialog.accept()
-        self.viewscan_dialog.show(scan_list, 'Voltage [V]')
+        self.viewscan_dialog.show(scan_list, idns, 'Voltage [V]')
 
     def viewFieldScan(self):
         """Open view data dialog."""
@@ -593,7 +593,7 @@ class DatabaseWidget(_QWidget):
         for idn in idns:
             scan_list.append(_FieldScan(database=self.database, idn=idn))
         self.viewscan_dialog.accept()
-        self.viewscan_dialog.show(scan_list, 'Magnetic Field [T]')
+        self.viewscan_dialog.show(scan_list, idns, 'Magnetic Field [T]')
 
 
 class DatabaseTable(_QTableWidget):

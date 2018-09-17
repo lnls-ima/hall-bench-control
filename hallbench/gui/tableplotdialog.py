@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Table and plot widget for the Hall Bench Control application."""
+"""Table and plot dialog for the Hall Bench Control application."""
 
 import sys as _sys
 import numpy as _np
@@ -9,45 +9,42 @@ import warnings as _warnings
 import pyqtgraph as _pyqtgraph
 import traceback as _traceback
 from PyQt5.QtWidgets import (
+    QDialog as _QDialog,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
-    QWidget as _QWidget,
     )
-from PyQt5.QtCore import QTimer as _QTimer
 import PyQt5.uic as _uic
 
 import hallbench.gui.utils as _utils
 
 
-class TablePlotWidget(_QWidget):
-    """Table and plot Widget class for the Hall Bench Control application."""
+class TablePlotDialog(_QDialog):
+    """Table and plot dialog class for the Hall Bench Control application."""
 
-    _plot_label = ''
     _data_format = '{0:.4f}'
-    _data_labels = []
-    _colors = []
+    _colors = [
+        (230, 25, 75), (60, 180, 75), (0, 130, 200), (245, 130, 48),
+        (145, 30, 180), (255, 225, 25), (70, 240, 240),
+        (240, 50, 230), (170, 110, 40), (128, 0, 0),
+        (170, 255, 195), (128, 128, 128), (0, 0, 0),
+    ]
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
         super().__init__(parent)
 
         # setup the ui
-        uifile = _utils.getUiFile(TablePlotWidget)
+        uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
+        self._plot_label = ''
         self._timestamp = []
+        self._data_labels = []
         self._legend_items = []
         self._readings = {}
         self._graphs = {}
-        for i, label in enumerate(self._data_labels):
-            self._readings[label] = []
-
-        # create timer to monitor values
-        self.timer = _QTimer(self)
-        self.updateMonitorInterval()
-        self.timer.timeout.connect(lambda: self.readValue(monitor=True))
 
         self.table_analysis_dialog = _utils.TableAnalysisDialog()
 
@@ -55,8 +52,6 @@ class TablePlotWidget(_QWidget):
         self.legend.setParentItem(self.ui.plot_pw.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
-        self.configurePlot()
-        self.configureTable()
         self.connectSignalSlots()
 
     def clearLegendItems(self):
@@ -64,16 +59,10 @@ class TablePlotWidget(_QWidget):
         for label in self._legend_items:
             self.legend.removeItem(label)
 
-    def clearValues(self):
-        """Clear all values."""
-        if hasattr(self, '_position'):
-            self._position = []
-        self._timestamp = []
-        for label in self._data_labels:
-            self._readings[label] = []
-        self.updateTableValues()
-        self.updatePlot()
-        self.updateTableAnalysisDialog()
+    def accept(self):
+        """Close dialog."""
+        self.closeDialogs()
+        super().accept()
 
     def closeDialogs(self):
         """Close dialogs."""
@@ -86,7 +75,6 @@ class TablePlotWidget(_QWidget):
     def closeEvent(self, event):
         """Close widget."""
         try:
-            self.timer.stop()
             self.closeDialogs()
             event.accept()
         except Exception:
@@ -97,16 +85,11 @@ class TablePlotWidget(_QWidget):
         """Configure data plots."""
         self.ui.plot_pw.clear()
 
-        if len(self._colors) == len(self._data_labels):
-            use_diff_pens = True
-        else:
-            use_diff_pens = False
-
         for i, label in enumerate(self._data_labels):
-            if use_diff_pens:
+            try:
                 pen = self._colors[i]
-            else:
-                pen = (0, 0, 255)
+            except IndexError:
+                pen = (0, 0, 0)
             graph = self.ui.plot_pw.plotItem.plot(
                 _np.array([]), _np.array([]), pen=pen,
                 symbol='o', symbolPen=pen, symbolSize=3, symbolBrush=pen)
@@ -120,10 +103,6 @@ class TablePlotWidget(_QWidget):
     def configureTable(self):
         """Configure table."""
         col_labels = ['Date', 'Time']
-
-        if hasattr(self, '_position'):
-            col_labels.append('Position')
-
         for label in self._data_labels:
             col_labels.append(label)
         self.ui.table_ta.setColumnCount(len(col_labels))
@@ -132,13 +111,6 @@ class TablePlotWidget(_QWidget):
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
-        self.ui.read_btn.clicked.connect(lambda: self.readValue(monitor=False))
-        self.ui.monitor_btn.toggled.connect(self.monitorValue)
-        self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
-        self.ui.monitorunit_cmb.currentIndexChanged.connect(
-            self.updateMonitorInterval)
-        self.ui.clear_btn.clicked.connect(self.clearValues)
-        self.ui.remove_btn.clicked.connect(self.removeValue)
         self.ui.copy_btn.clicked.connect(self.copyToClipboard)
         self.ui.save_btn.clicked.connect(self.saveToFile)
         self.ui.analysis_btn.clicked.connect(self.showTableAnalysisDialog)
@@ -148,41 +120,6 @@ class TablePlotWidget(_QWidget):
         df = _utils.tableToDataFrame(self.ui.table_ta)
         if df is not None:
             df.to_clipboard(excel=True)
-
-    def monitorValue(self, checked):
-        """Monitor values."""
-        if checked:
-            self.ui.read_btn.setEnabled(False)
-            self.timer.start()
-        else:
-            self.timer.stop()
-            self.ui.read_btn.setEnabled(True)
-
-    def readValue(self, monitor=False):
-        """Read value."""
-        pass
-
-    def removeValue(self):
-        """Remove value from list."""
-        selected = self.ui.table_ta.selectedItems()
-        rows = [s.row() for s in selected]
-        n = len(self._timestamp)
-
-        if hasattr(self, '_position'):
-            self._position = [
-                self._position[i] for i in range(n) if i not in rows]
-
-        self._timestamp = [
-            self._timestamp[i] for i in range(n) if i not in rows]
-
-        for label in self._data_labels:
-            readings = self._readings[label]
-            self._readings[label] = [
-                readings[i] for i in range(n) if i not in rows]
-
-        self.updateTableValues()
-        self.updatePlot()
-        self.updateTableAnalysisDialog()
 
     def saveToFile(self):
         """Save table values to file."""
@@ -213,6 +150,25 @@ class TablePlotWidget(_QWidget):
             msg = 'Failed to save data to file.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
+    def setPlotLabel(self, plot_label):
+        """Set plot label value."""
+        self._plot_label = plot_label
+
+    def setTableColumnSize(self, size):
+        """Set table horizontal header default section size."""
+        self.ui.table_ta.horizontalHeader().setDefaultSectionSize(size)
+
+    def show(self, timestamp, readings):
+        """Show dialog."""
+        self._timestamp = timestamp
+        self._readings = readings
+        self._data_labels = list(self._readings.keys())
+        self.configurePlot()
+        self.configureTable()
+        self.updatePlot()
+        self.updateTableValues()
+        super().show()
+
     def showTableAnalysisDialog(self):
         """Show table analysis dialog."""
         df = _utils.tableToDataFrame(self.ui.table_ta)
@@ -227,17 +183,6 @@ class TablePlotWidget(_QWidget):
             legend_label = label.split('[')[0]
             self._legend_items.append(legend_label)
             self.legend.addItem(self._graphs[label], legend_label)
-
-    def updateMonitorInterval(self):
-        """Update monitor interval value."""
-        index = self.ui.monitorunit_cmb.currentIndex()
-        if index == 0:
-            mf = 1000
-        elif index == 1:
-            mf = 1000*60
-        else:
-            mf = 1000*3600
-        self.timer.setInterval(self.ui.monitorstep_sb.value()*mf)
 
     def updatePlot(self):
         """Update plot values."""
@@ -256,12 +201,7 @@ class TablePlotWidget(_QWidget):
                 rd = readings[_np.isfinite(readings)]
                 self._graphs[label].setData(dt, rd)
 
-    def updateTableAnalysisDialog(self):
-        """Update table analysis dialog."""
-        self.table_analysis_dialog.updateData(
-            _utils.tableToDataFrame(self.ui.table_ta))
-
-    def updateTableValues(self):
+    def updateTableValues(self, scrollDown=True):
         """Update table values."""
         n = len(self._timestamp)
         self.ui.table_ta.clearContents()
@@ -276,47 +216,10 @@ class TablePlotWidget(_QWidget):
 
                 self.ui.table_ta.setItem(i, 0, _QTableWidgetItem(date))
                 self.ui.table_ta.setItem(i, 1, _QTableWidgetItem(hour))
-
-                if hasattr(self, '_position'):
-                    pos = '{0:.4f}'.format(self._position[i])
-                    self.ui.table_ta.setItem(
-                        i, 2, _QTableWidgetItem(pos))
-                    self.ui.table_ta.setItem(
-                        i, j+3, _QTableWidgetItem(
-                            self._data_format.format(readings[i])))
-                else:
-                    self.ui.table_ta.setItem(
-                        i, j+2, _QTableWidgetItem(
-                            self._data_format.format(readings[i])))
-
-    def addLastValueToTable(self):
-        """Add the last value read to table."""
-        if len(self._timestamp) == 0:
-            return
-
-        n = self.ui.table_ta.rowCount() + 1
-        self.ui.table_ta.setRowCount(n)
-
-        for j in range(len(self._data_labels)):
-            reading = self._readings[self._data_labels[j]][-1]
-            dt = _datetime.datetime.fromtimestamp(self._timestamp[-1])
-            date = dt.strftime("%d/%m/%Y")
-            hour = dt.strftime("%H:%M:%S")
-
-            self.ui.table_ta.setItem(n, 0, _QTableWidgetItem(date))
-            self.ui.table_ta.setItem(n, 1, _QTableWidgetItem(hour))
-
-            if hasattr(self, '_position'):
-                pos = '{0:.4f}'.format(self._position[-1])
                 self.ui.table_ta.setItem(
-                    n, 2, _QTableWidgetItem(pos))
-                self.ui.table_ta.setItem(
-                    n, j+3, _QTableWidgetItem(
-                        self._data_format.format(reading)))
-            else:
-                self.ui.table_ta.setItem(
-                    n, j+2, _QTableWidgetItem(
-                        self._data_format.format(reading)))
+                    i, j+2, _QTableWidgetItem(
+                        self._data_format.format(readings[i])))
 
-        vbar = self.table_ta.verticalScrollBar()
-        vbar.setValue(vbar.maximum())
+        if scrollDown:
+            vbar = self.table_ta.verticalScrollBar()
+            vbar.setValue(vbar.maximum())

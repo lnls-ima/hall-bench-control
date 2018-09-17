@@ -72,8 +72,8 @@ class Scan(_database.DatabaseObject):
         self._stdy = _np.array([])
         self._stdz = _np.array([])
         self._data_unit = data_unit
-        self._current = _np.array([])
-        self._temperature = _np.array([])
+        self._current = {}
+        self._temperature = {}
 
         if filename is not None and idn is not None:
             raise ValueError('Invalid arguments for Scan object.')
@@ -317,7 +317,9 @@ class Scan(_database.DatabaseObject):
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
                 _copy.__dict__[key] = _np.copy(self.__dict__[key])
-            elif isinstance(self.__dict__[key], str):
+            elif isinstance(self.__dict__[key], dict):
+                _copy.__dict__[key] = dict(self.__dict__[key])
+            else:
                 _copy.__dict__[key] = self.__dict__[key]
         return _copy
 
@@ -375,9 +377,8 @@ class Scan(_database.DatabaseObject):
         """Reverse Scan."""
         for key in self.__dict__:
             value = self.__dict__[key]
-            if key not in ['_temperature', '_current']:
-                if isinstance(value, _np.ndarray) and value.size > 1:
-                    self.__dict__[key] = value[::-1]
+            if isinstance(value, _np.ndarray) and value.size > 1:
+                self.__dict__[key] = value[::-1]
 
     def save_file(self, filename, include_std=True):
         """Save data to file.
@@ -594,12 +595,16 @@ class VoltageScan(Scan):
     @Scan.current.setter
     def current(self, value):
         """Set current values."""
-        self._current = _utils.to_array(value)
+        if not isinstance(value, dict):
+            raise TypeError('current must be a dict.')
+        self._current = value
 
     @Scan.temperature.setter
     def temperature(self, value):
         """Set temperature values."""
-        self._temperature = _utils.to_array(value)
+        if not isinstance(value, dict):
+            raise TypeError('temperature must be a dict.')
+        self._temperature = value
 
 
 class FieldScan(Scan):
@@ -679,7 +684,7 @@ class FieldScan(Scan):
         self._stdy = by_std
         self._stdz = bz_std
 
-        cur, temp = _get_current_and_temperature_values(voltage_scan_list)
+        cur, temp = get_current_and_temperature_values(voltage_scan_list)
         self._temperature = temp
         self._current = cur
 
@@ -1005,6 +1010,33 @@ class Fieldmap(_database.DatabaseObject):
         self._map = _map
 
 
+def get_current_and_temperature_values(scan_list):
+    """Get power supply current and temperature values."""
+    current = {}
+    temperature = {}
+    for scan in scan_list:
+        for key, value in scan.current.items():
+            if key in current.keys():
+                [current[key].append(v) for v in value]
+            else:
+                current[key] = [v for v in value]
+        for key, value in scan.temperature.items():
+            if key in temperature.keys():
+                [temperature[key].append(v) for v in value]
+            else:
+                temperature[key] = [v for v in value]
+
+    if len(current) > 0:
+        for key, value in current.items():
+            current[key] = sorted(value, key=lambda x: x[0])
+
+    if len(temperature) > 0:
+        for key, value in temperature.items():
+            temperature[key] = sorted(value, key=lambda x: x[0])
+
+    return current, temperature
+
+
 def get_field_scan_list(voltage_scan_list, hall_probe):
     """Get field_scan_list from voltage_scan_list."""
     field_scan_list = []
@@ -1121,27 +1153,6 @@ def _get_axis_vector(axis):
         return _np.array([1, 0, 0])
     else:
         return None
-
-
-def _get_current_and_temperature_values(voltage_scan_list):
-    """Get power supply current and temperature values."""
-    current = []
-    temperature = []
-    for vs in voltage_scan_list:
-        if len(vs.current) > 0: 
-            [current.append(c) for c in vs.current]
-        if len(vs.temperature) > 0:
-            [temperature.append(t) for t in vs.temperature]
-    
-    current = _np.array(current)
-    if len(current) > 0:
-        current = _np.array(sorted(current, key=lambda x: x[0]))
-    
-    temperature = _np.array(temperature)
-    if len(temperature) > 0:
-        temperature = _np.array(sorted(temperature, key=lambda x: x[0]))
-    
-    return current, temperature
 
 
 def _get_data_frame_limits(values, fieldx, fieldy, fieldz, axis=0):

@@ -4,19 +4,23 @@
 
 import sys as _sys
 import numpy as _np
+import pandas as _pd
 import scipy.optimize as _optimize
 import collections as _collections
 import warnings as _warnings
 import traceback as _traceback
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
+    QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
     )
 import PyQt5.uic as _uic
 import pyqtgraph as _pyqtgraph
 
+from hallbench.gui.tableplotdialog import TablePlotDialog as _TablePlotDialog
 from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.data import measurement as _measurement
 
 
 class ViewScanDialog(_QDialog):
@@ -29,7 +33,7 @@ class ViewScanDialog(_QDialog):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.data_label = ''
+        self.plot_label = ''
         self.scan_list = []
         self.graphx = []
         self.graphy = []
@@ -37,19 +41,58 @@ class ViewScanDialog(_QDialog):
         self.scan_dict = {}
         self.xmin_line = None
         self.xmax_line = None
+        self.temperature = {}
+        self.current = {}
+
+        # Create current dialog
+        self.current_dialog = _TablePlotDialog()
+        self.current_dialog.setWindowTitle('Current Readings')
+        self.current_dialog.setPlotLabel('Current [A]')
+        self.current_dialog.setTableColumnSize(200)
+
+        # Create temperature dialog
+        self.temperature_dialog = _TablePlotDialog()
+        self.temperature_dialog.setWindowTitle('Temperature Readings')
+        self.temperature_dialog.setPlotLabel('Temperature [deg C]')
+        self.temperature_dialog.setTableColumnSize(100)
+        # self.temperature_dialog.setColors(self.temperature_colors)
 
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.graph_pw.graphicsItem())
         self.legend.setAutoFillBackground(1)
         self.connectSignalSlots()
 
+    def accept(self):
+        """Close dialog."""
+        self.closeDialogs()
+        super().accept()
+
+    def closeDialogs(self):
+        """Close dialogs."""
+        try:
+            self.current_dialog.accept()
+            self.temperature_dialog.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            pass
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.closeDialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
     def calcCurveFit(self):
         """Calculate curve fit."""
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             return
 
-        sel = self.scan_dict[selected_idx]
+        sel = self.scan_dict[selected_idx][selected_comp]
         pos = sel['pos']
         data = sel['data']
         xoff = sel['xoff']
@@ -108,7 +151,7 @@ class ViewScanDialog(_QDialog):
         self.graphy = []
         self.graphz = []
 
-    def configureGraph(self, nr_curves, label):
+    def configureGraph(self, nr_curves, plot_label):
         """Configure graph.
 
         Args:
@@ -156,13 +199,15 @@ class ViewScanDialog(_QDialog):
         self.legend.addItem(self.graphy[0], 'Y')
         self.legend.addItem(self.graphz[0], 'Z')
         self.ui.graph_pw.setLabel('bottom', 'Scan Position [mm]')
-        self.ui.graph_pw.setLabel('left', label)
+        self.ui.graph_pw.setLabel('left', plot_label)
         self.ui.graph_pw.showGrid(x=True, y=True)
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
-        self.ui.updateplot_btn.clicked.connect(self.updatePlot)
-        self.ui.selectcurve_cmb.currentIndexChanged.connect(
+        self.ui.update_plot_btn.clicked.connect(self.updatePlot)
+        self.ui.select_scan_cmb.currentIndexChanged.connect(
+            self.updateControls)
+        self.ui.select_comp_cmb.currentIndexChanged.connect(
             self.updateControls)
         self.ui.offset_btn.clicked.connect(self.updateOffset)
         self.ui.xoff_sb.valueChanged.connect(self.disableOffsetLed)
@@ -176,6 +221,9 @@ class ViewScanDialog(_QDialog):
         self.ui.polyorder_sb.valueChanged.connect(self.polyOrderChanged)
         self.ui.fit_btn.clicked.connect(self.calcCurveFit)
         self.ui.resetlim_btn.clicked.connect(self.resetXLimits)
+        self.ui.view_current_btn.clicked.connect(self.showCurrentDialog)
+        self.ui.view_temperature_btn.clicked.connect(
+            self.showTemperatureDialog)
 
     def disableOffsetLed(self):
         """Disable offset led."""
@@ -192,30 +240,33 @@ class ViewScanDialog(_QDialog):
             self.ui.polyorder_la.hide()
             self.ui.polyorder_sb.hide()
 
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             return
         else:
-            self.scan_dict[selected_idx]['fit_function'] = func
+            self.scan_dict[selected_idx][selected_comp]['fit_function'] = func
 
     def polyOrderChanged(self):
         """Update dict value."""
-        order = self.ui.polyorder_sb.value()
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        od = self.ui.polyorder_sb.value()
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             return
         else:
-            self.scan_dict[selected_idx]['fit_polyorder'] = order
+            self.scan_dict[selected_idx][selected_comp]['fit_polyorder'] = od
 
     def resetXLimits(self):
         """Reset X limits.."""
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             return
         else:
-            pos = self.scan_dict[selected_idx]['pos']
-            xoff = self.scan_dict[selected_idx]['xoff']
-            xmult = self.scan_dict[selected_idx]['xmult']
+            pos = self.scan_dict[selected_idx][selected_comp]['pos']
+            xoff = self.scan_dict[selected_idx][selected_comp]['xoff']
+            xmult = self.scan_dict[selected_idx][selected_comp]['xmult']
 
             if len(pos) > 0:
                 xmin = (pos[0] + xoff)*xmult
@@ -224,54 +275,48 @@ class ViewScanDialog(_QDialog):
                 xmin = 0
                 xmax = 0
 
-            self.scan_dict[selected_idx]['xmin'] = xmin
+            self.scan_dict[selected_idx][selected_comp]['xmin'] = xmin
             self.ui.xmin_sb.setValue(xmin)
 
-            self.scan_dict[selected_idx]['xmax'] = xmax
+            self.scan_dict[selected_idx][selected_comp]['xmax'] = xmax
             self.ui.xmax_sb.setValue(xmax)
 
             self.updatePlot()
 
     def setCurveLabels(self):
         """Set curve labels."""
-        self.ui.selectcurve_cmb.clear()
+        self.ui.select_scan_cmb.clear()
 
         p1 = set()
         p2 = set()
         p3 = set()
-        for data in self.scan_list:
-            p1.update(data.pos1)
-            p2.update(data.pos2)
-            p3.update(data.pos3)
+        for scan in self.scan_list:
+            p1.update(scan.pos1)
+            p2.update(scan.pos2)
+            p3.update(scan.pos3)
 
         curve_labels = []
-        for data in self.scan_list:
+        for i, scan in enumerate(self.scan_list):
+            idn = self.scan_id_list[i]
             pos = ''
-            if data.pos1.size == 1 and len(p1) != 1:
-                pos = pos + 'pos1={0:.0f}mm'.format(data.pos1[0])
-            if data.pos2.size == 1 and len(p2) != 1:
-                pos = pos + 'pos2={0:.0f}mm'.format(data.pos2[0])
-            if data.pos3.size == 1 and len(p3) != 1:
-                pos = pos + 'pos3={0:.0f}mm'.format(data.pos3[0])
-
-            if data.timestamp is not None:
-                ts = ' ({0:s})'.format(data.timestamp.split('_')[1])
-            else:
-                ts = ''
+            if scan.pos1.size == 1 and len(p1) != 1:
+                pos = pos + ' pos1={0:.0f}mm'.format(scan.pos1[0])
+            if scan.pos2.size == 1 and len(p2) != 1:
+                pos = pos + ' pos2={0:.0f}mm'.format(scan.pos2[0])
+            if scan.pos3.size == 1 and len(p3) != 1:
+                pos = pos + ' pos3={0:.0f}mm'.format(scan.pos3[0])
 
             if len(pos) == 0:
-                curve_labels.append('X' + ts)
-                curve_labels.append('Y' + ts)
-                curve_labels.append('Z' + ts)
+                curve_labels.append('ID:{0:d}'.format(idn))
             else:
-                curve_labels.append('X: ' + pos + ts)
-                curve_labels.append('Y: ' + pos + ts)
-                curve_labels.append('Z: ' + pos + ts)
+                curve_labels.append('ID:{0:d}'.format(idn) + pos)
 
-        self.ui.selectcurve_cmb.addItems(curve_labels)
-        self.ui.selectcurve_cmb.setEnabled(True)
+        self.ui.select_scan_cmb.addItems(curve_labels)
+        self.ui.select_scan_cmb.setCurrentIndex(-1)
+        self.ui.select_comp_cmb.setCurrentIndex(-1)
+        self.ui.select_scan_cmb.setEnabled(True)
 
-    def show(self, scan_list, data_label=''):
+    def show(self, scan_list, scan_id_list, plot_label=''):
         """Update data and show dialog."""
         if scan_list is None or len(scan_list) == 0:
             msg = 'Invalid data list.'
@@ -279,11 +324,13 @@ class ViewScanDialog(_QDialog):
             return
 
         self.scan_list = [d.copy() for d in scan_list]
-        self.data_label = data_label
+        self.scan_id_list = scan_id_list
+        self.plot_label = plot_label
 
         try:
             idx = 0
             for i in range(len(self.scan_list)):
+                self.scan_dict[idx] = {}
                 data = self.scan_list[i]
 
                 if data.npts == 0:
@@ -303,8 +350,7 @@ class ViewScanDialog(_QDialog):
                 xmin = pos[0]
                 xmax = pos[-1]
 
-                self.scan_dict[idx] = {
-                    'component': 'x',
+                self.scan_dict[idx]['x'] = {
                     'pos': pos,
                     'data': data.avgx,
                     'xoff': 0,
@@ -317,8 +363,7 @@ class ViewScanDialog(_QDialog):
                     'fit_polyorder': None,
                     }
 
-                self.scan_dict[idx+1] = {
-                    'component': 'y',
+                self.scan_dict[idx]['y'] = {
                     'pos': pos,
                     'data': data.avgy,
                     'xoff': 0,
@@ -331,8 +376,7 @@ class ViewScanDialog(_QDialog):
                     'fit_polyorder': None,
                     }
 
-                self.scan_dict[idx+2] = {
-                    'component': 'z',
+                self.scan_dict[idx]['z'] = {
                     'pos': pos,
                     'data': data.avgz,
                     'xoff': 0,
@@ -345,9 +389,17 @@ class ViewScanDialog(_QDialog):
                     'fit_polyorder': None,
                     }
 
-                idx = idx + 3
+                idx = idx + 1
 
-            self.updateXLimits()
+            cur, temp = _measurement.get_current_and_temperature_values(
+                        self.scan_list)
+            self.current = cur
+            self.temperature = temp
+            if len(self.current) != 0:
+                self.ui.view_current_btn.setEnabled(True)
+            if len(self.temperature) != 0:
+                self.ui.view_temperature_btn.setEnabled(True)
+
             self.updatePlot()
             self.setCurveLabels()
             self.ui.polyorder_la.hide()
@@ -360,11 +412,60 @@ class ViewScanDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
+    def showCurrentDialog(self):
+        """Open table plot dialog."""
+        if len(self.current) == 0:
+            return
+
+        try:
+            dfs = []
+            for key, value in self.current.items():
+                v = _np.array(value)
+                dfs.append(
+                    _pd.DataFrame(v[:, 1], index=v[:, 0], columns=[key]))
+            df = _pd.concat(dfs, axis=1)
+
+            timestamp = df.index.values.tolist()
+            readings = {}
+            for col in df.columns:
+                readings[col] = df[col].values.tolist()
+            self.current_dialog.show(timestamp, readings)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to open dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+    def showTemperatureDialog(self):
+        """Show dialog with temperature readings."""
+        if len(self.temperature) == 0:
+            return
+
+        try:
+            dfs = []
+            for key, value in self.temperature.items():
+                v = _np.array(value)
+                dfs.append(
+                    _pd.DataFrame(v[:, 1], index=v[:, 0], columns=[key]))
+            df = _pd.concat(dfs, axis=1)
+
+            timestamp = df.index.values.tolist()
+            readings = {}
+            for col in df.columns:
+                readings[col] = df[col].values.tolist()
+            self.temperature_dialog.show(timestamp, readings)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to open dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
     def updateControls(self):
         """Enable offset and fit group box and update offset values."""
         self.clearFit()
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             self.ui.offset_gb.setEnabled(False)
             self.ui.offsetled_la.setEnabled(False)
             self.ui.fit_gb.setEnabled(False)
@@ -376,31 +477,35 @@ class ViewScanDialog(_QDialog):
         else:
             self.ui.offset_gb.setEnabled(True)
             self.ui.offsetled_la.setEnabled(False)
-            self.ui.xoff_sb.setValue(self.scan_dict[selected_idx]['xoff'])
-            self.ui.yoff_sb.setValue(self.scan_dict[selected_idx]['yoff'])
-            self.ui.xmult_sb.setValue(self.scan_dict[selected_idx]['xmult'])
-            self.ui.ymult_sb.setValue(self.scan_dict[selected_idx]['ymult'])
+            self.ui.xoff_sb.setValue(
+                self.scan_dict[selected_idx][selected_comp]['xoff'])
+            self.ui.yoff_sb.setValue(
+                self.scan_dict[selected_idx][selected_comp]['yoff'])
+            self.ui.xmult_sb.setValue(
+                self.scan_dict[selected_idx][selected_comp]['xmult'])
+            self.ui.ymult_sb.setValue(
+                self.scan_dict[selected_idx][selected_comp]['ymult'])
             self.ui.fit_gb.setEnabled(True)
 
-            func = self.scan_dict[selected_idx]['fit_function']
+            func = self.scan_dict[selected_idx][selected_comp]['fit_function']
             if func is None:
                 self.ui.fitfunction_cmb.setCurrentIndex(-1)
             else:
                 idx = self.ui.fitfunction_cmb.findText(func)
                 self.ui.fitfunction_cmb.setCurrentIndex(idx)
 
-            order = self.scan_dict[selected_idx]['fit_polyorder']
-            if order is not None:
-                self.ui.polyorder_sb.setValue(order)
+            od = self.scan_dict[selected_idx][selected_comp]['fit_polyorder']
+            if od is not None:
+                self.ui.polyorder_sb.setValue(od)
 
-            self.updateXLimits()
             self.updatePlot()
 
     def updateOffset(self):
         """Update curve offset."""
         self.clearFit()
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             self.ui.offsetled_la.setEnabled(False)
             return
 
@@ -408,15 +513,23 @@ class ViewScanDialog(_QDialog):
         yoff = self.ui.yoff_sb.value()
         xmult = self.ui.xmult_sb.value()
         ymult = self.ui.ymult_sb.value()
-        xmin = self.scan_dict[selected_idx]['xmin']
-        xmax = self.scan_dict[selected_idx]['xmax']
+        xmin = self.scan_dict[selected_idx][selected_comp]['xmin']
+        xmax = self.scan_dict[selected_idx][selected_comp]['xmax']
 
-        self.scan_dict[selected_idx]['xoff'] = xoff
-        self.scan_dict[selected_idx]['yoff'] = yoff
-        self.scan_dict[selected_idx]['xmult'] = xmult
-        self.scan_dict[selected_idx]['ymult'] = ymult
-        self.scan_dict[selected_idx]['xmin'] = (xmin + xoff)*xmult
-        self.scan_dict[selected_idx]['xmax'] = (xmax + xoff)*xmult
+        prev_xoff = self.scan_dict[selected_idx][selected_comp]['xoff']
+        prev_xmult = self.scan_dict[selected_idx][selected_comp]['xmult']
+
+        self.scan_dict[selected_idx][selected_comp]['xoff'] = xoff
+        self.scan_dict[selected_idx][selected_comp]['yoff'] = yoff
+        self.scan_dict[selected_idx][selected_comp]['xmult'] = xmult
+        self.scan_dict[selected_idx][selected_comp]['ymult'] = ymult
+        try:
+            self.scan_dict[selected_idx][selected_comp]['xmin'] = (
+                xmin*(xmult/prev_xmult) + (xoff - prev_xoff)*xmult)
+            self.scan_dict[selected_idx][selected_comp]['xmax'] = (
+                xmax*(xmult/prev_xmult) + (xoff - prev_xoff)*xmult)
+        except Exception:
+            pass
 
         self.updatePlot()
         self.ui.offsetled_la.setEnabled(True)
@@ -424,19 +537,30 @@ class ViewScanDialog(_QDialog):
     def updatePlot(self):
         """Update plot."""
         self.clearGraph()
-        if self.ui.showall_rb.isChecked():
-            nr_curves = len(self.scan_list)
+        self.updateXLimits()
+        if self.ui.show_all_rb.isChecked():
+            nr_curves = len(self.scan_list)*3
             scan_dict = self.scan_dict
             show_xlines = False
-        else:
-            selected_idx = self.ui.selectcurve_cmb.currentIndex()
+        elif self.ui.show_selected_scan_rb.isChecked():
+            selected_idx = self.ui.select_scan_cmb.currentIndex()
             if selected_idx == -1:
                 return
-            nr_curves = 1
+            nr_curves = 3
             scan_dict = {selected_idx: self.scan_dict[selected_idx]}
+            show_xlines = False
+        else:
+            selected_idx = self.ui.select_scan_cmb.currentIndex()
+            selected_comp = self.ui.select_comp_cmb.currentText().lower()
+            if selected_idx == -1 or len(selected_comp) == 0:
+                return
+            nr_curves = 1
+            scan_dict = {selected_idx: {
+                selected_comp: self.scan_dict[selected_idx][selected_comp]
+            }}
             show_xlines = True
 
-        self.configureGraph(nr_curves, self.data_label)
+        self.configureGraph(nr_curves, self.plot_label)
 
         try:
             with _warnings.catch_warnings():
@@ -444,25 +568,25 @@ class ViewScanDialog(_QDialog):
                 x_count = 0
                 y_count = 0
                 z_count = 0
-                for value in scan_dict.values():
-                    component = value['component']
-                    pos = value['pos']
-                    data = value['data']
-                    xoff = value['xoff']
-                    yoff = value['yoff']
-                    xmult = value['xmult']
-                    ymult = value['ymult']
-                    x = (pos + xoff)*xmult
-                    y = (data + yoff)*ymult
-                    if component == 'x':
-                        self.graphx[x_count].setData(x, y)
-                        x_count = x_count = 1
-                    elif component == 'y':
-                        self.graphy[y_count].setData(x, y)
-                        y_count = y_count = 1
-                    elif component == 'z':
-                        self.graphz[z_count].setData(x, y)
-                        z_count = z_count = 1
+                for d in scan_dict.values():
+                    for component, value in d.items():
+                        pos = value['pos']
+                        data = value['data']
+                        xoff = value['xoff']
+                        yoff = value['yoff']
+                        xmult = value['xmult']
+                        ymult = value['ymult']
+                        x = (pos + xoff)*xmult
+                        y = (data + yoff)*ymult
+                        if component == 'x':
+                            self.graphx[x_count].setData(x, y)
+                            x_count = x_count = 1
+                        elif component == 'y':
+                            self.graphy[y_count].setData(x, y)
+                            y_count = y_count = 1
+                        elif component == 'z':
+                            self.graphz[z_count].setData(x, y)
+                            z_count = z_count = 1
 
             if show_xlines:
                 xmin = self.ui.xmin_sb.value()
@@ -491,20 +615,25 @@ class ViewScanDialog(_QDialog):
 
     def updateXLimits(self):
         """Update xmin and xmax values."""
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             return
         else:
-            self.ui.xmin_sb.setValue(self.scan_dict[selected_idx]['xmin'])
-            self.ui.xmax_sb.setValue(self.scan_dict[selected_idx]['xmax'])
+            self.ui.xmin_sb.setValue(
+                self.scan_dict[selected_idx][selected_comp]['xmin'])
+            self.ui.xmax_sb.setValue(
+                self.scan_dict[selected_idx][selected_comp]['xmax'])
 
     def updateXMax(self):
         """Update xmax value."""
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             return
         else:
-            self.scan_dict[selected_idx]['xmax'] = self.ui.xmax_sb.value()
+            self.scan_dict[selected_idx][selected_comp]['xmax'] = (
+                self.ui.xmax_sb.value())
 
     def updateXMaxSpinBox(self):
         """Update xmax value."""
@@ -512,11 +641,13 @@ class ViewScanDialog(_QDialog):
 
     def updateXMin(self):
         """Update xmin value."""
-        selected_idx = self.ui.selectcurve_cmb.currentIndex()
-        if selected_idx == -1:
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
             return
         else:
-            self.scan_dict[selected_idx]['xmin'] = self.ui.xmin_sb.value()
+            self.scan_dict[selected_idx][selected_comp]['xmin'] = (
+                self.ui.xmin_sb.value())
 
     def updateXMinSpinBox(self):
         """Update xmin value."""

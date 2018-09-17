@@ -21,13 +21,10 @@ from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
 class AngularErrorWidget(_TablePlotWidget):
     """Angular error widget class for the Hall Bench Control application."""
 
+    _plot_label = 'Angular error [arcsec]'
     _data_format = '{0:.4f}'
     _data_labels = ['X-axis [arcsec]', 'Y-axis [arcsec]']
-    _yaxis_label = 'Angular error [arcsec]'
-    _colors = {
-        'X-axis [arcsec]': (255, 0, 0),
-        'Y-axis [arcsec]': (0, 255, 0),
-    }
+    _colors = [(255, 0, 0), (0, 255, 0)]
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
@@ -40,21 +37,15 @@ class AngularErrorWidget(_TablePlotWidget):
         _layout.addWidget(self.move_axis_widget)
         self.ui.widget_wg.setLayout(_layout)
 
+        # add measurement type combo box
         _label = _QLabel("Measurement Type:")
         self.meastype_cmb = _QComboBox()
         self.meastype_cmb.addItems(["Absolute", "Relative"])
         self.ui.layout_lt.addWidget(_label)
         self.ui.layout_lt.addWidget(self.meastype_cmb)
 
-        self.position = []
-        col_labels = ['Date', 'Time', 'Position']
-        for label in self._data_labels:
-            col_labels.append(label)
-        self.ui.table_ta.setColumnCount(len(col_labels))
-        self.ui.table_ta.setHorizontalHeaderLabels(col_labels)
-        self.ui.table_ta.setAlternatingRowColors(True)
+        # Change default appearance
         self.table_ta.horizontalHeader().setDefaultSectionSize(170)
-
         self.ui.read_btn.setText('Read Angular Error')
         self.ui.monitor_btn.setText('Monitor Angular Error')
 
@@ -111,9 +102,9 @@ class AngularErrorWidget(_TablePlotWidget):
                 value = readings[i]
                 self._readings[label].append(value)
 
-            self.position.append(pos)
-            self.timestamp.append(ts)
-            self.updateTableValues()
+            self._position.append(pos)
+            self._timestamp.append(ts)
+            self.addLastValueToTable()
             self.updatePlot()
 
         except Exception:

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>temperature_wg</class>
- <widget class="QWidget" name="temperature_wg">
+ <class>tableplot_wg</class>
+ <widget class="QWidget" name="tableplot_wg">
   <property name="geometry">
    <rect>
     <x>0</x>

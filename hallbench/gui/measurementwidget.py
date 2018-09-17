@@ -742,10 +742,14 @@ class MeasurementWidget(_QWidget):
         """Open view data dialog."""
         if self.local_hall_probe is None:
             self.viewscan_dialog.show(
-                self.voltage_scan_list, 'Voltage [V]')
+                self.voltage_scan_list,
+                self.voltage_scan_id_list,
+                'Voltage [V]')
         else:
             self.viewscan_dialog.show(
-                self.field_scan_list, 'Magnetic Field [T]')
+                self.field_scan_list,
+                self.field_scan_id_list,
+                'Magnetic Field [T]')
 
     def startVoltageThreads(self):
         """Start threads to read voltage values."""
@@ -857,39 +861,54 @@ class CurrentTemperatureThread(_QThread):
         self.timer.timeout.connect(self.readChannels)
         self.timer_interval = None
         self.dcct_head = None
-        self.current = []
-        self.temperature = []
+        self.ps_type = None
+        self.current = {}
+        self.temperature = {}
 
     @property
     def multich(self):
-        """Pmac communication class."""
+        """Multichannel."""
         return _QApplication.instance().devices.multich
+
+    @property
+    def ps(self):
+        """Power supply."""
+        return _QApplication.instance().devices.ps
 
     def clear(self):
         """Clear values."""
-        self.current = []
-        self.temperature = []
+        self.current = {}
+        self.temperature = {}
 
     def readChannels(self):
         """Read channels."""
         try:
-            current = []
-            temperature = []
-            r = self.multich.get_converted_readings(dcct_head=self.dcct_head)
             ts = _time.time()
+
+            if self.ps_type is not None:
+                self.ps.SetSlaveAdd(self.ps_type)
+                ps_current = float(self.ps.Read_iLoad1())
+                if 'PS' in self.current.keys():
+                    self.current['PS'].append([ts, ps_current])
+                else:
+                    self.current['PS'] = [[ts, ps_current]]
+
+            r = self.multich.get_converted_readings(dcct_head=self.dcct_head)
+
             channels = self.multich.config_channels
             dcct_channels = self.multich.dcct_channels
             for i, ch in enumerate(channels):
                 if ch in dcct_channels:
-                    current.append(r[i])
+                    if 'DCCT' in self.current.keys():
+                        self.current['DCCT'].append([ts, r[i]])
+                    else:
+                        self.current['DCCT'] = [[ts, r[i]]]
                 else:
-                    temperature.append(r[i])
-            if len(current) != 0:
-                current.insert(0, ts)
-                self.current.append(current)
-            if len(temperature) != 0:
-                temperature.insert(0, ts)
-                self.temperature.append(temperature)
+                    if ch in self.temperature.keys():
+                        self.temperature[ch].append([ts, r[i]])
+                    else:
+                        self.temperature[ch] = [[ts, r[i]]]
+            _QApplication.processEvents()
         except Exception:
             pass
 

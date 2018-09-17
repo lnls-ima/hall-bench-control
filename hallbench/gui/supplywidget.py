@@ -6,12 +6,14 @@ import sys as _sys
 import numpy as _np
 import time as _time
 import traceback as _traceback
+import PyQt5.uic as _uic
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
+    QTableWidgetItem as _QTableWidgetItem,
     )
-import PyQt5.uic as _uic
+from PyQt5.QtCore import QTimer as _QTimer
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
@@ -34,8 +36,6 @@ class SupplyWidget(_QWidget):
         # fill combobox
         self.list_powersupply()
 
-        self.ui.pb_refresh.setEnabled(True)
-        
         # create signal/slot connections
         self.ui.pb_ps_button.clicked.connect(self.start_powersupply)
         self.ui.pb_refresh.clicked.connect(self.display_current)
@@ -47,8 +47,12 @@ class SupplyWidget(_QWidget):
         self.ui.pb_reset_inter.clicked.connect(self.reset_interlocks)
         self.ui.pb_cycle.clicked.connect(self.cycling_ps)
         self.ui.pb_config_ps.clicked.connect(self.config_ps)
+        self.ui.pb_add_row.clicked.connect(self.add_row)
+        self.ui.pb_remove_row.clicked.connect(self.remove_row)
+        self.ui.pb_clear_table.clicked.connect(self.clear_table)
         self.ui.cb_ps_name.currentIndexChanged.connect(self.change_ps)
         self.ui.cb_ps_name.editTextChanged.connect(self.change_ps)
+        self.ui.sb_current_setpoint.valueChanged.connect(self.check_setpoint)
 
     @property
     def connection_config(self):
@@ -73,7 +77,7 @@ class SupplyWidget(_QWidget):
     def list_powersupply(self):
         """Updates available power supply supply names."""
         _l = self.config.get_table_column(self.database, 'name')
-        for i in range(self.ui.cb_ps_name.count()):
+        for _ in range(self.ui.cb_ps_name.count()):
             self.ui.cb_ps_name.removeItem(0)
         self.ui.cb_ps_name.addItems(_l)
 
@@ -88,6 +92,12 @@ class SupplyWidget(_QWidget):
     def start_powersupply(self):
         """Starts/Stops the Power Supply."""
         try:
+            if self.config.ps_type is None:
+                _QMessageBox.warning(self, 'Warning',
+                                     'Please configure the power supply and '
+                                     'try again.', _QMessageBox.Ok)
+                return
+
             self.ui.pb_ps_button.setEnabled(False)
             self.ui.pb_ps_button.setText('Processing...')
             self.ui.tabWidget_2.setEnabled(False)
@@ -110,18 +120,18 @@ class SupplyWidget(_QWidget):
 
                 _status_interlocks = self.drs.Read_ps_SoftInterlocks()
                 if _status_interlocks != 0:
-                    self.ui.pb_interlock.setChecked(True)
+                    self.ui.pb_interlock.setEnabled(True)
                     _QMessageBox.warning(self, 'Warning',
-                                         'Software Interlock activated!',
+                                         'Software Interlock active!',
                                          _QMessageBox.Ok)
                     self.change_ps_button(True)
                     return
 
                 _status_interlocks = self.drs.Read_ps_HardInterlocks()
                 if _status_interlocks != 0:
-                    self.ui.pb_interlock.setChecked(True)
+                    self.ui.pb_interlock.setEnabled(True)
                     _QMessageBox.warning(self, 'Warning',
-                                         'Hardware Interlock activated!',
+                                         'Hardware Interlock active!',
                                          _QMessageBox.Ok)
                     self.change_ps_button(True)
                     return
@@ -141,6 +151,7 @@ class SupplyWidget(_QWidget):
                             self.change_ps_button(True)
                             return
                     except Exception:
+                        _traceback.print_exc(file=_sys.stdout)
                         _QMessageBox.warning(self, 'Warning',
                                              'Power Supply Capacitor '
                                              'Bank did not initialize.',
@@ -160,6 +171,7 @@ class SupplyWidget(_QWidget):
                             self.change_ps_button(True)
                             return
                     except Exception:
+                        _traceback.print_exc(file=_sys.stdout)
                         _QMessageBox.warning(self, 'Warning',
                                              'Power Supply circuit '
                                              'loop is not closed.',
@@ -171,7 +183,7 @@ class SupplyWidget(_QWidget):
                     self.drs.OpMode(0)
 
                     _dclink_value = self.config.dclink
-                    # Set 30 V for Capacitor Bank (default value)
+                    # Set 90 V for Capacitor Bank (default value)
                     self.drs.SetISlowRef(_dclink_value)
                     _time.sleep(1)
                     _feedback_DCLink = round(self.drs.Read_vOutMod1()/2 +
@@ -310,6 +322,7 @@ class SupplyWidget(_QWidget):
             self.config.dcct_head = None
         self.config.Kp = self.ui.sb_kp.value()
         self.config.Ki = self.ui.sb_ki.value()
+        self.config.current_array = self.table_to_array()
         self.config.sinusoidal_amplitude = float(
             self.ui.le_sinusoidal_amplitude.text())
         self.config.sinusoidal_offset = float(
@@ -338,17 +351,17 @@ class SupplyWidget(_QWidget):
     def config_widget(self):
         """Sets current configuration variables into the widget."""
 
-#         self.ui.cb_ps_name.setCurrentText(self.config.ps_name) #Qt5
-        self.ui.cb_ps_name.setCurrentIndex(
-            self.ui.cb_ps_name.findText(self.config.ps_name))
+        self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
         self.ui.cb_ps_type.setCurrentIndex(self.config.ps_type - 2)
         self.ui.sb_dclink.setValue(self.config.dclink)
         self.ui.sb_current_setpoint.setValue(self.config.ps_setpoint)
         self.ui.le_maximum_current.setText(str(self.config.maximum_current))
         self.ui.le_minimum_current.setText(str(self.config.minimum_current))
-        self.ui.cb_dcct_select.setCurrentIndex(self.config.dcct_head)
+        self.ui.cb_dcct_select.setCurrentText(str(self.config.dcct_head) +
+                                              ' A')
         self.ui.sb_kp.setValue(self.config.Kp)
         self.ui.sb_ki.setValue(self.config.Ki)
+        self.array_to_table(self.config.current_array)
         self.ui.le_sinusoidal_amplitude.setText(str(
             self.config.sinusoidal_amplitude))
         self.ui.le_sinusoidal_offset.setText(str(
@@ -384,10 +397,11 @@ class SupplyWidget(_QWidget):
                 _ans = self.pid_setting()
                 if _ans:
                     _QMessageBox.information(self, 'Information',
-                                             'PID configured.', _QMessageBox.Ok)
+                                             'PID configured.',
+                                             _QMessageBox.Ok)
                 else:
-                    _QMessageBox.warning(self, 'Fail',
-                                         'Power Supply PID configuration fault.',
+                    _QMessageBox.warning(self, 'Fail', 'Power Supply PID '
+                                         'configuration fault.',
                                          _QMessageBox.Ok)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -477,31 +491,35 @@ class SupplyWidget(_QWidget):
 
         Args:
             setpoint (float): current setpoint."""
-        self.ui.tabWidget_2.setEnabled(False)
-        _ps_type = self.config.ps_type
+        try:
+            self.ui.tabWidget_2.setEnabled(False)
+            _ps_type = self.config.ps_type
 
-        self.drs.SetSlaveAdd(_ps_type)
+            self.drs.SetSlaveAdd(_ps_type)
 
-        # verify current limits
-        _setpoint = setpoint
-        if not self.verify_current_limits(setpoint):
-            self.ui.tabWidget_2.setEnabled(True)
-            return False
-        self.config.ps_setpoint = _setpoint
-
-        # send setpoint and wait until current is set
-        self.drs.SetISlowRef(_setpoint)
-        _time.sleep(0.1)
-        for i in range(30):
-            _compare = round(float(self.drs.Read_iLoad1()), 3)
-            self.display_current()
-            if abs(_compare - _setpoint) <= 0.5:
+            # verify current limits
+            _setpoint = setpoint
+            if not self.verify_current_limits(setpoint):
                 self.ui.tabWidget_2.setEnabled(True)
-                return True
-            _QApplication.processEvents()
-            _time.sleep(1)
-        self.ui.tabWidget_2.setEnabled(True)
-        return True
+                return False
+            self.config.ps_setpoint = _setpoint
+
+            # send setpoint and wait until current is set
+            self.drs.SetISlowRef(_setpoint)
+            _time.sleep(0.1)
+            for _ in range(30):
+                _compare = round(float(self.drs.Read_iLoad1()), 3)
+                self.display_current()
+                if abs(_compare - _setpoint) <= 0.5:
+                    self.ui.tabWidget_2.setEnabled(True)
+                    return True
+                _QApplication.processEvents()
+                _time.sleep(1)
+            self.ui.tabWidget_2.setEnabled(True)
+            return True
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return False
 
     def send_setpoint(self):
         """Sends configured current setpoint to the power supply."""
@@ -519,6 +537,24 @@ class SupplyWidget(_QWidget):
                                      _QMessageBox.Ok)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
+            return
+
+    def check_setpoint(self):
+        _setpoint = self.ui.sb_current_setpoint.value()
+        _maximum_current = self.config.maximum_current
+        _minimum_current = self.config.minimum_current
+        if _maximum_current is None:
+            return
+        if _setpoint > self.config.maximum_current:
+            self.ui.sb_current_setpoint.setValue(_maximum_current)
+            _QMessageBox.warning(self, 'Warning',
+                                 'Current value is too high.',
+                                 _QMessageBox.Ok)
+        elif _setpoint < self.config.minimum_current:
+            self.ui.sb_current_setpoint.setValue(_minimum_current)
+            _QMessageBox.warning(self, 'Warning',
+                                 'Current value is too low.',
+                                 _QMessageBox.Ok)
 
     def verify_current_limits(self, current, chk_offset=False, offset=0):
         """Check the limits of the current values set.
@@ -549,18 +585,16 @@ class SupplyWidget(_QWidget):
 
         if not chk_offset:
             if _current > _current_max:
-                self.ui.dsb_current_setpoint.setValue(float(_current_max))
+                self.ui.sb_current_setpoint.setValue(float(_current_max))
                 _current = _current_max
-                _QMessageBox.warning(self, 'Warning', 'Current value is'
-                                     'higher than the upper limit.',
-                                     _QMessageBox.Ok)
+                _QMessageBox.warning(self, 'Warning', 'Current value is too '
+                                     'high', _QMessageBox.Ok)
                 return False
             if _current < _current_min:
-                self.ui.dsb_current_setpoint.setValue(float(_current_min))
+                self.ui.sb_current_setpoint.setValue(float(_current_min))
                 _current = _current_min
-                _QMessageBox.warning(self, 'Warning', 'Current value is'
-                                     'lower than the lower limit.',
-                                     _QMessageBox.Ok)
+                _QMessageBox.warning(self, 'Warning', 'Current value is too '
+                                     'low.', _QMessageBox.Ok)
                 return False
         else:
             if any((_current + offset) > _current_max,
@@ -744,23 +778,23 @@ class SupplyWidget(_QWidget):
 
     def reset_interlocks(self):
         """Resets power supply hardware/software interlocks"""
-        _ps_type = self.config.ps_type
-
         try:
+            _ps_type = self.config.ps_type
             # 1000A power supply, reset capacitor bank interlock
             if _ps_type == 2:
                 self.drs.SetSlaveAdd(_ps_type - 1)
                 self.drs.ResetInterlocks()
 
             self.drs.SetSlaveAdd(_ps_type)
-
             self.drs.ResetInterlocks()
             if self.ui.pb_interlock.isChecked():
-                self.ui.pb_interlock.setChecked(False)
+                self.ui.pb_interlock.setEnabled(False)
             _QMessageBox.information(self, 'Information',
                                      'Interlocks reseted.',
                                      _QMessageBox.Ok)
+            return
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning',
                                  'Interlocks not reseted.',
                                  _QMessageBox.Ok)
@@ -781,6 +815,7 @@ class SupplyWidget(_QWidget):
                                      _QMessageBox.Ok)
                 return False
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning', 'Power supply is not in '
                                  'signal generator mode.', _QMessageBox.Ok)
             return
@@ -798,7 +833,6 @@ class SupplyWidget(_QWidget):
                 self.ui.tabWidget_2.setEnabled(False)
                 self.ui.pb_load_ps.setEnabled(False)
                 self.ui.pb_refresh.setEnabled(False)
-                self.ui.pb_start_meas.setEnabled(False)
                 _QApplication.processEvents()
 
             _QMessageBox.information(self, 'Information',
@@ -816,9 +850,99 @@ class SupplyWidget(_QWidget):
             # returns to mode ISlowRef
             self.drs.OpMode(0)
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning',
                                  'Cycling was not performed.',
                                  _QMessageBox.Ok)
+            return
+
+    def add_row(self):
+        """Adds row into tw_currents tableWidget."""
+        _idx = self.ui.tw_currents.rowCount()
+        self.ui.tw_currents.insertRow(_idx)
+
+    def remove_row(self):
+        """Removes selected row from tw_currents tableWidget."""
+        _tw = self.ui.tw_currents
+        _idx = self.ui.tw_currents.currentRow()
+        _tw.removeRow(_idx)
+
+    def clear_table(self):
+        """Clears tw_currents tableWidget."""
+        _tw = self.ui.tw_currents
+        _tw.clearContents()
+        _ncells = _tw.rowCount()
+        try:
+            while _ncells >= 0:
+                _tw.removeRow(_ncells)
+                _ncells = _ncells - 1
+                _QApplication.processEvents()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
+    def table_to_array(self):
+        """Returns tw_currents tableWidget values in a numpy array."""
+        _tw = self.ui.tw_currents
+        _ncells = _tw.rowCount()
+        _current_array = []
+        try:
+            if _ncells > 0:
+                for i in range(_ncells):
+                    _tw.setCurrentCell(i, 0)
+                    if _tw.currentItem() is not None:
+                        _current_array.append(float(_tw.currentItem().text()))
+            return _np.array(_current_array)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            _QMessageBox.warning(self, 'Warning',
+                                 'Could not convert table to array.\n'
+                                 'Check if all inputs are numbers.',
+                                 _QMessageBox.Ok)
+            return _np.array([])
+
+    def array_to_table(self, array):
+        """Inserts array values into tw_currents tableWidget"""
+        _tw = self.ui.tw_currents
+        _ncells = _tw.rowCount()
+        _array = array
+        if _ncells > 0:
+            self.clear_table()
+        try:
+            for i in range(len(_array)):
+                _tw.insertRow(i)
+                _item = _QTableWidgetItem()
+                _tw.setItem(i, 0, _item)
+                _item.setText(str(_array[i]))
+                _QApplication.processEvents()
+                _time.sleep(0.01)
+            return True
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            _QMessageBox.warning(self, 'Warning',
+                                 'Could not insert array values into table.\n',
+                                 _QMessageBox.Ok)
+            return False
+
+    def status_powersupply(self):
+        """Read and display Power Supply status."""
+        try:
+            self.drs.Read_ps_OnOff()
+            self.drs.Read_ps_OpenLoop()
+            _interlock = (self.drs.Read_ps_HardInterlocks() +
+                          self.drs.Read_ps_SoftInterlocks())
+            if all(self.ui.le_status_con.text() == 'Not Ok',
+                   self.drs.ser.is_open()):
+                self.ui.le_status_con.setText('Ok')
+            if _interlock and not self.ui.pb_interlock.isChecked():
+                self.ui.pb_interlock.setEnabled(True)
+                _QMessageBox.warning(self, 'Warning', 'Interlock active.',
+                                     _QMessageBox.Ok)
+            elif not _interlock and self.ui.pb_interlock.isChecked():
+                self.ui.pb_interlock.setEnabled(False)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            self.ui.le_status_con.setText('Not Ok')
+            _traceback.print_exc(file=_sys.stdout)
             return
 
     def save_powersupply(self):
@@ -830,9 +954,7 @@ class SupplyWidget(_QWidget):
             if not len(_idn):
                 if self.config.save_to_database(self.database) is not None:
                     self.list_powersupply()
-                # self.ui.cb_ps_name.setCurrentText(self.config.ps_name) #Qt5
-                    self.ui.cb_ps_name.setCurrentIndex(
-                        self.ui.cb_ps_name.findText(_name))
+                    self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
                     _QMessageBox.information(self, 'Information', 'Power '
                                              'Supply saved into database.',
                                              _QMessageBox.Ok)
@@ -854,7 +976,7 @@ class SupplyWidget(_QWidget):
                     else:
                         raise Exception('Failed to save Power Supply')
         except Exception:
-            raise
+            _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning',
                                  'Failed to save Power Supply entry.',
                                  _QMessageBox.Ok)

@@ -2,6 +2,7 @@
 
 """Implementation of classes to handle configuration files."""
 
+import numpy as _np
 import collections as _collections
 
 from . import utils as _utils
@@ -481,6 +482,7 @@ class PowerSupplyConfig(Configuration):
         ('DCCT Head', ['dcct_head', 'INTEGER NOT NULL']),
         ('Kp', ['Kp', 'REAL NOT NULL']),
         ('Ki', ['Ki', 'REAL NOT NULL']),
+        ('current array', ['current_array', 'TEXT']),
         ('sinusoidal amplitude', ['sinusoidal_amplitude', 'REAL NOT NULL']),
         ('sinusoidal offset', ['sinusoidal_offset', 'REAL NOT NULL']),
         ('sinusoidal frequency', ['sinusoidal_frequency', 'REAL NOT NULL']),
@@ -500,6 +502,7 @@ class PowerSupplyConfig(Configuration):
                                            'REAL NOT NULL']),
         ('damped sinusoidal damping', ['dsinusoidal_damp', 'REAL NOT NULL']),
     ])
+    _db_json_str = ['current_array']
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize object.
@@ -513,6 +516,8 @@ class PowerSupplyConfig(Configuration):
         self.status = False
         # Power supply loop status (False = open, True = closed)
         self.status_loop = False
+        # Power supply connection status (False = no communication)
+        self.status_con = False
         # DC link voltage (90V is the default)
         self.dclink = 90
         # True for DCCT enabled, False for DCCT disabled
@@ -521,6 +526,7 @@ class PowerSupplyConfig(Configuration):
         self.main_current = 0
 
         # database variables
+        self.current_array = None
         self.ps_name = None
         self.ps_type = None
         self.ps_setpoint = None
@@ -551,6 +557,8 @@ class PowerSupplyConfig(Configuration):
             return int
         elif name in ['ps_name']:
             return str
+        elif name in ['current_array']:
+            return _np.ndarray
         else:
             return float
 

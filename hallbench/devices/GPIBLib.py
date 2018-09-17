@@ -676,16 +676,8 @@ class Agilent34970A(GPIB):
 
     def convert_voltage_to_current(self, voltage, dcct_head):
         """Convert dcct voltage to current value."""
-        if dcct_head == 40:
-            current = voltage*4
-        elif dcct_head == 160:
-            current = voltage*16
-        elif dcct_head == 320:
-            current = voltage*32
-        elif dcct_head == 600:
-            current = voltage*60
-        elif dcct_head == 1125:
-            current = voltage*112.5            
+        if dcct_head in [40, 160, 320, 600, 1125]:
+            current = voltage * dcct_head/10
         else:
             current = _np.nan
         return current

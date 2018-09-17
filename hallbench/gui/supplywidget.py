@@ -32,6 +32,7 @@ class SupplyWidget(_QWidget):
         # variables initialization
         self.config = self.power_supply_config
         self.drs = self.devices.ps
+        self.timer = _QTimer()
 
         # fill combobox
         self.list_powersupply()
@@ -53,6 +54,7 @@ class SupplyWidget(_QWidget):
         self.ui.cb_ps_name.currentIndexChanged.connect(self.change_ps)
         self.ui.cb_ps_name.editTextChanged.connect(self.change_ps)
         self.ui.sb_current_setpoint.valueChanged.connect(self.check_setpoint)
+        self.timer.timeout.connect(self.status_powersupply)
 
     @property
     def connection_config(self):
@@ -121,20 +123,22 @@ class SupplyWidget(_QWidget):
                 _status_interlocks = self.drs.Read_ps_SoftInterlocks()
                 if _status_interlocks != 0:
                     self.ui.pb_interlock.setEnabled(True)
+                    self.config.status_interlock = True
                     _QMessageBox.warning(self, 'Warning',
                                          'Software Interlock active!',
                                          _QMessageBox.Ok)
                     self.change_ps_button(True)
                     return
-
                 _status_interlocks = self.drs.Read_ps_HardInterlocks()
                 if _status_interlocks != 0:
                     self.ui.pb_interlock.setEnabled(True)
+                    self.config.status_interlock = True
                     _QMessageBox.warning(self, 'Warning',
                                          'Hardware Interlock active!',
                                          _QMessageBox.Ok)
                     self.change_ps_button(True)
                     return
+                self.config.status_interlock = False
 
                 # PS 1000 A needs to turn dc link on
                 if _ps_type == 2:
@@ -168,6 +172,7 @@ class SupplyWidget(_QWidget):
                                                  'Power Supply circuit '
                                                  'loop is not closed.',
                                                  _QMessageBox.Ok)
+                            self.config.status_loop = False
                             self.change_ps_button(True)
                             return
                     except Exception:
@@ -176,6 +181,7 @@ class SupplyWidget(_QWidget):
                                              'Power Supply circuit '
                                              'loop is not closed.',
                                              _QMessageBox.Ok)
+                        self.config.status_loop = False
                         self.change_ps_button(True)
                         return
                     # Set ISlowRef for DC Link (Capacitor Bank)
@@ -236,6 +242,7 @@ class SupplyWidget(_QWidget):
                     return
                 self.change_ps_button(False)
                 self.config.status = True
+                self.config.status_loop = True
                 self.config.main_current = 0
                 self.ui.le_status_loop.setText('Closed')
                 self.ui.tabWidget_2.setEnabled(True)
@@ -243,6 +250,7 @@ class SupplyWidget(_QWidget):
                 self.ui.pb_refresh.setEnabled(True)
                 self.ui.pb_send.setEnabled(True)
                 self.ui.pb_send_curve.setEnabled(True)
+                self.timer.start(30000)
                 _QMessageBox.information(self, 'Information', 'The Power '
                                          'Supply started successfully.',
                                          _QMessageBox.Ok)
@@ -274,12 +282,14 @@ class SupplyWidget(_QWidget):
                         self.change_ps_button(False)
                         return
                 self.config.status = False
+                self.config.status_loop = False
                 self.config.main_current = 0
                 self.ui.le_status_loop.setText('Open')
                 self.ui.pb_send.setEnabled(False)
                 self.ui.pb_cycle.setEnabled(False)
                 self.ui.pb_send_curve.setEnabled(False)
                 self.change_ps_button(True)
+                self.timer.stop()
                 _QMessageBox.information(self, 'Information',
                                          'Power supply was turned off.',
                                          _QMessageBox.Ok)
@@ -925,28 +935,41 @@ class SupplyWidget(_QWidget):
 
     def status_powersupply(self):
         """Read and display Power Supply status."""
-        try:
-            self.drs.Read_ps_OnOff()
-            self.drs.Read_ps_OpenLoop()
-            _interlock = (self.drs.Read_ps_HardInterlocks() +
-                          self.drs.Read_ps_SoftInterlocks())
-            if all(self.ui.le_status_con.text() == 'Not Ok',
-                   self.drs.ser.is_open()):
-                self.ui.le_status_con.setText('Ok')
-            if _interlock and not self.ui.pb_interlock.isChecked():
-                self.ui.pb_interlock.setEnabled(True)
-                _QMessageBox.warning(self, 'Warning', 'Interlock active.',
-                                     _QMessageBox.Ok)
-            elif not _interlock and self.ui.pb_interlock.isChecked():
-                self.ui.pb_interlock.setEnabled(False)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            self.ui.le_status_con.setText('Not Ok')
-            _traceback.print_exc(file=_sys.stdout)
-            return
+        if self.isActiveWindow():
+            try:
+                _on = self.drs.Read_ps_OnOff()
+                self.config.status = bool(_on)
+                _loop = self.drs.Read_ps_OpenLoop()
+                self.config.status_loop = bool(_loop)
+                if all(_loop, self.ui.le_status_loop.text() == 'Closed'):
+                    self.ui.le_status_loop.setText('Open')
+                elif all(not _loop, self.ui.le_status_loop.text() == 'Open'):
+                    self.ui.le_status_loop.setText('Closed')
+                _interlock = (self.drs.Read_ps_HardInterlocks() +
+                              self.drs.Read_ps_SoftInterlocks())
+                self.config.status_interlock = bool(_interlock)
+                if all(self.ui.le_status_con.text() == 'Not Ok',
+                       self.drs.ser.is_open()):
+                    self.ui.le_status_con.setText('Ok')
+                elif all(self.ui.le_status_con.text() == 'Ok',
+                         not self.drs.ser.is_open()):
+                    self.ui.le_status_con.setText('Not Ok')
+                if _interlock and not self.ui.pb_interlock.isEnabled():
+                    self.ui.pb_interlock.setEnabled(True)
+                    _QMessageBox.warning(self, 'Warning',
+                                         'Power Supply interlock active.',
+                                         _QMessageBox.Ok)
+                elif not _interlock and self.ui.pb_interlock.isEnabled():
+                    self.ui.pb_interlock.setEnabled(False)
+                _QApplication.processEvents()
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+                self.ui.le_status_con.setText('Not Ok')
+                _QApplication.processEvents()
+                return
 
     def save_powersupply(self):
-        """Save Power Supply settings into database"""
+        """Save Power Supply settings into database."""
         self.config_ps()
         _name = self.config.ps_name
         try:
@@ -983,7 +1006,7 @@ class SupplyWidget(_QWidget):
             return
 
     def load_powersupply(self):
-        """Load Power Supply settings from database"""
+        """Load Power Supply settings from database."""
         self.config.ps_name = self.ui.cb_ps_name.currentText()
         try:
             _idn = self.config.get_database_id(self.database, 'name',

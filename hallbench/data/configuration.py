@@ -502,7 +502,7 @@ class PowerSupplyConfig(Configuration):
                                            'REAL NOT NULL']),
         ('damped sinusoidal damping', ['dsinusoidal_damp', 'REAL NOT NULL']),
     ])
-    _db_json_str = ['current_array', ]
+    _db_json_str = ['current_array']
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize object.
@@ -518,6 +518,8 @@ class PowerSupplyConfig(Configuration):
         self.status_loop = False
         # Power supply connection status (False = no communication)
         self.status_con = False
+        # Power supply interlock status (True = active, False = not active)
+        self.status_interlock = False
         # DC link voltage (90V is the default)
         self.dclink = 90
         # True for DCCT enabled, False for DCCT disabled

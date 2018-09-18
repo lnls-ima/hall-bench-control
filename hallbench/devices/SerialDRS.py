@@ -689,6 +689,11 @@ class SerialDRS_FBP(object):
         with self.lock:
             if (self.ser.is_open):
                 try:
+                    if self.SlaveAdd == 2:
+                        self.SetSlaveAdd(1)
+                        self.TurnOff()
+                        self.SetSlaveAdd(2)
+                    self.TurnOff()
                     self.ser.close()
                     return True
                 except:

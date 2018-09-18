@@ -13,13 +13,19 @@ from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QTableWidgetItem as _QTableWidgetItem,
     )
-from PyQt5.QtCore import QTimer as _QTimer
+from PyQt5.QtCore import (
+    QTimer as _QTimer,
+    pyqtSignal as _pyqtSignal,
+    )
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 
 
 class SupplyWidget(_QWidget):
     """Power Supply widget class for the Hall Bench Control application."""
+
+    current_setpoint_changed = _pyqtSignal([float])
+    current_ramp_end = _pyqtSignal([bool])
 
     def __init__(self, parent=None):
         """Set up the ui."""
@@ -30,6 +36,7 @@ class SupplyWidget(_QWidget):
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
+        self.current_array_index = 0
         self.config = self.power_supply_config
         self.drs = self.devices.ps
         self.timer = _QTimer()
@@ -498,6 +505,25 @@ class SupplyWidget(_QWidget):
             _QMessageBox.warning(self, 'Warning', 'Could not display Current.',
                                  _QMessageBox.Ok)
             return
+
+    def change_setpoint_and_emit_signal(self):
+        """Change current setpoint and emit signal."""
+        if self.config.current_array is None:
+            self.current_array_index = 0
+            self.current_ramp_end.emit(True)
+            return
+
+        if self.current_array_index >= len(self.config.current_array):
+            self.current_array_index = 0
+            self.current_ramp_end.emit(True)
+            return
+
+        _setpoint = self.config.current_array[self.current_array_index]
+        if self.current_setpoint(setpoint=_setpoint):
+            self.current_array_index = self.current_array_index + 1
+            self.current_setpoint_changed.emit(_setpoint)
+        else:
+            self.current_ramp_end.emit(False)
 
     def current_setpoint(self, setpoint=0):
         """Changes current setpoint in power supply configuration.

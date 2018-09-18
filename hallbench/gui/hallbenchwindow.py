@@ -80,6 +80,16 @@ class HallBenchWindow(_QMainWindow):
         self.positions_thread = PositionsThread()
         self.positions_thread.start()
 
+        # Connect automatic current ramp signals
+        self.measurement_tab.change_current_setpoint.connect(
+            self.supply_tab.change_setpoint_and_emit_signal)
+
+        self.supply_tab.current_setpoint_changed.connect(
+            self.measurement_tab.measureAndEmitSignal)
+
+        self.supply_tab.current_ramp_end.connect(
+            self.measurement_tab.endAutomaticMeasurements)
+
     @property
     def database(self):
         """Return the database filename."""

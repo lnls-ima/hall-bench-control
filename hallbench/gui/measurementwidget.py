@@ -20,6 +20,7 @@ from PyQt5.QtCore import (
     QTimer as _QTimer,
     QThread as _QThread,
     QEventLoop as _QEventLoop,
+    pyqtSignal as _pyqtSignal,
     )
 import PyQt5.uic as _uic
 
@@ -39,6 +40,8 @@ from hallbench.data.measurement import FieldScan as _FieldScan
 
 class MeasurementWidget(_QWidget):
     """Measurement widget class for the Hall Bench Control application."""
+
+    change_current_setpoint = _pyqtSignal([bool])
 
     _update_graph_time_interval = 0.05  # [s]
     _measurement_axes = [1, 2, 3, 5]
@@ -68,6 +71,7 @@ class MeasurementWidget(_QWidget):
         self.save_fieldmap_dialog = _SaveFieldmapDialog()
         self.view_scan_dialog = _ViewScanDialog()
 
+        self.measurement_configured = False
         self.local_measurement_config = None
         self.local_measurement_config_id = None
         self.local_hall_probe = None
@@ -129,6 +133,7 @@ class MeasurementWidget(_QWidget):
         self.threadx = None
         self.thready = None
         self.threadz = None
+        self.measurement_configured = False
         self.local_measurement_config = None
         self.local_measurement_config_id = None
         self.local_hall_probe = None
@@ -176,46 +181,66 @@ class MeasurementWidget(_QWidget):
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
-        self.ui.measure_btn.clicked.connect(self.configureAndMeasure)
+        self.ui.measure_btn.clicked.connect(self.measureButtonClicked)
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
         self.ui.create_fieldmap_btn.clicked.connect(self.showFieldmapDialog)
         self.ui.save_scan_files_btn.clicked.connect(self.saveScanFiles)
         self.ui.view_scan_btn.clicked.connect(self.showViewScanDialog)
         self.ui.clear_graph_btn.clicked.connect(self.clearGraph)
 
-    def saveScanFiles(self):
-        """Save scan files."""
-        scan_list = self.field_scan_list
-        scan_id_list = self.field_scan_id_list
+    def configureGraph(self, nr_curves, label):
+        """Configure graph.
 
-        directory = _QFileDialog.getExistingDirectory(
-            self, caption='Save scan files', directory=self.directory)
+        Args:
+            nr_curves (int): number of curves to plot.
+        """
+        self.graphx = []
+        self.graphy = []
+        self.graphz = []
+        self.legend.removeItem('X')
+        self.legend.removeItem('Y')
+        self.legend.removeItem('Z')
 
-        if isinstance(directory, tuple):
-            directory = directory[0]
+        for idx in range(nr_curves):
+            self.graphx.append(
+                self.ui.graph_pw.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]),
+                    pen=(255, 0, 0),
+                    symbol='o',
+                    symbolPen=(255, 0, 0),
+                    symbolSize=4,
+                    symbolBrush=(255, 0, 0)))
 
-        if len(directory) == 0:
-            return
+            self.graphy.append(
+                self.ui.graph_pw.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]),
+                    pen=(0, 255, 0),
+                    symbol='o',
+                    symbolPen=(0, 255, 0),
+                    symbolSize=4,
+                    symbolBrush=(0, 255, 0)))
 
-        try:
-            for i, scan in enumerate(scan_list):
-                idn = scan_id_list[i]
-                default_filename = scan.default_filename
-                if '.txt' in default_filename:
-                    default_filename = default_filename.replace(
-                        '.txt', '_ID={0:d}.txt'.format(idn))
-                elif '.dat' in default_filename:
-                    default_filename = default_filename.replace(
-                        '.dat', '_ID={0:d}.dat'.format(idn))
-                default_filename = _os.path.join(directory, default_filename)
-                scan.save_file(default_filename)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to save files.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            self.graphz.append(
+                self.ui.graph_pw.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]),
+                    pen=(0, 0, 255),
+                    symbol='o',
+                    symbolPen=(0, 0, 255),
+                    symbolSize=4,
+                    symbolBrush=(0, 0, 255)))
 
-    def configureAndMeasure(self):
-        """Configure devices and start measurement."""
+        self.ui.graph_pw.setLabel('bottom', 'Scan Position [mm]')
+        self.ui.graph_pw.setLabel('left', label)
+        self.ui.graph_pw.showGrid(x=True, y=True)
+        self.legend.addItem(self.graphx[0], 'X')
+        self.legend.addItem(self.graphy[0], 'Y')
+        self.legend.addItem(self.graphz[0], 'Z')
+
+    def configureMeasurement(self):
+        """Configure measurement."""
         self.clear()
 
         if (not self.validDatabase()
@@ -223,14 +248,139 @@ class MeasurementWidget(_QWidget):
            or not self.updateConfiguration()
            or not self.multimetersConnected()
            or not self.configurePmac()
-           or not self.saveConfiguration()
-           or not self.monitorCurrentAndTemperature()):
-            return
+           or not self.configureMultichannel()):
+            self.measurement_configured = False
+        else:
+            self.measurement_configured = True
+
+    def configureMultichannel(self):
+        """Configure multichannel to monitor dcct current and temperatures."""
+        if (not self.ui.save_temperature_chb.isChecked() and
+           not self.ui.save_current_chb.isChecked()):
+            return True
+
+        if not self.devices.multich.connected:
+            msg = 'Multichannel not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
 
         try:
-            self.ui.measure_btn.setEnabled(False)
-            self.ui.stop_btn.setEnabled(True)
+            channels = []
+            if self.ui.save_temperature_chb.isChecked():
+                channels = channels + self.devices.multich.probe_channels
+                channels = channels + self.devices.multich.temperature_channels
+            if self.ui.save_current_chb.isChecked():
+                channels = channels + self.devices.multich.dcct_channels
 
+            if len(channels) == 0:
+                return True
+
+            self.devices.multich.configure(channel_list=channels)
+            return True
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to configure multichannel.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+    def configurePmac(self):
+        """Configure devices."""
+        if not self.devices.pmac.connected:
+            msg = 'Pmac not connected.'
+            _QMessageBox.critical(
+                self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+        try:
+            self.devices.pmac.set_axis_speed(
+                1, self.local_measurement_config.vel_ax1)
+            self.devices.pmac.set_axis_speed(
+                2, self.local_measurement_config.vel_ax2)
+            self.devices.pmac.set_axis_speed(
+                3, self.local_measurement_config.vel_ax3)
+            self.devices.pmac.set_axis_speed(
+                5, self.local_measurement_config.vel_ax5)
+            return True
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to configure devices.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+    def createVoltageThreads(self):
+        """Start threads to read voltage values."""
+        if self.local_measurement_config.voltx_enable:
+            self.threadx = VoltageThread(
+                self.devices.voltx,
+                self.local_measurement_config.voltage_precision)
+        else:
+            self.threadx = None
+
+        if self.local_measurement_config.volty_enable:
+            self.thready = VoltageThread(
+                self.devices.volty,
+                self.local_measurement_config.voltage_precision)
+        else:
+            self.thready = None
+
+        if self.local_measurement_config.voltz_enable:
+            self.threadz = VoltageThread(
+                self.devices.voltz,
+                self.local_measurement_config.voltage_precision)
+        else:
+            self.threadz = None
+
+    def endAutomaticMeasurements(self, sucess):
+        """End automatic measurements."""
+        if not self.resetMultimeters():
+            return
+
+        if not sucess:
+            msg = ('Automatic measurements failed. ' +
+                   'Current setpoint not changed.')
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+        self.ui.stop_btn.setEnabled(False)
+        self.ui.measure_btn.setEnabled(True)
+        self.ui.save_scan_files_btn.setEnabled(True)
+        self.ui.view_scan_btn.setEnabled(True)
+        self.ui.clear_graph_btn.setEnabled(True)
+
+        msg = 'End of automatic measurements.'
+        _QMessageBox.information(
+            self, 'Measurements', msg, _QMessageBox.Ok)
+
+    def getFixedAxes(self):
+        """Get fixed axes."""
+        first_axis = self.local_measurement_config.first_axis
+        second_axis = self.local_measurement_config.second_axis
+        fixed_axes = [a for a in self._measurement_axes]
+        fixed_axes.remove(first_axis)
+        if second_axis != -1:
+            fixed_axes.remove(second_axis)
+        return fixed_axes
+
+    def killVoltageThreads(self):
+        """Kill threads."""
+        try:
+            del self.threadx
+            del self.thready
+            del self.threadz
+            self.threadx = None
+            self.thready = None
+            self.threadz = None
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            pass
+
+    def measure(self):
+        """Perform one measurement."""
+        if not self.measurement_configured:
+            return False
+
+        try:
             first_axis = self.local_measurement_config.first_axis
             second_axis = self.local_measurement_config.second_axis
             fixed_axes = self.getFixedAxes()
@@ -284,193 +434,33 @@ class MeasurementWidget(_QWidget):
 
             self.plotField()
             self.killVoltageThreads()
-            self.resetMultimeters()
-
-            self.ui.stop_btn.setEnabled(False)
-            self.ui.measure_btn.setEnabled(True)
-
-            self.ui.save_scan_files_btn.setEnabled(True)
-            self.ui.view_scan_btn.setEnabled(True)
-            self.ui.clear_graph_btn.setEnabled(True)
-            if self.local_hall_probe is not None:
-                self.ui.create_fieldmap_btn.setEnabled(True)
-
-            msg = 'End of measurements.'
-            _QMessageBox.information(
-                self, 'Measurements', msg, _QMessageBox.Ok)
+            return True
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            self.ui.measure_btn.setEnabled(True)
             self.killVoltageThreads()
             self.current_temperature_thread.quit()
             msg = 'Measurement failure.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-
-    def configurePmac(self):
-        """Configure devices."""
-        if not self.devices.pmac.connected:
-            msg = 'Pmac not connected.'
-            _QMessageBox.critical(
-                self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-        try:
-            self.devices.pmac.set_axis_speed(
-                1, self.local_measurement_config.vel_ax1)
-            self.devices.pmac.set_axis_speed(
-                2, self.local_measurement_config.vel_ax2)
-            self.devices.pmac.set_axis_speed(
-                3, self.local_measurement_config.vel_ax3)
-            self.devices.pmac.set_axis_speed(
-                5, self.local_measurement_config.vel_ax5)
-            return True
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to configure devices.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
+    def measureAndEmitSignal(self, current_setpoint):
+        """Measure and emit signal to change current setpoint."""
+        if not self.configuration_widget.setMainCurrent(current_setpoint):
+            return
 
-    def configureGraph(self, nr_curves, label):
-        """Configure graph.
+        if not self.saveConfiguration():
+            return
 
-        Args:
-            nr_curves (int): number of curves to plot.
-        """
-        self.graphx = []
-        self.graphy = []
-        self.graphz = []
-        self.legend.removeItem('X')
-        self.legend.removeItem('Y')
-        self.legend.removeItem('Z')
+        if not self.measure():
+            return
+        self.change_current_setpoint.emit(True)
 
-        for idx in range(nr_curves):
-            self.graphx.append(
-                self.ui.graph_pw.plotItem.plot(
-                    _np.array([]),
-                    _np.array([]),
-                    pen=(255, 0, 0),
-                    symbol='o',
-                    symbolPen=(255, 0, 0),
-                    symbolSize=4,
-                    symbolBrush=(255, 0, 0)))
-
-            self.graphy.append(
-                self.ui.graph_pw.plotItem.plot(
-                    _np.array([]),
-                    _np.array([]),
-                    pen=(0, 255, 0),
-                    symbol='o',
-                    symbolPen=(0, 255, 0),
-                    symbolSize=4,
-                    symbolBrush=(0, 255, 0)))
-
-            self.graphz.append(
-                self.ui.graph_pw.plotItem.plot(
-                    _np.array([]),
-                    _np.array([]),
-                    pen=(0, 0, 255),
-                    symbol='o',
-                    symbolPen=(0, 0, 255),
-                    symbolSize=4,
-                    symbolBrush=(0, 0, 255)))
-
-        self.ui.graph_pw.setLabel('bottom', 'Scan Position [mm]')
-        self.ui.graph_pw.setLabel('left', label)
-        self.ui.graph_pw.showGrid(x=True, y=True)
-        self.legend.addItem(self.graphx[0], 'X')
-        self.legend.addItem(self.graphy[0], 'Y')
-        self.legend.addItem(self.graphz[0], 'Z')
-
-    def createVoltageThreads(self):
-        """Start threads to read voltage values."""
-        if self.local_measurement_config.voltx_enable:
-            self.threadx = VoltageThread(
-                self.devices.voltx,
-                self.local_measurement_config.voltage_precision)
+    def measureButtonClicked(self):
+        if self.ui.automatic_current_ramp_chb.isChecked():
+            self.startAutomaticMeasurements()
         else:
-            self.threadx = None
-
-        if self.local_measurement_config.volty_enable:
-            self.thready = VoltageThread(
-                self.devices.volty,
-                self.local_measurement_config.voltage_precision)
-        else:
-            self.thready = None
-
-        if self.local_measurement_config.voltz_enable:
-            self.threadz = VoltageThread(
-                self.devices.voltz,
-                self.local_measurement_config.voltage_precision)
-        else:
-            self.threadz = None
-
-    def getFixedAxes(self):
-        """Get fixed axes."""
-        first_axis = self.local_measurement_config.first_axis
-        second_axis = self.local_measurement_config.second_axis
-        fixed_axes = [a for a in self._measurement_axes]
-        fixed_axes.remove(first_axis)
-        if second_axis != -1:
-            fixed_axes.remove(second_axis)
-        return fixed_axes
-
-    def killVoltageThreads(self):
-        """Kill threads."""
-        try:
-            del self.threadx
-            del self.thready
-            del self.threadz
-            self.threadx = None
-            self.thready = None
-            self.threadz = None
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            pass
-
-    def monitorCurrentAndTemperature(self):
-        """Monitor power supply current and temperatures."""
-        if ((self.ui.save_temperature_chb.isChecked() or
-           self.ui.save_current_chb.isChecked()) and
-           not self.devices.multich.connected):
-            msg = 'Multichannel not connected.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
-
-        try:
-            channels = []
-            if self.ui.save_temperature_chb.isChecked():
-                channels = channels + self.devices.multich.probe_channels
-                channels = channels + self.devices.multich.temperature_channels
-            if self.ui.save_current_chb.isChecked():
-                channels = channels + self.devices.multich.dcct_channels
-
-            if len(channels) == 0:
-                return True
-
-            index = self.ui.timer_interval_unit_cmb.currentIndex()
-            if index == 0:
-                mf = 1000
-            elif index == 1:
-                mf = 1000*60
-            else:
-                mf = 1000*3600
-            timer_interval = self.ui.timer_interval_sb.value()*mf
-
-            dcct_head = self.power_supply_config.dcct_head
-
-            self.devices.multich.configure(channel_list=channels)
-            self.current_temperature_thread.timer_interval = timer_interval
-            self.current_temperature_thread.dcct_head = dcct_head
-            self.current_temperature_thread.clear()
-            self.current_temperature_thread.start()
-            return True
-
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to configure and start multichannel readings.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
+            self.startMeasurement()
 
     def moveAxis(self, axis, position):
         """Move bench axis.
@@ -576,14 +566,23 @@ class MeasurementWidget(_QWidget):
 
     def resetMultimeters(self):
         """Reset connected multimeters."""
-        if self.devices.voltx.connected:
-            self.devices.voltx.reset()
+        try:
+            if self.devices.voltx.connected:
+                self.devices.voltx.reset()
 
-        if self.devices.volty.connected:
-            self.devices.volty.reset()
+            if self.devices.volty.connected:
+                self.devices.volty.reset()
 
-        if self.devices.voltz.connected:
-            self.devices.voltz.reset()
+            if self.devices.voltz.connected:
+                self.devices.voltz.reset()
+
+            return True
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to reset multimeters.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
 
     def saveConfiguration(self):
         """Save configuration to database table."""
@@ -614,6 +613,60 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
+    def saveFieldScan(self):
+        """Save field scan to database table."""
+        if self.field_scan is None:
+            msg = 'Invalid field scan.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+        try:
+            mn = self.local_measurement_config.magnet_name
+            mc = self.local_measurement_config.main_current
+            self.field_scan.magnet_name = mn
+            self.field_scan.main_current = mc
+            self.field_scan.configuration_id = self.local_measurement_config_id
+            idn = self.field_scan.save_to_database(self.database)
+            self.field_scan_id_list.append(idn)
+            return True
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save FieldScan to database'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+    def saveScanFiles(self):
+        """Save scan files."""
+        scan_list = self.field_scan_list
+        scan_id_list = self.field_scan_id_list
+
+        directory = _QFileDialog.getExistingDirectory(
+            self, caption='Save scan files', directory=self.directory)
+
+        if isinstance(directory, tuple):
+            directory = directory[0]
+
+        if len(directory) == 0:
+            return
+
+        try:
+            for i, scan in enumerate(scan_list):
+                idn = scan_id_list[i]
+                default_filename = scan.default_filename
+                if '.txt' in default_filename:
+                    default_filename = default_filename.replace(
+                        '.txt', '_ID={0:d}.txt'.format(idn))
+                elif '.dat' in default_filename:
+                    default_filename = default_filename.replace(
+                        '.dat', '_ID={0:d}.dat'.format(idn))
+                default_filename = _os.path.join(directory, default_filename)
+                scan.save_file(default_filename)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save files.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+
     def saveVoltageScan(self):
         """Save voltage scan to database table."""
         if self.voltage_scan is None:
@@ -635,29 +688,6 @@ class MeasurementWidget(_QWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to save VoltageScan to database'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
-
-    def saveFieldScan(self):
-        """Save field scan to database table."""
-        if self.field_scan is None:
-            msg = 'Invalid field scan.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
-
-        try:
-            mn = self.local_measurement_config.magnet_name
-            mc = self.local_measurement_config.main_current
-            self.field_scan.magnet_name = mn
-            self.field_scan.main_current = mc
-            self.field_scan.configuration_id = self.local_measurement_config_id
-            idn = self.field_scan.save_to_database(self.database)
-            self.field_scan_id_list.append(idn)
-            return True
-
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to save FieldScan to database'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
@@ -796,6 +826,76 @@ class MeasurementWidget(_QWidget):
                 self.field_scan_list,
                 self.field_scan_id_list,
                 'Magnetic Field [T]')
+
+    def startAutomaticMeasurements(self):
+        """Configure and emit signal to start automatic ramp measurements."""
+        self.configureMeasurement()
+        if not self.measurement_configured:
+            return
+
+        self.ui.measure_btn.setEnabled(False)
+        self.ui.stop_btn.setEnabled(True)
+        self.change_current_setpoint.emit(1)
+
+    def startCurrentAndTemperatureThread(self):
+        """Start current and temperatures measurements."""
+        if (not self.ui.save_temperature_chb.isChecked() and
+           not self.ui.save_current_chb.isChecked()):
+            return True
+
+        try:
+            index = self.ui.timer_interval_unit_cmb.currentIndex()
+            if index == 0:
+                mf = 1000
+            elif index == 1:
+                mf = 1000*60
+            else:
+                mf = 1000*3600
+            timer_interval = self.ui.timer_interval_sb.value()*mf
+
+            dcct_head = self.power_supply_config.dcct_head
+
+            self.current_temperature_thread.timer_interval = timer_interval
+            self.current_temperature_thread.dcct_head = dcct_head
+            self.current_temperature_thread.clear()
+            self.current_temperature_thread.start()
+            return True
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to start multichannel readings.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+    def startMeasurement(self):
+        """Configure devices and start measurement."""
+        self.configureMeasurement()
+        if not self.measurement_configured:
+            return
+
+        if not self.saveConfiguration():
+            return
+
+        self.ui.measure_btn.setEnabled(False)
+        self.ui.stop_btn.setEnabled(True)
+
+        if not self.measure():
+            return
+
+        if not self.resetMultimeters():
+            return
+
+        self.ui.stop_btn.setEnabled(False)
+        self.ui.measure_btn.setEnabled(True)
+        self.ui.save_scan_files_btn.setEnabled(True)
+        self.ui.view_scan_btn.setEnabled(True)
+        self.ui.clear_graph_btn.setEnabled(True)
+        if self.local_hall_probe is not None:
+            self.ui.create_fieldmap_btn.setEnabled(True)
+
+        msg = 'End of measurement.'
+        _QMessageBox.information(
+            self, 'Measurement', msg, _QMessageBox.Ok)
 
     def startVoltageThreads(self):
         """Start threads to read voltage values."""

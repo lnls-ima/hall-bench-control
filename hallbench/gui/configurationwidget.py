@@ -523,6 +523,19 @@ class ConfigurationWidget(_QWidget):
                 msg = 'Failed to save configuration to file.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
+    def setMainCurrent(self, current_value):
+        """Set main current value."""
+        try:
+            current_value_str = str(current_value)
+            self.measurement_config.main_current = current_value_str
+            self.ui.main_current_le.setText(current_value_str)
+            return True
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to set configuration main current.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
     def setStrFormatFloat(self, obj):
         """Set the line edit string format for float value."""
         try:

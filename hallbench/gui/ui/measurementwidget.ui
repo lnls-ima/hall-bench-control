@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1218</width>
-    <height>932</height>
+    <height>941</height>
    </rect>
   </property>
   <property name="font">
@@ -44,54 +44,49 @@
       <number>0</number>
      </property>
      <item>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetMaximumSize</enum>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="spacing">
+        <number>2</number>
        </property>
-       <property name="horizontalSpacing">
-        <number>0</number>
-       </property>
-       <property name="verticalSpacing">
-        <number>4</number>
-       </property>
-       <item row="1" column="1">
-        <widget class="QCheckBox" name="save_temperature_chb">
-         <property name="text">
-          <string>Save Temperatures</string>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>2</number>
          </property>
-        </widget>
+         <property name="leftMargin">
+          <number>20</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="automatic_current_ramp_chb">
+           <property name="text">
+            <string>Automatic Current Ramp</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="save_voltage_scan_chb">
+           <property name="text">
+            <string>Save Voltage Scans</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="save_temperature_chb">
+           <property name="text">
+            <string>Save Temperatures</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="save_current_chb">
+           <property name="text">
+            <string>Save Power Supply Current</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
-       <item row="0" column="1">
-        <widget class="QCheckBox" name="save_voltage_scan_chb">
-         <property name="text">
-          <string>Save Voltage Scans</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QCheckBox" name="save_current_chb">
-         <property name="text">
-          <string>Save Power Supply Current</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="3" column="0" colspan="2">
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="spacing">
           <number>0</number>
@@ -185,22 +180,6 @@
          <normaloff>../../resources/img/move.png</normaloff>../../resources/img/move.png</iconset>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>5</width>
-         <height>5</height>
-        </size>
-       </property>
-      </spacer>
      </item>
      <item>
       <widget class="QPushButton" name="stop_btn">

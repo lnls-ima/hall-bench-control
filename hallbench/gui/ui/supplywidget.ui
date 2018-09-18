@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>861</height>
+    <width>1284</width>
+    <height>886</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -525,7 +525,7 @@
                     <bold>false</bold>
                    </font>
                   </property>
-                  <property name="currentText" stdset="0">
+                  <property name="currentText">
                    <string>1000A</string>
                   </property>
                   <property name="currentIndex">
@@ -976,137 +976,167 @@
              <widget class="QWidget" name="layoutWidget">
               <property name="geometry">
                <rect>
-                <x>60</x>
-                <y>35</y>
-                <width>139</width>
-                <height>501</height>
+                <x>10</x>
+                <y>40</y>
+                <width>221</width>
+                <height>511</height>
                </rect>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_6">
+              <layout class="QHBoxLayout" name="horizontalLayout_7">
                <item>
-                <widget class="QTableWidget" name="tw_currents">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
+                <spacer name="horizontalSpacer_9">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
                  </property>
-                 <property name="minimumSize">
+                 <property name="sizeHint" stdset="0">
                   <size>
-                   <width>120</width>
-                   <height>0</height>
+                   <width>10</width>
+                   <height>20</height>
                   </size>
                  </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>1300</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <weight>50</weight>
-                   <bold>false</bold>
-                  </font>
-                 </property>
-                 <property name="layoutDirection">
-                  <enum>Qt::LeftToRight</enum>
-                 </property>
-                 <property name="rowCount">
-                  <number>0</number>
-                 </property>
-                 <attribute name="horizontalHeaderStretchLastSection">
-                  <bool>true</bool>
-                 </attribute>
-                 <attribute name="verticalHeaderDefaultSectionSize">
-                  <number>30</number>
-                 </attribute>
-                 <attribute name="verticalHeaderMinimumSectionSize">
-                  <number>22</number>
-                 </attribute>
-                 <column>
-                  <property name="text">
-                   <string>Current (A)</string>
-                  </property>
-                  <property name="font">
-                   <font>
-                    <weight>75</weight>
-                    <italic>false</italic>
-                    <bold>true</bold>
-                   </font>
-                  </property>
-                  <property name="textAlignment">
-                   <set>AlignHCenter|AlignVCenter|AlignCenter</set>
-                  </property>
-                 </column>
-                </widget>
+                </spacer>
                </item>
                <item>
-                <widget class="QPushButton" name="pb_add_row">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>11</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Add Row</string>
-                 </property>
-                 <property name="icon">
-                  <iconset>
-                   <normaloff>../../resources/img/add.png</normaloff>../../resources/img/add.png</iconset>
-                 </property>
-                 <property name="iconSize">
-                  <size>
-                   <width>14</width>
-                   <height>14</height>
-                  </size>
-                 </property>
-                </widget>
+                <layout class="QVBoxLayout" name="verticalLayout_6">
+                 <item>
+                  <widget class="QTableWidget" name="tw_currents">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>130</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="sizeAdjustPolicy">
+                    <enum>QAbstractScrollArea::AdjustIgnored</enum>
+                   </property>
+                   <property name="rowCount">
+                    <number>0</number>
+                   </property>
+                   <attribute name="verticalHeaderDefaultSectionSize">
+                    <number>30</number>
+                   </attribute>
+                   <attribute name="verticalHeaderMinimumSectionSize">
+                    <number>22</number>
+                   </attribute>
+                   <column>
+                    <property name="text">
+                     <string>Current (A)</string>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <weight>75</weight>
+                      <italic>false</italic>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignLeading|AlignVCenter</set>
+                    </property>
+                   </column>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pb_add_row">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Add Row</string>
+                   </property>
+                   <property name="icon">
+                    <iconset>
+                     <normaloff>../../resources/img/add.png</normaloff>../../resources/img/add.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>14</width>
+                     <height>14</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pb_remove_row">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Remove Row</string>
+                   </property>
+                   <property name="icon">
+                    <iconset>
+                     <normaloff>../../resources/img/minus.png</normaloff>../../resources/img/minus.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pb_clear_table">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Clear</string>
+                   </property>
+                   <property name="icon">
+                    <iconset>
+                     <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
                <item>
-                <widget class="QPushButton" name="pb_remove_row">
-                 <property name="minimumSize">
+                <spacer name="horizontalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
                   <size>
-                   <width>0</width>
-                   <height>40</height>
+                   <width>10</width>
+                   <height>20</height>
                   </size>
                  </property>
-                 <property name="text">
-                  <string>Remove Row</string>
-                 </property>
-                 <property name="icon">
-                  <iconset>
-                   <normaloff>../../resources/img/minus.png</normaloff>../../resources/img/minus.png</iconset>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="pb_clear_table">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>11</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Clear</string>
-                 </property>
-                 <property name="icon">
-                  <iconset>
-                   <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
-                 </property>
-                </widget>
+                </spacer>
                </item>
               </layout>
              </widget>
@@ -1162,7 +1192,7 @@
                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:10pt; color:#505050;&quot;&gt;Warning: each power supply has an unique fixed address, one must always remember to configure them after replacing or resetting a power supply in order for this software to work. The addresses are the following:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
               </widget>
@@ -1241,7 +1271,7 @@ p, li { white-space: pre-wrap; }
                  <string/>
                 </property>
                 <property name="pixmap">
-                 <pixmap>../../resources/img/Senoide_Amortecida_2.jpg</pixmap>
+                 <pixmap>../../resources/img/dsinusoidal.png</pixmap>
                 </property>
                 <property name="scaledContents">
                  <bool>true</bool>
@@ -1269,7 +1299,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>Amplitude</string>
+                    <string>Amplitude (A)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1278,6 +1308,12 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item row="0" column="2">
                   <widget class="QLineEdit" name="le_damp_sin_ampl">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1298,7 +1334,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>A </string>
+                    <string>I</string>
                    </property>
                   </widget>
                  </item>
@@ -1311,7 +1347,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>Offset</string>
+                    <string>Offset (B)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1320,6 +1356,12 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item row="1" column="2">
                   <widget class="QLineEdit" name="le_damp_sin_offset">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1340,7 +1382,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>A</string>
+                    <string>I</string>
                    </property>
                   </widget>
                  </item>
@@ -1353,7 +1395,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>Frequency (F)</string>
+                    <string>Frequency (f)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1362,6 +1404,12 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item row="2" column="2">
                   <widget class="QLineEdit" name="le_damp_sin_freq">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1395,7 +1443,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string># of Cycles</string>
+                    <string># of Cicles</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1403,7 +1451,13 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="3" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_ncycles">
+                  <widget class="QLineEdit" name="le_damp_sin_ncicles">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1424,7 +1478,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>unid</string>
+                    <string/>
                    </property>
                   </widget>
                  </item>
@@ -1437,7 +1491,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>Phase shift  (ϴ)</string>
+                    <string>Phase (ϴ)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1445,7 +1499,13 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="4" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_phaseShift">
+                  <widget class="QLineEdit" name="le_damp_sin_phase">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1466,7 +1526,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>º</string>
+                    <string>°</string>
                    </property>
                   </widget>
                  </item>
@@ -1479,7 +1539,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>Phase final position</string>
+                    <string>Final Phase</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1487,7 +1547,13 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="5" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_finalPhase">
+                  <widget class="QLineEdit" name="le_damp_sin_phasef">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1508,45 +1574,18 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>º</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="6" column="0">
-                  <widget class="QLabel" name="label_105">
-                   <property name="font">
-                    <font>
-                     <weight>50</weight>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Damping</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="6" column="1">
-                  <widget class="QLabel" name="label_107">
-                   <property name="font">
-                    <font>
-                     <family>Symbol</family>
-                     <weight>50</weight>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>(t)</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    <string>°</string>
                    </property>
                   </widget>
                  </item>
                  <item row="6" column="2">
                   <widget class="QLineEdit" name="le_damp_sin_damping">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1571,20 +1610,23 @@ p, li { white-space: pre-wrap; }
                    </property>
                   </widget>
                  </item>
+                 <item row="6" column="1">
+                  <widget class="QLabel" name="label_105">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Damping (τ)</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
-               </widget>
-              </item>
-              <item row="1" column="0" alignment="Qt::AlignHCenter">
-               <widget class="QLabel" name="label_71">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="pixmap">
-                 <pixmap>../../resources/img/Eq_seno_amortecido.jpg</pixmap>
-                </property>
-                <property name="scaledContents">
-                 <bool>false</bool>
-                </property>
                </widget>
               </item>
              </layout>
@@ -1615,7 +1657,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>Amplitude</string>
+                    <string>Amplitude (A)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1624,6 +1666,18 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item row="0" column="1">
                   <widget class="QLineEdit" name="le_sinusoidal_amplitude">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>70</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1644,7 +1698,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>A </string>
+                    <string>I</string>
                    </property>
                   </widget>
                  </item>
@@ -1657,7 +1711,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>Offset</string>
+                    <string>Offset (B)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1666,6 +1720,18 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item row="1" column="1">
                   <widget class="QLineEdit" name="le_sinusoidal_offset">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>70</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1686,7 +1752,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>A</string>
+                    <string>I</string>
                    </property>
                   </widget>
                  </item>
@@ -1699,7 +1765,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>Frequency (F)</string>
+                    <string>Frequency (f)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1708,6 +1774,18 @@ p, li { white-space: pre-wrap; }
                  </item>
                  <item row="2" column="1">
                   <widget class="QLineEdit" name="le_sinusoidal_frequency">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>70</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1741,7 +1819,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string># of Cycles</string>
+                    <string># of Cicles</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1749,7 +1827,19 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="3" column="1">
-                  <widget class="QLineEdit" name="le_sinusoidal_n_cycles">
+                  <widget class="QLineEdit" name="le_sinusoidal_ncicles">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>70</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1770,7 +1860,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>unid</string>
+                    <string/>
                    </property>
                   </widget>
                  </item>
@@ -1791,7 +1881,19 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="4" column="1">
-                  <widget class="QLineEdit" name="le_initial_phase">
+                  <widget class="QLineEdit" name="le_sinusoidal_phase">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>70</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1812,7 +1914,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>º</string>
+                    <string>°</string>
                    </property>
                   </widget>
                  </item>
@@ -1833,7 +1935,19 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="5" column="1">
-                  <widget class="QLineEdit" name="le_final_phase">
+                  <widget class="QLineEdit" name="le_sinusoidal_phasef">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>70</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
                      <weight>50</weight>
@@ -1854,7 +1968,7 @@ p, li { white-space: pre-wrap; }
                     </font>
                    </property>
                    <property name="text">
-                    <string>º</string>
+                    <string>°</string>
                    </property>
                   </widget>
                  </item>
@@ -1874,29 +1988,13 @@ p, li { white-space: pre-wrap; }
                 </property>
                </spacer>
               </item>
-              <item row="1" column="0" rowspan="2">
-               <widget class="QLabel" name="label_70">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="pixmap">
-                 <pixmap>../../resources/img/Eq_seno.jpg</pixmap>
-                </property>
-                <property name="scaledContents">
-                 <bool>false</bool>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_61">
                 <property name="text">
                  <string/>
                 </property>
                 <property name="pixmap">
-                 <pixmap>../../resources/img/senoide_tempo.JPG</pixmap>
+                 <pixmap>../../resources/img/sinusoidal.png</pixmap>
                 </property>
                 <property name="scaledContents">
                  <bool>true</bool>
@@ -1990,7 +2088,7 @@ p, li { white-space: pre-wrap; }
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="pb_cycle">
+             <widget class="QPushButton" name="pb_cicle">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -2013,7 +2111,7 @@ p, li { white-space: pre-wrap; }
                </font>
               </property>
               <property name="text">
-               <string>Cycle</string>
+               <string>Cicle</string>
               </property>
               <property name="icon">
                <iconset>
@@ -2029,6 +2127,45 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Maximum</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pb_plot">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Plot</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../resources/img/curve.png</normaloff>../../resources/img/curve.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_11">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>

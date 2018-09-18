@@ -7,7 +7,6 @@ import numpy as _np
 import time as _time
 import traceback as _traceback
 import PyQt5.uic as _uic
-import matplotlib.pyplot as _plt
 from PyQt5.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
@@ -19,7 +18,7 @@ from PyQt5.QtCore import (
     pyqtSignal as _pyqtSignal,
     )
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui import utils as _utils
 
 
 class SupplyWidget(_QWidget):
@@ -33,7 +32,7 @@ class SupplyWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
@@ -41,6 +40,7 @@ class SupplyWidget(_QWidget):
         self.config = self.power_supply_config
         self.drs = self.devices.ps
         self.timer = _QTimer()
+        self.plot_dialog = _utils.PlotDialog()
 
         # fill combobox
         self.list_powersupply()
@@ -84,6 +84,23 @@ class SupplyWidget(_QWidget):
     def power_supply_config(self):
         """Power Supply configurations."""
         return _QApplication.instance().power_supply_config
+
+    def closeDialogs(self):
+        """Close dialogs."""
+        try:
+            self.plot_dialog.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            pass
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.closeDialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
 
     def list_powersupply(self):
         """Updates available power supply supply names."""
@@ -976,34 +993,43 @@ class SupplyWidget(_QWidget):
             return False
 
     def plot(self):
-        _tab_idx = self.ui.tabWidget_3.currentIndex()
-        # plot damped sinusoidal
-        if _tab_idx == 0:
-            a = float(self.ui.le_sinusoidal_amplitude.text())
-            offset = float(self.ui.le_sinusoidal_offset.text())
-            f = float(self.ui.le_sinusoidal_frequency.text())
-            ncicles = int(self.ui.le_sinusoidal_ncicles.text())
-            theta = float(self.ui.le_sinusoidal_phase.text())
-            sen = lambda t: a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi)+offset
-            x = _np.linspace(0, ncicles, 500)
-            y = sen(x)
-        # plot sinusoidal
-        elif _tab_idx == 1:
-            a = float(self.ui.le_damp_sin_ampl.text())
-            offset = float(self.ui.le_damp_sin_offset.text())
-            f = float(self.ui.le_damp_sin_freq.text())
-            ncicles = int(self.ui.le_damp_sin_ncicles.text())
-            theta = float(self.ui.le_damp_sin_phase.text())
-            tau = float(self.ui.le_damp_sin_damping.text())
-            sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) *
-                             _np.exp(-t/tau) + offset)
-            x = _np.linspace(0, ncicles, 500)
-            y = sen(x)
-        _plt.plot(x, y)
-        _plt.xlabel('Time (s)', size=20)
-        _plt.ylabel('Current (I)', size=20)
-        _plt.grid('on', alpha=0.3)
-        _plt.show()
+        try:
+            _tab_idx = self.ui.tabWidget_3.currentIndex()
+            # plot sinusoidal
+            if _tab_idx == 1:
+                a = float(self.ui.le_sinusoidal_amplitude.text())
+                offset = float(self.ui.le_sinusoidal_offset.text())
+                f = float(self.ui.le_sinusoidal_frequency.text())
+                ncicles = int(self.ui.le_sinusoidal_ncicles.text())
+                theta = float(self.ui.le_sinusoidal_phase.text())
+                sen = lambda t: a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi)+offset
+                x = _np.linspace(0, ncicles, 500)
+                y = sen(x)
+
+            # plot damped sinusoidal
+            elif _tab_idx == 0:
+                a = float(self.ui.le_damp_sin_ampl.text())
+                offset = float(self.ui.le_damp_sin_offset.text())
+                f = float(self.ui.le_damp_sin_freq.text())
+                ncicles = int(self.ui.le_damp_sin_ncicles.text())
+                theta = float(self.ui.le_damp_sin_phase.text())
+                tau = float(self.ui.le_damp_sin_damping.text())
+                sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) *
+                                 _np.exp(-t/tau) + offset)               
+                x = _np.linspace(0, ncicles, 500)
+                y = sen(x)
+            
+            fig = self.plot_dialog.figure
+            ax = self.plot_dialog.ax
+            ax.clear()
+            ax.plot(x, y)
+            ax.set_xlabel('Time (s)', size=20)
+            ax.set_ylabel('Current (I)', size=20)
+            ax.grid('on', alpha=0.3)
+            fig.tight_layout()
+            self.plot_dialog.show()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def status_powersupply(self):
         """Read and display Power Supply status."""

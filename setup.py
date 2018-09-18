@@ -23,6 +23,7 @@ setup(
         'pandas',
         'pyqtgraph',
         'pyserial',
+        'matplotlib',
         'pyqt5',
     ],
     test_suite='nose.collector',

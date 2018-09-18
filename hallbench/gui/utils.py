@@ -13,6 +13,11 @@ from PyQt5.QtWidgets import (
     QTableWidget as _QTableWidget,
     QTableWidgetItem as _QTableWidgetItem,
     )
+from matplotlib.figure import Figure as _Figure
+from matplotlib.backends.backend_qt4agg import (
+    FigureCanvasQTAgg as _FigureCanvas
+    )
+
 
 _basepath = _path.dirname(_path.abspath(__file__))
 
@@ -163,3 +168,28 @@ class TableAnalysisDialog(_QDialog):
         """Update table data."""
         self.table_df = table_df
         self.analyseAndShowResults()
+
+
+class PlotDialog(_QDialog):
+    """Matplotlib plot dialog."""
+    
+    def __init__(self, parent=None):
+        """Add figure canvas to layout."""
+        super().__init__(parent)
+
+        self.figure = _Figure()        
+        self.canvas = _FigureCanvas(self.figure)
+        self.ax = self.figure.add_subplot(111)
+        
+        _layout = _QVBoxLayout()
+        _layout.addWidget(self.canvas)
+        self.setLayout(_layout)
+
+    def updatePlot(self):
+        """Update plot."""
+        self.canvas.draw()
+    
+    def show(self):
+        """Show dialog."""
+        self.updatePlot()
+        super().show()

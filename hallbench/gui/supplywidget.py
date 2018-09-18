@@ -96,11 +96,17 @@ class SupplyWidget(_QWidget):
     def closeEvent(self, event):
         """Close widget."""
         try:
+            self.turn_off()
             self.closeDialogs()
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
+
+    def turn_off(self):
+        """Turn off the Power Supply if it's turned on."""
+        if self.config.status:
+            self.start_powersupply()
 
     def list_powersupply(self):
         """Updates available power supply supply names."""
@@ -1002,7 +1008,8 @@ class SupplyWidget(_QWidget):
                 f = float(self.ui.le_sinusoidal_frequency.text())
                 ncicles = int(self.ui.le_sinusoidal_ncicles.text())
                 theta = float(self.ui.le_sinusoidal_phase.text())
-                sen = lambda t: a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi)+offset
+                sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) +
+                                 offset)
                 x = _np.linspace(0, ncicles, 500)
                 y = sen(x)
 
@@ -1015,10 +1022,10 @@ class SupplyWidget(_QWidget):
                 theta = float(self.ui.le_damp_sin_phase.text())
                 tau = float(self.ui.le_damp_sin_damping.text())
                 sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) *
-                                 _np.exp(-t/tau) + offset)               
+                                 _np.exp(-t/tau) + offset)
                 x = _np.linspace(0, ncicles, 500)
                 y = sen(x)
-            
+
             fig = self.plot_dialog.figure
             ax = self.plot_dialog.ax
             ax.clear()

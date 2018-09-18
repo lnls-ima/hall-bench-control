@@ -172,15 +172,15 @@ class TableAnalysisDialog(_QDialog):
 
 class PlotDialog(_QDialog):
     """Matplotlib plot dialog."""
-    
+
     def __init__(self, parent=None):
         """Add figure canvas to layout."""
         super().__init__(parent)
 
-        self.figure = _Figure()        
+        self.figure = _Figure()
         self.canvas = _FigureCanvas(self.figure)
         self.ax = self.figure.add_subplot(111)
-        
+
         _layout = _QVBoxLayout()
         _layout.addWidget(self.canvas)
         self.setLayout(_layout)
@@ -188,7 +188,7 @@ class PlotDialog(_QDialog):
     def updatePlot(self):
         """Update plot."""
         self.canvas.draw()
-    
+
     def show(self):
         """Show dialog."""
         self.updatePlot()

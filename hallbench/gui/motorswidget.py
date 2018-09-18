@@ -512,8 +512,12 @@ class MotorsWidget(_QWidget):
                 _time.sleep(self._align_bench_time_interval)
             else:
                 self.releaseAccessToMovement()
+                for axis in list_of_axis:
+                    obj = getattr(self.ui, 'homingax' + str(axis) + '_chb')
+                    obj.setChecked(False)
                 msg = 'Finished homing of the selected axes.'
                 _QMessageBox.information(self, 'Homing', msg, _QMessageBox.Ok)
+                
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Homing failed.'

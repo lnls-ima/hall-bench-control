@@ -237,7 +237,13 @@ class ViewScanDialog(_QDialog):
         self.ui.fit_ta.clearContents()
         self.ui.fit_ta.setRowCount(0)
         self.ui.fitfunction_la.setText('')
-        self.updatePlot()
+
+    def clearIntegrals(self):
+        """Clear integrals."""
+        self.ui.first_integral_le.setText('')
+        self.ui.second_integral_le.setText('')
+        self.ui.first_integral_unit_la.setText('')
+        self.ui.second_integral_unit_la.setText('')                   
 
     def clearGraph(self):
         """Clear plots."""
@@ -337,6 +343,7 @@ class ViewScanDialog(_QDialog):
     def fitFunctionChanged(self):
         """Hide or show polynomial fitting order and update dict value."""
         self.clearFit()
+        self.updatePlot()
         func = self.ui.fitfunction_cmb.currentText()
         if func.lower() == 'polynomial':
             self.ui.polyorder_la.show()
@@ -508,6 +515,10 @@ class ViewScanDialog(_QDialog):
             if len(self.temperature) != 0:
                 self.ui.view_temperature_btn.setEnabled(True)
 
+            self.ui.first_integral_le.setText('')
+            self.ui.second_integral_le.setText('')
+            self.ui.first_integral_unit_la.setText('')
+            self.ui.second_integral_unit_la.setText('')
             self.updatePlot()
             self.setCurveLabels()
             self.ui.polyorder_la.hide()
@@ -571,6 +582,8 @@ class ViewScanDialog(_QDialog):
     def updateControls(self):
         """Enable offset and fit group box and update offset values."""
         self.clearFit()
+        self.clearIntegrals()
+        self.updatePlot()
         selected_idx = self.ui.select_scan_cmb.currentIndex()
         selected_comp = self.ui.select_comp_cmb.currentText().lower()
         if selected_idx == -1 or len(selected_comp) == 0:
@@ -615,6 +628,7 @@ class ViewScanDialog(_QDialog):
     def updateOffset(self):
         """Update curve offset."""
         self.clearFit()
+        self.updatePlot()
         selected_idx = self.ui.select_scan_cmb.currentIndex()
         selected_comp = self.ui.select_comp_cmb.currentText().lower()
         if selected_idx == -1 or len(selected_comp) == 0:

@@ -408,8 +408,10 @@ class DatabaseWidget(_QWidget):
             current_table_name = current_table.table_name
             self.ui.buttons_tbx.setEnabled(True)
             for i in range(len(tables)):
+                _idx = self.ui.buttons_tbx.indexOf(pages[i])
                 _enable = current_table_name == tables[i]
                 pages[i].setEnabled(_enable)
+                self.ui.buttons_tbx.setItemEnabled(_idx, _enable)
                 if _enable:
                     self.ui.buttons_tbx.setCurrentWidget(pages[i])
         else:

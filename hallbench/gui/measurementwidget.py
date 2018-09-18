@@ -331,12 +331,12 @@ class MeasurementWidget(_QWidget):
         else:
             self.threadz = None
 
-    def endAutomaticMeasurements(self, sucess):
+    def endAutomaticMeasurements(self, setpoint_changed):
         """End automatic measurements."""
         if not self.resetMultimeters():
             return
 
-        if not sucess:
+        if not setpoint_changed:
             msg = ('Automatic measurements failed. ' +
                    'Current setpoint not changed.')
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)

@@ -25,8 +25,8 @@ from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
 from hallbench.gui.databasewidget import DatabaseWidget \
     as _DatabaseWidget
-from hallbench.gui.voltageoffsetwidget import VoltageOffsetWidget \
-    as _VoltageOffsetWidget
+from hallbench.gui.voltagewidget import VoltageWidget \
+    as _VoltageWidget
 from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
 from hallbench.gui.angularerrorwidget import AngularErrorWidget \
@@ -61,8 +61,8 @@ class HallBenchWindow(_QMainWindow):
         self.measurement_tab = _MeasurementWidget(self)
         self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')
 
-        self.voltageoffset_tab = _VoltageOffsetWidget(self)
-        self.ui.main_tab.addTab(self.voltageoffset_tab, 'Voltage Offset')
+        self.voltage_tab = _VoltageWidget(self)
+        self.ui.main_tab.addTab(self.voltage_tab, 'Voltage')
 
         self.temperature_tab = _TemperatureWidget(self)
         self.ui.main_tab.addTab(self.temperature_tab, 'Temperature')

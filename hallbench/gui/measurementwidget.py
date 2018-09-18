@@ -1081,10 +1081,10 @@ class CurrentTemperatureThread(_QThread):
 class VoltageThread(_QThread):
     """Thread to read values from multimeters."""
 
-    def __init__(self, voltimeter, precision):
+    def __init__(self, multimeter, precision):
         """Initialize object."""
         super().__init__()
-        self.voltimeter = voltimeter
+        self.multimeter = multimeter
         self.precision = precision
         self.voltage = _np.array([])
         self.end_measurement = False
@@ -1098,18 +1098,18 @@ class VoltageThread(_QThread):
         """Read voltage from the device."""
         self.clear()
         while (self.end_measurement is False):
-            if self.voltimeter.inst.stb & 128:
-                voltage = self.voltimeter.read_voltage(self.precision)
+            if self.multimeter.inst.stb & 128:
+                voltage = self.multimeter.read_voltage(self.precision)
                 self.voltage = _np.append(self.voltage, voltage)
         else:
             # check memory
-            self.voltimeter.send_command(self.voltimeter.commands.mcount)
-            npoints = int(self.voltimeter.read_from_device())
+            self.multimeter.send_command(self.multimeter.commands.mcount)
+            npoints = int(self.multimeter.read_from_device())
             if npoints > 0:
                 # ask data from memory
-                self.voltimeter.send_command(
-                    self.voltimeter.commands.rmem + str(npoints))
+                self.multimeter.send_command(
+                    self.multimeter.commands.rmem + str(npoints))
 
                 for idx in range(npoints):
-                    voltage = self.voltimeter.read_voltage(self.precision)
+                    voltage = self.multimeter.read_voltage(self.precision)
                     self.voltage = _np.append(self.voltage, voltage)

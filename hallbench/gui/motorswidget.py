@@ -274,7 +274,7 @@ class MotorsWidget(_QWidget):
                 else:
                     self.ui.selectaxis_cmb.model().item(
                         item+1).setEnabled(False)
-                    self.ui.selectrigtaxis_cmb.model().item(
+                    self.ui.selecttrigaxis_cmb.model().item(
                         item+1).setEnabled(False)
                     axis_led.setEnabled(False)
                     homing_status.append(False)

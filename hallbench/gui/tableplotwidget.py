@@ -37,7 +37,7 @@ class TablePlotWidget(_QWidget):
         uifile = _utils.getUiFile(TablePlotWidget)
         self.ui = _uic.loadUi(uifile, self)
 
-        # variables initialization
+        # variables initialisation
         self._timestamp = []
         self._legend_items = []
         self._readings = {}
@@ -273,27 +273,27 @@ class TablePlotWidget(_QWidget):
         self.ui.table_ta.clearContents()
         self.ui.table_ta.setRowCount(n)
 
-        for j in range(len(self._data_labels)):
-            readings = self._readings[self._data_labels[j]]
-            for i in range(n):
-                dt = _datetime.datetime.fromtimestamp(self._timestamp[i])
-                date = dt.strftime("%d/%m/%Y")
-                hour = dt.strftime("%H:%M:%S")
-
-                self.ui.table_ta.setItem(i, 0, _QTableWidgetItem(date))
-                self.ui.table_ta.setItem(i, 1, _QTableWidgetItem(hour))
-
+        for i in range(n):
+            dt = _datetime.datetime.fromtimestamp(self._timestamp[i])
+            date = dt.strftime("%d/%m/%Y")
+            hour = dt.strftime("%H:%M:%S")
+            self.ui.table_ta.setItem(i, 0, _QTableWidgetItem(date))
+            self.ui.table_ta.setItem(i, 1, _QTableWidgetItem(hour))
+       
+            if hasattr(self, '_position'):
+                pos = '{0:.4f}'.format(self._position[i])
+                self.ui.table_ta.setItem(i, 2, _QTableWidgetItem(pos))
+            
+            for j in range(len(self._data_labels)):
+                reading = self._readings[self._data_labels[j]][i]
                 if hasattr(self, '_position'):
-                    pos = '{0:.4f}'.format(self._position[i])
-                    self.ui.table_ta.setItem(
-                        i, 2, _QTableWidgetItem(pos))
                     self.ui.table_ta.setItem(
                         i, j+3, _QTableWidgetItem(
-                            self._data_format.format(readings[i])))
+                            self._data_format.format(reading)))
                 else:
                     self.ui.table_ta.setItem(
                         i, j+2, _QTableWidgetItem(
-                            self._data_format.format(readings[i])))
+                            self._data_format.format(reading)))
 
     def addLastValueToTable(self):
         """Add the last value read to table."""
@@ -303,25 +303,25 @@ class TablePlotWidget(_QWidget):
         n = self.ui.table_ta.rowCount() + 1
         self.ui.table_ta.setRowCount(n)
 
+        dt = _datetime.datetime.fromtimestamp(self._timestamp[-1])
+        date = dt.strftime("%d/%m/%Y")
+        hour = dt.strftime("%H:%M:%S")
+        self.ui.table_ta.setItem(n-1, 0, _QTableWidgetItem(date))
+        self.ui.table_ta.setItem(n-1, 1, _QTableWidgetItem(hour))
+
+        if hasattr(self, '_position'):
+            pos = '{0:.4f}'.format(self._position[-1])
+            self.ui.table_ta.setItem(n-1, 2, _QTableWidgetItem(pos))
+
         for j in range(len(self._data_labels)):
             reading = self._readings[self._data_labels[j]][-1]
-            dt = _datetime.datetime.fromtimestamp(self._timestamp[-1])
-            date = dt.strftime("%d/%m/%Y")
-            hour = dt.strftime("%H:%M:%S")
-
-            self.ui.table_ta.setItem(n, 0, _QTableWidgetItem(date))
-            self.ui.table_ta.setItem(n, 1, _QTableWidgetItem(hour))
-
             if hasattr(self, '_position'):
-                pos = '{0:.4f}'.format(self._position[-1])
                 self.ui.table_ta.setItem(
-                    n, 2, _QTableWidgetItem(pos))
-                self.ui.table_ta.setItem(
-                    n, j+3, _QTableWidgetItem(
+                    n-1, j+3, _QTableWidgetItem(
                         self._data_format.format(reading)))
             else:
                 self.ui.table_ta.setItem(
-                    n, j+2, _QTableWidgetItem(
+                    n-1, j+2, _QTableWidgetItem(
                         self._data_format.format(reading)))
 
         vbar = self.table_ta.verticalScrollBar()

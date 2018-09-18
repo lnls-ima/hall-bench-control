@@ -17,7 +17,7 @@ from hallbench.gui.moveaxiswidget import MoveAxisWidget as _MoveAxisWidget
 from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
 
 
-class VoltageOffsetWidget(_TablePlotWidget):
+class VoltageWidget(_TablePlotWidget):
     """Voltage Offset Widget class for the Hall Bench Control application."""
 
     _plot_label = 'Voltage [mV]'
@@ -45,6 +45,10 @@ class VoltageOffsetWidget(_TablePlotWidget):
         self.reset_btn.setFont(font)
         self.ui.layout_lt.addWidget(self.reset_btn)
         self.reset_btn.clicked.connect(self.resetMultimeters)
+
+        # variables initialisation
+        self._position = []
+        self.configureTable()
 
         # Change default appearance
         self.ui.table_ta.horizontalHeader().setDefaultSectionSize(140)
@@ -91,20 +95,14 @@ class VoltageOffsetWidget(_TablePlotWidget):
                 if pos is None:
                     pos = _np.nan
 
-            self.devices.voltx.send_command(
-                self.devices.voltx.commands.end_gpib_always)
             voltx = float(self.devices.voltx.read_from_device()[:-2])
             voltx = voltx*self._data_mult_factor
             self._readings[self._data_labels[0]].append(voltx)
 
-            self.devices.volty.send_command(
-                self.devices.volty.commands.end_gpib_always)
             volty = float(self.devices.volty.read_from_device()[:-2])
             volty = volty*self._data_mult_factor
             self._readings[self._data_labels[1]].append(volty)
 
-            self.devices.voltz.send_command(
-                self.devices.voltz.commands.end_gpib_always)
             voltz = float(self.devices.voltz.read_from_device()[:-2])
             voltz = voltz*self._data_mult_factor
             self._readings[self._data_labels[2]].append(voltz)
@@ -113,7 +111,6 @@ class VoltageOffsetWidget(_TablePlotWidget):
             self._position.append(pos)
             self.addLastValueToTable()
             self.updatePlot()
-
         except Exception:
             pass
 

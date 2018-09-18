@@ -44,6 +44,10 @@ class AngularErrorWidget(_TablePlotWidget):
         self.ui.layout_lt.addWidget(_label)
         self.ui.layout_lt.addWidget(self.meastype_cmb)
 
+        # variables initialisation
+        self._position = []
+        self.configureTable()
+
         # Change default appearance
         self.table_ta.horizontalHeader().setDefaultSectionSize(170)
         self.ui.read_btn.setText('Read Angular Error')

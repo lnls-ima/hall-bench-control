@@ -430,16 +430,32 @@ class ViewScanDialog(_QDialog):
 
     def show(self, scan_list, scan_id_list, plot_label=''):
         """Update data and show dialog."""
-        if scan_list is None or len(scan_list) == 0:
-            msg = 'Invalid data list.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
-
-        self.scan_list = [d.copy() for d in scan_list]
-        self.scan_id_list = scan_id_list
-        self.plot_label = plot_label
-
         try:
+            self.plot_label = ''
+            self.scan_list = []
+            self.graphx = []
+            self.graphy = []
+            self.graphz = []
+            self.scan_dict = {}
+            self.xmin_line = None
+            self.xmax_line = None
+            self.temperature = {}
+            self.current = {}
+            self.clearFit()
+            self.clearIntegrals()
+            self.clearGraph()
+            self.ui.select_scan_cmb.setCurrentIndex(-1)
+            self.ui.select_comp_cmb.setCurrentIndex(-1)
+                    
+            if scan_list is None or len(scan_list) == 0:
+                msg = 'Invalid data list.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return
+    
+            self.scan_list = [d.copy() for d in scan_list]
+            self.scan_id_list = scan_id_list
+            self.plot_label = plot_label
+            
             idx = 0
             for i in range(len(self.scan_list)):
                 self.scan_dict[idx] = {}
@@ -662,33 +678,33 @@ class ViewScanDialog(_QDialog):
 
     def updatePlot(self):
         """Update plot."""
-        self.clearGraph()
-        self.updateXLimits()
-        if self.ui.show_all_rb.isChecked():
-            nr_curves = len(self.scan_list)*3
-            scan_dict = self.scan_dict
-            show_xlines = False
-        elif self.ui.show_selected_scan_rb.isChecked():
-            selected_idx = self.ui.select_scan_cmb.currentIndex()
-            if selected_idx == -1:
-                return
-            nr_curves = 3
-            scan_dict = {selected_idx: self.scan_dict[selected_idx]}
-            show_xlines = False
-        else:
-            selected_idx = self.ui.select_scan_cmb.currentIndex()
-            selected_comp = self.ui.select_comp_cmb.currentText().lower()
-            if selected_idx == -1 or len(selected_comp) == 0:
-                return
-            nr_curves = 1
-            scan_dict = {selected_idx: {
-                selected_comp: self.scan_dict[selected_idx][selected_comp]
-            }}
-            show_xlines = True
-
-        self.configureGraph(nr_curves, self.plot_label)
-
         try:
+            self.clearGraph()
+            self.updateXLimits()
+            if self.ui.show_all_rb.isChecked():
+                nr_curves = len(self.scan_list)*3
+                scan_dict = self.scan_dict
+                show_xlines = False
+            elif self.ui.show_selected_scan_rb.isChecked():
+                selected_idx = self.ui.select_scan_cmb.currentIndex()
+                if selected_idx == -1:
+                    return
+                nr_curves = 3
+                scan_dict = {selected_idx: self.scan_dict[selected_idx]}
+                show_xlines = False
+            else:
+                selected_idx = self.ui.select_scan_cmb.currentIndex()
+                selected_comp = self.ui.select_comp_cmb.currentText().lower()
+                if selected_idx == -1 or len(selected_comp) == 0:
+                    return
+                nr_curves = 1
+                scan_dict = {selected_idx: {
+                    selected_comp: self.scan_dict[selected_idx][selected_comp]
+                }}
+                show_xlines = True
+    
+            self.configureGraph(nr_curves, self.plot_label)
+
             with _warnings.catch_warnings():
                 _warnings.simplefilter("ignore")
                 x_count = 0

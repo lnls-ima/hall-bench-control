@@ -42,6 +42,7 @@ class MeasurementWidget(_QWidget):
     """Measurement widget class for the Hall Bench Control application."""
 
     change_current_setpoint = _pyqtSignal([bool])
+    turn_off_power_supply = _pyqtSignal([bool])
 
     _update_graph_time_interval = 0.05  # [s]
     _measurement_axes = [1, 2, 3, 5]
@@ -314,21 +315,24 @@ class MeasurementWidget(_QWidget):
         if self.local_measurement_config.voltx_enable:
             self.threadx = VoltageThread(
                 self.devices.voltx,
-                self.local_measurement_config.voltage_precision)
+                self.local_measurement_config.voltage_precision,
+                self.local_measurement_config.integration_time)
         else:
             self.threadx = None
 
         if self.local_measurement_config.volty_enable:
             self.thready = VoltageThread(
                 self.devices.volty,
-                self.local_measurement_config.voltage_precision)
+                self.local_measurement_config.voltage_precision,
+                self.local_measurement_config.integration_time)
         else:
             self.thready = None
 
         if self.local_measurement_config.voltz_enable:
             self.threadz = VoltageThread(
                 self.devices.voltz,
-                self.local_measurement_config.voltage_precision)
+                self.local_measurement_config.voltage_precision,
+                self.local_measurement_config.integration_time)
         else:
             self.threadz = None
 
@@ -348,6 +352,7 @@ class MeasurementWidget(_QWidget):
         self.ui.save_scan_files_btn.setEnabled(True)
         self.ui.view_scan_btn.setEnabled(True)
         self.ui.clear_graph_btn.setEnabled(True)
+        self.turn_off_power_supply.emit(True)
 
         msg = 'End of automatic measurements.'
         _QMessageBox.information(
@@ -444,6 +449,7 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             self.killVoltageThreads()
             self.current_temperature_thread.quit()
+            self.turn_off_power_supply.emit(True) 
             msg = 'Measurement failure.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
@@ -786,7 +792,7 @@ class MeasurementWidget(_QWidget):
             self.voltage_scan.temperature = (
                 self.current_temperature_thread.temperature)
             self.current_temperature_thread.clear()
-
+                      
             if self.stop is True:
                 return False
 
@@ -900,6 +906,9 @@ class MeasurementWidget(_QWidget):
         if self.local_hall_probe is not None:
             self.ui.create_fieldmap_btn.setEnabled(True)
 
+        if not self.resetMultimeters():
+            return
+
         msg = 'End of measurement.'
         _QMessageBox.information(
             self, 'Measurement', msg, _QMessageBox.Ok)
@@ -927,7 +936,6 @@ class MeasurementWidget(_QWidget):
             msg = 'The user stopped the measurements.'
             _QMessageBox.information(
                 self, 'Abort', msg, _QMessageBox.Ok)
-
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to stop measurements.'
@@ -1013,6 +1021,7 @@ class MeasurementWidget(_QWidget):
         if self.threadz is not None:
             while self.threadz.isRunning() and self.stop is False:
                 _QApplication.processEvents()
+        _time.sleep(0.5)
 
 
 class CurrentTemperatureThread(_QThread):
@@ -1089,11 +1098,12 @@ class CurrentTemperatureThread(_QThread):
 class VoltageThread(_QThread):
     """Thread to read values from multimeters."""
 
-    def __init__(self, multimeter, precision):
+    def __init__(self, multimeter, precision, integration_time):
         """Initialize object."""
         super().__init__()
         self.multimeter = multimeter
         self.precision = precision
+        self.integration_time = integration_time
         self.voltage = _np.array([])
         self.end_measurement = False
 
@@ -1109,6 +1119,7 @@ class VoltageThread(_QThread):
             if self.multimeter.inst.stb & 128:
                 voltage = self.multimeter.read_voltage(self.precision)
                 self.voltage = _np.append(self.voltage, voltage)
+                _time.sleep(self.integration_time)
         else:
             # check memory
             self.multimeter.send_command(self.multimeter.commands.mcount)

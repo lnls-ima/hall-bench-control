@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem as _QTableWidgetItem,
     )
 from matplotlib.figure import Figure as _Figure
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as _FigureCanvas
     )
 

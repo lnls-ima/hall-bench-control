@@ -64,6 +64,7 @@ class MeasurementWidget(_QWidget):
         # add position widget
         self.current_position_widget = _CurrentPositionWidget(self)
         _layout = _QVBoxLayout()
+        _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(self.current_position_widget)
         self.ui.position_wg.setLayout(_layout)
 
@@ -378,6 +379,9 @@ class MeasurementWidget(_QWidget):
     def measure(self):
         """Perform one measurement."""
         if not self.measurement_configured:
+            return False
+
+        if not self.startCurrentAndTemperatureMeasurements():
             return False
 
         try:
@@ -711,7 +715,7 @@ class MeasurementWidget(_QWidget):
         self.clearGraph()
         self.configureGraph(2*nr_measurements, 'Voltage [V]')
 
-        voltage_scan_list = []
+        voltage_scan_list = []       
         for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
@@ -794,7 +798,7 @@ class MeasurementWidget(_QWidget):
                     return False
 
             voltage_scan_list.append(self.voltage_scan.copy())
-
+                        
         for vd in voltage_scan_list:
             self.voltage_scan_list.append(vd)
 
@@ -837,7 +841,7 @@ class MeasurementWidget(_QWidget):
         self.ui.stop_btn.setEnabled(True)
         self.change_current_setpoint.emit(1)
 
-    def startCurrentAndTemperatureThread(self):
+    def startCurrentAndTemperatureMeasurements(self):
         """Start current and temperatures measurements."""
         if (not self.ui.save_temperature_chb.isChecked() and
            not self.ui.save_current_chb.isChecked()):
@@ -852,11 +856,14 @@ class MeasurementWidget(_QWidget):
             else:
                 mf = 1000*3600
             timer_interval = self.ui.timer_interval_sb.value()*mf
-
-            dcct_head = self.power_supply_config.dcct_head
-
             self.current_temperature_thread.timer_interval = timer_interval
-            self.current_temperature_thread.dcct_head = dcct_head
+            
+            if self.ui.save_current_chb.isChecked():
+                dcct_head = self.power_supply_config.dcct_head
+                ps_type = self.power_supply_config.ps_type
+                self.current_temperature_thread.dcct_head = dcct_head
+                self.current_temperature_thread.ps_type = ps_type
+
             self.current_temperature_thread.clear()
             self.current_temperature_thread.start()
             return True
@@ -1057,10 +1064,11 @@ class CurrentTemperatureThread(_QThread):
             dcct_channels = self.multich.dcct_channels
             for i, ch in enumerate(channels):
                 if ch in dcct_channels:
-                    if 'DCCT' in self.current.keys():
-                        self.current['DCCT'].append([ts, r[i]])
-                    else:
-                        self.current['DCCT'] = [[ts, r[i]]]
+                    if self.dcct_head is not None:
+                        if 'DCCT' in self.current.keys():
+                            self.current['DCCT'].append([ts, r[i]])
+                        else:
+                            self.current['DCCT'] = [[ts, r[i]]]
                 else:
                     if ch in self.temperature.keys():
                         self.temperature[ch].append([ts, r[i]])

@@ -1,5 +1,7 @@
 # Database files
 *.db
+*.db-journal
+
 *.txt
 *.dat
 toPyQt4.sh

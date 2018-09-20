@@ -117,27 +117,10 @@ class ViewScanDialog(_QDialog):
 
     def calcCurveFit(self):
         """Calculate curve fit."""
-        selected_idx = self.ui.select_scan_cmb.currentIndex()
-        selected_comp = self.ui.select_comp_cmb.currentText().lower()
-        if selected_idx == -1 or len(selected_comp) == 0:
+        x, y = self.getSelectedXY()
+        if x is None or y is None:
             return
-
-        sel = self.scan_dict[selected_idx][selected_comp]
-        pos = sel['pos']
-        data = sel['data']
-        xoff = sel['xoff']
-        yoff = sel['yoff']
-        xmult = sel['xmult']
-        ymult = sel['ymult']
-        xmin = self.ui.xmin_sb.value()
-        xmax = self.ui.xmax_sb.value()
-
-        x = _np.array((pos + xoff)*xmult)
-        y = _np.array((data + yoff)*ymult)
-
-        y = y[(x >= xmin) & (x <= xmax)]
-        x = x[(x >= xmin) & (x <= xmax)]
-
+        
         func = self.ui.fitfunction_cmb.currentText()
         if func.lower() == 'linear':
             xfit, yfit, param, label = _linear_fit(x, y)
@@ -168,28 +151,16 @@ class ViewScanDialog(_QDialog):
 
     def calcIntegrals(self):
         """Calculate integrals."""
-        selected_idx = self.ui.select_scan_cmb.currentIndex()
-        selected_comp = self.ui.select_comp_cmb.currentText().lower()
-        if selected_idx == -1 or len(selected_comp) == 0:
+        sel = self.getSelectedCurve()
+        if sel is None:
             return
-
-        sel = self.scan_dict[selected_idx][selected_comp]
-        pos = sel['pos']
-        data = sel['data']
+        
         unit = sel['unit']
-        xoff = sel['xoff']
-        yoff = sel['yoff']
-        xmult = sel['xmult']
-        ymult = sel['ymult']
-        xmin = self.ui.xmin_sb.value()
-        xmax = self.ui.xmax_sb.value()
-
-        x = _np.array((pos + xoff)*xmult)
-        y = _np.array((data + yoff)*ymult)
-
-        y = y[(x >= xmin) & (x <= xmax)]
-        x = x[(x >= xmin) & (x <= xmax)]
-
+        
+        x, y = self.getSelectedXY()
+        if x is None or y is None:
+            return
+        
         if len(y) > 0:
             first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
             second_integral = _integrate.cumtrapz(
@@ -232,6 +203,24 @@ class ViewScanDialog(_QDialog):
                 _pyqtgraph.PlotCurveItem(
                     x, second_integral, pen=(255, 100, 180)))
 
+    def clearAll(self):
+        """Clear all."""
+        self.plot_label = ''
+        self.scan_list = []
+        self.graphx = []
+        self.graphy = []
+        self.graphz = []
+        self.scan_dict = {}
+        self.xmin_line = None
+        self.xmax_line = None
+        self.temperature = {}
+        self.current = {}
+        self.clearFit()
+        self.clearIntegrals()
+        self.clearGraph()
+        self.ui.select_scan_cmb.setCurrentIndex(-1)
+        self.ui.select_comp_cmb.setCurrentIndex(-1)       
+
     def clearFit(self):
         """Clear fit."""
         self.ui.fit_ta.clearContents()
@@ -273,6 +262,9 @@ class ViewScanDialog(_QDialog):
         self.legend.removeItem('X')
         self.legend.removeItem('Y')
         self.legend.removeItem('Z')
+        
+        if nr_curves == 0:
+            return
 
         for idx in range(nr_curves):
             self.graphx.append(
@@ -359,6 +351,37 @@ class ViewScanDialog(_QDialog):
         else:
             self.scan_dict[selected_idx][selected_comp]['fit_function'] = func
 
+    def getSelectedCurve(self):
+        """Get selected curve."""
+        selected_idx = self.ui.select_scan_cmb.currentIndex()
+        selected_comp = self.ui.select_comp_cmb.currentText().lower()
+        if selected_idx == -1 or len(selected_comp) == 0:
+            return None
+        else:
+            return self.scan_dict[selected_idx][selected_comp]
+
+    def getSelectedXY(self):
+        """Get selected X, Y values."""
+        sel = self.getSelectedCurve()
+        if sel is None:
+            return None, None
+
+        pos = sel['pos']
+        data = sel['data']
+        xoff = sel['xoff']
+        yoff = sel['yoff']
+        xmult = sel['xmult']
+        ymult = sel['ymult']
+        xmin = self.ui.xmin_sb.value()
+        xmax = self.ui.xmax_sb.value()
+
+        x = _np.array((pos + xoff)*xmult)
+        y = _np.array((data + yoff)*ymult)
+
+        y = y[(x >= xmin) & (x <= xmax)]
+        x = x[(x >= xmin) & (x <= xmax)]
+        return x, y
+
     def polyOrderChanged(self):
         """Update dict value."""
         od = self.ui.polyorder_sb.value()
@@ -431,22 +454,8 @@ class ViewScanDialog(_QDialog):
     def show(self, scan_list, scan_id_list, plot_label=''):
         """Update data and show dialog."""
         try:
-            self.plot_label = ''
-            self.scan_list = []
-            self.graphx = []
-            self.graphy = []
-            self.graphz = []
-            self.scan_dict = {}
-            self.xmin_line = None
-            self.xmax_line = None
-            self.temperature = {}
-            self.current = {}
-            self.clearFit()
-            self.clearIntegrals()
-            self.clearGraph()
-            self.ui.select_scan_cmb.setCurrentIndex(-1)
-            self.ui.select_comp_cmb.setCurrentIndex(-1)
-                    
+            self.clearAll()
+            
             if scan_list is None or len(scan_list) == 0:
                 msg = 'Invalid data list.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
@@ -460,6 +469,7 @@ class ViewScanDialog(_QDialog):
             for i in range(len(self.scan_list)):
                 self.scan_dict[idx] = {}
                 data = self.scan_list[i]
+                idn = self.scan_id_list[i]
 
                 if data.npts == 0:
                     msg = 'Invalid scan found.'
@@ -479,6 +489,7 @@ class ViewScanDialog(_QDialog):
                 xmax = pos[-1]
 
                 self.scan_dict[idx]['x'] = {
+                    'idn': idn,
                     'pos': pos,
                     'data': data.avgx,
                     'unit': data.unit,
@@ -493,6 +504,7 @@ class ViewScanDialog(_QDialog):
                     }
 
                 self.scan_dict[idx]['y'] = {
+                    'idn': idn,
                     'pos': pos,
                     'data': data.avgy,
                     'unit': data.unit,
@@ -507,6 +519,7 @@ class ViewScanDialog(_QDialog):
                     }
 
                 self.scan_dict[idx]['z'] = {
+                    'idn': idn,
                     'pos': pos,
                     'data': data.avgz,
                     'unit': data.unit,
@@ -531,10 +544,6 @@ class ViewScanDialog(_QDialog):
             if len(self.temperature) != 0:
                 self.ui.view_temperature_btn.setEnabled(True)
 
-            self.ui.first_integral_le.setText('')
-            self.ui.second_integral_le.setText('')
-            self.ui.first_integral_unit_la.setText('')
-            self.ui.second_integral_unit_la.setText('')
             self.updatePlot()
             self.setCurveLabels()
             self.ui.polyorder_la.hide()
@@ -682,14 +691,14 @@ class ViewScanDialog(_QDialog):
             self.clearGraph()
             self.updateXLimits()
             if self.ui.show_all_rb.isChecked():
-                nr_curves = len(self.scan_list)*3
+                nr_curves = len(self.scan_list)
                 scan_dict = self.scan_dict
                 show_xlines = False
             elif self.ui.show_selected_scan_rb.isChecked():
                 selected_idx = self.ui.select_scan_cmb.currentIndex()
                 if selected_idx == -1:
                     return
-                nr_curves = 3
+                nr_curves = 1
                 scan_dict = {selected_idx: self.scan_dict[selected_idx]}
                 show_xlines = False
             else:
@@ -702,7 +711,7 @@ class ViewScanDialog(_QDialog):
                     selected_comp: self.scan_dict[selected_idx][selected_comp]
                 }}
                 show_xlines = True
-    
+   
             self.configureGraph(nr_curves, self.plot_label)
 
             with _warnings.catch_warnings():
@@ -722,13 +731,13 @@ class ViewScanDialog(_QDialog):
                         y = (data + yoff)*ymult
                         if component == 'x':
                             self.graphx[x_count].setData(x, y)
-                            x_count = x_count = 1
+                            x_count = x_count + 1
                         elif component == 'y':
                             self.graphy[y_count].setData(x, y)
-                            y_count = y_count = 1
+                            y_count = y_count + 1
                         elif component == 'z':
                             self.graphz[z_count].setData(x, y)
-                            z_count = z_count = 1
+                            z_count = z_count + 1
 
             if show_xlines:
                 xmin = self.ui.xmin_sb.value()

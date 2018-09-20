@@ -1096,9 +1096,8 @@ def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
 
 
 def _cut_data_frame(df, idx_min, idx_max, axis=0):
-    idx_min = idx_min + 1
-    df = df.drop(df.columns[idx_min:], axis=axis)
-    df = df.drop(df.columns[:idx_max], axis=axis)
+    df = df.drop(df.columns[:idx_min], axis=axis)
+    df = df.drop(df.columns[idx_max-idx_min+1:], axis=axis)
     return df
 
 
@@ -1297,19 +1296,21 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
         if _utils.parallel_vectors(interp_direction, first_axis_direction):
             axis = 0
             interpolation_grid = index
-            if not (
-                _np.array_equal(fieldx.columns.values, fieldy.columns.values)
-                    and _np.array_equal(
-                        fieldx.columns.values, fieldz.columns.values)):
+            if not (_np.allclose(
+                fieldx.columns.values, fieldy.columns.values,
+                atol=_check_position_precision) and _np.allclose(
+                    fieldx.columns.values, fieldz.columns.values,
+                    atol=_check_position_precision)):
                 raise Exception("Can\'t correct sensors positions.")
 
         elif _utils.parallel_vectors(interp_direction, second_axis_direction):
             axis = 1
             interpolation_grid = columns
-            if not (
-                _np.array_equal(fieldx.index.values, fieldy.index.values)
-                    and _np.array_equal(
-                        fieldx.index.values, fieldz.index.values)):
+            if not (_np.allclose(
+                fieldx.index.values, fieldy.index.values,
+                atol=_check_position_precision) and _np.allclose(
+                    fieldx.index.values, fieldz.index.values,
+                    atol=_check_position_precision)):
                 raise Exception("Can\'t correct sensors positions.")
 
         else:

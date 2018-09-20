@@ -14,7 +14,7 @@ from . import database as _database
 
 
 _position_precision = 4
-_check_position_precision = 3
+_check_position_precision = 2
 _empty_str = '--'
 _measurements_label = 'Hall'
 
@@ -1123,8 +1123,9 @@ def _get_avg_voltage(voltage_scan_list):
     if isinstance(voltage_scan_list, VoltageScan):
         voltage_scan_list = [voltage_scan_list]
 
-    if not _valid_voltage_scan_list(voltage_scan_list):
-        raise MeasurementDataError('Invalid voltage scan list.')
+    valid, msg = _valid_voltage_scan_list(voltage_scan_list)
+    if not valid:
+        raise MeasurementDataError(msg)
 
     fixed_axes = [a for a in voltage_scan_list[0].axis_list
                   if a != voltage_scan_list[0].scan_axis]
@@ -1436,8 +1437,9 @@ def _group_voltage_scan_list(voltage_scan_list):
     if isinstance(voltage_scan_list, VoltageScan):
         voltage_scan_list = [voltage_scan_list]
 
-    if not _valid_voltage_scan_list(voltage_scan_list):
-        raise MeasurementDataError('Invalid voltage scan list.')
+    valid, msg = _valid_voltage_scan_list(voltage_scan_list)
+    if not valid:
+        raise MeasurementDataError(msg)
 
     fixed_axes = [a for a in voltage_scan_list[0].axis_list
                   if a != voltage_scan_list[0].scan_axis]
@@ -1511,20 +1513,29 @@ def _valid_field_scan_list(field_scan_list):
 
 def _valid_voltage_scan_list(voltage_scan_list):
     if not all([isinstance(vs, VoltageScan) for vs in voltage_scan_list]):
-        return False
+        msg = 'voltage_scan_list must be a list of VoltageScan objects.'
+        return False, msg
 
     if len(voltage_scan_list) == 0:
-        return False
+        msg = 'Empty voltage scan list.'
+        return False, msg
 
-    if any([vs.scan_axis is None or vs.npts == 0 for vs in voltage_scan_list]):
-        return False
+    if any([vs.scan_axis is None for vs in voltage_scan_list]):
+        msg = 'Invalid scan axis found in voltage scan list.'
+        return False, msg
+
+    if any([vs.npts == 0 for vs in voltage_scan_list]):
+        msg = 'Invalid number of points found in voltage scan list.'
+        return False, msg
 
     if not all([vs.scan_axis == voltage_scan_list[0].scan_axis
                 for vs in voltage_scan_list]):
-        return False
+        msg = 'Inconsistent scan axis found in voltage scan list.'
+        return False, msg
 
     if not all([
             vs.npts == voltage_scan_list[0].npts for vs in voltage_scan_list]):
-        return False
+        msg = 'Inconsistent number of points found in voltage scan list.'
+        return False, msg
 
-    return True
+    return True, ''

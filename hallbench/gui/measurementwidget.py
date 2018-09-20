@@ -1021,7 +1021,7 @@ class MeasurementWidget(_QWidget):
         if self.threadz is not None:
             while self.threadz.isRunning() and self.stop is False:
                 _QApplication.processEvents()
-        _time.sleep(0.5)
+        _time.sleep(1)
 
 
 class CurrentTemperatureThread(_QThread):
@@ -1119,7 +1119,7 @@ class VoltageThread(_QThread):
             if self.multimeter.inst.stb & 128:
                 voltage = self.multimeter.read_voltage(self.precision)
                 self.voltage = _np.append(self.voltage, voltage)
-                _time.sleep(self.integration_time)
+            _time.sleep(self.integration_time)
         else:
             # check memory
             self.multimeter.send_command(self.multimeter.commands.mcount)

@@ -18,6 +18,9 @@ toPyQt5.sh
 # Igor Pro Experiments
 *.pxp
 
+# Excel files
+*.xlsx
+
 # Previous model versions
 #model-previous/*.gz
 #model-previous/*.zip

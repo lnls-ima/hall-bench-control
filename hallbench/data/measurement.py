@@ -1029,6 +1029,7 @@ class Fieldmap(_database.DatabaseObject):
 
         tm = _get_transformation_matrix(magnet_x_axis, magnet_y_axis)
         _map = _get_fieldmap(field_scan_list, hall_probe, correct_positions)
+        
         for i in range(len(_map)):
             p = _map[i, :3]
             b = _map[i, 3:]
@@ -1253,7 +1254,10 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
     for fs in field_scan_list:
         index = _pd.Index(getattr(fs, 'pos' + str(first_axis)), float)
         columns = _pd.Index(getattr(fs, 'pos' + str(second_axis)), float)
-        third_axis_pos.update(getattr(fs, 'pos' + str(third_axis)))
+        third_axis_pos.update(
+            _np.around(
+                getattr(fs, 'pos' + str(third_axis)),
+                decimals=_check_position_precision))
         dfx.append(_pd.DataFrame(
             fs.avgx, index=index, columns=columns))
         dfy.append(_pd.DataFrame(
@@ -1295,7 +1299,8 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
 
         if _utils.parallel_vectors(interp_direction, first_axis_direction):
             axis = 0
-            interpolation_grid = index
+            interpolation_grid = _np.around(
+                index, decimals=_check_position_precision)
             if not (_np.allclose(
                 fieldx.columns.values, fieldy.columns.values,
                 atol=_check_position_precision) and _np.allclose(
@@ -1305,7 +1310,8 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
 
         elif _utils.parallel_vectors(interp_direction, second_axis_direction):
             axis = 1
-            interpolation_grid = columns
+            interpolation_grid = _np.around(
+                columns, decimals=_check_position_precision)
             if not (_np.allclose(
                 fieldx.index.values, fieldy.index.values,
                 atol=_check_position_precision) and _np.allclose(

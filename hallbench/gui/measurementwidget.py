@@ -413,7 +413,7 @@ class MeasurementWidget(_QWidget):
                     if self.stop is True:
                         return
                     self.moveAxis(second_axis, pos)
-                    if not self.scanLine(first_axis):
+                    if not self.scanLine(first_axis, second_axis, pos):
                         return
                     self.field_scan_list.append(self.field_scan)
 
@@ -456,9 +456,19 @@ class MeasurementWidget(_QWidget):
 
     def measureAndEmitSignal(self, current_setpoint):
         """Measure and emit signal to change current setpoint."""
-        if not self.configuration_widget.setMainCurrent(current_setpoint):
+        try:
+            current_value_str = str(current_setpoint)
+            self.measurement_config.main_current = current_value_str
+            self.local_measurement_config.main_current = current_value_str
+            self.configuration_widget.ui.main_current_le.setText(
+                current_value_str)
             return
-
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to set configuration main current.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return        
+    
         if not self.saveConfiguration():
             return
 
@@ -701,7 +711,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def scanLine(self, first_axis):
+    def scanLine(self, first_axis, second_axis=-1, second_axis_pos=None):
         """Start line scan."""
         self.field_scan = _FieldScan()
 
@@ -742,12 +752,15 @@ class MeasurementWidget(_QWidget):
                 self.moveAxis(first_axis, end + extra)
 
             for axis in self.voltage_scan.axis_list:
-                if axis != first_axis:
-                    pos = self.devices.pmac.get_position(axis)
-                    setattr(self.voltage_scan, 'pos' + str(axis), pos)
-                else:
+                if axis == first_axis:
                     setattr(self.voltage_scan, 'pos' + str(first_axis),
                             self.position_list)
+                elif axis == second_axis and second_axis_pos is not None: 
+                    setattr(self.voltage_scan, 'pos' + str(second_axis),
+                            second_axis_pos)                    
+                else:
+                    pos = self.devices.pmac.get_position(axis)
+                    setattr(self.voltage_scan, 'pos' + str(axis), pos)                    
 
             if self.stop is True:
                 return False

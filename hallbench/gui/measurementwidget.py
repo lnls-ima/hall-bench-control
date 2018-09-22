@@ -77,6 +77,7 @@ class MeasurementWidget(_QWidget):
         self.local_measurement_config = None
         self.local_measurement_config_id = None
         self.local_hall_probe = None
+        self.local_power_supply_config = None
         self.threadx = None
         self.thready = None
         self.threadz = None
@@ -93,7 +94,6 @@ class MeasurementWidget(_QWidget):
         self.stop = False
 
         self.connectSignalSlots()
-        self.current_temperature_thread = CurrentTemperatureThread()
 
         # Add legend to plot
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
@@ -139,6 +139,7 @@ class MeasurementWidget(_QWidget):
         self.local_measurement_config = None
         self.local_measurement_config_id = None
         self.local_hall_probe = None
+        self.local_power_supply_config = None
         self.voltage_scan = None
         self.field_scan = None
         self.voltage_scan_list = []
@@ -258,6 +259,7 @@ class MeasurementWidget(_QWidget):
         if (not self.validDatabase()
            or not self.updateHallProbe()
            or not self.updateConfiguration()
+           or not self.updatePowerSupplyConfig()
            or not self.multimetersConnected()
            or not self.configurePmac()
            or not self.configureMultichannel()):
@@ -396,9 +398,6 @@ class MeasurementWidget(_QWidget):
         if not self.measurement_configured:
             return False
 
-        if not self.startCurrentAndTemperatureMeasurements():
-            return False
-
         try:
             first_axis = self.local_measurement_config.first_axis
             second_axis = self.local_measurement_config.second_axis
@@ -441,8 +440,6 @@ class MeasurementWidget(_QWidget):
                     return
                 self.field_scan_list.append(self.field_scan)
 
-            self.current_temperature_thread.quit()
-
             if self.stop is True:
                 return
 
@@ -458,7 +455,6 @@ class MeasurementWidget(_QWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             self.killVoltageThreads()
-            self.current_temperature_thread.quit()
             self.turn_off_power_supply.emit(True)
             msg = 'Measurement failure.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
@@ -494,6 +490,53 @@ class MeasurementWidget(_QWidget):
             self.startAutomaticMeasurements()
         else:
             self.startMeasurement()
+
+    def measureCurrentAndTemperature(self):
+        """Measure current and temperatures."""
+        if (not self.ui.save_temperature_chb.isChecked() and
+           not self.ui.save_current_chb.isChecked()):
+            return True
+
+        try:
+            current_dict = {}
+            temperature_dict = {}
+            dcct_head = self.local_power_supply_config.dcct_head
+            ps_type = self.local_power_supply_config.ps_type
+            ts = _time.time()
+            
+            # Read multichannel
+            r = self.devices.multich.get_converted_readings(
+                dcct_head=dcct_head)
+            channels = self.devices.multich.config_channels
+            dcct_channels = self.devices.multich.dcct_channels
+            for i, ch in enumerate(channels):
+                if ch in dcct_channels:
+                    if dcct_head is not None:
+                        current_dict['DCCT'] = [[ts, r[i]]]
+                else:
+                    temperature_dict[ch] = [[ts, r[i]]]
+            _QApplication.processEvents()            
+           
+            # Read power supply current
+            if self.ui.save_current_chb.isChecked():   
+                if ps_type is not None:
+                    self.devices.ps.SetSlaveAdd(ps_type)
+                    ps_current = float(self.devices.ps.Read_iLoad1())
+                    current_dict['PS'] = [[ts, ps_current]]
+            
+            # Save values in voltage scan
+            if self.ui.save_current_chb.isChecked():
+                self.voltage_scan.current = current_dict
+
+            if self.ui.save_temperature_chb.isChecked():
+                self.voltage_scan.temperature = temperature_dict
+
+            _QApplication.processEvents()
+            return True
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return False
 
     def moveAxis(self, axis, position):
         """Move bench axis.
@@ -743,13 +786,15 @@ class MeasurementWidget(_QWidget):
         nr_measurements = self.local_measurement_config.nr_measurements
         self.clearGraph()
         self.configureGraph(2*nr_measurements, 'Voltage [V]')
+        _QApplication.processEvents()
 
         voltage_scan_list = []
         for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
 
-            self.voltage_scan = _VoltageScan()
+            self.voltage_scan = _VoltageScan()           
+            self.measureCurrentAndTemperature()
             self.configuration_widget.nr_measurements_sb.setValue(
                 _np.ceil((idx + 1)/2))
 
@@ -774,6 +819,7 @@ class MeasurementWidget(_QWidget):
                 else:
                     pos = self.devices.pmac.get_position(axis)
                     setattr(self.voltage_scan, 'pos' + str(axis), pos)
+            _QApplication.processEvents()
 
             if self.stop is True:
                 return False
@@ -797,7 +843,8 @@ class MeasurementWidget(_QWidget):
                 self.devices.voltz.config(
                     self.local_measurement_config.integration_time,
                     self.local_measurement_config.voltage_precision)
-
+            _QApplication.processEvents()
+            
             self.startVoltageThreads()
 
             if self.stop is False:
@@ -814,10 +861,7 @@ class MeasurementWidget(_QWidget):
                 self.thready.voltage if self.thready is not None else [])
             self.voltage_scan.avgz = (
                 self.threadz.voltage if self.threadz is not None else [])
-            self.voltage_scan.current = self.current_temperature_thread.current
-            self.voltage_scan.temperature = (
-                self.current_temperature_thread.temperature)
-            self.current_temperature_thread.clear()
+            _QApplication.processEvents()
 
             if self.stop is True:
                 return False
@@ -840,6 +884,7 @@ class MeasurementWidget(_QWidget):
             success = self.saveFieldScan()
         else:
             success = True
+        _QApplication.processEvents()
 
         return success
 
@@ -872,39 +917,6 @@ class MeasurementWidget(_QWidget):
         self.ui.measure_btn.setEnabled(False)
         self.ui.stop_btn.setEnabled(True)
         self.change_current_setpoint.emit(1)
-
-    def startCurrentAndTemperatureMeasurements(self):
-        """Start current and temperatures measurements."""
-        if (not self.ui.save_temperature_chb.isChecked() and
-           not self.ui.save_current_chb.isChecked()):
-            return True
-
-        try:
-            index = self.ui.timer_interval_unit_cmb.currentIndex()
-            if index == 0:
-                mf = 1000
-            elif index == 1:
-                mf = 1000*60
-            else:
-                mf = 1000*3600
-            timer_interval = self.ui.timer_interval_sb.value()*mf
-            self.current_temperature_thread.timer_interval = timer_interval
-
-            if self.ui.save_current_chb.isChecked():
-                dcct_head = self.power_supply_config.dcct_head
-                ps_type = self.power_supply_config.ps_type
-                self.current_temperature_thread.dcct_head = dcct_head
-                self.current_temperature_thread.ps_type = ps_type
-
-            self.current_temperature_thread.clear()
-            self.current_temperature_thread.start()
-            return True
-
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to start multichannel readings.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
 
     def startMeasurement(self):
         """Configure devices and start measurement."""
@@ -958,7 +970,6 @@ class MeasurementWidget(_QWidget):
             self.devices.pmac.stop_all_axis()
             self.ui.stop_btn.setEnabled(False)
             self.ui.clear_graph_btn.setEnabled(True)
-            self.current_temperature_thread.quit()
             msg = 'The user stopped the measurements.'
             _QMessageBox.information(
                 self, 'Abort', msg, _QMessageBox.Ok)
@@ -1024,6 +1035,11 @@ class MeasurementWidget(_QWidget):
             else:
                 return False
 
+    def updatePowerSupplyConfig(self):
+        """Update local power supply configuration."""
+        self.local_power_supply_config = self.power_supply_config
+        return True
+
     def validDatabase(self):
         """Check if the database filename is valid."""
         if (self.database is not None
@@ -1048,77 +1064,6 @@ class MeasurementWidget(_QWidget):
             while self.threadz.isRunning() and self.stop is False:
                 _QApplication.processEvents()
         _time.sleep(1)
-
-
-class CurrentTemperatureThread(_QThread):
-    """Thread to read values from multichannel."""
-
-    def __init__(self):
-        """Initialize object."""
-        super().__init__()
-        self.timer = _QTimer()
-        self.timer.moveToThread(self)
-        self.timer.timeout.connect(self.readChannels)
-        self.timer_interval = None
-        self.dcct_head = None
-        self.ps_type = None
-        self.current = {}
-        self.temperature = {}
-
-    @property
-    def multich(self):
-        """Multichannel."""
-        return _QApplication.instance().devices.multich
-
-    @property
-    def ps(self):
-        """Power supply."""
-        return _QApplication.instance().devices.ps
-
-    def clear(self):
-        """Clear values."""
-        self.current = {}
-        self.temperature = {}
-
-    def readChannels(self):
-        """Read channels."""
-        try:
-            ts = _time.time()
-
-            if self.ps_type is not None:
-                self.ps.SetSlaveAdd(self.ps_type)
-                ps_current = float(self.ps.Read_iLoad1())
-                if 'PS' in self.current.keys():
-                    self.current['PS'].append([ts, ps_current])
-                else:
-                    self.current['PS'] = [[ts, ps_current]]
-
-            r = self.multich.get_converted_readings(dcct_head=self.dcct_head)
-
-            channels = self.multich.config_channels
-            dcct_channels = self.multich.dcct_channels
-            for i, ch in enumerate(channels):
-                if ch in dcct_channels:
-                    if self.dcct_head is not None:
-                        if 'DCCT' in self.current.keys():
-                            self.current['DCCT'].append([ts, r[i]])
-                        else:
-                            self.current['DCCT'] = [[ts, r[i]]]
-                else:
-                    if ch in self.temperature.keys():
-                        self.temperature[ch].append([ts, r[i]])
-                    else:
-                        self.temperature[ch] = [[ts, r[i]]]
-            _QApplication.processEvents()
-        except Exception:
-            pass
-
-    def run(self):
-        """Read current and temperatures from the device."""
-        if self.timer_interval is not None:
-            self.timer.start(self.timer_interval)
-            loop = _QEventLoop()
-            loop.exec_()
 
 
 class VoltageThread(_QThread):

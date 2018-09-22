@@ -549,6 +549,7 @@ class SupplyWidget(_QWidget):
             self.current_array_index = self.current_array_index + 1
             self.current_setpoint_changed.emit(_setpoint)
         else:
+            self.current_array_index = 0
             self.current_ramp_end.emit(False)
 
     def current_setpoint(self, setpoint=0):

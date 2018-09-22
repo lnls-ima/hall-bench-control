@@ -153,6 +153,16 @@ class MeasurementWidget(_QWidget):
         self.ui.create_fieldmap_btn.setEnabled(False)
         self.ui.save_scan_files_btn.setEnabled(False)
 
+    def clearCurrentMeasurement(self):
+        """Clear current measurement data."""
+        self.voltage_scan = None
+        self.field_scan = None
+        self.voltage_scan_list = []
+        self.field_scan_list = []
+        self.position_list = []
+        self.field_scan_id_list = []
+        self.voltage_scan_id_list = []
+
     def clearGraph(self):
         """Clear plots."""
         self.ui.graph_pw.plotItem.curves.clear()
@@ -449,13 +459,15 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             self.killVoltageThreads()
             self.current_temperature_thread.quit()
-            self.turn_off_power_supply.emit(True) 
+            self.turn_off_power_supply.emit(True)
             msg = 'Measurement failure.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
     def measureAndEmitSignal(self, current_setpoint):
         """Measure and emit signal to change current setpoint."""
+        self.clearCurrentMeasurement()
+
         try:
             current_value_str = str(current_setpoint)
             self.measurement_config.main_current = current_value_str
@@ -466,16 +478,18 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to set configuration main current.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return        
-    
+            return
+
         if not self.saveConfiguration():
             return
 
         if not self.measure():
             return
+
         self.change_current_setpoint.emit(True)
 
     def measureButtonClicked(self):
+        """Start measurements."""
         if self.ui.automatic_current_ramp_chb.isChecked():
             self.startAutomaticMeasurements()
         else:
@@ -730,7 +744,7 @@ class MeasurementWidget(_QWidget):
         self.clearGraph()
         self.configureGraph(2*nr_measurements, 'Voltage [V]')
 
-        voltage_scan_list = []       
+        voltage_scan_list = []
         for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
@@ -754,12 +768,12 @@ class MeasurementWidget(_QWidget):
                 if axis == first_axis:
                     setattr(self.voltage_scan, 'pos' + str(first_axis),
                             self.position_list)
-                elif axis == second_axis and second_axis_pos is not None: 
+                elif axis == second_axis and second_axis_pos is not None:
                     setattr(self.voltage_scan, 'pos' + str(second_axis),
-                            second_axis_pos)                    
+                            second_axis_pos)
                 else:
                     pos = self.devices.pmac.get_position(axis)
-                    setattr(self.voltage_scan, 'pos' + str(axis), pos)                    
+                    setattr(self.voltage_scan, 'pos' + str(axis), pos)
 
             if self.stop is True:
                 return False
@@ -804,7 +818,7 @@ class MeasurementWidget(_QWidget):
             self.voltage_scan.temperature = (
                 self.current_temperature_thread.temperature)
             self.current_temperature_thread.clear()
-                      
+
             if self.stop is True:
                 return False
 
@@ -816,7 +830,7 @@ class MeasurementWidget(_QWidget):
                     return False
 
             voltage_scan_list.append(self.voltage_scan.copy())
-                        
+
         for vd in voltage_scan_list:
             self.voltage_scan_list.append(vd)
 
@@ -875,7 +889,7 @@ class MeasurementWidget(_QWidget):
                 mf = 1000*3600
             timer_interval = self.ui.timer_interval_sb.value()*mf
             self.current_temperature_thread.timer_interval = timer_interval
-            
+
             if self.ui.save_current_chb.isChecked():
                 dcct_head = self.power_supply_config.dcct_head
                 ps_type = self.power_supply_config.ps_type

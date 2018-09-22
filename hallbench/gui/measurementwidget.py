@@ -462,7 +462,6 @@ class MeasurementWidget(_QWidget):
             self.local_measurement_config.main_current = current_value_str
             self.configuration_widget.ui.main_current_le.setText(
                 current_value_str)
-            return
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to set configuration main current.'

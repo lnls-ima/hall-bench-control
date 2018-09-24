@@ -2,8 +2,10 @@
 
 """Temperature widget for the Hall Bench Control application."""
 
+import sys as _sys
 import numpy as _np
 import time as _time
+import traceback as _traceback
 from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
@@ -51,7 +53,7 @@ class TemperatureWidget(_TablePlotWidget):
         _layout.addWidget(self.channels_widget)
         self.ui.widget_wg.setLayout(_layout)
 
-        # add channels_widget
+        # add configuration button
         self._configured = False
         self.configure_btn = _QPushButton('Configure Channels')
         self.configure_btn.setMinimumHeight(45)
@@ -81,15 +83,18 @@ class TemperatureWidget(_TablePlotWidget):
                 'Multichannel not connected.', _QMessageBox.Ok)
             return
 
-        wait = self.channels_widget.delay
-        self._configured = self.devices.multich.configure(
-            selected_channels, wait=wait)
-        if self._configured:
-            self.configure_btn.setEnabled(False)
-        else:
-            self.configure_btn.setEnabled(True)
-            msg = 'Failed to configure Multichannel.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+        try:
+            wait = self.channels_widget.delay
+            self._configured = self.devices.multich.configure(
+                selected_channels, wait=wait)
+            if self._configured:
+                self.configure_btn.setEnabled(False)
+            else:
+                self.configure_btn.setEnabled(True)
+                msg = 'Failed to configure Multichannel.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def enableConfigureButton(self):
         """Enable configure button."""

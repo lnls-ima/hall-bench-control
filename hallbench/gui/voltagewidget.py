@@ -123,6 +123,9 @@ class VoltageWidget(_TablePlotWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-        self.devices.voltx.reset()
-        self.devices.volty.reset()
-        self.devices.voltz.reset()
+        try:
+            self.devices.voltx.reset()
+            self.devices.volty.reset()
+            self.devices.voltz.reset()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)

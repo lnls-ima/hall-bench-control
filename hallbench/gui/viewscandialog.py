@@ -271,31 +271,19 @@ class ViewScanDialog(_QDialog):
                 self.ui.graph_pw.plotItem.plot(
                     _np.array([]),
                     _np.array([]),
-                    pen=(255, 0, 0),
-                    symbol='o',
-                    symbolPen=(255, 0, 0),
-                    symbolSize=4,
-                    symbolBrush=(255, 0, 0)))
+                    pen=(255, 0, 0)))
 
             self.graphy.append(
                 self.ui.graph_pw.plotItem.plot(
                     _np.array([]),
                     _np.array([]),
-                    pen=(0, 255, 0),
-                    symbol='o',
-                    symbolPen=(0, 255, 0),
-                    symbolSize=4,
-                    symbolBrush=(0, 255, 0)))
+                    pen=(0, 255, 0)))
 
             self.graphz.append(
                 self.ui.graph_pw.plotItem.plot(
                     _np.array([]),
                     _np.array([]),
-                    pen=(0, 0, 255),
-                    symbol='o',
-                    symbolPen=(0, 0, 255),
-                    symbolSize=4,
-                    symbolBrush=(0, 0, 255)))
+                    pen=(0, 0, 255)))
 
         self.legend.addItem(self.graphx[0], 'X')
         self.legend.addItem(self.graphy[0], 'Y')

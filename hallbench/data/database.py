@@ -210,8 +210,9 @@ class DatabaseObject(object):
 
         con = _sqlite.connect(database)
         cur = con.cursor()
-        cur.execute('SELECT * FROM {0}'.format(table))
-        column_names = [d[0] for d in cur.description]
+        cur.execute("PRAGMA TABLE_INFO({0})".format(table))
+        info = cur.fetchall()
+        column_names = [i[1] for i in info]
         con.close()
         return column_names
 

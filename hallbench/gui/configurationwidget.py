@@ -32,12 +32,11 @@ class ConfigurationWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.updateProbeNames()
-        self.updateConfigurationIDs()
-        self.ui.loaddb_btn.setEnabled(False)
-
         self.view_probe_dialog = _ViewProbeDialog()
         self.connectSignalSlots()
+
+        self.updateProbeNames()
+        self.updateConfigurationIDs()
 
     @property
     def database(self):
@@ -721,10 +720,11 @@ class ConfigurationWidget(_QWidget):
             self.ui.idn_cmb.clear()
             self.ui.idn_cmb.addItems([str(idn) for idn in idns])
             if len(current_text) == 0:
-                self.ui.idn_cmb.setCurrentIndex(-1)
+                self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
+                self.ui.loaddb_btn.setEnabled(True)
             else:
                 self.ui.idn_cmb.setCurrentText(current_text)
-            self.ui.loaddb_btn.setEnabled(load_enabled)
+                self.ui.loaddb_btn.setEnabled(load_enabled)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             pass

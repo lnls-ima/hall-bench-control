@@ -29,11 +29,10 @@ class ConnectionWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.updateConnectionIDs()
-        self.ui.loaddb_btn.setEnabled(False)
-
         self.connectSignalSlots()
         self.updateSerialPorts()
+
+        self.updateConnectionIDs()
 
     @property
     def connection_config(self):
@@ -368,10 +367,11 @@ class ConnectionWidget(_QWidget):
                 self.database, 'id')
             self.ui.idn_cmb.addItems([str(idn) for idn in idns])
             if len(current_text) == 0:
-                self.ui.idn_cmb.setCurrentIndex(-1)
+                self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
+                self.ui.loaddb_btn.setEnabled(True)
             else:
                 self.ui.idn_cmb.setCurrentText(current_text)
-            self.ui.loaddb_btn.setEnabled(load_enabled)
+                self.ui.loaddb_btn.setEnabled(load_enabled)
         except Exception:
             pass
 

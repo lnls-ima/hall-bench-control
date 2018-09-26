@@ -1069,6 +1069,7 @@ class SupplyWidget(_QWidget):
                 elif not _interlock and self.ui.pb_interlock.isEnabled():
                     self.ui.pb_interlock.setEnabled(False)
                 _QApplication.processEvents()
+                self.display_current()
             except Exception:
                 _traceback.print_exc(file=_sys.stdout)
                 self.ui.le_status_con.setText('Not Ok')

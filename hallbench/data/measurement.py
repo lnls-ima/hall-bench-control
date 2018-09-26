@@ -53,10 +53,16 @@ class Scan(_database.DatabaseObject):
             idn (int): id in database table.
             data_unit (str, optional): data unit.
         """
-        self._magnet_name = None
-        self._main_current = None
-        self._timestamp = None
+        self._data_unit = data_unit
         self._configuration_id = None
+        self._timestamp = None
+        self._comments = None
+        self._magnet_name = None
+        self._current_setpoint = None
+        self._dcct_current_avg = None
+        self._dcct_current_std = None
+        self._ps_current_avg = None
+        self._ps_current_std = None
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
         self._pos3 = _np.array([])
@@ -71,8 +77,6 @@ class Scan(_database.DatabaseObject):
         self._stdx = _np.array([])
         self._stdy = _np.array([])
         self._stdz = _np.array([])
-        self._data_unit = data_unit
-        self._current = {}
         self._temperature = {}
 
         if filename is not None and idn is not None:
@@ -89,8 +93,13 @@ class Scan(_database.DatabaseObject):
         fmtstr = '{0:<18s} : {1}\n'
         r = ''
         r += fmtstr.format('magnet_name', str(self.magnet_name))
-        r += fmtstr.format('main_current[A]', str(self.main_current))
-        r += fmtstr.format('timestamp', str(self._timestamp))
+        r += fmtstr.format('current_setpoint[A]', str(self.current_setpoint))
+        r += fmtstr.format('dcct_current_avg[A]', str(self.dcct_current_avg))
+        r += fmtstr.format('dcct_current_std[A]', str(self.dcct_current_std))
+        r += fmtstr.format('ps_current_avg[A]', str(self.ps_current_avg))
+        r += fmtstr.format('ps_current_std[A]', str(self.ps_current_std))
+        r += fmtstr.format('timestamp', str(self.timestamp))
+        r += fmtstr.format('comments', str(self.comments))
         r += fmtstr.format('scan_axis', str(self.scan_axis))
         r += fmtstr.format('npts', str(self.npts))
         r += fmtstr.format('pos1[mm]', str(self._pos1))
@@ -122,30 +131,6 @@ class Scan(_database.DatabaseObject):
         return self._data_unit
 
     @property
-    def magnet_name(self):
-        """Return the magnet name."""
-        return self._magnet_name
-
-    @magnet_name.setter
-    def magnet_name(self, value):
-        if value is not None:
-            if len(value) == 0 or value == _empty_str:
-                value = None
-        self._magnet_name = value
-
-    @property
-    def main_current(self):
-        """Return the main current."""
-        return self._main_current
-
-    @main_current.setter
-    def main_current(self, value):
-        if value is not None:
-            if len(value) == 0 or value == _empty_str:
-                value = None
-        self._main_current = value
-
-    @property
     def configuration_id(self):
         """Return the measurement configuration ID."""
         return self._configuration_id
@@ -163,6 +148,132 @@ class Scan(_database.DatabaseObject):
     def timestamp(self):
         """Return the timestamp."""
         return self._timestamp
+
+    @timestamp.setter
+    def timestamp(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._timestamp = value
+
+    @property
+    def magnet_name(self):
+        """Return the magnet name."""
+        return self._magnet_name
+
+    @magnet_name.setter
+    def magnet_name(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._magnet_name = value
+
+    @property
+    def comments(self):
+        """Return the comments."""
+        return self._comments
+
+    @comments.setter
+    def comments(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._comments = value
+
+    @property
+    def current_setpoint(self):
+        """Return the current setpoint."""
+        return self._current_setpoint
+
+    @current_setpoint.setter
+    def current_setpoint(self, value):
+        if value is None:
+            self._current_setpoint = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._current_setpoint = None
+            else:
+                self._current_setpoint = float(value)
+        elif isinstance(value, (float, int)):
+            self._current_setpoint = value
+        else:
+            raise TypeError('current_setpoint must be a float.')   
+
+    @property
+    def dcct_current_avg(self):
+        """Return the average DCCT current."""
+        return self._dcct_current_avg
+
+    @dcct_current_avg.setter
+    def dcct_current_avg(self, value):
+        if value is None:
+            self._dcct_current_avg = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._dcct_current_avg = None
+            else:
+                self._dcct_current_avg = float(value)
+        elif isinstance(value, (float, int)):
+            self._dcct_current_avg = value
+        else:
+            raise TypeError('dcct_current_avg must be a float.')
+
+    @property
+    def dcct_current_std(self):
+        """Return the average DCCT current."""
+        return self._dcct_current_std
+
+    @dcct_current_std.setter
+    def dcct_current_std(self, value):
+        if value is None:
+            self._dcct_current_std = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._dcct_current_std = None
+            else:
+                self._dcct_current_std = float(value)
+        elif isinstance(value, (float, int)):
+            self._dcct_current_std = value
+        else:
+            raise TypeError('dcct_current_std must be a float.')
+
+    @property
+    def ps_current_avg(self):
+        """Return the average DCCT current."""
+        return self._ps_current_avg
+
+    @ps_current_avg.setter
+    def ps_current_avg(self, value):
+        if value is None:
+            self._ps_current_avg = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._ps_current_avg = None
+            else:
+                self._ps_current_avg = float(value)
+        elif isinstance(value, (float, int)):
+            self._ps_current_avg = value
+        else:
+            raise TypeError('ps_current_avg must be a float.')
+
+    @property
+    def ps_current_std(self):
+        """Return the average DCCT current."""
+        return self._ps_current_std
+
+    @ps_current_std.setter
+    def ps_current_std(self, value):
+        if value is None:
+            self._ps_current_std = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._ps_current_std = None
+            else:
+                self._ps_current_std = float(value)
+        elif isinstance(value, (float, int)):
+            self._ps_current_std = value
+        else:
+            raise TypeError('ps_current_std must be a float.')
 
     @property
     def pos1(self):
@@ -308,10 +419,15 @@ class Scan(_database.DatabaseObject):
 
     def clear(self):
         """Clear Scan."""
-        self._magnet_name = None
-        self._main_current = None
-        self._timestamp = None
         self._configuration_id = None
+        self._timestamp = None
+        self._comments = None
+        self._magnet_name = None
+        self._current_setpoint = None
+        self._dcct_current_avg = None
+        self._dcct_current_std = None
+        self._ps_current_avg = None
+        self._ps_current_std = None
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
                 self.__dict__[key] = _np.array([])
@@ -335,9 +451,13 @@ class Scan(_database.DatabaseObject):
             filename (str): file full path.
         """
         flines = _utils.read_file(filename)
-        self._timestamp = _utils.find_value(flines, 'timestamp')
+        self.timestamp = _utils.find_value(flines, 'timestamp')
         self.magnet_name = _utils.find_value(flines, 'magnet_name')
-        self.main_current = _utils.find_value(flines, 'main_current')
+        self.current_setpoint = _utils.find_value(flines, 'current_setpoint')
+        self.dcct_current_avg = _utils.find_value(flines, 'dcct_current_avg')
+        self.dcct_current_std = _utils.find_value(flines, 'dcct_current_std')
+        self.ps_current_avg = _utils.find_value(flines, 'ps_current_avg')
+        self.ps_current_std = _utils.find_value(flines, 'ps_current_std')
 
         scan_axis = _utils.find_value(flines, 'scan_axis', int)
         for axis in self._axis_list:
@@ -442,23 +562,39 @@ class Scan(_database.DatabaseObject):
         magnet_name = (
             self.magnet_name if self.magnet_name is not None
             else _empty_str)
-        main_current = (
-            self.main_current if self.main_current is not None
+        current_setpoint = (
+            self.current_setpoint if self.current_setpoint is not None
             else _empty_str)
+        dcct_current_avg = (
+            self.dcct_current_avg if self.dcct_current_avg is not None
+            else _empty_str)
+        dcct_current_std = (
+            self.dcct_current_std if self.dcct_current_std is not None
+            else _empty_str)
+        ps_current_avg = (
+            self.ps_current_avg if self.ps_current_avg is not None
+            else _empty_str)
+        ps_current_std = (
+            self.ps_current_std if self.ps_current_std is not None
+            else _empty_str)            
 
         with open(filename, mode='w') as f:
-            f.write('timestamp:         \t%s\n' % self._timestamp)
-            f.write('magnet_name:       \t%s\n' % magnet_name)
-            f.write('main_current[A]:   \t%s\n' % main_current)
-            f.write('scan_axis:         \t%s\n' % scan_axis)
-            f.write('pos1[mm]:          \t%s\n' % pos1_str)
-            f.write('pos2[mm]:          \t%s\n' % pos2_str)
-            f.write('pos3[mm]:          \t%s\n' % pos3_str)
-            f.write('pos5[deg]:         \t%s\n' % pos5_str)
-            f.write('pos6[mm]:          \t%s\n' % pos6_str)
-            f.write('pos7[mm]:          \t%s\n' % pos7_str)
-            f.write('pos8[deg]:         \t%s\n' % pos8_str)
-            f.write('pos9[deg]:         \t%s\n' % pos9_str)
+            f.write('timestamp:           \t%s\n' % self._timestamp)
+            f.write('magnet_name:         \t%s\n' % magnet_name)
+            f.write('current_setpoint[A]: \t%s\n' % current_setpoint)
+            f.write('dcct_current_avg[A]: \t%s\n' % dcct_current_avg)
+            f.write('dcct_current_std[A]: \t%s\n' % dcct_current_std)
+            f.write('ps_current_avg[A]:   \t%s\n' % ps_current_avg)
+            f.write('ps_current_std[A]:   \t%s\n' % ps_current_std)
+            f.write('scan_axis:           \t%s\n' % scan_axis)
+            f.write('pos1[mm]:            \t%s\n' % pos1_str)
+            f.write('pos2[mm]:            \t%s\n' % pos2_str)
+            f.write('pos3[mm]:            \t%s\n' % pos3_str)
+            f.write('pos5[deg]:           \t%s\n' % pos5_str)
+            f.write('pos6[mm]:            \t%s\n' % pos6_str)
+            f.write('pos7[mm]:            \t%s\n' % pos7_str)
+            f.write('pos8[deg]:           \t%s\n' % pos8_str)
+            f.write('pos9[deg]:           \t%s\n' % pos9_str)
             f.write('\n')
             f.write('%s\n' % columns_names)
             f.write('-----------------------------------------------------' +
@@ -479,9 +615,13 @@ class VoltageScan(Scan):
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
-        ('magnet_name', ['magnet_name', 'TEXT']),
-        ('main_current', ['main_current', 'TEXT']),
         ('configuration_id', ['configuration_id', 'INTEGER']),
+        ('magnet_name', ['magnet_name', 'TEXT']),
+        ('current_setpoint', ['current_setpoint', 'REAL']),     
+        ('dcct_current_avg', ['dcct_current_avg', 'REAL']),
+        ('dcct_current_std', ['dcct_current_std', 'REAL']),
+        ('ps_current_avg', ['ps_current_avg', 'REAL']),
+        ('ps_current_std', ['ps_current_std', 'REAL']),
         ('scan_axis', ['scan_axis', 'INTEGER']),
         ('pos1', ['_pos1', 'TEXT NOT NULL']),
         ('pos2', ['_pos2', 'TEXT NOT NULL']),
@@ -492,12 +632,12 @@ class VoltageScan(Scan):
         ('pos8', ['_pos8', 'TEXT NOT NULL']),
         ('pos9', ['_pos9', 'TEXT NOT NULL']),
         ('voltagex_avg', ['_avgx', 'TEXT NOT NULL']),
-        ('voltagey_avg', ['_avgy', 'TEXT NOT NULL']),
-        ('voltagez_avg', ['_avgz', 'TEXT NOT NULL']),
         ('voltagex_std', ['_stdx', 'TEXT NOT NULL']),
+        ('voltagey_avg', ['_avgy', 'TEXT NOT NULL']),
         ('voltagey_std', ['_stdy', 'TEXT NOT NULL']),
+        ('voltagez_avg', ['_avgz', 'TEXT NOT NULL']),
         ('voltagez_std', ['_stdz', 'TEXT NOT NULL']),
-        ('current', ['_current', 'TEXT NOT NULL']),
+        ('comments', ['comments', 'TEXT']),
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
     ])
     _db_json_str = [
@@ -505,7 +645,7 @@ class VoltageScan(Scan):
         '_pos6', '_pos7', '_pos8', '_pos9',
         '_avgx', '_avgy', '_avgz',
         '_stdx', '_stdy', '_stdz',
-        '_current', '_temperature',
+        '_temperature',
         ]
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -597,13 +737,6 @@ class VoltageScan(Scan):
         """Set stdz value."""
         self._stdz = _utils.to_array(value)
 
-    @Scan.current.setter
-    def current(self, value):
-        """Set current values."""
-        if not isinstance(value, dict):
-            raise TypeError('current must be a dict.')
-        self._current = value
-
     @Scan.temperature.setter
     def temperature(self, value):
         """Set temperature values."""
@@ -621,9 +754,13 @@ class FieldScan(Scan):
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
-        ('magnet_name', ['magnet_name', 'TEXT']),
-        ('main_current', ['main_current', 'TEXT']),
         ('configuration_id', ['configuration_id', 'INTEGER']),
+        ('magnet_name', ['magnet_name', 'TEXT']),
+        ('current_setpoint', ['current_setpoint', 'REAL']),     
+        ('dcct_current_avg', ['dcct_current_avg', 'REAL']),
+        ('dcct_current_std', ['dcct_current_std', 'REAL']),
+        ('ps_current_avg', ['ps_current_avg', 'REAL']),
+        ('ps_current_std', ['ps_current_std', 'REAL']),
         ('scan_axis', ['scan_axis', 'INTEGER']),
         ('pos1', ['_pos1', 'TEXT NOT NULL']),
         ('pos2', ['_pos2', 'TEXT NOT NULL']),
@@ -634,12 +771,12 @@ class FieldScan(Scan):
         ('pos8', ['_pos8', 'TEXT NOT NULL']),
         ('pos9', ['_pos9', 'TEXT NOT NULL']),
         ('fieldx_avg', ['_avgx', 'TEXT NOT NULL']),
-        ('fieldy_avg', ['_avgy', 'TEXT NOT NULL']),
-        ('fieldz_avg', ['_avgz', 'TEXT NOT NULL']),
         ('fieldx_std', ['_stdx', 'TEXT NOT NULL']),
+        ('fieldy_avg', ['_avgy', 'TEXT NOT NULL']),
         ('fieldy_std', ['_stdy', 'TEXT NOT NULL']),
+        ('fieldz_avg', ['_avgz', 'TEXT NOT NULL']),
         ('fieldz_std', ['_stdz', 'TEXT NOT NULL']),
-        ('current', ['_current', 'TEXT NOT NULL']),
+        ('comments', ['comments', 'TEXT']),
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
     ])
     _db_json_str = [
@@ -647,7 +784,7 @@ class FieldScan(Scan):
         '_pos6', '_pos7', '_pos8', '_pos9',
         '_avgx', '_avgy', '_avgz',
         '_stdx', '_stdy', '_stdz',
-        '_current', '_temperature',
+        '_temperature',
         ]
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -689,9 +826,16 @@ class FieldScan(Scan):
         self._stdy = by_std
         self._stdz = bz_std
 
-        cur, temp = get_current_and_temperature_values(voltage_scan_list)
-        self._temperature = temp
-        self._current = cur
+        self._temperature = get_temperature_values(
+            voltage_scan_list)
+        
+        setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
+            voltage_scan_list)
+        self.current_setpoint = setpoint
+        self.dcct_current_avg = dcct_avg
+        self.dcct_current_std = dcct_std
+        self.ps_current_avg = ps_avg
+        self.ps_current_std = ps_std
 
 
 class Fieldmap(_database.DatabaseObject):
@@ -703,7 +847,11 @@ class Fieldmap(_database.DatabaseObject):
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
         ('magnet_name', ['magnet_name', 'TEXT']),
-        ('main_current', ['current_main', 'TEXT']),
+        ('current_setpoint', ['current_setpoint', 'REAL']),     
+        ('dcct_current_avg', ['dcct_current_avg', 'REAL']),
+        ('dcct_current_std', ['dcct_current_std', 'REAL']),
+        ('ps_current_avg', ['ps_current_avg', 'REAL']),
+        ('ps_current_std', ['ps_current_std', 'REAL']),
         ('nr_scans', ['nr_scans', 'INTEGER']),
         ('initial_scan', ['initial_scan', 'INTEGER']),
         ('final_scan', ['final_scan', 'INTEGER']),
@@ -724,11 +872,11 @@ class Fieldmap(_database.DatabaseObject):
         ('magnet_center', ['_magnet_center', 'TEXT']),
         ('magnet_x_axis', ['_magnet_x_axis', 'INTEGER']),
         ('magnet_y_axis', ['_magnet_y_axis', 'INTEGER']),
+        ('corrected_positions', ['_corrected_positions', 'INTEGER']),
         ('map', ['_map', 'TEXT NOT NULL']),
-        ('current', ['_current', 'TEXT NOT NULL']),
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
     ])
-    _db_json_str = ['_magnet_center', '_map', '_current', '_temperature']
+    _db_json_str = ['_magnet_center', '_map', '_temperature']
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize variables.
@@ -742,10 +890,15 @@ class Fieldmap(_database.DatabaseObject):
             raise ValueError('Invalid arguments for FieldScan.')
 
         self._timestamp = None
-        self.magnet_name = None
-        self.gap = None
-        self.control_gap = None
-        self.magnet_length = None
+        self._magnet_name = None
+        self._gap = None
+        self._control_gap = None
+        self._magnet_length = None
+        self._current_setpoint = None
+        self._dcct_current_avg = None
+        self._dcct_current_std = None
+        self._ps_current_avg = None
+        self._ps_current_std = None
         self.comments = None
         self.current_main = None
         self.nr_turns_main = None
@@ -764,7 +917,7 @@ class Fieldmap(_database.DatabaseObject):
         self._magnet_center = None
         self._magnet_x_axis = None
         self._magnet_y_axis = None
-        self._current = {}
+        self._corrected_positions = None
         self._temperature = {}
 
         if idn is not None and database is not None:
@@ -772,6 +925,161 @@ class Fieldmap(_database.DatabaseObject):
 
         if filename is not None:
             self.read_file(filename)
+
+    @property
+    def timestamp(self):
+        """Return the timestamp."""
+        return self._timestamp
+
+    @timestamp.setter
+    def timestamp(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._timestamp = value
+
+    @property
+    def magnet_name(self):
+        """Return the magnet name."""
+        return self._magnet_name
+
+    @magnet_name.setter
+    def magnet_name(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._magnet_name = value
+
+    @property
+    def gap(self):
+        """Return the magnet gap."""
+        return self._gap
+
+    @gap.setter
+    def gap(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._gap = value
+
+    @property
+    def control_gap(self):
+        """Return the magnet control gap."""
+        return self._control_gap
+
+    @control_gap.setter
+    def control_gap(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._control_gap = value
+
+    @property
+    def magnet_length(self):
+        """Return the magnet length."""
+        return self._magnet_length
+
+    @magnet_length.setter
+    def magnet_length(self, value):
+        if value is not None:
+            if len(value) == 0 or value == _empty_str:
+                value = None
+        self._magnet_length = value
+
+    @property
+    def current_setpoint(self):
+        """Return the current setpoint."""
+        return self._current_setpoint
+
+    @current_setpoint.setter
+    def current_setpoint(self, value):
+        if value is None:
+            self._current_setpoint = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._current_setpoint = None
+            else:
+                self._current_setpoint = float(value)
+        elif isinstance(value, (float, int)):
+            self._current_setpoint = value
+        else:
+            raise TypeError('current_setpoint must be a float.')   
+
+    @property
+    def dcct_current_avg(self):
+        """Return the average DCCT current."""
+        return self._dcct_current_avg
+
+    @dcct_current_avg.setter
+    def dcct_current_avg(self, value):
+        if value is None:
+            self._dcct_current_avg = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._dcct_current_avg = None
+            else:
+                self._dcct_current_avg = float(value)
+        elif isinstance(value, (float, int)):
+            self._dcct_current_avg = value
+        else:
+            raise TypeError('dcct_current_avg must be a float.')
+
+    @property
+    def dcct_current_std(self):
+        """Return the average DCCT current."""
+        return self._dcct_current_std
+
+    @dcct_current_std.setter
+    def dcct_current_std(self, value):
+        if value is None:
+            self._dcct_current_std = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._dcct_current_std = None
+            else:
+                self._dcct_current_std = float(value)
+        elif isinstance(value, (float, int)):
+            self._dcct_current_std = value
+        else:
+            raise TypeError('dcct_current_std must be a float.')
+
+    @property
+    def ps_current_avg(self):
+        """Return the average DCCT current."""
+        return self._ps_current_avg
+
+    @ps_current_avg.setter
+    def ps_current_avg(self, value):
+        if value is None:
+            self._ps_current_avg = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._ps_current_avg = None
+            else:
+                self._ps_current_avg = float(value)
+        elif isinstance(value, (float, int)):
+            self._ps_current_avg = value
+        else:
+            raise TypeError('ps_current_avg must be a float.')
+
+    @property
+    def ps_current_std(self):
+        """Return the average DCCT current."""
+        return self._ps_current_std
+
+    @ps_current_std.setter
+    def ps_current_std(self, value):
+        if value is None:
+            self._ps_current_std = None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                self._ps_current_std = None
+            else:
+                self._ps_current_std = float(value)
+        elif isinstance(value, (float, int)):
+            self._ps_current_std = value
+        else:
+            raise TypeError('ps_current_std must be a float.')
 
     @property
     def map(self):
@@ -794,19 +1102,14 @@ class Fieldmap(_database.DatabaseObject):
         return self._magnet_y_axis
 
     @property
-    def current(self):
-        """Power supply current."""
-        return self._current
+    def corrected_positions(self):
+        """Return True if the probe positions were corrected."""
+        return self._corrected_positions
 
     @property
     def temperature(self):
         """Temperature readings."""
         return self._temperature
-
-    @property
-    def timestamp(self):
-        """Return the timestamp."""
-        return self._timestamp
 
     @property
     def default_filename(self):
@@ -848,10 +1151,15 @@ class Fieldmap(_database.DatabaseObject):
     def clear(self):
         """Clear."""
         self._timestamp = None
-        self.magnet_name = None
-        self.gap = None
-        self.control_gap = None
-        self.magnet_length = None
+        self._magnet_name = None
+        self._gap = None
+        self._control_gap = None
+        self._magnet_length = None
+        self._current_setpoint = None
+        self._dcct_current_avg = None
+        self._dcct_current_std = None
+        self._ps_current_avg = None
+        self._ps_current_std = None
         self.comments = None
         self.current_main = None
         self.nr_turns_main = None
@@ -870,7 +1178,7 @@ class Fieldmap(_database.DatabaseObject):
         self._magnet_center = None
         self._magnet_x_axis = None
         self._magnet_y_axis = None
-        self._current = {}
+        self._corrected_positions = None
         self._temperature = {}
 
     def get_fieldmap_text(self, filename=None):
@@ -942,16 +1250,11 @@ class Fieldmap(_database.DatabaseObject):
         """
         flines = _utils.read_file(filename)
 
-        _s = _utils.find_value(flines, 'timestamp')
-        self._timestamp = _s if _s != _empty_str else None
-        _s = _utils.find_value(flines, 'magnet_name')
-        self.magnet_name = _s if _s != _empty_str else None
-        _s = _utils.find_value(flines, 'gap')
-        self.gap = _s if _s != _empty_str else None
-        _s = _utils.find_value(flines, 'control_gap')
-        self.control_gap = _s if _s != _empty_str else None
-        _s = _utils.find_value(flines, 'magnet_length')
-        self.magnet_length = _s if _s != _empty_str else None
+        self.timestamp = _utils.find_value(flines, 'timestamp')
+        self.magnet_name = _utils.find_value(flines, 'magnet_name')
+        self.gap = _utils.find_value(flines, 'gap')
+        self.control_gap = _utils.find_value(flines, 'control_gap')
+        self.magnet_length = _utils.find_value(flines, 'magnet_length')
 
         self.current_main = _utils.find_value(
             flines, 'current_main', raise_error=False)
@@ -1043,36 +1346,69 @@ class Fieldmap(_database.DatabaseObject):
         self._magnet_y_axis = magnet_y_axis
         self._map = _map
 
-        cur, temp = get_current_and_temperature_values(field_scan_list)
-        self._current = cur
-        self._temperature = temp
+        self._temperature = get_temperature_values(field_scan_list)
+
+        setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
+            field_scan_list)
+        self.current_setpoint = setpoint
+        self.dcct_current_avg = dcct_avg
+        self.dcct_current_std = dcct_std
+        self.ps_current_avg = ps_avg
+        self.ps_current_std = ps_std
 
 
-def get_current_and_temperature_values(scan_list):
-    """Get power supply current and temperature values."""
-    current = {}
+def get_current_values(scan_list):
+    """Get average and std current values."""
+    setpoint_set = set()
+    dcct_avgs = []
+    dcct_stds = []
+    ps_avgs = []
+    ps_stds = []
+    for scan in scan_list:
+        if scan.current_setpoint is not None:
+            setpoint_set.add(_np.around(scan.current_setpoint, 5))
+        if scan.dcct_current_avg is not None:
+            dcct_avgs.append(scan.dcct_current_avg)
+        if scan.dcct_current_std is not None:
+            dcct_stds.append(scan.dcct_current_std)
+        if scan.ps_current_avg is not None:
+            ps_avgs.append(scan.ps_current_avg)
+        if scan.ps_current_std is not None:
+            ps_stds.append(scan.ps_current_std)
+    
+    setpoint = None
+    dcct_avg = None
+    dcct_std = None
+    ps_avg = None
+    ps_std = None
+    
+    if len(setpoint_set) == 1:
+        setpoint = list(setpoint_set)[0]
+
+    if len(dcct_avgs) != 0:
+        dcct_avg = _np.mean(dcct_avgs)
+    
+    if len(ps_avgs) != 0:
+        ps_avg = _np.mean(ps_avgs)
+        
+    return setpoint, dcct_avg, dcct_std, ps_avg, ps_std
+    
+
+def get_temperature_values(scan_list):
+    """Get temperature values."""
     temperature = {}
     for scan in scan_list:
-        for key, value in scan.current.items():
-            if key in current.keys():
-                [current[key].append(v) for v in value]
-            else:
-                current[key] = [v for v in value]
         for key, value in scan.temperature.items():
             if key in temperature.keys():
                 [temperature[key].append(v) for v in value]
             else:
                 temperature[key] = [v for v in value]
 
-    if len(current) > 0:
-        for key, value in current.items():
-            current[key] = sorted(value, key=lambda x: x[0])
-
     if len(temperature) > 0:
         for key, value in temperature.items():
             temperature[key] = sorted(value, key=lambda x: x[0])
 
-    return current, temperature
+    return temperature
 
 
 def get_field_scan_list(voltage_scan_list, hall_probe):

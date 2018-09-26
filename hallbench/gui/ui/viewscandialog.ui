@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1284</width>
-    <height>940</height>
+    <height>877</height>
    </rect>
   </property>
   <property name="font">
@@ -18,7 +18,7 @@
   <property name="windowTitle">
    <string>View Scan</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_8">
+  <layout class="QGridLayout" name="gridLayout_7">
    <item row="0" column="0" rowspan="5">
     <widget class="PlotWidget" name="graph_pw">
      <property name="backgroundBrush">
@@ -49,6 +49,9 @@
      <layout class="QGridLayout" name="gridLayout_6">
       <property name="topMargin">
        <number>0</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>4</number>
       </property>
       <item row="1" column="1">
        <widget class="QComboBox" name="select_comp_cmb">
@@ -206,6 +209,9 @@
       <string>Offset:</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <property name="verticalSpacing">
+       <number>4</number>
+      </property>
       <item row="4" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
@@ -412,6 +418,9 @@
       <string>X-axis Limits:</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <property name="verticalSpacing">
+       <number>4</number>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="font">
@@ -526,6 +535,9 @@ Limits</string>
       <string>Curve Fitting:</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
+      <property name="verticalSpacing">
+       <number>4</number>
+      </property>
       <item row="3" column="0" colspan="2">
        <widget class="QPushButton" name="fit_btn">
         <property name="minimumSize">
@@ -726,6 +738,9 @@ Limits</string>
       <string>Integrals:</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
+      <property name="verticalSpacing">
+       <number>4</number>
+      </property>
       <item row="1" column="1" colspan="2">
        <widget class="QLineEdit" name="second_integral_le">
         <property name="sizePolicy">
@@ -837,11 +852,11 @@ Limits</string>
      <item>
       <widget class="QPushButton" name="view_current_btn">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="minimumSize">
         <size>
-         <width>0</width>
+         <width>300</width>
          <height>40</height>
         </size>
        </property>
@@ -866,8 +881,8 @@ Limits</string>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
-         <height>20</height>
+         <width>60</width>
+         <height>10</height>
         </size>
        </property>
       </spacer>
@@ -879,7 +894,7 @@ Limits</string>
        </property>
        <property name="minimumSize">
         <size>
-         <width>0</width>
+         <width>300</width>
          <height>40</height>
         </size>
        </property>

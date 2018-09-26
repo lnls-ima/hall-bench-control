@@ -15,7 +15,7 @@ import PyQt5.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.tableplotdialog import TablePlotDialog as _TablePlotDialog
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui import utils as _utils
 
 
 class ViewFieldmapDialog(_QDialog):
@@ -25,7 +25,7 @@ class ViewFieldmapDialog(_QDialog):
         """Set up the ui and create connections."""
         super().__init__(parent)
 
-        uifile = _getUiFile(self)
+        uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         self.fieldmap = None
@@ -37,12 +37,6 @@ class ViewFieldmapDialog(_QDialog):
         self.graphy = None
         self.graphz = None
         self.xlabel = ''
-
-        # Create current dialog
-        self.current_dialog = _TablePlotDialog()
-        self.current_dialog.setWindowTitle('Current Readings')
-        self.current_dialog.setPlotLabel('Current [A]')
-        self.current_dialog.setTableColumnSize(200)
 
         # Create temperature dialog
         self.temperature_dialog = _TablePlotDialog()
@@ -69,7 +63,6 @@ class ViewFieldmapDialog(_QDialog):
     def closeDialogs(self):
         """Close dialogs."""
         try:
-            self.current_dialog.accept()
             self.temperature_dialog.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -130,7 +123,6 @@ class ViewFieldmapDialog(_QDialog):
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.update_plot_btn.clicked.connect(self.updatePlot)
-        self.ui.view_current_btn.clicked.connect(self.showCurrentDialog)
         self.ui.view_temperature_btn.clicked.connect(
             self.showTemperatureDialog)
 
@@ -142,9 +134,8 @@ class ViewFieldmapDialog(_QDialog):
         try:
             self.updateLineEdits()
             self.updatePlotOptions()
+            self.updatePlot()
             self.updateText()
-            if len(self.fieldmap.current) != 0:
-                self.ui.view_current_btn.setEnabled(True)
             if len(self.fieldmap.temperature) != 0:
                 self.ui.view_temperature_btn.setEnabled(True)
             super().show()
@@ -152,30 +143,6 @@ class ViewFieldmapDialog(_QDialog):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to show dialog.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
-
-    def showCurrentDialog(self):
-        """Open table plot dialog."""
-        if len(self.fieldmap.current) == 0:
-            return
-
-        try:
-            dfs = []
-            for key, value in self.fieldmap.current.items():
-                v = _np.array(value)
-                dfs.append(
-                    _pd.DataFrame(v[:, 1], index=v[:, 0], columns=[key]))
-            df = _pd.concat(dfs, axis=1)
-
-            timestamp = df.index.values.tolist()
-            readings = {}
-            for col in df.columns:
-                readings[col] = df[col].values.tolist()
-            self.current_dialog.show(timestamp, readings)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to open dialog.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
@@ -208,12 +175,15 @@ class ViewFieldmapDialog(_QDialog):
         self.ui.nr_scans_le.setText('')
         self.ui.initial_scan_le.setText('')
         self.ui.final_scan_le.setText('')
-        self.ui.comments_te.setText('')
+        self.ui.dcct_current_le.setText('')
+        self.ui.ps_current_le.setText('')
         self.ui.magnet_center_pos3_le.setText('')
         self.ui.magnet_center_pos2_le.setText('')
         self.ui.magnet_center_pos1_le.setText('')
         self.ui.magnet_x_axis_le.setText('')
         self.ui.magnet_y_axis_le.setText('')
+        self.ui.corrected_positions_le.setText('')
+        self.ui.comments_te.setText('')
         if self.fieldmap is None:
             return
 
@@ -233,10 +203,15 @@ class ViewFieldmapDialog(_QDialog):
                 is not None else '')
             self.ui.final_scan_le.setText('{0:d}'.format(val))
 
-            comments = (
-                self.fieldmap.comments if self.fieldmap.comments is not None
-                else '')
-            self.ui.comments_te.setText(comments)
+            dcct_avg = self.fieldmap.dcct_current_avg
+            dcct_std = self.fieldmap.dcct_current_std
+            dcct_str = _utils.scientificNotation(dcct_avg, dcct_std)
+            self.ui.dcct_current_le.setText(dcct_str)
+
+            ps_avg = self.fieldmap.ps_current_avg
+            ps_std = self.fieldmap.ps_current_std
+            ps_str = _utils.scientificNotation(ps_avg, ps_std)
+            self.ui.ps_current_le.setText(ps_str)
 
             mc = self.fieldmap.magnet_center
             if mc is None:
@@ -270,6 +245,19 @@ class ViewFieldmapDialog(_QDialog):
             else:
                 self.ui.magnet_y_axis_le.setText('')
 
+            corrected_positions = self.fieldmap.corrected_positions
+            if corrected_positions == 0:
+                self.ui.corrected_positions_le.setText('False')
+            elif corrected_positions == 1:
+                self.ui.corrected_positions_le.setText('True')
+            else:
+                self.ui.corrected_positions_le.setText('')
+
+            comments = (
+                self.fieldmap.comments if self.fieldmap.comments is not None
+                else '')
+            self.ui.comments_te.setText(comments)
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return
@@ -282,7 +270,7 @@ class ViewFieldmapDialog(_QDialog):
             return
 
         idx = self.ui.plot_cmb.currentIndex()
-        if idx is None:
+        if idx is None or idx == -1:
             return
 
         if (self.pos is None or self.bx_lines is None
@@ -328,7 +316,8 @@ class ViewFieldmapDialog(_QDialog):
                 self.ui.plot_la.setText('Z [mm]:')
                 for zi in z:
                     self.ui.plot_cmb.addItem('{0:.4f}'.format(zi))
-                self.ui.plot_cmb.setCurrentIndex(-1)
+                idx = _np.floor(len(z)/2)
+                self.ui.plot_cmb.setCurrentIndex(idx)
 
                 self.bx_lines = _np.array([bx])
                 self.by_lines = _np.array([by])
@@ -341,7 +330,8 @@ class ViewFieldmapDialog(_QDialog):
                 self.ui.plot_la.setText('Z [mm]:')
                 for zi in z:
                     self.ui.plot_cmb.addItem('{0:.4f}'.format(zi))
-                self.ui.plot_cmb.setCurrentIndex(-1)
+                idx = _np.floor(len(z)/2)
+                self.ui.plot_cmb.setCurrentIndex(idx)
 
                 self.bx_lines = _np.array([bx])
                 self.by_lines = _np.array([by])
@@ -354,7 +344,8 @@ class ViewFieldmapDialog(_QDialog):
                 self.ui.plot_la.setText('X [mm]:')
                 for xi in x:
                     self.ui.plot_cmb.addItem('{0:.4f}'.format(xi))
-                self.ui.plot_cmb.setCurrentIndex(-1)
+                idx = _np.floor(len(x)/2)
+                self.ui.plot_cmb.setCurrentIndex(idx)
 
                 self.bx_lines = _np.array([bx])
                 self.by_lines = _np.array([by])
@@ -367,7 +358,8 @@ class ViewFieldmapDialog(_QDialog):
                 self.ui.plot_la.setText('X [mm]:')
                 for xi in x:
                     self.ui.plot_cmb.addItem('{0:.4f}'.format(xi))
-                self.ui.plot_cmb.setCurrentIndex(-1)
+                idx = _np.floor(len(x)/2)
+                self.ui.plot_cmb.setCurrentIndex(idx)
 
                 bx.shape = (-1, len(x))
                 by.shape = (-1, len(x))

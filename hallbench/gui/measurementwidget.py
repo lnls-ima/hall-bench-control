@@ -700,7 +700,7 @@ class MeasurementWidget(_QWidget):
             mn = self.local_measurement_config.magnet_name
             mc = self.local_measurement_config.main_current
             self.field_scan.magnet_name = mn
-            self.field_scan.main_current = mc
+            self.field_scan.current_setpoint = mc
             self.field_scan.configuration_id = self.local_measurement_config_id
             idn = self.field_scan.save_to_database(self.database)
             self.field_scan_id_list.append(idn)
@@ -754,7 +754,7 @@ class MeasurementWidget(_QWidget):
             mn = self.local_measurement_config.magnet_name
             mc = self.local_measurement_config.main_current
             self.voltage_scan.magnet_name = mn
-            self.voltage_scan.main_current = mc
+            self.voltage_scan.current_setpoint = mc
             self.voltage_scan.configuration_id = (
                 self.local_measurement_config_id)
             idn = self.voltage_scan.save_to_database(self.database)

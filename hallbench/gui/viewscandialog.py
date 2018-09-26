@@ -19,7 +19,7 @@ import PyQt5.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.tableplotdialog import TablePlotDialog as _TablePlotDialog
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui import utils as _utils
 from hallbench.data import measurement as _measurement
 
 
@@ -30,7 +30,7 @@ class ViewScanDialog(_QDialog):
         """Set up the ui and create connections."""
         super().__init__(parent)
 
-        uifile = _getUiFile(self)
+        uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         self.plot_label = ''
@@ -41,14 +41,12 @@ class ViewScanDialog(_QDialog):
         self.scan_dict = {}
         self.xmin_line = None
         self.xmax_line = None
+        self.current = None
         self.temperature = {}
-        self.current = {}
 
         # Create current dialog
-        self.current_dialog = _TablePlotDialog()
+        self.current_dialog = _utils.TableDialog()
         self.current_dialog.setWindowTitle('Current Readings')
-        self.current_dialog.setPlotLabel('Current [A]')
-        self.current_dialog.setTableColumnSize(200)
 
         # Create temperature dialog
         self.temperature_dialog = _TablePlotDialog()
@@ -213,8 +211,8 @@ class ViewScanDialog(_QDialog):
         self.scan_dict = {}
         self.xmin_line = None
         self.xmax_line = None
+        self.current = None
         self.temperature = {}
-        self.current = {}
         self.clearFit()
         self.clearIntegrals()
         self.clearGraph()
@@ -311,7 +309,8 @@ class ViewScanDialog(_QDialog):
         self.ui.polyorder_sb.valueChanged.connect(self.polyOrderChanged)
         self.ui.fit_btn.clicked.connect(self.calcCurveFit)
         self.ui.resetlim_btn.clicked.connect(self.resetXLimits)
-        self.ui.view_current_btn.clicked.connect(self.showCurrentDialog)
+        self.ui.view_current_btn.clicked.connect(
+            self.showCurrentDialog)
         self.ui.view_temperature_btn.clicked.connect(
             self.showTemperatureDialog)
         self.ui.integrals_btn.clicked.connect(self.calcIntegrals)
@@ -523,12 +522,29 @@ class ViewScanDialog(_QDialog):
 
                 idx = idx + 1
 
-            cur, temp = _measurement.get_current_and_temperature_values(
-                        self.scan_list)
-            self.current = cur
-            self.temperature = temp
-            if len(self.current) != 0:
-                self.ui.view_current_btn.setEnabled(True)
+            columns = [
+                'ID',
+                'Current Setpoint [A]',
+                'DCCT AVG [A]',
+                'DCCT STD [A]',
+                'PS AVG [A]',
+                'PS STD [A]',
+                ]
+            current = []
+            for i, scan in enumerate(self.scan_list):
+                current.append([
+                    self.scan_id_list[i],
+                    scan.current_setpoint,
+                    scan.dcct_current_avg,
+                    scan.dcct_current_std,
+                    scan.ps_current_avg,
+                    scan.ps_current_std,
+                    ])
+            current = _np.array(current)
+            self.current = _pd.DataFrame(current, columns=columns)
+
+            self.temperature = _measurement.get_temperature_values(
+                self.scan_list)            
             if len(self.temperature) != 0:
                 self.ui.view_temperature_btn.setEnabled(True)
 
@@ -545,23 +561,13 @@ class ViewScanDialog(_QDialog):
             return
 
     def showCurrentDialog(self):
-        """Open table plot dialog."""
-        if len(self.current) == 0:
+        """Show dialog with current readings."""
+        self.current_dialog.clear()
+        if self.current is None:
             return
 
         try:
-            dfs = []
-            for key, value in self.current.items():
-                v = _np.array(value)
-                dfs.append(
-                    _pd.DataFrame(v[:, 1], index=v[:, 0], columns=[key]))
-            df = _pd.concat(dfs, axis=1)
-
-            timestamp = df.index.values.tolist()
-            readings = {}
-            for col in df.columns:
-                readings[col] = df[col].values.tolist()
-            self.current_dialog.show(timestamp, readings)
+             self.current_dialog.show(self.current)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to open dialog.'

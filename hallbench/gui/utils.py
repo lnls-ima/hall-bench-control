@@ -37,6 +37,34 @@ def getUiFile(widget):
     return uifile
 
 
+def scientificNotation(value, error):
+    """Return a string with value and error in scientific notation."""
+    if value is None:
+        return ''
+    
+    if error is None or error == 0:
+        value_str = '{0:f}'.format(value)
+        return value_str
+
+    exponent = int('{:e}'.format(value).split('e')[-1])
+    exponent_str = ' x E'+str(exponent)
+
+    if exponent > 0:
+        exponent = 0
+    if exponent == 0:
+        exponent_str = ''
+
+    nr_digits = abs(int('{:e}'.format(error/10**exponent).split('e')[-1]))
+
+    value_str = ('{:.'+str(nr_digits)+'f}').format(value/10**exponent)
+    error_str = ('{:.'+str(nr_digits)+'f}').format(error/10**exponent)
+
+    scientific_notation = ('(' + value_str + " " + chr(177) + " " +
+                           error_str + ')' + exponent_str)
+
+    return scientific_notation
+
+
 def strIsFloat(value):
     """Check is the string can be converted to float."""
     return all(
@@ -81,6 +109,91 @@ def tableToDataFrame(table):
     return df
 
 
+class TableDialog(_QDialog):
+    """Table dialog class."""
+
+    def __init__(self, parent=None):
+        """Add table widget and copy button."""
+        super().__init__(parent)
+
+        self.setWindowTitle("Data Table")
+        self.data_ta = _QTableWidget()
+        self.data_ta.setAlternatingRowColors(True)
+        self.data_ta.verticalHeader().hide()
+        self.data_ta.horizontalHeader().setStretchLastSection(True)
+        self.data_ta.horizontalHeader().setDefaultSectionSize(120)
+
+        self.copy_btn = _QPushButton("Copy to clipboard")
+        self.copy_btn.clicked.connect(self.copyToClipboard)
+        font = self.copy_btn.font()
+        font.setBold(True)
+        self.copy_btn.setFont(font)
+
+        _layout = _QVBoxLayout()
+        _layout.addWidget(self.data_ta)
+        _layout.addWidget(self.copy_btn)
+        self.setLayout(_layout)
+        self.table_df = None
+
+        self.resize(800, 500)
+
+    def addItemsToTable(self, text, i, j):
+        """Add items to table."""
+        item = _QTableWidgetItem(text)
+        item.setFlags(_Qt.ItemIsSelectable | _Qt.ItemIsEnabled)
+        self.data_ta.setItem(i, j, item)
+
+    def clear(self):
+        """Clear data and table."""
+        self.table_df = None
+        self.data_ta.clearContents()
+        self.data_ta.setRowCount(0)
+        self.data_ta.setColumnCount(0)
+    
+    def copyToClipboard(self):
+        """Copy table data to clipboard."""
+        df = tableToDataFrame(self.data_ta)
+        if df is not None:
+            df.to_clipboard(excel=True)
+
+    def show(self, table_df):
+        """Show dialog."""
+        self.table_df = table_df
+        self.updateTable()
+        super().show()
+
+    def updateData(self, table_df):
+        """Update table data."""
+        self.table_df = table_df
+        self.updateTable()
+
+    def updateTable(self):
+        """Add data to table."""
+        self.data_ta.clearContents()
+        self.data_ta.setRowCount(0)
+        self.data_ta.setColumnCount(0)
+
+        if self.table_df is None:
+            return
+        
+        nrows = self.table_df.shape[0]
+        ncols = self.table_df.shape[1]
+
+        self.data_ta.setRowCount(nrows)
+        self.data_ta.setColumnCount(ncols)
+
+        columns = self.table_df.columns.values
+        self.data_ta.setHorizontalHeaderLabels(columns)
+
+        for i in range(nrows):
+            for j in range(ncols):
+                if columns[j] == 'ID':
+                    text = '{0:d}'.format(int(self.table_df.iloc[i, j]))
+                else:
+                    text = str(self.table_df.iloc[i, j])
+                self.addItemsToTable(text, i, j)
+
+
 class TableAnalysisDialog(_QDialog):
     """Table data analysis dialog class."""
 
@@ -96,6 +209,9 @@ class TableAnalysisDialog(_QDialog):
 
         self.copy_btn = _QPushButton("Copy to clipboard")
         self.copy_btn.clicked.connect(self.copyToClipboard)
+        font = self.copy_btn.font()
+        font.setBold(True)
+        self.copy_btn.setFont(font)
 
         _layout = _QVBoxLayout()
         _layout.addWidget(self.results_ta)
@@ -151,6 +267,13 @@ class TableAnalysisDialog(_QDialog):
             self.addItemsToTable('{0:.4f}'.format(mean), i, 0)
             self.addItemsToTable('{0:.4f}'.format(std), i, 1)
             self.addItemsToTable('{0:.4f}'.format(peak_valey), i, 2)
+
+    def clear(self):
+        """Clear data and table."""
+        self.table_df = None
+        self.results_ta.clearContents()
+        self.results_ta.setRowCount(0)
+        self.results_ta.setColumnCount(0)
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""

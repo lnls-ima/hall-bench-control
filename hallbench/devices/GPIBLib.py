@@ -499,7 +499,7 @@ class Agilent3458A(GPIB):
         self.send_command(self.commands.trig_auto)
         self.send_command(self.commands.nrdgs_ext)
         self.send_command(self.commands.arange_off)
-        self.send_command(self.commands.range + '10')
+        self.send_command(self.commands.range + '15')
         self.send_command(self.commands.math_off)
         self.send_command(self.commands.azero_once)
         self.send_command(self.commands.trig_buffer_off)

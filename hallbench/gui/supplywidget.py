@@ -140,6 +140,10 @@ class SupplyWidget(_QWidget):
                 _QMessageBox.warning(self, 'Warning',
                                      'Please configure the power supply and '
                                      'try again.', _QMessageBox.Ok)
+                if self.config.status is False:
+                    self.change_ps_button(True)
+                else:
+                    self.change_ps_button(False)
                 return
 
             self.ui.pb_ps_button.setEnabled(False)
@@ -150,6 +154,10 @@ class SupplyWidget(_QWidget):
 
             _ps_type = self.config.ps_type
             if not self.set_address(_ps_type):
+                if self.config.status is False:
+                    self.change_ps_button(True)
+                else:
+                    self.change_ps_button(False)
                 return
 
             # Status ps is OFF

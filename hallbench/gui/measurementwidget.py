@@ -498,12 +498,17 @@ class MeasurementWidget(_QWidget):
             return True
 
         try:
-            current_dict = {}
             temperature_dict = {}
             dcct_head = self.local_power_supply_config.dcct_head
             ps_type = self.local_power_supply_config.ps_type
             ts = _time.time()
-            
+           
+            # Read power supply current
+            if self.ui.save_current_chb.isChecked() and ps_type is not None:   
+                self.devices.ps.SetSlaveAdd(ps_type)
+                ps_current = float(self.devices.ps.Read_iLoad1())
+                self.voltage_scan.ps_current_avg = ps_current
+                     
             # Read multichannel
             r = self.devices.multich.get_converted_readings(
                 dcct_head=dcct_head)
@@ -511,23 +516,13 @@ class MeasurementWidget(_QWidget):
             dcct_channels = self.devices.multich.dcct_channels
             for i, ch in enumerate(channels):
                 if ch in dcct_channels:
-                    if dcct_head is not None:
-                        current_dict['DCCT'] = [[ts, r[i]]]
+                    if (dcct_head is not None and 
+                       self.ui.save_current_chb.isChecked()):
+                        self.voltage_scan.dcct_current_avg = r[i]
                 else:
                     temperature_dict[ch] = [[ts, r[i]]]
             _QApplication.processEvents()            
            
-            # Read power supply current
-            if self.ui.save_current_chb.isChecked():   
-                if ps_type is not None:
-                    self.devices.ps.SetSlaveAdd(ps_type)
-                    ps_current = float(self.devices.ps.Read_iLoad1())
-                    current_dict['PS'] = [[ts, ps_current]]
-            
-            # Save values in voltage scan
-            if self.ui.save_current_chb.isChecked():
-                self.voltage_scan.current = current_dict
-
             if self.ui.save_temperature_chb.isChecked():
                 self.voltage_scan.temperature = temperature_dict
 
@@ -537,6 +532,78 @@ class MeasurementWidget(_QWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return False
+
+    def measureVoltageScan(
+            self, idx, to_pos, axis, start, end, step, extra, npts):
+        """Measure one voltage scan."""
+        if self.stop is True:
+            return False
+                   
+        self.voltage_scan.avgx = []
+        self.voltage_scan.avgy = []
+        self.voltage_scan.avgz = []
+        self.voltage_scan.dcct_current_avg = None
+        self.voltage_scan.ps_current_avg = None
+        self.voltage_scan.temperature = {}
+        
+        self.measureCurrentAndTemperature()
+
+        # go to initial position
+        if to_pos:
+            self.moveAxis(axis, start - extra)
+        else:
+            self.moveAxis(axis, end + extra)
+        _QApplication.processEvents()
+
+        if self.stop is True:
+            return False
+        else:
+            if to_pos:
+                self.devices.pmac.set_trigger(
+                    axis, start, step, 10, npts, 1)
+            else:
+                self.devices.pmac.set_trigger(
+                    axis, end, step*(-1), 10, npts, 1)
+
+        if self.local_measurement_config.voltx_enable:
+            self.devices.voltx.config(
+                self.local_measurement_config.integration_time,
+                self.local_measurement_config.voltage_precision)
+        if self.local_measurement_config.volty_enable:
+            self.devices.volty.config(
+                self.local_measurement_config.integration_time,
+                self.local_measurement_config.voltage_precision)
+        if self.local_measurement_config.voltz_enable:
+            self.devices.voltz.config(
+                self.local_measurement_config.integration_time,
+                self.local_measurement_config.voltage_precision)
+        _QApplication.processEvents()
+        
+        self.startVoltageThreads()
+
+        if self.stop is False:
+            if to_pos:
+                self.moveAxisAndUpdateGraph(axis, end + extra, idx)
+            else:
+                self.moveAxisAndUpdateGraph(axis, start - extra, idx)
+
+        self.stopTrigger()
+        self.waitVoltageThreads()
+        self.voltage_scan.avgx = (
+            self.threadx.voltage if self.threadx is not None else [])
+        self.voltage_scan.avgy = (
+            self.thready.voltage if self.thready is not None else [])
+        self.voltage_scan.avgz = (
+            self.threadz.voltage if self.threadz is not None else [])
+        _QApplication.processEvents()
+        
+        if not to_pos:
+            self.voltage_scan.reverse()
+        
+        if self.stop is True:
+            return False
+        else:
+            return True
 
     def moveAxis(self, axis, position):
         """Move bench axis.
@@ -787,16 +854,14 @@ class MeasurementWidget(_QWidget):
         self.clearGraph()
         self.configureGraph(2*nr_measurements, 'Voltage [V]')
         _QApplication.processEvents()
-
+        
         voltage_scan_list = []
         for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
-
-            self.voltage_scan = _VoltageScan()           
-            self.measureCurrentAndTemperature()
-            self.configuration_widget.nr_measurements_sb.setValue(
-                _np.ceil((idx + 1)/2))
+          
+            self.configuration_widget.nr_measurements_la.setText(
+                '{0:d}'.format(int(_np.ceil((idx + 1)/2))))
 
             # flag to check if sensor is going or returning
             to_pos = not(bool(idx % 2))
@@ -804,11 +869,11 @@ class MeasurementWidget(_QWidget):
             # go to initial position
             if to_pos:
                 self.position_list = to_pos_scan_list
-                self.moveAxis(first_axis, start - extra)
             else:
                 self.position_list = to_neg_scan_list
-                self.moveAxis(first_axis, end + extra)
 
+            # save positions in voltage scan
+            self.voltage_scan = _VoltageScan() 
             for axis in self.voltage_scan.axis_list:
                 if axis == first_axis:
                     setattr(self.voltage_scan, 'pos' + str(first_axis),
@@ -821,58 +886,24 @@ class MeasurementWidget(_QWidget):
                     setattr(self.voltage_scan, 'pos' + str(axis), pos)
             _QApplication.processEvents()
 
-            if self.stop is True:
-                return False
-            else:
-                if to_pos:
-                    self.devices.pmac.set_trigger(
-                        first_axis, start, step, 10, npts, 1)
-                else:
-                    self.devices.pmac.set_trigger(
-                        first_axis, end, step*(-1), 10, npts, 1)
-
-            if self.local_measurement_config.voltx_enable:
-                self.devices.voltx.config(
-                    self.local_measurement_config.integration_time,
-                    self.local_measurement_config.voltage_precision)
-            if self.local_measurement_config.volty_enable:
-                self.devices.volty.config(
-                    self.local_measurement_config.integration_time,
-                    self.local_measurement_config.voltage_precision)
-            if self.local_measurement_config.voltz_enable:
-                self.devices.voltz.config(
-                    self.local_measurement_config.integration_time,
-                    self.local_measurement_config.voltage_precision)
-            _QApplication.processEvents()
-            
-            self.startVoltageThreads()
-
-            if self.stop is False:
-                if to_pos:
-                    self.moveAxisAndUpdateGraph(first_axis, end + extra, idx)
-                else:
-                    self.moveAxisAndUpdateGraph(first_axis, start - extra, idx)
-
-            self.stopTrigger()
-            self.waitVoltageThreads()
-            self.voltage_scan.avgx = (
-                self.threadx.voltage if self.threadx is not None else [])
-            self.voltage_scan.avgy = (
-                self.thready.voltage if self.thready is not None else [])
-            self.voltage_scan.avgz = (
-                self.threadz.voltage if self.threadz is not None else [])
-            _QApplication.processEvents()
-
-            if self.stop is True:
+            if not self.measureVoltageScan(
+                    idx, to_pos, first_axis, start, end, step, extra, npts):
                 return False
 
-            if not to_pos:
-                self.voltage_scan.reverse()
-
+            if self.voltage_scan.npts == 0:   
+                if not self.measureVoltageScan(
+                        idx, to_pos, first_axis, start, end, step, extra, npts):
+                    return False                
+    
+                if self.voltage_scan.npts == 0:
+                    raise Exception(
+                        'Invalid number of points in voltage scan.')
+                    return False
+    
             if self.ui.save_voltage_scan_chb.isChecked():
                 if not self.saveVoltageScan():
                     return False
-
+    
             voltage_scan_list.append(self.voltage_scan.copy())
 
         for vd in voltage_scan_list:
@@ -1003,13 +1034,17 @@ class MeasurementWidget(_QWidget):
 
             velocity = config.get_velocity(config.first_axis)
             step = config.get_step(config.first_axis)
-            max_integration_time = _np.abs(step/velocity)
+            trigger_step = _np.abs(step/velocity)
+            
+            _s = 'Trigger Step [s]:\t  {0:.4f}'.format(trigger_step)
+            self.configuration_widget.ui.trigger_step_la.setText(_s)
+            
             integration_time = config.integration_time
-            if integration_time > max_integration_time:
+            if integration_time > trigger_step:
                 msg = (
                     'The integration time must be ' +
                     'less than {0:.4f} seconds.'.format(
-                        max_integration_time))
+                        trigger_step))
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
 

@@ -588,27 +588,39 @@ class PowerSupplyConfig(Configuration):
                 'Kp               \t{0:2f}\n'.format(self.Kp),
                 'Ki               \t{0:2f}\n\n'.format(self.Ki),
                 '# Sinusoidal Signal Generator\n',
-                'amplitude        \t{0:2f}\n'.format(
+                'sinusoidal_amplitude  \t{0:2f}\n'.format(
                     self.sinusoidal_amplitude),
-                'offset           \t{0:2f}\n'.format(self.sinusoidal_offset),
-                'frequency        \t{0:2f}\n'.format(
+                'sinusoidal_offset     \t{0:2f}\n'.format(
+                    self.sinusoidal_offset),
+                'sinusoidal_frequency  \t{0:2f}\n'.format(
                     self.sinusoidal_frequency),
-                'n_cicles         \t{0:d}\n'.format(self.sinusoidal_ncicles),
-                'initial_phase    \t{0:2f}\n'.format(self.sinusoidal_phasei),
-                'final_phase      \t{0:2f}\n\n'.format(self.sinusoidal_phasef),
+                'sinusoidal_ncicles    \t{0:d}\n'.format(
+                    self.sinusoidal_ncicles),
+                'sinusoidal_phasei     \t{0:2f}\n'.format(
+                    self.sinusoidal_phasei),
+                'sinusoidal_phasef     \t{0:2f}\n\n'.format(
+                    self.sinusoidal_phasef),
                 '# Damped Sinusoidal Signal Generator\n',
-                'amplitude        \t{0:2f}\n'.format(
+                'dsinusoidal_amplitude \t{0:2f}\n'.format(
                     self.dsinusoidal_amplitude),
-                'offset           \t{0:2f}\n'.format(self.dsinusoidal_offset),
-                'frequency        \t{0:2f}\n'.format(
+                'dsinusoidal_offset    \t{0:2f}\n'.format(
+                    self.dsinusoidal_offset),
+                'dsinusoidal_frequency \t{0:2f}\n'.format(
                     self.dsinusoidal_frequency),
-                'n_cicles         \t{0:d}\n'.format(self.dsinusoidal_ncicles),
-                'initial_phase    \t{0:2f}\n'.format(self.dsinusoidal_phasei),
-                'final_phase      \t{0:2f}\n'.format(self.dsinusoidal_phasef),
-                'damping          \t{0:2f}\n\n'.format(self.dsinusoidal_damp),
+                'dsinusoidal_ncicles   \t{0:d}\n'.format(
+                    self.dsinusoidal_ncicles),
+                'dsinusoidal_phasei    \t{0:2f}\n'.format(
+                    self.dsinusoidal_phasei),
+                'dsinusoidal_phasef    \t{0:2f}\n'.format(
+                    self.dsinusoidal_phasef),
+                'dsinusoidal_damp      \t{0:2f}\n\n'.format(
+                    self.dsinusoidal_damp),
                 '#DCCT Settings\n',
-                'dcct_enabled     \t{0}\n'.format(self.dcct),
-                'dcct_head        \t{0}'.format(self.dcct_head)
+                'dcct                  \t{0}\n'.format(int(self.dcct)),
+                'dcct_head             \t{0}\n\n'.format(self.dcct_head),
+                '#Automatic current ramp\n'
+                'current_array         \t{0}'.format(
+                    str(self.current_array)[1:-1])
                 ]
 
             with open(filename, mode='w') as f:

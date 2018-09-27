@@ -126,7 +126,7 @@ def getAverageStd(avgs, stds, nmeas):
     """Return the average and STD for a set of averages and STD values."""
     if len(avgs) == 0 and len(stds) == 0:
         return None, None
-    
+
     if len(avgs) != len(stds):
         raise ValueError('Inconsistent size of input arguments')
         return None, None

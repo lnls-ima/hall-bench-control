@@ -54,7 +54,7 @@ class SupplyWidget(_QWidget):
         self.ui.pb_send_curve.clicked.connect(self.send_curve)
         self.ui.pb_config_pid.clicked.connect(self.config_pid)
         self.ui.pb_reset_inter.clicked.connect(self.reset_interlocks)
-        self.ui.pb_cicle.clicked.connect(self.cycling_ps)
+        self.ui.pb_cicle.clicked.connect(self.cicling_ps)
         self.ui.pb_plot.clicked.connect(self.plot)
         self.ui.pb_config_ps.clicked.connect(self.config_ps)
         self.ui.pb_add_row.clicked.connect(self.add_row)
@@ -115,6 +115,16 @@ class SupplyWidget(_QWidget):
             self.ui.cb_ps_name.removeItem(0)
         self.ui.cb_ps_name.addItems(_l)
 
+    def set_address(self, address):
+        if self.drs.ser.is_open:
+            self.drs.SetSlaveAdd(address)
+            return True
+        else:
+            _QMessageBox.warning(self, 'Warning',
+                                 'Power Supply serial port is closed.',
+                                 _QMessageBox.Ok)
+            return False
+
     def change_ps(self):
         """Sets the Load Power Supply button disabled if the selected supply is
            already loaded."""
@@ -139,7 +149,8 @@ class SupplyWidget(_QWidget):
             _QApplication.processEvents()
 
             _ps_type = self.config.ps_type
-            self.drs.SetSlaveAdd(_ps_type)
+            if not self.set_address(_ps_type):
+                return
 
             # Status ps is OFF
             if self.config.status is False:
@@ -457,7 +468,8 @@ class SupplyWidget(_QWidget):
         self.config.Kp = self.ui.sb_kp.value()
         self.config.Ki = self.ui.sb_ki.value()
         _ps_type = self.config.ps_type
-        self.drs.SetSlaveAdd(_ps_type)
+        if not self.set_address(_ps_type):
+            return
         _id_mode = 0
         _elp_PI_dawu = 3
         try:
@@ -486,7 +498,9 @@ class SupplyWidget(_QWidget):
 
     def emergency(self):
         """Stops power supply current."""
-        self.drs.SetSlaveAdd(self.config.ps_type)
+        _ps_type = self.config.ps_type
+        if not self.set_address(_ps_type):
+            return
         self.drs.OpMode(0)
         self.drs.SetISlowRef(0)
         _time.sleep(0.1)
@@ -505,7 +519,8 @@ class SupplyWidget(_QWidget):
         """Displays current on interface."""
         _ps_type = self.config.ps_type
         try:
-            self.drs.SetSlaveAdd(_ps_type)
+            if not self.set_address(_ps_type):
+                return
             _refresh_current = round(float(self.drs.Read_iLoad1()), 3)
             self.ui.lcd_ps_reading.display(_refresh_current)
             _QApplication.processEvents()
@@ -561,8 +576,8 @@ class SupplyWidget(_QWidget):
             self.ui.tabWidget_2.setEnabled(False)
             self.ui.pb_send.setEnabled(False)
             _ps_type = self.config.ps_type
-
-            self.drs.SetSlaveAdd(_ps_type)
+            if not self.set_address(_ps_type):
+                return
 
             # verify current limits
             _setpoint = setpoint
@@ -702,7 +717,8 @@ class SupplyWidget(_QWidget):
         _curve_type = int(self.ui.tabWidget_3.currentIndex())
 
         _ps_type = self.config.ps_type
-        self.drs.SetSlaveAdd(_ps_type)
+        if not self.set_address(_ps_type):
+            return
 
         if _curve_type == 1:    # Sinusoidal
             # For Offset
@@ -854,6 +870,8 @@ class SupplyWidget(_QWidget):
         """Resets power supply hardware/software interlocks"""
         try:
             _ps_type = self.config.ps_type
+            if not self.set_address(_ps_type):
+                return
             # 1000A power supply, reset capacitor bank interlock
             if _ps_type == 2:
                 self.drs.SetSlaveAdd(_ps_type - 1)
@@ -861,8 +879,8 @@ class SupplyWidget(_QWidget):
 
             self.drs.SetSlaveAdd(_ps_type)
             self.drs.ResetInterlocks()
-            if self.ui.pb_interlock.isChecked():
-                self.ui.pb_interlock.setEnabled(False)
+            self.ui.pb_interlock.setEnabled(False)
+            self.status_powersupply()
             _QMessageBox.information(self, 'Information',
                                      'Interlocks reseted.',
                                      _QMessageBox.Ok)
@@ -874,12 +892,13 @@ class SupplyWidget(_QWidget):
                                  _QMessageBox.Ok)
             return
 
-    def cycling_ps(self):
-        """Initializes power supply cycling routine."""
+    def cicling_ps(self):
+        """Initializes power supply cicling routine."""
         _curve_type = int(self.ui.tabWidget_3.currentIndex())
 
         _ps_type = self.config.ps_type
-        self.drs.SetSlaveAdd(_ps_type)
+        if not self.set_address(_ps_type):
+            return
 
         try:
             self.drs.OpMode(3)
@@ -1011,8 +1030,6 @@ class SupplyWidget(_QWidget):
                 theta = float(self.ui.le_sinusoidal_phase.text())
                 sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) +
                                  offset)
-                x = _np.linspace(0, ncicles, 500)
-                y = sen(x)
 
             # plot damped sinusoidal
             elif _tab_idx == 0:
@@ -1024,9 +1041,9 @@ class SupplyWidget(_QWidget):
                 tau = float(self.ui.le_damp_sin_damping.text())
                 sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) *
                                  _np.exp(-t/tau) + offset)
-                x = _np.linspace(0, ncicles, 500)
-                y = sen(x)
 
+            x = _np.linspace(0, ncicles, 500)
+            y = sen(x)
             fig = self.plot_dialog.figure
             ax = self.plot_dialog.ax
             ax.clear()

@@ -15,6 +15,7 @@ from . import database as _database
 
 _position_precision = 4
 _check_position_precision = 2
+_current_precision = 6
 _empty_str = '--'
 _measurements_label = 'Hall'
 
@@ -212,9 +213,10 @@ class Scan(_database.DatabaseObject):
             if len(value.strip()) == 0 or value == _empty_str:
                 self._dcct_current_avg = None
             else:
-                self._dcct_current_avg = float(value)
+                self._dcct_current_avg = _np.around(
+                    float(value), _current_precision)
         elif isinstance(value, (float, int)):
-            self._dcct_current_avg = value
+            self._dcct_current_avg = _np.around(value, _current_precision)
         else:
             raise TypeError('dcct_current_avg must be a float.')
 
@@ -231,9 +233,10 @@ class Scan(_database.DatabaseObject):
             if len(value.strip()) == 0 or value == _empty_str:
                 self._dcct_current_std = None
             else:
-                self._dcct_current_std = float(value)
+                self._dcct_current_std = _np.around(
+                    float(value), _current_precision)
         elif isinstance(value, (float, int)):
-            self._dcct_current_std = value
+            self._dcct_current_std = _np.around(value, _current_precision)
         else:
             raise TypeError('dcct_current_std must be a float.')
 
@@ -250,9 +253,10 @@ class Scan(_database.DatabaseObject):
             if len(value.strip()) == 0 or value == _empty_str:
                 self._ps_current_avg = None
             else:
-                self._ps_current_avg = float(value)
+                self._ps_current_avg = _np.around(
+                    float(value), _current_precision)
         elif isinstance(value, (float, int)):
-            self._ps_current_avg = value
+            self._ps_current_avg = _np.around(value, _current_precision)
         else:
             raise TypeError('ps_current_avg must be a float.')
 
@@ -269,9 +273,10 @@ class Scan(_database.DatabaseObject):
             if len(value.strip()) == 0 or value == _empty_str:
                 self._ps_current_std = None
             else:
-                self._ps_current_std = float(value)
+                self._ps_current_std = _np.around(
+                    float(value), _current_precision)
         elif isinstance(value, (float, int)):
-            self._ps_current_std = value
+            self._ps_current_std = _np.around(value, _current_precision)
         else:
             raise TypeError('ps_current_std must be a float.')
 
@@ -830,7 +835,7 @@ class FieldScan(Scan):
             voltage_scan_list)
         
         setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
-            voltage_scan_list)
+            voltage_scan_list, 1)
         self.current_setpoint = setpoint
         self.dcct_current_avg = dcct_avg
         self.dcct_current_std = dcct_std
@@ -1018,9 +1023,10 @@ class Fieldmap(_database.DatabaseObject):
             if len(value.strip()) == 0 or value == _empty_str:
                 self._dcct_current_avg = None
             else:
-                self._dcct_current_avg = float(value)
+                self._dcct_current_avg = _np.around(
+                    float(value), _current_precision)
         elif isinstance(value, (float, int)):
-            self._dcct_current_avg = value
+            self._dcct_current_avg = _np.around(value, _current_precision)
         else:
             raise TypeError('dcct_current_avg must be a float.')
 
@@ -1037,9 +1043,10 @@ class Fieldmap(_database.DatabaseObject):
             if len(value.strip()) == 0 or value == _empty_str:
                 self._dcct_current_std = None
             else:
-                self._dcct_current_std = float(value)
+                self._dcct_current_std = _np.around(
+                    float(value), _current_precision)
         elif isinstance(value, (float, int)):
-            self._dcct_current_std = value
+            self._dcct_current_std = _np.around(value, _current_precision)
         else:
             raise TypeError('dcct_current_std must be a float.')
 
@@ -1056,9 +1063,10 @@ class Fieldmap(_database.DatabaseObject):
             if len(value.strip()) == 0 or value == _empty_str:
                 self._ps_current_avg = None
             else:
-                self._ps_current_avg = float(value)
+                self._ps_current_avg = _np.around(
+                    float(value), _current_precision)
         elif isinstance(value, (float, int)):
-            self._ps_current_avg = value
+            self._ps_current_avg = _np.around(value, _current_precision)
         else:
             raise TypeError('ps_current_avg must be a float.')
 
@@ -1075,9 +1083,10 @@ class Fieldmap(_database.DatabaseObject):
             if len(value.strip()) == 0 or value == _empty_str:
                 self._ps_current_std = None
             else:
-                self._ps_current_std = float(value)
+                self._ps_current_std = _np.around(
+                    float(value), _current_precision)
         elif isinstance(value, (float, int)):
-            self._ps_current_std = value
+            self._ps_current_std = _np.around(value, _current_precision)
         else:
             raise TypeError('ps_current_std must be a float.')
 
@@ -1344,12 +1353,13 @@ class Fieldmap(_database.DatabaseObject):
         self._magnet_center = magnet_center
         self._magnet_x_axis = magnet_x_axis
         self._magnet_y_axis = magnet_y_axis
+        self._corrected_positions = correct_positions
         self._map = _map
 
         self._temperature = get_temperature_values(field_scan_list)
 
         setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
-            field_scan_list)
+            field_scan_list, 2)
         self.current_setpoint = setpoint
         self.dcct_current_avg = dcct_avg
         self.dcct_current_std = dcct_std
@@ -1357,7 +1367,7 @@ class Fieldmap(_database.DatabaseObject):
         self.ps_current_std = ps_std
 
 
-def get_current_values(scan_list):
+def get_current_values(scan_list, nmeas):
     """Get average and std current values."""
     setpoint_set = set()
     dcct_avgs = []
@@ -1367,29 +1377,27 @@ def get_current_values(scan_list):
     for scan in scan_list:
         if scan.current_setpoint is not None:
             setpoint_set.add(_np.around(scan.current_setpoint, 5))
+        
         if scan.dcct_current_avg is not None:
             dcct_avgs.append(scan.dcct_current_avg)
-        if scan.dcct_current_std is not None:
-            dcct_stds.append(scan.dcct_current_std)
+            if scan.dcct_current_std is not None:
+                dcct_stds.append(scan.dcct_current_std)
+            else:
+                dcct_stds.append(0)
+        
         if scan.ps_current_avg is not None:
             ps_avgs.append(scan.ps_current_avg)
-        if scan.ps_current_std is not None:
-            ps_stds.append(scan.ps_current_std)
+            if scan.ps_current_std is not None:
+                ps_stds.append(scan.ps_current_std)
+            else:
+                ps_stds.append(0)
     
     setpoint = None
-    dcct_avg = None
-    dcct_std = None
-    ps_avg = None
-    ps_std = None
-    
     if len(setpoint_set) == 1:
         setpoint = list(setpoint_set)[0]
 
-    if len(dcct_avgs) != 0:
-        dcct_avg = _np.mean(dcct_avgs)
-    
-    if len(ps_avgs) != 0:
-        ps_avg = _np.mean(ps_avgs)
+    dcct_avg, dcct_std = _utils.getAverageStd(dcct_avgs, dcct_stds, nmeas)
+    ps_avg, ps_std = _utils.getAverageStd(ps_avgs, ps_stds, nmeas)
         
     return setpoint, dcct_avg, dcct_std, ps_avg, ps_std
     

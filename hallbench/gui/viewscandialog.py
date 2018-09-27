@@ -543,6 +543,11 @@ class ViewScanDialog(_QDialog):
             current = _np.array(current)
             self.current = _pd.DataFrame(current, columns=columns)
 
+            if self.current.iloc[:, 1:].isnull().values.all():
+                self.ui.view_current_btn.setEnabled(False)
+            else:
+                self.ui.view_current_btn.setEnabled(True)
+
             self.temperature = _measurement.get_temperature_values(
                 self.scan_list)            
             if len(self.temperature) != 0:

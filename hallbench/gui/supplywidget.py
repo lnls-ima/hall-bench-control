@@ -358,7 +358,7 @@ class SupplyWidget(_QWidget):
 
         Args:
             is_off (bool): True when the power supply is turned off;
-                False otherwise"""
+                False if turned on"""
         self.ui.pb_ps_button.setEnabled(True)
         if on:
             self.ui.pb_ps_button.setChecked(False)

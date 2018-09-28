@@ -162,8 +162,6 @@ class DatabaseWidget(_QWidget):
         self.ui.save_power_supply_btn.clicked.connect(
             lambda: self.saveFiles(
                 self._power_supply_table_name, _PowerSupplyConfig))
-        self.ui.read_power_supply_btn.clicked.connect(
-            lambda: self.readFiles(_PowerSupplyConfig))
         self.ui.delete_power_supply_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._power_supply_table_name))
 

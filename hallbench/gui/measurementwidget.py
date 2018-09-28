@@ -447,6 +447,7 @@ class MeasurementWidget(_QWidget):
             first_axis_start = self.local_measurement_config.get_start(
                 first_axis)
             self.moveAxis(first_axis, first_axis_start)
+            self.configuration_widget.ui.nr_measurements_la.setText('')
 
             self.plotField()
             self.killVoltageThreads()
@@ -456,6 +457,7 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             self.killVoltageThreads()
             self.turn_off_power_supply.emit(True)
+            self.configuration_widget.ui.nr_measurements_la.setText('')
             msg = 'Measurement failure.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
@@ -1001,6 +1003,7 @@ class MeasurementWidget(_QWidget):
             self.devices.pmac.stop_all_axis()
             self.ui.stop_btn.setEnabled(False)
             self.ui.clear_graph_btn.setEnabled(True)
+            self.configuration_widget.ui.nr_measurements_la.setText('')
             msg = 'The user stopped the measurements.'
             _QMessageBox.information(
                 self, 'Abort', msg, _QMessageBox.Ok)
@@ -1029,22 +1032,6 @@ class MeasurementWidget(_QWidget):
                     config.volty_enable,
                     config.voltz_enable]):
                 msg = 'No multimeter selected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-                return False
-
-            velocity = config.get_velocity(config.first_axis)
-            step = config.get_step(config.first_axis)
-            trigger_step = _np.abs(step/velocity)
-            
-            _s = 'Trigger Step [s]:\t  {0:.4f}'.format(trigger_step)
-            self.configuration_widget.ui.trigger_step_la.setText(_s)
-            
-            integration_time = config.integration_time
-            if integration_time > trigger_step:
-                msg = (
-                    'The integration time must be ' +
-                    'less than {0:.4f} seconds.'.format(
-                        trigger_step))
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
 

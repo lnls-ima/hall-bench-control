@@ -166,6 +166,23 @@ class ConfigurationWidget(_QWidget):
         self.ui.integration_time_le.editingFinished.connect(
             lambda: self.setStrFormatFloat(self.ui.integration_time_le))
 
+        self.ui.step_ax1_le.editingFinished.connect(
+            lambda: self.updateTriggerStep(1))
+        self.ui.step_ax2_le.editingFinished.connect(
+            lambda: self.updateTriggerStep(2))
+        self.ui.step_ax3_le.editingFinished.connect(
+            lambda: self.updateTriggerStep(3))
+        self.ui.step_ax5_le.editingFinished.connect(
+            lambda: self.updateTriggerStep(4))
+        self.ui.vel_ax1_le.editingFinished.connect(
+            lambda: self.updateTriggerStep(1))
+        self.ui.vel_ax2_le.editingFinished.connect(
+            lambda: self.updateTriggerStep(2))
+        self.ui.vel_ax3_le.editingFinished.connect(
+            lambda: self.updateTriggerStep(3))
+        self.ui.vel_ax5_le.editingFinished.connect(
+            lambda: self.updateTriggerStep(4))
+
         self.ui.first_ax1_rb.clicked.connect(self.disableSecondAxisButton)
         self.ui.first_ax2_rb.clicked.connect(self.disableSecondAxisButton)
         self.ui.first_ax3_rb.clicked.connect(self.disableSecondAxisButton)
@@ -381,6 +398,7 @@ class ConfigurationWidget(_QWidget):
                 vel_le.setText('{0:0.4f}'.format(value))
 
             self.disableInvalidLineEdit()
+            self.updateTriggerStep(first_axis)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -695,7 +713,19 @@ class ConfigurationWidget(_QWidget):
                 self.measurement_config.second_axis = -1
 
             if self.measurement_config.valid_data():
-                return True
+                first_axis = self.measurement_config.first_axis
+                step = self.measurement_config.get_step(first_axis)
+                vel = self.measurement_config.get_velocity(first_axis)
+                trigger_step = _np.abs(step/vel)
+                
+                if self.measurement_config.integration_time > trigger_step:
+                    msg = (
+                        'The integration time must be ' +
+                        'less than {0:.4f} seconds.'.format(trigger_step))
+                    _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                    return False
+                else:  
+                    return True
 
             else:
                 msg = 'Invalid measurement configuration.'
@@ -741,6 +771,23 @@ class ConfigurationWidget(_QWidget):
                 self.ui.probe_name_cmb.setCurrentIndex(-1)
             else:
                 self.ui.probe_name_cmb.setCurrentText(current_text)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            pass
+
+    def updateTriggerStep(self, axis):
+        """Update trigger step."""
+        try:
+            first_rb = getattr(self.ui, 'first_ax' + str(axis) + '_rb')
+            if first_rb.isChecked():
+                step = self.getAxisParam('step', axis)
+                vel = self.getAxisParam('vel', axis)
+                if step is not None and vel is not None:
+                    trigger_step = _np.abs(step/vel)
+                    _s = 'Trigger Step [s]:\t  {0:.4f}'.format(trigger_step)
+                    self.ui.trigger_step_la.setText(_s)
+                else:
+                    self.ui.trigger_step_la.setText('')
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             pass

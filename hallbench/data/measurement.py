@@ -16,6 +16,7 @@ from . import database as _database
 _position_precision = 4
 _check_position_precision = 2
 _current_precision = 6
+_check_current_precision = 2
 _empty_str = '--'
 _measurements_label = 'Hall'
 
@@ -1428,7 +1429,7 @@ def get_field_scan_list(voltage_scan_list, hall_probe):
         field_scan.set_field_scan(lt, hall_probe)
         field_scan.configuration_id = lt[0].configuration_id
         field_scan.magnet_name = lt[0].magnet_name
-        field_scan.main_current = lt[0].main_current
+        field_scan.current_setpoint = lt[0].current_setpoint
         field_scan_list.append(field_scan)
     return field_scan_list
 
@@ -1441,8 +1442,12 @@ def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
 
 
 def _cut_data_frame(df, idx_min, idx_max, axis=0):
-    df = df.drop(df.columns[:idx_min], axis=axis)
-    df = df.drop(df.columns[idx_max-idx_min+1:], axis=axis)
+    if axis == 0:
+        df = df.drop(df.index[:idx_min], axis=axis)
+        df = df.drop(df.index[idx_max-idx_min+1:], axis=axis)
+    else:
+        df = df.drop(df.columns[:idx_min], axis=axis)
+        df = df.drop(df.columns[idx_max-idx_min+1:], axis=axis)
     return df
 
 
@@ -1623,19 +1628,19 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
         columns = fieldx.columns
 
         # correct first axis positions
-        fieldx.index = index + _np.dot(first_axis_direction, px_disp)
-        fieldy.index = index + _np.dot(first_axis_direction, py_disp)
-        fieldz.index = index + _np.dot(first_axis_direction, pz_disp)
+        fieldx.index = index - _np.dot(first_axis_direction, px_disp)
+        fieldy.index = index - _np.dot(first_axis_direction, py_disp)
+        fieldz.index = index - _np.dot(first_axis_direction, pz_disp)
 
         # correct second axis positions
-        fieldx.columns = columns + _np.dot(second_axis_direction, px_disp)
-        fieldy.columns = columns + _np.dot(second_axis_direction, py_disp)
-        fieldz.columns = columns + _np.dot(second_axis_direction, pz_disp)
+        fieldx.columns = columns - _np.dot(second_axis_direction, px_disp)
+        fieldy.columns = columns - _np.dot(second_axis_direction, py_disp)
+        fieldz.columns = columns - _np.dot(second_axis_direction, pz_disp)
 
         # correct third axis positions
-        ptx = third_axis_pos + _np.dot(third_axis_direction, px_disp)
-        pty = third_axis_pos + _np.dot(third_axis_direction, py_disp)
-        ptz = third_axis_pos + _np.dot(third_axis_direction, pz_disp)
+        ptx = third_axis_pos - _np.dot(third_axis_direction, px_disp)
+        pty = third_axis_pos - _np.dot(third_axis_direction, py_disp)
+        ptz = third_axis_pos - _np.dot(third_axis_direction, pz_disp)
         if ptx == pty and ptx == ptz:
             third_axis_pos = ptx
         else:
@@ -1643,8 +1648,7 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
 
         if _utils.parallel_vectors(interp_direction, first_axis_direction):
             axis = 0
-            interpolation_grid = _np.around(
-                index, decimals=_check_position_precision)
+            interpolation_grid = index
             if not (_np.allclose(
                 fieldx.columns.values, fieldy.columns.values,
                 atol=_check_position_precision) and _np.allclose(
@@ -1654,8 +1658,7 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
 
         elif _utils.parallel_vectors(interp_direction, second_axis_direction):
             axis = 1
-            interpolation_grid = _np.around(
-                columns, decimals=_check_position_precision)
+            interpolation_grid = columns
             if not (_np.allclose(
                 fieldx.index.values, fieldy.index.values,
                 atol=_check_position_precision) and _np.allclose(
@@ -1838,10 +1841,16 @@ def _group_voltage_scan_list(voltage_scan_list):
             raise MeasurementDataError(
                 'Inconsistent magnet name found in voltage scan list.')
 
-        main_current = lt[0].main_current
-        if not all([vs.main_current == main_current for vs in lt]):
+        current_setpoint_set = set()
+        for l in lt:
+            if l.current_setpoint is None:
+                current_setpoint_set.add(None)
+            else:
+                current_setpoint_set.add(
+                    _np.around(l.current_setpoint, _check_current_precision))
+        if len(current_setpoint_set) > 1:
             raise MeasurementDataError(
-                'Inconsistent main current value found in voltage scan list.')
+                'Inconsistent current setpoint found in voltage scan list.')
 
     return grouped_voltage_scan_list
 

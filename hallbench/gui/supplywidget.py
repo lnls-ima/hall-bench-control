@@ -353,12 +353,12 @@ class SupplyWidget(_QWidget):
             self.change_ps_button(False)
             return
 
-    def change_ps_button(self, on=True):
+    def change_ps_button(self, is_off=True):
         """Updates ui when turning power supply on/off.
 
         Args:
-            on (bool): True when turning off the power supply;
-                       False otherwise"""
+            is_off (bool): True when the power supply is turned off;
+                False otherwise"""
         self.ui.pb_ps_button.setEnabled(True)
         if on:
             self.ui.pb_ps_button.setChecked(False)

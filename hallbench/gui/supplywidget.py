@@ -925,10 +925,12 @@ class SupplyWidget(_QWidget):
                 self.drs.EnableSigGen()
                 _freq = self.config.sinusoidal_frequency
                 _n_cicles = self.config.sinusoidal_ncicles
+                _offset = self.config.sinusoidal_offset
             if _curve_type == 0:
                 self.drs.EnableSigGen()
                 _freq = self.config.dsinusoidal_frequency
                 _n_cicles = self.config.dsinusoidal_ncicles
+                _offset = self.config.dsinusoidal_offset
             _deadline = _time.monotonic() + (1/_freq*_n_cicles)
             while _time.monotonic() < _deadline:
                 self.ui.tabWidget_2.setEnabled(False)
@@ -937,6 +939,7 @@ class SupplyWidget(_QWidget):
                 self.ui.pb_refresh.setEnabled(False)
                 _QApplication.processEvents()
 
+            self.config.ps_setpoint = _offset
             _QMessageBox.information(self, 'Information',
                                      'Cycling completed successfully.',
                                      _QMessageBox.Ok)

@@ -1476,6 +1476,10 @@ def _get_avg_voltage(voltage_scan_list):
     if not valid:
         raise MeasurementDataError(msg)
 
+    for vs in voltage_scan_list:
+        if vs.scan_pos[-1] < vs.scan_pos[0]:
+            vs.reverse()
+
     fixed_axes = [a for a in voltage_scan_list[0].axis_list
                   if a != voltage_scan_list[0].scan_axis]
     for axis in fixed_axes:
@@ -1498,7 +1502,7 @@ def _get_avg_voltage(voltage_scan_list):
     voltx_list = []
     volty_list = []
     voltz_list = []
-    for vs in voltage_scan_list:
+    for vs in voltage_scan_list:        
         if len(vs.avgx) == npts:
             fr = _interpolate.splrep(vs.scan_pos, vs.avgx, s=0, k=1)
             voltx = _interpolate.splev(interp_pos, fr, der=0)

@@ -34,7 +34,7 @@ import hallbench.data as _data
 
 
 _max_number_rows = 200
-_max_str_size = 50
+_max_str_size = 200
 
 _ConnectionConfig = _data.configuration.ConnectionConfig
 _MeasurementConfig = _data.configuration.MeasurementConfig
@@ -72,6 +72,13 @@ class DatabaseWidget(_QWidget):
         self.save_fieldmap_dialog = _SaveFieldmapDialog()
         self.view_fieldmap_dialog = _ViewFieldmapDialog()
 
+        self.short_version_tables = [
+            self._configuration_table_name,
+            self._voltage_scan_table_name,
+            self._field_scan_table_name,
+            self._fieldmap_table_name,
+            ]
+
         self.tables = []
         self.ui.database_tab.clear()
         self.connectSignalSlots()
@@ -101,8 +108,10 @@ class DatabaseWidget(_QWidget):
             con = _sqlite3.connect(self.database)
             cur = con.cursor()
 
-            cmd = 'SELECT * FROM {0}'.format(self._voltage_scan_table_name)
-            if len(cur.execute(cmd).fetchall()) == 0:
+            cmd = 'SELECT MAX(id) FROM {0}'.format(
+                self._voltage_scan_table_name)
+            max_idn = cur.execute(cmd).fetchone()[0]
+            if max_idn is None:
                 con.close()
                 return
 
@@ -466,8 +475,12 @@ class DatabaseWidget(_QWidget):
             res = cur.execute(
                 "SELECT name FROM sqlite_master WHERE type='table';")
 
-            for r in res:
+            for r in res:                  
                 table_name = r[0]
+                if (self.ui.short_version_chb.isChecked() and
+                   table_name not in self.short_version_tables):
+                    continue
+                
                 table = DatabaseTable(self.ui.database_tab)
                 tab = _QWidget()
                 vlayout = _QVBoxLayout()
@@ -476,19 +489,35 @@ class DatabaseWidget(_QWidget):
                 initial_id_la = _QLabel("Initial ID:")
                 initial_id_sb = _QSpinBox()
                 initial_id_sb.setMinimumWidth(100)
+                initial_id_sb.setButtonSymbols(2)
                 hlayout.addStretch(0)
                 hlayout.addWidget(initial_id_la)
                 hlayout.addWidget(initial_id_sb)
-                hlayout.addSpacing(50)
+                hlayout.addSpacing(30)
 
-                number_rows_la = _QLabel("Maximum number of rows:")
+                number_rows_la = _QLabel("Number of rows:")
                 number_rows_sb = _QSpinBox()
                 number_rows_sb.setMinimumWidth(100)
+                number_rows_sb.setButtonSymbols(2)
+                number_rows_sb.setReadOnly(True)
                 hlayout.addWidget(number_rows_la)
                 hlayout.addWidget(number_rows_sb)
+                hlayout.addSpacing(30)
+
+                max_number_rows_la = _QLabel("Maximum number of rows:")
+                max_number_rows_sb = _QSpinBox()
+                max_number_rows_sb.setMinimumWidth(100)
+                max_number_rows_sb.setButtonSymbols(2)
+                max_number_rows_sb.setReadOnly(True)
+                hlayout.addWidget(max_number_rows_la)
+                hlayout.addWidget(max_number_rows_sb)
 
                 table.loadDatabaseTable(
-                    self.database, table_name, initial_id_sb, number_rows_sb)
+                    self.database,
+                    table_name,
+                    initial_id_sb,
+                    number_rows_sb,
+                    max_number_rows_sb)
 
                 vlayout.addWidget(table)
                 vlayout.addLayout(hlayout)
@@ -534,24 +563,26 @@ class DatabaseWidget(_QWidget):
         """Remove unused configurations from database table."""
         try:
             idns = _MeasurementConfig.get_table_column(self.database, 'id')
-
-            vs_idns = _VoltageScan.get_table_column(
-                self.database, 'configuration_id')
-            fs_idns = _FieldScan.get_table_column(
-                self.database, 'configuration_id')
-
-            unused_idns = []
-            for idn in idns:
-                if (idn not in vs_idns) and (idn not in fs_idns):
-                    unused_idns.append(idn)
-
-            con = _sqlite3.connect(self.database)
-            cur = con.cursor()
-
+            if len(idns) == 0:
+                return
+            
             msg = 'Remove all unused configurations from database table?'
             reply = _QMessageBox.question(
                 self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
             if reply == _QMessageBox.Yes:
+                vs_idns = _VoltageScan.get_table_column(
+                    self.database, 'configuration_id')
+                fs_idns = _FieldScan.get_table_column(
+                    self.database, 'configuration_id')
+    
+                unused_idns = []
+                for idn in idns:
+                    if (idn not in vs_idns) and (idn not in fs_idns):
+                        unused_idns.append(idn)
+    
+                con = _sqlite3.connect(self.database)
+                cur = con.cursor()
+                
                 seq = ','.join(['?']*len(unused_idns))
                 cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(
                     self._configuration_table_name, seq)
@@ -560,7 +591,6 @@ class DatabaseWidget(_QWidget):
                 con.close()
                 self.updateDatabaseTables()
             else:
-                con.close()
                 return
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -723,7 +753,7 @@ class DatabaseWidget(_QWidget):
         try:
             fieldmap = _Fieldmap(database=self.database, idn=idn)
             self.view_fieldmap_dialog.accept()
-            self.view_fieldmap_dialog.show(fieldmap)
+            self.view_fieldmap_dialog.show(fieldmap, idn)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to show fieldmap dialog.'
@@ -773,6 +803,7 @@ class DatabaseTable(_QTableWidget):
         self.initial_table_id = None
         self.initial_id_sb = None
         self.number_rows_sb = None
+        self.max_number_rows_sb = None
 
     def changeInitialID(self):
         """Change initial ID."""
@@ -781,19 +812,19 @@ class DatabaseTable(_QTableWidget):
 
     def loadDatabaseTable(
             self, database, table_name,
-            initial_id_sb, number_rows_sb):
+            initial_id_sb, number_rows_sb, max_number_rows_sb):
         """Set database filename and table name."""
         self.database = database
         self.table_name = table_name
 
         self.initial_id_sb = initial_id_sb
-        self.initial_id_sb.setButtonSymbols(2)
         self.initial_id_sb.editingFinished.connect(self.changeInitialID)
 
         self.number_rows_sb = number_rows_sb
-        self.number_rows_sb.setButtonSymbols(2)
         self.number_rows_sb.setMaximum(_max_number_rows)
-        self.number_rows_sb.setReadOnly(True)
+
+        self.max_number_rows_sb = max_number_rows_sb
+        self.max_number_rows_sb.setMaximum(_max_number_rows)
 
         self.updateTable()
 
@@ -847,13 +878,13 @@ class DatabaseTable(_QTableWidget):
             max_idn = cur.execute(cmd).fetchone()[0]               
             self.initial_id_sb.setMaximum(max_idn)
             
-            self.number_rows_sb.setValue(len(data))
+            self.max_number_rows_sb.setValue(len(data))
             self.data = data[:]
             self.addRowsToTable(data)
         else:
             self.initial_id_sb.setMinimum(0)
             self.initial_id_sb.setMaximum(0)
-            self.number_rows_sb.setValue(0)
+            self.max_number_rows_sb.setValue(0)
         
         self.setSelectionBehavior(_QAbstractItemView.SelectRows)
         self.blockSignals(False)
@@ -867,8 +898,8 @@ class DatabaseTable(_QTableWidget):
 
         self.setRowCount(1)
 
-        if len(data) > self.number_rows_sb.value():
-            tabledata = data[-self.number_rows_sb.value()::]
+        if len(data) > self.max_number_rows_sb.value():
+            tabledata = data[-self.max_number_rows_sb.value()::]
         else:
             tabledata = data
 
@@ -877,6 +908,7 @@ class DatabaseTable(_QTableWidget):
 
         self.initial_id_sb.setValue(int(tabledata[0][0]))
         self.setRowCount(len(tabledata) + 1)
+        self.number_rows_sb.setValue(len(tabledata))
         self.initial_table_id = tabledata[0][0]
 
         for j in range(len(self.column_names)):

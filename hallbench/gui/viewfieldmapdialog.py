@@ -126,13 +126,13 @@ class ViewFieldmapDialog(_QDialog):
         self.ui.view_temperature_btn.clicked.connect(
             self.showTemperatureDialog)
 
-    def show(self, fieldmap):
+    def show(self, fieldmap, idn):
         """Update fieldmap and show dialog."""
         self.clearGraph()
         self.fieldmap = fieldmap
 
         try:
-            self.updateLineEdits()
+            self.updateLineEdits(idn)
             self.updatePlotOptions()
             self.updatePlot()
             self.updateText()
@@ -170,8 +170,9 @@ class ViewFieldmapDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updateLineEdits(self):
+    def updateLineEdits(self, idn):
         """Update line edit texts."""
+        self.ui.idn_le.setText('')
         self.ui.nr_scans_le.setText('')
         self.ui.initial_scan_le.setText('')
         self.ui.final_scan_le.setText('')
@@ -188,6 +189,7 @@ class ViewFieldmapDialog(_QDialog):
             return
 
         try:
+            self.ui.idn_le.setText('{0:d}'.format(idn))
             val = (
                 self.fieldmap.nr_scans if self.fieldmap.nr_scans is not None
                 else '')

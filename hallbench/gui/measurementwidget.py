@@ -548,13 +548,14 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan.ps_current_avg = None
         self.voltage_scan.temperature = {}
         
-        self.measureCurrentAndTemperature()
-
         # go to initial position
         if to_pos:
             self.moveAxis(axis, start - extra)
         else:
             self.moveAxis(axis, end + extra)
+        _QApplication.processEvents()
+
+        self.measureCurrentAndTemperature()
         _QApplication.processEvents()
 
         if self.stop is True:

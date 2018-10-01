@@ -76,6 +76,16 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QCheckBox" name="short_version_chb">
+       <property name="text">
+        <string>Short Version</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="0" column="1" rowspan="2">
@@ -108,8 +118,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>201</width>
+          <height>180</height>
          </rect>
         </property>
         <attribute name="label">
@@ -207,8 +217,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>216</width>
+          <height>124</height>
          </rect>
         </property>
         <attribute name="label">
@@ -277,8 +287,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>201</width>
+          <height>180</height>
          </rect>
         </property>
         <attribute name="label">
@@ -376,8 +386,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>194</width>
+          <height>236</height>
          </rect>
         </property>
         <attribute name="label">
@@ -508,8 +518,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>254</width>
+          <height>236</height>
          </rect>
         </property>
         <attribute name="label">
@@ -639,8 +649,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>213</width>
+          <height>348</height>
          </rect>
         </property>
         <attribute name="label">
@@ -825,8 +835,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>194</width>
+          <height>292</height>
          </rect>
         </property>
         <attribute name="label">
@@ -982,8 +992,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>187</width>
+          <height>236</height>
          </rect>
         </property>
         <attribute name="label">

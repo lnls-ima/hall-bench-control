@@ -46,6 +46,7 @@ class PSCurrentWidget(_TablePlotWidget):
         self.configure_btn.clicked.connect(self.configureDevices)
 
         # Change default appearance
+        self.ui.widget_wg.hide()
         self.ui.table_ta.horizontalHeader().setDefaultSectionSize(200)
         self.ui.read_btn.setText('Read Current')
         self.ui.monitor_btn.setText('Monitor Current')

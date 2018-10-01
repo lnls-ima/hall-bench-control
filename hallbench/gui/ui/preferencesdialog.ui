@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>196</width>
-    <height>341</height>
+    <width>218</width>
+    <height>380</height>
    </rect>
   </property>
   <property name="font">
@@ -18,9 +18,18 @@
   <property name="windowTitle">
    <string>Preferences</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="horizontalSpacing">
+    <number>15</number>
+   </property>
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox">
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="font">
       <font>
        <weight>75</weight>
@@ -177,6 +186,12 @@
       </item>
       <item>
        <widget class="QPushButton" name="apply_btn">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Apply Changes</string>
         </property>

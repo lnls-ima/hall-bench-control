@@ -118,9 +118,9 @@ class Configuration(_database.DatabaseObject):
         """Save configuration to file."""
         pass
 
-    def valid_data(self):
+    def valid_data(self, valid_none=[]):
         """Check if parameters are valid."""
-        al = [getattr(self, a) for a in self.__dict__]
+        al = [getattr(self, a) for a in self.__dict__ if a not in valid_none]
         if all([a is not None for a in al]):
             return True
         else:
@@ -244,10 +244,11 @@ class MeasurementConfig(Configuration):
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
         ('magnet_name', ['magnet_name', 'TEXT NOT NULL']),
-        ('main_current', ['main_current', 'TEXT NOT NULL']),
-        ('probe_name', ['probe_name', 'TEXT']),
-        ('temperature', ['temperature', 'TEXT']),
+        ('current_setpoint', ['current_setpoint', 'REAL']),
         ('operator', ['operator', 'TEXT']),
+        ('comments', ['comments', 'TEXT']),
+        ('temperature', ['temperature', 'TEXT']),
+        ('probe_name', ['probe_name', 'TEXT']),
         ('software_version', [None, 'TEXT']),
         ('voltx_enable', ['voltx_enable', 'INTEGER NOT NULL']),
         ('volty_enable', ['volty_enable', 'INTEGER NOT NULL']),
@@ -288,10 +289,11 @@ class MeasurementConfig(Configuration):
             idn (int): id in database table.
         """
         self.magnet_name = None
-        self.main_current = None
+        self.current_setpoint = None
         self.probe_name = None
         self.temperature = None
         self.operator = None
+        self.comments = None
         self.voltx_enable = None
         self.volty_enable = None
         self.voltz_enable = None
@@ -347,8 +349,8 @@ class MeasurementConfig(Configuration):
                     'nr_measurements', 'voltage_precision',
                     'first_axis', 'second_axis']:
             return int
-        elif name in ['magnet_name', 'main_current', 'probe_name',
-                      'temperature', 'operator']:
+        elif name in ['magnet_name', 'probe_name',
+                      'temperature', 'operator', 'comments']:
             return str
         else:
             return float
@@ -390,7 +392,7 @@ class MeasurementConfig(Configuration):
             data = [
                 '# Measurement Setup\n\n',
                 'magnet_name \t{0:s}\n'.format(self.magnet_name),
-                'main_current\t{0:s}\n'.format(self.main_current),
+                'current_setpoint\t{0:f}\n'.format(self.current_setpoint),
                 'temperature \t{0:s}\n'.format(self.temperature),
                 'operator    \t{0:s}\n\n'.format(self.operator),
                 '# Hall Probe\n',
@@ -464,6 +466,11 @@ class MeasurementConfig(Configuration):
         """Set velocity value for the given axis."""
         param = 'vel_ax'
         self._set_axis_param(param, axis, value)
+        
+    def valid_data(self):
+        """Check if parameters are valid."""
+        return super().valid_data(valid_none=[
+            'current_setpoint', 'comments', 'probe_name'])
 
 
 class PowerSupplyConfig(Configuration):

@@ -468,9 +468,9 @@ class MeasurementWidget(_QWidget):
 
         try:
             current_value_str = str(current_setpoint)
-            self.measurement_config.main_current = current_value_str
-            self.local_measurement_config.main_current = current_value_str
-            self.configuration_widget.ui.main_current_le.setText(
+            self.measurement_config.current_setpoint = current_setpoint
+            self.local_measurement_config.current_setpoint = current_setpoint
+            self.configuration_widget.ui.current_setpoint_le.setText(
                 current_value_str)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -768,9 +768,10 @@ class MeasurementWidget(_QWidget):
 
         try:
             mn = self.local_measurement_config.magnet_name
-            mc = self.local_measurement_config.main_current
+            mc = self.local_measurement_config.current_setpoint
             self.field_scan.magnet_name = mn
             self.field_scan.current_setpoint = mc
+            self.field_scan.comments = self.local_measurement_config.comments
             self.field_scan.configuration_id = self.local_measurement_config_id
             idn = self.field_scan.save_to_database(self.database)
             self.field_scan_id_list.append(idn)
@@ -822,9 +823,10 @@ class MeasurementWidget(_QWidget):
 
         try:
             mn = self.local_measurement_config.magnet_name
-            mc = self.local_measurement_config.main_current
+            mc = self.local_measurement_config.current_setpoint
             self.voltage_scan.magnet_name = mn
             self.voltage_scan.current_setpoint = mc
+            self.voltage_scan.comments = self.local_measurement_config.comments
             self.voltage_scan.configuration_id = (
                 self.local_measurement_config_id)
             idn = self.voltage_scan.save_to_database(self.database)

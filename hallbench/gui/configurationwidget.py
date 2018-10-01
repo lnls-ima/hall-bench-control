@@ -101,9 +101,10 @@ class ConfigurationWidget(_QWidget):
         self.ui.second_ax3_rb.clicked.connect(self.clearLoadOptions)
         self.ui.second_ax5_rb.clicked.connect(self.clearLoadOptions)
         self.ui.magnet_name_le.editingFinished.connect(self.clearLoadOptions)
-        self.ui.main_current_le.editingFinished.connect(self.clearLoadOptions)
+        self.ui.current_setpoint_le.editingFinished.connect(self.clearLoadOptions)
         self.ui.temperature_le.editingFinished.connect(self.clearLoadOptions)
         self.ui.operator_le.editingFinished.connect(self.clearLoadOptions)
+        self.ui.comments_le.editingFinished.connect(self.clearLoadOptions)
         self.ui.nr_measurements_sb.valueChanged.connect(self.clearLoadOptions)
         self.ui.probe_name_cmb.currentIndexChanged.connect(
             self.clearLoadOptions)
@@ -117,6 +118,9 @@ class ConfigurationWidget(_QWidget):
 
         self.ui.current_start_btn.clicked.connect(
             self.copyCurrentStartPosition)
+
+        self.ui.current_setpoint_le.editingFinished.connect(
+            lambda: self.setStrFormatFloat(self.ui.current_setpoint_le))
 
         self.ui.start_ax1_le.editingFinished.connect(
             lambda: self.setStrFormatFloatSumSub(self.ui.start_ax1_le))
@@ -336,8 +340,12 @@ class ConfigurationWidget(_QWidget):
         """Set measurement parameters."""
         try:
             self.ui.magnet_name_le.setText(self.measurement_config.magnet_name)
-            self.ui.main_current_le.setText(
-                self.measurement_config.main_current)
+            
+            current_sp = self.measurement_config.current_setpoint
+            if current_sp is None:
+                self.ui.current_setpoint_le.setText('')
+            else:
+                self.ui.current_setpoint_le.setText(str(current_sp))
 
             idx = self.ui.probe_name_cmb.findText(
                 self.measurement_config.probe_name)
@@ -540,19 +548,6 @@ class ConfigurationWidget(_QWidget):
                 msg = 'Failed to save configuration to file.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def setMainCurrent(self, current_value):
-        """Set main current value."""
-        try:
-            current_value_str = str(current_value)
-            self.measurement_config.main_current = current_value_str
-            self.ui.main_current_le.setText(current_value_str)
-            return True
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to set configuration main current.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
-
     def setStrFormatFloat(self, obj):
         """Set the line edit string format for float value."""
         try:
@@ -640,20 +635,26 @@ class ConfigurationWidget(_QWidget):
         try:
             self.measurement_config.clear()
 
-            _s = self.ui.magnet_name_le.text()
+            _s = self.ui.magnet_name_le.text().strip()
             self.measurement_config.magnet_name = _s if len(_s) != 0 else None
 
-            _s = self.ui.main_current_le.text()
-            self.measurement_config.main_current = _s if len(_s) != 0 else None
+            _s = self.ui.current_setpoint_le.text().strip()
+            if len(_s) == 0:
+                self.measurement_config.current_setpoint = None
+            else:
+                self.measurement_config.current_setpoint = float(_s)
 
-            _s = self.ui.probe_name_cmb.currentText()
-            self.measurement_config.probe_name = _s if len(_s) != 0 else 'None'
+            _s = self.ui.probe_name_cmb.currentText().strip()
+            self.measurement_config.probe_name = _s if len(_s) != 0 else None
 
-            _s = self.ui.temperature_le.text()
+            _s = self.ui.temperature_le.text().strip()
             self.measurement_config.temperature = _s if len(_s) != 0 else None
 
-            _s = self.ui.operator_le.text()
+            _s = self.ui.operator_le.text().strip()
             self.measurement_config.operator = _s if len(_s) != 0 else None
+
+            _s = self.ui.comments_le.text().strip()
+            self.measurement_config.comments = _s if len(_s) != 0 else ''
 
             _voltx_enable = self.ui.voltx_enable_chb.isChecked()
             self.measurement_config.voltx_enable = _voltx_enable

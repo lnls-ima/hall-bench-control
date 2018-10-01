@@ -149,7 +149,7 @@ class SaveFieldmapDialog(_QDialog):
         fieldmap.gap = gap if len(gap) != 0 else None
         fieldmap.control_gap = control_gap if len(control_gap) != 0 else None
         fieldmap.magnet_length = magnet_len if len(magnet_len) != 0 else None
-        fieldmap.comments = comments if len(comments) != 0 else None
+        fieldmap.comments = comments
 
         for coil in self._coil_list:
             if getattr(self.ui, coil + '_chb').isChecked():

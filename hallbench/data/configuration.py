@@ -9,6 +9,9 @@ from . import utils as _utils
 from . import database as _database
 
 
+_empty_str = '--'
+
+
 class ConfigurationError(Exception):
     """Configuration exception."""
 
@@ -111,8 +114,12 @@ class Configuration(_database.DatabaseObject):
         for name in self.__dict__:
             tp = self.get_attribute_type(name)
             if tp is not None:
-                value = _utils.find_value(data, name, vtype=tp)
-                setattr(self, name, value)
+                value_str = _utils.find_value(data, name)
+                if value_str == _empty_str:
+                    setattr(self, name, None)
+                else:
+                    value = _utils.find_value(data, name, vtype=tp)
+                    setattr(self, name, value)
 
     def save_file(self, filename):
         """Save configuration to file."""
@@ -238,7 +245,7 @@ class MeasurementConfig(Configuration):
     """Read, write and stored measurement configuration data."""
 
     _label = 'Configuration'
-    _db_table = 'configurations'
+    _db_table = 'configurations_new'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
@@ -254,8 +261,9 @@ class MeasurementConfig(Configuration):
         ('volty_enable', ['volty_enable', 'INTEGER NOT NULL']),
         ('voltz_enable', ['voltz_enable', 'INTEGER NOT NULL']),
         ('voltage_precision', ['voltage_precision', 'INTEGER NOT NULL']),
-        ('nr_measurements', ['nr_measurements', 'INTEGER NOT NULL']),
+        ('voltage_range', ['voltage_range', 'REAL']),
         ('integration_time', ['integration_time', 'REAL NOT NULL']),
+        ('nr_measurements', ['nr_measurements', 'INTEGER NOT NULL']),
         ('first_axis', ['first_axis', 'INTEGER NOT NULL']),
         ('second_axis', ['second_axis', 'INTEGER NOT NULL']),
         ('start_ax1', ['start_ax1', 'REAL NOT NULL']),
@@ -278,6 +286,11 @@ class MeasurementConfig(Configuration):
         ('step_ax5', ['step_ax5', 'REAL NOT NULL']),
         ('extra_ax5', ['extra_ax5', 'REAL NOT NULL']),
         ('vel_ax5', ['vel_ax5', 'REAL NOT NULL']),
+        ('use_voltage_offset', ['use_voltage_offset', 'INTEGER']),
+        ('save_voltage', ['save_voltage', 'INTEGER']),
+        ('save_current', ['save_current', 'INTEGER']),
+        ('save_temperature', ['save_temperature', 'INTEGER']),
+        ('automatic_ramp', ['automatic_ramp', 'INTEGER']),
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -293,12 +306,13 @@ class MeasurementConfig(Configuration):
         self.probe_name = None
         self.temperature = None
         self.operator = None
-        self.comments = None
+        self.comments = ''
         self.voltx_enable = None
         self.volty_enable = None
         self.voltz_enable = None
         self.integration_time = None
         self.voltage_precision = None
+        self.voltage_range = None
         self.nr_measurements = None
         self.first_axis = None
         self.second_axis = None
@@ -322,6 +336,11 @@ class MeasurementConfig(Configuration):
         self.step_ax5 = None
         self.extra_ax5 = None
         self.vel_ax5 = None
+        self.use_voltage_offset = None
+        self.save_voltage = None
+        self.save_current = None
+        self.save_temperature = None
+        self.automatic_ramp = None
         super().__init__(filename=filename, database=database, idn=idn)
 
     @classmethod
@@ -347,7 +366,9 @@ class MeasurementConfig(Configuration):
         """Get attribute type."""
         if name in ['voltx_enable', 'volty_enable', 'voltz_enable',
                     'nr_measurements', 'voltage_precision',
-                    'first_axis', 'second_axis']:
+                    'first_axis', 'second_axis', 'use_voltage_offset',
+                    'save_voltage', 'save_current', 'save_temperature',
+                    'automatic_ramp']:
             return int
         elif name in ['magnet_name', 'probe_name',
                       'temperature', 'operator', 'comments']:
@@ -375,6 +396,16 @@ class MeasurementConfig(Configuration):
         """Get velocity for the given axis."""
         return getattr(self, 'vel_ax' + str(axis))
 
+    def read_file(self, filename):
+        """Read configuration from file.
+
+        Args:
+            filename (str): configuration filepath.
+        """
+        super().read_file(filename)
+        if self.comments is None:
+            self.comments = ''
+
     def save_file(self, filename):
         """Save measurement configuration to file.
 
@@ -389,14 +420,29 @@ class MeasurementConfig(Configuration):
             raise ConfigurationError(message)
 
         try:
+            if self.current_setpoint is not None:
+                current_setpoint = str(self.current_setpoint)
+            else:
+                current_setpoint = _empty_str
+            
+            if self.comments is not None and len(self.comments) != 0:
+                comments = self.comments.replace(' ', '_')
+            else:
+                comments = _empty_str
+            
+            if self.probe_name is not None and len(self.probe_name) != 0:
+                probe_name = self.probe_name
+            else:
+                probe_name = _empty_str
+            
             data = [
                 '# Measurement Setup\n\n',
                 'magnet_name \t{0:s}\n'.format(self.magnet_name),
-                'current_setpoint\t{0:f}\n'.format(self.current_setpoint),
+                'current_setpoint\t{0:s}\n'.format(current_setpoint),
                 'temperature \t{0:s}\n'.format(self.temperature),
                 'operator    \t{0:s}\n\n'.format(self.operator),
                 '# Hall Probe\n',
-                'probe_name  \t{0:s}\n\n'.format(self.probe_name),
+                'probe_name  \t{0:s}\n\n'.format(probe_name),
                 '# Digital Multimeters (X, Y, Z)\n',
                 'voltx_enable\t{0:1d}\n'.format(self.voltx_enable),
                 'volty_enable\t{0:1d}\n'.format(self.volty_enable),
@@ -404,15 +450,24 @@ class MeasurementConfig(Configuration):
                 '# Digital Multimeter (aper [s])\n',
                 'integration_time \t{0:4f}\n\n'.format(self.integration_time),
                 '# Digital Multimeter (precision [single=0 or double=1])\n',
-                'voltage_precision\t{0:1d}\n\n'.format(self.voltage_precision),
+                'voltage_precision \t{0:1d}\n\n'.format(self.voltage_precision),
+                '# Digital Multimeter (range [V])\n',
+                'voltage_range \t{0:f}\n\n'.format(self.voltage_range),
                 '# Number of measurements\n',
-                'nr_measurements  \t{0:1d}\n\n'.format(self.nr_measurements),
+                'nr_measurements \t{0:1d}\n\n'.format(self.nr_measurements),
                 '# First Axis (Triggering Axis)\n',
                 'first_axis  \t{0:1d}\n\n'.format(self.first_axis),
                 '#Second Axis\n',
                 'second_axis \t{0:1d}\n\n'.format(self.second_axis),
-                ('#Axis Parameters (StartPos, EndPos, Incr, Extra, Velocity)' +
-                 ' - Ax1, Ax2, Ax3, Ax5\n'),
+                '#Flags\n',
+                'use_voltage_offset \t{0:d}\n'.format(self.use_voltage_offset),
+                'save_voltage       \t{0:d}\n'.format(self.save_voltage),
+                'save_current       \t{0:d}\n'.format(self.save_current),
+                'save_temperature   \t{0:d}\n'.format(self.save_temperature),
+                'automatic_ramp     \t{0:d}\n\n'.format(self.automatic_ramp),
+                '#Comments\n',
+                'comments \t{0:s}\n\n'.format(comments),
+                '#Axis Parameters (StartPos, EndPos, Step, Extra, Velocity)\n',
                 'start_ax1   \t{0:4f}\n'.format(self.start_ax1),
                 'end_ax1     \t{0:4f}\n'.format(self.end_ax1),
                 'step_ax1    \t{0:2f}\n'.format(self.step_ax1),

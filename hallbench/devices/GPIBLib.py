@@ -486,12 +486,13 @@ class Agilent3458A(GPIB):
                 '>d', r[i:i+8])[0] for i in range(0, len(r), 8)]
         return voltage
 
-    def config(self, aper, formtype):
+    def config(self, aper, formtype, range):
         """Configure device.
 
         Args:
-            aper (float): A/D converter integration time in seconds?
+            aper (float): A/D converter integration time in seconds.
             formtype (int): format type [single=0 or double=1].
+            range (float): measurement range in volts.
         """
         self.send_command(self.commands.reset)
         self.send_command(self.commands.func_volt)
@@ -499,12 +500,12 @@ class Agilent3458A(GPIB):
         self.send_command(self.commands.trig_auto)
         self.send_command(self.commands.nrdgs_ext)
         self.send_command(self.commands.arange_off)
-        self.send_command(self.commands.range + '15')
+        self.send_command(self.commands.range + str(range))
         self.send_command(self.commands.math_off)
         self.send_command(self.commands.azero_once)
         self.send_command(self.commands.trig_buffer_off)
         self.send_command(self.commands.delay_0)
-        self.send_command(self.commands.aper + '{0:0.3f}'.format(aper))
+        self.send_command(self.commands.aper + '{0:.4f}'.format(aper))
         self.send_command(self.commands.disp_off)
         self.send_command(self.commands.scratch)
         self.send_command(self.commands.end_gpib_always)

@@ -65,6 +65,12 @@ class Scan(_database.DatabaseObject):
         self._dcct_current_std = None
         self._ps_current_avg = None
         self._ps_current_std = None
+        self._offsetx_start = None
+        self._offsetx_end = None
+        self._offsety_start = None
+        self._offsety_end = None
+        self._offsetz_start = None
+        self._offsetz_end = None
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
         self._pos3 = _np.array([])
@@ -94,16 +100,22 @@ class Scan(_database.DatabaseObject):
         """Printable string representation of Scan."""
         fmtstr = '{0:<18s} : {1}\n'
         r = ''
+        r += fmtstr.format('timestamp', str(self.timestamp))
         r += fmtstr.format('magnet_name', str(self.magnet_name))
         r += fmtstr.format('current_setpoint[A]', str(self.current_setpoint))
         r += fmtstr.format('dcct_current_avg[A]', str(self.dcct_current_avg))
         r += fmtstr.format('dcct_current_std[A]', str(self.dcct_current_std))
         r += fmtstr.format('ps_current_avg[A]', str(self.ps_current_avg))
         r += fmtstr.format('ps_current_std[A]', str(self.ps_current_std))
-        r += fmtstr.format('timestamp', str(self.timestamp))
         r += fmtstr.format('comments', str(self.comments))
-        r += fmtstr.format('scan_axis', str(self.scan_axis))
+        r += fmtstr.format('offsetx_start[V]', str(self._offsetx_start))
+        r += fmtstr.format('offsetx_end[V]', str(self._offsetx_end))
+        r += fmtstr.format('offsety_start[V]', str(self._offsety_start))
+        r += fmtstr.format('offsety_end[V]', str(self._offsety_end))
+        r += fmtstr.format('offsetz_start[V]', str(self._offsetz_start))
+        r += fmtstr.format('offsetz_end[V]', str(self._offsetz_end))
         r += fmtstr.format('npts', str(self.npts))
+        r += fmtstr.format('scan_axis', str(self.scan_axis))
         r += fmtstr.format('pos1[mm]', str(self._pos1))
         r += fmtstr.format('pos2[mm]', str(self._pos2))
         r += fmtstr.format('pos3[mm]', str(self._pos3))
@@ -126,6 +138,28 @@ class Scan(_database.DatabaseObject):
         configuration_id = cls.get_database_param(
             database, idn, 'configuration_id')
         return configuration_id
+
+    def _get_float_property_value(self, value, precision=None):
+        if value is None:
+            return None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                return None
+            else:
+                if precision is not None:
+                    v = _np.around(float(value), precision)
+                else:
+                    v = float(value)
+                return v
+        elif isinstance(value, (float, int)):
+            if precision is not None:
+                v = _np.around(value, precision)
+            else:
+                v = value
+            return v
+        else:
+            raise TypeError('Property value must be a float.')
+            return None
 
     @property
     def unit(self):
@@ -189,17 +223,7 @@ class Scan(_database.DatabaseObject):
 
     @current_setpoint.setter
     def current_setpoint(self, value):
-        if value is None:
-            self._current_setpoint = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._current_setpoint = None
-            else:
-                self._current_setpoint = float(value)
-        elif isinstance(value, (float, int)):
-            self._current_setpoint = value
-        else:
-            raise TypeError('current_setpoint must be a float.')   
+        self._current_setpoint = self._get_float_property_value(value)
 
     @property
     def dcct_current_avg(self):
@@ -208,18 +232,8 @@ class Scan(_database.DatabaseObject):
 
     @dcct_current_avg.setter
     def dcct_current_avg(self, value):
-        if value is None:
-            self._dcct_current_avg = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._dcct_current_avg = None
-            else:
-                self._dcct_current_avg = _np.around(
-                    float(value), _current_precision)
-        elif isinstance(value, (float, int)):
-            self._dcct_current_avg = _np.around(value, _current_precision)
-        else:
-            raise TypeError('dcct_current_avg must be a float.')
+        self._dcct_current_avg = self._get_float_property_value(
+            value, precision=_current_precision)
 
     @property
     def dcct_current_std(self):
@@ -228,18 +242,8 @@ class Scan(_database.DatabaseObject):
 
     @dcct_current_std.setter
     def dcct_current_std(self, value):
-        if value is None:
-            self._dcct_current_std = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._dcct_current_std = None
-            else:
-                self._dcct_current_std = _np.around(
-                    float(value), _current_precision)
-        elif isinstance(value, (float, int)):
-            self._dcct_current_std = _np.around(value, _current_precision)
-        else:
-            raise TypeError('dcct_current_std must be a float.')
+        self._dcct_current_std = self._get_float_property_value(
+            value, precision=_current_precision)
 
     @property
     def ps_current_avg(self):
@@ -248,18 +252,8 @@ class Scan(_database.DatabaseObject):
 
     @ps_current_avg.setter
     def ps_current_avg(self, value):
-        if value is None:
-            self._ps_current_avg = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._ps_current_avg = None
-            else:
-                self._ps_current_avg = _np.around(
-                    float(value), _current_precision)
-        elif isinstance(value, (float, int)):
-            self._ps_current_avg = _np.around(value, _current_precision)
-        else:
-            raise TypeError('ps_current_avg must be a float.')
+        self._ps_current_avg = self._get_float_property_value(
+            value, precision=_current_precision)
 
     @property
     def ps_current_std(self):
@@ -268,18 +262,62 @@ class Scan(_database.DatabaseObject):
 
     @ps_current_std.setter
     def ps_current_std(self, value):
-        if value is None:
-            self._ps_current_std = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._ps_current_std = None
-            else:
-                self._ps_current_std = _np.around(
-                    float(value), _current_precision)
-        elif isinstance(value, (float, int)):
-            self._ps_current_std = _np.around(value, _current_precision)
-        else:
-            raise TypeError('ps_current_std must be a float.')
+        self._ps_current_std = self._get_float_property_value(
+            value, precision=_current_precision)
+
+    @property
+    def offsetx_start(self):
+        """Sensor X Voltage Offset at the start of the scan [V]."""
+        return self._offsetx_start
+    
+    @offsetx_start.setter
+    def offsetx_start(self, value):
+        self._offsetx_start = self._get_float_property_value(value)
+
+    @property
+    def offsetx_end(self):
+        """Sensor X Voltage Offset at the end of the scan [V]."""
+        return self._offsetx_end
+    
+    @offsetx_end.setter
+    def offsetx_end(self, value):
+        self._offsetx_end = self._get_float_property_value(value)
+
+    @property
+    def offsety_start(self):
+        """Sensor Y Voltage Offset at the start of the scan [V]."""
+        return self._offsety_start
+    
+    @offsety_start.setter
+    def offsety_start(self, value):
+        self._offsety_start = self._get_float_property_value(value)
+
+    @property
+    def offsety_end(self):
+        """Sensor Y Voltage Offset at the end of the scan [V]."""
+        return self._offsety_end
+    
+    @offsety_end.setter
+    def offsety_end(self, value):
+        self._offsety_end = self._get_float_property_value(value)
+
+    @property
+    def offsetz_start(self):
+        """Sensor Z Voltage Offset at the start of the scan [V]."""
+        return self._offsetz_start
+    
+    @offsetz_start.setter
+    def offsetz_start(self, value):
+        self._offsetz_start = self._get_float_property_value(value)
+
+    @property
+    def offsetz_end(self):
+        """Sensor Z Voltage Offset at the end of the scan [V]."""
+        return self._offsetz_end
+    
+    @offsetz_end.setter
+    def offsetz_end(self, value):
+        self._offsetz_end = self._get_float_property_value(value)
 
     @property
     def pos1(self):
@@ -434,6 +472,12 @@ class Scan(_database.DatabaseObject):
         self._dcct_current_std = None
         self._ps_current_avg = None
         self._ps_current_std = None
+        self._offsetx_start = None
+        self._offsetx_end = None
+        self._offsety_start = None
+        self._offsety_end = None
+        self._offsetz_start = None
+        self._offsetz_end = None
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
                 self.__dict__[key] = _np.array([])
@@ -464,6 +508,12 @@ class Scan(_database.DatabaseObject):
         self.dcct_current_std = _utils.find_value(flines, 'dcct_current_std')
         self.ps_current_avg = _utils.find_value(flines, 'ps_current_avg')
         self.ps_current_std = _utils.find_value(flines, 'ps_current_std')
+        self.offsetx_start = _utils.find_value(flines, 'offsetx_start')
+        self.offsetx_end = _utils.find_value(flines, 'offsetx_end')
+        self.offsety_start = _utils.find_value(flines, 'offsety_start')
+        self.offsety_end = _utils.find_value(flines, 'offsety_end')
+        self.offsetz_start = _utils.find_value(flines, 'offsetz_start')
+        self.offsetz_end = _utils.find_value(flines, 'offsetz_end')
 
         scan_axis = _utils.find_value(flines, 'scan_axis', int)
         for axis in self._axis_list:
@@ -569,20 +619,38 @@ class Scan(_database.DatabaseObject):
             self.magnet_name if self.magnet_name is not None
             else _empty_str)
         current_setpoint = (
-            self.current_setpoint if self.current_setpoint is not None
+            str(self.current_setpoint) if self.current_setpoint is not None
             else _empty_str)
         dcct_current_avg = (
-            self.dcct_current_avg if self.dcct_current_avg is not None
+            str(self.dcct_current_avg) if self.dcct_current_avg is not None
             else _empty_str)
         dcct_current_std = (
-            self.dcct_current_std if self.dcct_current_std is not None
+            str(self.dcct_current_std) if self.dcct_current_std is not None
             else _empty_str)
         ps_current_avg = (
-            self.ps_current_avg if self.ps_current_avg is not None
+            str(self.ps_current_avg) if self.ps_current_avg is not None
             else _empty_str)
         ps_current_std = (
-            self.ps_current_std if self.ps_current_std is not None
-            else _empty_str)            
+            str(self.ps_current_std) if self.ps_current_std is not None
+            else _empty_str)
+        offsetx_start = (
+            str(self.offsetx_start) if self.offsetx_start is not None
+            else _empty_str)
+        offsetx_end = (
+            str(self.offsetx_end) if self.offsetx_end is not None
+            else _empty_str)
+        offsety_start = (
+            str(self.offsety_start) if self.offsety_start is not None
+            else _empty_str)
+        offsety_end = (
+            str(self.offsety_end) if self.offsety_end is not None
+            else _empty_str)
+        offsetz_start = (
+            str(self.offsetz_start) if self.offsetz_start is not None
+            else _empty_str)
+        offsetz_end = (
+            str(self.offsetz_end) if self.offsetz_end is not None
+            else _empty_str)
 
         with open(filename, mode='w') as f:
             f.write('timestamp:           \t%s\n' % self._timestamp)
@@ -592,6 +660,12 @@ class Scan(_database.DatabaseObject):
             f.write('dcct_current_std[A]: \t%s\n' % dcct_current_std)
             f.write('ps_current_avg[A]:   \t%s\n' % ps_current_avg)
             f.write('ps_current_std[A]:   \t%s\n' % ps_current_std)
+            f.write('offsetx_start[V]:    \t%s\n' % offsetx_start)
+            f.write('offsetx_end[V]:      \t%s\n' % offsetx_end)
+            f.write('offsety_start[V]:    \t%s\n' % offsety_start)
+            f.write('offsety_end[V]:      \t%s\n' % offsety_end)
+            f.write('offsetz_start[V]:    \t%s\n' % offsetz_start)
+            f.write('offsetz_end[V]:      \t%s\n' % offsetz_end)
             f.write('scan_axis:           \t%s\n' % scan_axis)
             f.write('pos1[mm]:            \t%s\n' % pos1_str)
             f.write('pos2[mm]:            \t%s\n' % pos2_str)
@@ -616,7 +690,7 @@ class VoltageScan(Scan):
     """Position and voltage values."""
 
     _label = 'VoltageScan'
-    _db_table = 'voltage_scans'
+    _db_table = 'voltage_scans_new'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
@@ -637,12 +711,15 @@ class VoltageScan(Scan):
         ('pos7', ['_pos7', 'TEXT NOT NULL']),
         ('pos8', ['_pos8', 'TEXT NOT NULL']),
         ('pos9', ['_pos9', 'TEXT NOT NULL']),
-        ('voltagex_avg', ['_avgx', 'TEXT NOT NULL']),
-        ('voltagex_std', ['_stdx', 'TEXT NOT NULL']),
-        ('voltagey_avg', ['_avgy', 'TEXT NOT NULL']),
-        ('voltagey_std', ['_stdy', 'TEXT NOT NULL']),
-        ('voltagez_avg', ['_avgz', 'TEXT NOT NULL']),
-        ('voltagez_std', ['_stdz', 'TEXT NOT NULL']),
+        ('voltagex', ['_avgx', 'TEXT NOT NULL']),
+        ('voltagey', ['_avgy', 'TEXT NOT NULL']),
+        ('voltagez', ['_avgz', 'TEXT NOT NULL']),
+        ('offsetx_start', ['offstex_start', 'REAL']),
+        ('offsetx_end', ['offstex_end', 'REAL']),
+        ('offsety_start', ['offstey_start', 'REAL']),        
+        ('offsety_end', ['offstey_end', 'REAL']),
+        ('offsetz_start', ['offstez_start', 'REAL']),
+        ('offsetz_end', ['offstez_end', 'REAL']),  
         ('comments', ['comments', 'TEXT']),
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
     ])
@@ -755,7 +832,7 @@ class FieldScan(Scan):
     """Position and magnetic field values."""
 
     _label = 'FieldScan'
-    _db_table = 'field_scans'
+    _db_table = 'field_scans_new'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
@@ -782,6 +859,12 @@ class FieldScan(Scan):
         ('fieldy_std', ['_stdy', 'TEXT NOT NULL']),
         ('fieldz_avg', ['_avgz', 'TEXT NOT NULL']),
         ('fieldz_std', ['_stdz', 'TEXT NOT NULL']),
+        ('offsetx_start', ['offstex_start', 'REAL']),
+        ('offsetx_end', ['offstex_end', 'REAL']),
+        ('offsety_start', ['offstey_start', 'REAL']),        
+        ('offsety_end', ['offstey_end', 'REAL']),
+        ('offsetz_start', ['offstez_start', 'REAL']),
+        ('offsetz_end', ['offstez_end', 'REAL']),  
         ('comments', ['comments', 'TEXT']),
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
     ])
@@ -932,6 +1015,28 @@ class Fieldmap(_database.DatabaseObject):
         if filename is not None:
             self.read_file(filename)
 
+    def _get_float_property_value(self, value, precision=None):
+        if value is None:
+            return None
+        elif isinstance(value, str):
+            if len(value.strip()) == 0 or value == _empty_str:
+                return None
+            else:
+                if precision is not None:
+                    v = _np.around(float(value), precision)
+                else:
+                    v = float(value)
+                return v
+        elif isinstance(value, (float, int)):
+            if precision is not None:
+                v = _np.around(value, precision)
+            else:
+                v = value
+            return v
+        else:
+            raise TypeError('Property value must be a float.')
+            return None
+
     @property
     def timestamp(self):
         """Return the timestamp."""
@@ -999,17 +1104,7 @@ class Fieldmap(_database.DatabaseObject):
 
     @current_setpoint.setter
     def current_setpoint(self, value):
-        if value is None:
-            self._current_setpoint = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._current_setpoint = None
-            else:
-                self._current_setpoint = float(value)
-        elif isinstance(value, (float, int)):
-            self._current_setpoint = value
-        else:
-            raise TypeError('current_setpoint must be a float.')   
+        self._current_setpoint = self._get_float_property_value(value)
 
     @property
     def dcct_current_avg(self):
@@ -1018,18 +1113,8 @@ class Fieldmap(_database.DatabaseObject):
 
     @dcct_current_avg.setter
     def dcct_current_avg(self, value):
-        if value is None:
-            self._dcct_current_avg = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._dcct_current_avg = None
-            else:
-                self._dcct_current_avg = _np.around(
-                    float(value), _current_precision)
-        elif isinstance(value, (float, int)):
-            self._dcct_current_avg = _np.around(value, _current_precision)
-        else:
-            raise TypeError('dcct_current_avg must be a float.')
+        self._dcct_current_avg = self._get_float_property_value(
+            value, precision=_current_precision)
 
     @property
     def dcct_current_std(self):
@@ -1038,18 +1123,8 @@ class Fieldmap(_database.DatabaseObject):
 
     @dcct_current_std.setter
     def dcct_current_std(self, value):
-        if value is None:
-            self._dcct_current_std = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._dcct_current_std = None
-            else:
-                self._dcct_current_std = _np.around(
-                    float(value), _current_precision)
-        elif isinstance(value, (float, int)):
-            self._dcct_current_std = _np.around(value, _current_precision)
-        else:
-            raise TypeError('dcct_current_std must be a float.')
+        self._dcct_current_std = self._get_float_property_value(
+            value, precision=_current_precision)
 
     @property
     def ps_current_avg(self):
@@ -1058,18 +1133,8 @@ class Fieldmap(_database.DatabaseObject):
 
     @ps_current_avg.setter
     def ps_current_avg(self, value):
-        if value is None:
-            self._ps_current_avg = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._ps_current_avg = None
-            else:
-                self._ps_current_avg = _np.around(
-                    float(value), _current_precision)
-        elif isinstance(value, (float, int)):
-            self._ps_current_avg = _np.around(value, _current_precision)
-        else:
-            raise TypeError('ps_current_avg must be a float.')
+        self._ps_current_avg = self._get_float_property_value(
+            value, precision=_current_precision)
 
     @property
     def ps_current_std(self):
@@ -1078,18 +1143,8 @@ class Fieldmap(_database.DatabaseObject):
 
     @ps_current_std.setter
     def ps_current_std(self, value):
-        if value is None:
-            self._ps_current_std = None
-        elif isinstance(value, str):
-            if len(value.strip()) == 0 or value == _empty_str:
-                self._ps_current_std = None
-            else:
-                self._ps_current_std = _np.around(
-                    float(value), _current_precision)
-        elif isinstance(value, (float, int)):
-            self._ps_current_std = _np.around(value, _current_precision)
-        else:
-            raise TypeError('ps_current_std must be a float.')
+        self._ps_current_std = self._get_float_property_value(
+            value, precision=_current_precision)
 
     @property
     def map(self):
@@ -1430,6 +1485,7 @@ def get_field_scan_list(voltage_scan_list, hall_probe):
         field_scan.configuration_id = lt[0].configuration_id
         field_scan.magnet_name = lt[0].magnet_name
         field_scan.current_setpoint = lt[0].current_setpoint
+        field_scan.comments = lt[0].comments
         field_scan_list.append(field_scan)
     return field_scan_list
 
@@ -1467,6 +1523,31 @@ def _interpolate_data_frame(df, pos, axis=0):
     return interp_df
 
 
+def _subtract_voltage_offset(vs):
+    """Subtract voltage offset from measurement values."""
+    if vs.offsetx_start is not None and vs.offsetx_end is not None:
+        vs.avgx = vs.avgx - vs.offsetx_start
+    elif vs.offsetx_start is not None:
+        vs.avgx = vs.avgx - vs.offsetx_start
+    elif vs.offsetx_end is not None:
+        vs.avgx = vs.avgx - vs.offsetx_end
+    
+    if vs.offsety_start is not None and vs.offsety_end is not None:
+        vs.avgy = vs.avgy - vs.offsety_start
+    elif vs.offsety_start is not None:
+        vs.avgy = vs.avgy - vs.offsety_start
+    elif vs.offsety_end is not None:
+        vs.avgy = vs.avgy - vs.offsety_end
+
+    if vs.offsetz_start is not None and vs.offsetz_end is not None:
+        vs.avgz = vs.avgz - vs.offsetz_start
+    elif vs.offsetz_start is not None:
+        vs.avgz = vs.avgz - vs.offsetz_start
+    elif vs.offsetz_end is not None:
+        vs.avgz = vs.avgz - vs.offsetz_end
+
+    return vs
+
 def _get_avg_voltage(voltage_scan_list):
     """Get average voltage and position values."""
     if isinstance(voltage_scan_list, VoltageScan):
@@ -1479,6 +1560,7 @@ def _get_avg_voltage(voltage_scan_list):
     for vs in voltage_scan_list:
         if vs.scan_pos[-1] < vs.scan_pos[0]:
             vs.reverse()
+        vs = _subtract_voltage_offset(vs)
 
     fixed_axes = [a for a in voltage_scan_list[0].axis_list
                   if a != voltage_scan_list[0].scan_axis]

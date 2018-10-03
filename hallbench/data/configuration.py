@@ -245,7 +245,7 @@ class MeasurementConfig(Configuration):
     """Read, write and stored measurement configuration data."""
 
     _label = 'Configuration'
-    _db_table = 'configurations_new'
+    _db_table = 'configurations'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
@@ -286,7 +286,7 @@ class MeasurementConfig(Configuration):
         ('step_ax5', ['step_ax5', 'REAL NOT NULL']),
         ('extra_ax5', ['extra_ax5', 'REAL NOT NULL']),
         ('vel_ax5', ['vel_ax5', 'REAL NOT NULL']),
-        ('use_voltage_offset', ['use_voltage_offset', 'INTEGER']),
+        ('subtract_voltage_offset', ['subtract_voltage_offset', 'INTEGER']),
         ('save_voltage', ['save_voltage', 'INTEGER']),
         ('save_current', ['save_current', 'INTEGER']),
         ('save_temperature', ['save_temperature', 'INTEGER']),
@@ -336,7 +336,7 @@ class MeasurementConfig(Configuration):
         self.step_ax5 = None
         self.extra_ax5 = None
         self.vel_ax5 = None
-        self.use_voltage_offset = None
+        self.subtract_voltage_offset = None
         self.save_voltage = None
         self.save_current = None
         self.save_temperature = None
@@ -366,7 +366,7 @@ class MeasurementConfig(Configuration):
         """Get attribute type."""
         if name in ['voltx_enable', 'volty_enable', 'voltz_enable',
                     'nr_measurements', 'voltage_precision',
-                    'first_axis', 'second_axis', 'use_voltage_offset',
+                    'first_axis', 'second_axis', 'subtract_voltage_offset',
                     'save_voltage', 'save_current', 'save_temperature',
                     'automatic_ramp']:
             return int
@@ -460,7 +460,8 @@ class MeasurementConfig(Configuration):
                 '#Second Axis\n',
                 'second_axis \t{0:1d}\n\n'.format(self.second_axis),
                 '#Flags\n',
-                'use_voltage_offset \t{0:d}\n'.format(self.use_voltage_offset),
+                'subtract_voltage_offset \t{0:d}\n'.format(
+                    self.subtract_voltage_offset),
                 'save_voltage       \t{0:d}\n'.format(self.save_voltage),
                 'save_current       \t{0:d}\n'.format(self.save_current),
                 'save_temperature   \t{0:d}\n'.format(self.save_temperature),

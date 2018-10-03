@@ -35,8 +35,8 @@ class SaveFieldmapDialog(_QDialog):
 
         # variables initialization
         self.field_scan_list = None
+        self.field_scan_id_list = None
         self.local_hall_probe = None
-        self.scan_id_list = None
 
         # add predefined magnet names
         names = _magnets_info.get_magnets_name()
@@ -78,6 +78,17 @@ class SaveFieldmapDialog(_QDialog):
         """Return the default directory."""
         return _QApplication.instance().directory
 
+    def accept(self):
+        """Close dialog."""
+        self.clear()
+        super().accept()
+
+    def clear(self):
+        """Clear data."""
+        self.field_scan_list = None
+        self.field_scan_id_list = None
+        self.local_hall_probe = None
+
     def clearInfo(self):
         """Clear inputs."""
         self.clearMagnetInfo()
@@ -106,6 +117,15 @@ class SaveFieldmapDialog(_QDialog):
         self.ui.cv_chb.setChecked(False)
         self.ui.qs_chb.setChecked(False)
         self.ui.correct_displacements_chb.setChecked(True)
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
 
     def disableInvalidAxes(self):
         """Disable invalid magnet axes."""
@@ -244,7 +264,7 @@ class SaveFieldmapDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-        if self.scan_id_list is None or len(self.scan_id_list) == 0:
+        if self.field_scan_id_list is None or len(self.field_scan_id_list) == 0:
             msg = 'Invalid list of scan IDs.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
@@ -253,9 +273,9 @@ class SaveFieldmapDialog(_QDialog):
         if fieldmap is None:
             return
 
-        nr_scans = len(self.scan_id_list)
-        initial_scan = self.scan_id_list[0]
-        final_scan = self.scan_id_list[-1]
+        nr_scans = len(self.field_scan_id_list)
+        initial_scan = self.field_scan_id_list[0]
+        final_scan = self.field_scan_id_list[-1]
 
         try:
             fieldmap.nr_scans = nr_scans
@@ -312,7 +332,7 @@ class SaveFieldmapDialog(_QDialog):
             for le in lineedits:
                 le.clear()
 
-    def show(self, field_scan_list, hall_probe, scan_id_list):
+    def show(self, field_scan_list, hall_probe, field_scan_id_list):
         """Update fieldmap variable and show dialog."""
         if field_scan_list is None or len(field_scan_list) == 0:
             msg = 'Invalid field scan list.'
@@ -326,5 +346,5 @@ class SaveFieldmapDialog(_QDialog):
 
         self.field_scan_list = field_scan_list
         self.local_hall_probe = hall_probe
-        self.scan_id_list = scan_id_list
+        self.field_scan_id_list = field_scan_id_list
         super().show()

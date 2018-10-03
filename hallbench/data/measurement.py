@@ -690,7 +690,7 @@ class VoltageScan(Scan):
     """Position and voltage values."""
 
     _label = 'VoltageScan'
-    _db_table = 'voltage_scans_new'
+    _db_table = 'voltage_scans'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
@@ -711,17 +711,20 @@ class VoltageScan(Scan):
         ('pos7', ['_pos7', 'TEXT NOT NULL']),
         ('pos8', ['_pos8', 'TEXT NOT NULL']),
         ('pos9', ['_pos9', 'TEXT NOT NULL']),
-        ('voltagex', ['_avgx', 'TEXT NOT NULL']),
-        ('voltagey', ['_avgy', 'TEXT NOT NULL']),
-        ('voltagez', ['_avgz', 'TEXT NOT NULL']),
-        ('offsetx_start', ['offstex_start', 'REAL']),
-        ('offsetx_end', ['offstex_end', 'REAL']),
-        ('offsety_start', ['offstey_start', 'REAL']),        
-        ('offsety_end', ['offstey_end', 'REAL']),
-        ('offsetz_start', ['offstez_start', 'REAL']),
-        ('offsetz_end', ['offstez_end', 'REAL']),  
+        ('voltagex_avg', ['_avgx', 'TEXT NOT NULL']),
+        ('voltagex_std', ['_stdx', 'TEXT NOT NULL']),
+        ('voltagey_avg', ['_avgy', 'TEXT NOT NULL']),
+        ('voltagey_std', ['_stdy', 'TEXT NOT NULL']),
+        ('voltagez_avg', ['_avgz', 'TEXT NOT NULL']),
+        ('voltagez_std', ['_stdz', 'TEXT NOT NULL']),
         ('comments', ['comments', 'TEXT']),
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
+        ('offsetx_start', ['offsetx_start', 'REAL']),
+        ('offsetx_end', ['offsetx_end', 'REAL']),
+        ('offsety_start', ['offsety_start', 'REAL']),        
+        ('offsety_end', ['offsety_end', 'REAL']),
+        ('offsetz_start', ['offsetz_start', 'REAL']),
+        ('offsetz_end', ['offsetz_end', 'REAL']),  
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
@@ -832,7 +835,7 @@ class FieldScan(Scan):
     """Position and magnetic field values."""
 
     _label = 'FieldScan'
-    _db_table = 'field_scans_new'
+    _db_table = 'field_scans'
     _db_dict = _collections.OrderedDict([
         ('id', [None, 'INTEGER NOT NULL']),
         ('date', [None, 'TEXT NOT NULL']),
@@ -859,14 +862,14 @@ class FieldScan(Scan):
         ('fieldy_std', ['_stdy', 'TEXT NOT NULL']),
         ('fieldz_avg', ['_avgz', 'TEXT NOT NULL']),
         ('fieldz_std', ['_stdz', 'TEXT NOT NULL']),
-        ('offsetx_start', ['offstex_start', 'REAL']),
-        ('offsetx_end', ['offstex_end', 'REAL']),
-        ('offsety_start', ['offstey_start', 'REAL']),        
-        ('offsety_end', ['offstey_end', 'REAL']),
-        ('offsetz_start', ['offstez_start', 'REAL']),
-        ('offsetz_end', ['offstez_end', 'REAL']),  
         ('comments', ['comments', 'TEXT']),
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
+        ('offsetx_start', ['offsetx_start', 'REAL']),
+        ('offsetx_end', ['offsetx_end', 'REAL']),
+        ('offsety_start', ['offsety_start', 'REAL']),        
+        ('offsety_end', ['offsety_end', 'REAL']),
+        ('offsetz_start', ['offsetz_start', 'REAL']),
+        ('offsetz_end', ['offsetz_end', 'REAL']),  
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
@@ -1496,6 +1499,53 @@ def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
     transf_vector = _np.dot(transf_matrix, vector_array - center)
     return transf_vector
 
+def _correct_voltage_offset(vs):
+    """Subtract voltage offset from measurement values."""
+    if vs.npts == 0:
+        msg = "Can't correct voltage offset: Empty voltage scan."
+        raise MeasurementDataError(msg)
+        return None
+
+    p = vs.scan_pos
+    npts = vs.npts
+
+    vi = vs.offsetx_start
+    vf = vs.offsetx_end
+    if vi is not None and vf is not None:
+        if npts == 1:
+            vs.avgx = vs.avgx - (vi + vf)/2
+        else:
+            vs.avgx = vs.avgx - vi - ((vf- vi)/(p[-1] - p[0]))*(p - p[0])
+    elif vi is not None:
+        vs.avgx = vs.avgx - vi
+    elif vf is not None:
+        vs.avgx = vs.avgx - vf
+    
+    vi = vs.offsety_start
+    vf = vs.offsety_end
+    if vi is not None and vf is not None:
+        if npts == 1:
+            vs.avgy = vs.avgy - (vi + vf)/2
+        else:
+            vs.avgy = vs.avgy - vi - ((vf- vi)/(p[-1] - p[0]))*(p - p[0])
+    elif vi is not None:
+        vs.avgy = vs.avgy - vi
+    elif vf is not None:
+        vs.avgy = vs.avgy - vf
+
+    vi = vs.offsetz_start
+    vf = vs.offsetz_end
+    if vi is not None and vf is not None:
+        if npts == 1:
+            vs.avgz = vs.avgz - (vi + vf)/2
+        else:
+            vs.avgz = vs.avgz - vi - ((vf- vi)/(p[-1] - p[0]))*(p - p[0])
+    elif vi is not None:
+        vs.avgz = vs.avgz - vi
+    elif vf is not None:
+        vs.avgz = vs.avgz - vf
+
+    return vs
 
 def _cut_data_frame(df, idx_min, idx_max, axis=0):
     if axis == 0:
@@ -1523,31 +1573,6 @@ def _interpolate_data_frame(df, pos, axis=0):
     return interp_df
 
 
-def _subtract_voltage_offset(vs):
-    """Subtract voltage offset from measurement values."""
-    if vs.offsetx_start is not None and vs.offsetx_end is not None:
-        vs.avgx = vs.avgx - vs.offsetx_start
-    elif vs.offsetx_start is not None:
-        vs.avgx = vs.avgx - vs.offsetx_start
-    elif vs.offsetx_end is not None:
-        vs.avgx = vs.avgx - vs.offsetx_end
-    
-    if vs.offsety_start is not None and vs.offsety_end is not None:
-        vs.avgy = vs.avgy - vs.offsety_start
-    elif vs.offsety_start is not None:
-        vs.avgy = vs.avgy - vs.offsety_start
-    elif vs.offsety_end is not None:
-        vs.avgy = vs.avgy - vs.offsety_end
-
-    if vs.offsetz_start is not None and vs.offsetz_end is not None:
-        vs.avgz = vs.avgz - vs.offsetz_start
-    elif vs.offsetz_start is not None:
-        vs.avgz = vs.avgz - vs.offsetz_start
-    elif vs.offsetz_end is not None:
-        vs.avgz = vs.avgz - vs.offsetz_end
-
-    return vs
-
 def _get_avg_voltage(voltage_scan_list):
     """Get average voltage and position values."""
     if isinstance(voltage_scan_list, VoltageScan):
@@ -1558,9 +1583,7 @@ def _get_avg_voltage(voltage_scan_list):
         raise MeasurementDataError(msg)
 
     for vs in voltage_scan_list:
-        if vs.scan_pos[-1] < vs.scan_pos[0]:
-            vs.reverse()
-        vs = _subtract_voltage_offset(vs)
+        vs = _correct_voltage_offset(vs)
 
     fixed_axes = [a for a in voltage_scan_list[0].axis_list
                   if a != voltage_scan_list[0].scan_axis]

@@ -2,9 +2,11 @@
 
 """Utils."""
 
+import sys as _sys
 import numpy as _np
 import pandas as _pd
 import os.path as _path
+import traceback as _traceback
 from PyQt5.QtCore import Qt as _Qt
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
@@ -137,6 +139,11 @@ class TableDialog(_QDialog):
 
         self.resize(800, 500)
 
+    def accept(self):
+        """Close dialog."""
+        self.clear()
+        super().accept()
+
     def addItemsToTable(self, text, i, j):
         """Add items to table."""
         item = _QTableWidgetItem(text)
@@ -149,7 +156,16 @@ class TableDialog(_QDialog):
         self.data_ta.clearContents()
         self.data_ta.setRowCount(0)
         self.data_ta.setColumnCount(0)
-    
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
     def copyToClipboard(self):
         """Copy table data to clipboard."""
         df = tableToDataFrame(self.data_ta)
@@ -268,12 +284,26 @@ class TableAnalysisDialog(_QDialog):
             self.addItemsToTable('{0:.4f}'.format(std), i, 1)
             self.addItemsToTable('{0:.4f}'.format(peak_valey), i, 2)
 
+    def accept(self):
+        """Close dialog."""
+        self.clear()
+        super().accept()
+
     def clear(self):
         """Clear data and table."""
         self.table_df = None
         self.results_ta.clearContents()
         self.results_ta.setRowCount(0)
         self.results_ta.setColumnCount(0)
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""

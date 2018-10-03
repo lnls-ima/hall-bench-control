@@ -105,6 +105,7 @@ class HallBenchWindow(_QMainWindow):
             self.measurement_tab.endAutomaticMeasurements)
         
         self.ui.preferences_btn.clicked.connect(self.preferences_dialog.show)
+        self.preferences_dialog.tabsPreferencesChanged()
 
     @property
     def database(self):
@@ -170,9 +171,9 @@ class PreferencesDialog(_QDialog):
         # setup the ui
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
-        self.ui.apply_btn.clicked.connect(self.emitPreferencesChangedSignal)
+        self.ui.apply_btn.clicked.connect(self.tabsPreferencesChanged)
         
-    def emitPreferencesChangedSignal(self):
+    def tabsPreferencesChanged(self):
         """Get tabs checkbox status and emit signal to change tabs."""
         try:
             tab_status = {}

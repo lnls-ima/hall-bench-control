@@ -63,6 +63,7 @@ class ViewScanDialog(_QDialog):
 
     def accept(self):
         """Close dialog."""
+        self.clear()
         self.closeDialogs()
         super().accept()
 
@@ -93,25 +94,7 @@ class ViewScanDialog(_QDialog):
             pr2.linkedViewChanged(p.vb, pr2.XAxis)
 
         updateViews()
-        p.vb.sigResized.connect(updateViews)
-
-    def closeDialogs(self):
-        """Close dialogs."""
-        try:
-            self.current_dialog.accept()
-            self.temperature_dialog.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            pass
-
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.closeDialogs()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
+        p.vb.sigResized.connect(updateViews) 
 
     def calcCurveFit(self):
         """Calculate curve fit."""
@@ -201,7 +184,7 @@ class ViewScanDialog(_QDialog):
                 _pyqtgraph.PlotCurveItem(
                     x, second_integral, pen=(255, 100, 180)))
 
-    def clearAll(self):
+    def clear(self):
         """Clear all."""
         self.plot_label = ''
         self.scan_list = []
@@ -217,7 +200,7 @@ class ViewScanDialog(_QDialog):
         self.clearIntegrals()
         self.clearGraph()
         self.ui.select_scan_cmb.setCurrentIndex(-1)
-        self.ui.select_comp_cmb.setCurrentIndex(-1)       
+        self.ui.select_comp_cmb.setCurrentIndex(-1) 
 
     def clearFit(self):
         """Clear fit."""
@@ -247,6 +230,25 @@ class ViewScanDialog(_QDialog):
         self.graphx = []
         self.graphy = []
         self.graphz = []
+
+    def closeDialogs(self):
+        """Close dialogs."""
+        try:
+            self.current_dialog.accept()
+            self.temperature_dialog.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            pass
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            self.closeDialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
 
     def configureGraph(self, nr_curves, plot_label):
         """Configure graph.
@@ -440,9 +442,7 @@ class ViewScanDialog(_QDialog):
 
     def show(self, scan_list, scan_id_list, plot_label=''):
         """Update data and show dialog."""
-        try:
-            self.clearAll()
-            
+        try:            
             if scan_list is None or len(scan_list) == 0:
                 msg = 'Invalid data list.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)

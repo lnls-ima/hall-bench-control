@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>218</width>
-    <height>380</height>
+    <width>224</width>
+    <height>377</height>
    </rect>
   </property>
   <property name="font">
@@ -19,9 +19,6 @@
    <string>Preferences</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <property name="horizontalSpacing">
-    <number>15</number>
-   </property>
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox">
      <property name="minimumSize">
@@ -116,7 +113,7 @@
          <string>Voltage</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -132,7 +129,7 @@
          <string>Current</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -148,7 +145,7 @@
          <string>Temperature</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -164,7 +161,7 @@
          <string>Angular Error</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>

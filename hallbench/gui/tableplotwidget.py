@@ -70,7 +70,7 @@ class TablePlotWidget(_QWidget):
         for label in self._legend_items:
             self.legend.removeItem(label)
 
-    def clearValues(self):
+    def clear(self):
         """Clear all values."""
         if hasattr(self, '_position'):
             self._position = []
@@ -143,7 +143,7 @@ class TablePlotWidget(_QWidget):
         self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
         self.ui.monitorunit_cmb.currentIndexChanged.connect(
             self.updateMonitorInterval)
-        self.ui.clear_btn.clicked.connect(self.clearValues)
+        self.ui.clear_btn.clicked.connect(self.clear)
         self.ui.remove_btn.clicked.connect(self.removeValue)
         self.ui.copy_btn.clicked.connect(self.copyToClipboard)
         self.ui.save_btn.clicked.connect(self.saveToFile)

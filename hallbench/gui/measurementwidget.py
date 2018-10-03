@@ -72,9 +72,6 @@ class MeasurementWidget(_QWidget):
         self.local_measurement_config_id = None
         self.local_hall_probe = None
         self.local_power_supply_config = None
-        self.threadx = None
-        self.thready = None
-        self.threadz = None
         self.voltage_scan = None
         self.field_scan = None
         self.voltage_scan_list = []
@@ -98,6 +95,11 @@ class MeasurementWidget(_QWidget):
         # Update probe names and configuration ID combo box
         self.updateProbeNames()
         self.updateConfigurationIDs()
+
+        # Create voltage threads
+        self.threadx = VoltageThread(self.devices.voltx)
+        self.thready = VoltageThread(self.devices.volty)
+        self.threadz = VoltageThread(self.devices.voltz)
 
     @property
     def database(self):
@@ -284,8 +286,8 @@ class MeasurementWidget(_QWidget):
             else:
                 self.uncheckRadioButtons(second_axis)
 
-            self.ui.use_voltage_offset_chb.setChecked(
-                self.measurement_config.use_voltage_offset)
+            self.ui.subtract_voltage_offset_chb.setChecked(
+                self.measurement_config.subtract_voltage_offset)
             self.ui.save_voltage_chb.setChecked(
                 self.measurement_config.save_voltage)
             self.ui.save_current_chb.setChecked(
@@ -604,8 +606,8 @@ class MeasurementWidget(_QWidget):
                 self.measurement_config.voltage_range = float(
                     voltage_range)            
 
-            _ch = self.ui.use_voltage_offset_chb.isChecked()
-            self.measurement_config.use_voltage_offset = 1 if _ch else 0
+            _ch = self.ui.subtract_voltage_offset_chb.isChecked()
+            self.measurement_config.subtract_voltage_offset = 1 if _ch else 0
             
             _ch= self.ui.save_voltage_chb.isChecked()
             self.measurement_config.save_voltage = 1 if _ch else 0
@@ -752,9 +754,9 @@ class MeasurementWidget(_QWidget):
 
     def clear(self):
         """Clear."""
-        self.threadx = None
-        self.thready = None
-        self.threadz = None
+        self.threadx.clear()
+        self.thready.clear()
+        self.threadz.clear()
         self.measurement_configured = False
         self.local_measurement_config = None
         self.local_measurement_config_id = None
@@ -816,6 +818,7 @@ class MeasurementWidget(_QWidget):
         """Close widget."""
         try:
             self.closeDialogs()
+            self.killVoltageThreads()
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -1110,31 +1113,22 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def createVoltageThreads(self):
-        """Start threads to read voltage values."""
+    def configureVoltageThreads(self):
+        """Configure threads to read voltage values."""
         if self.local_measurement_config.voltx_enable:
-            self.threadx = VoltageThread(
-                self.devices.voltx,
+            self.threadx.configure(
                 self.local_measurement_config.voltage_precision,
                 self.local_measurement_config.integration_time)
-        else:
-            self.threadx = None
 
         if self.local_measurement_config.volty_enable:
-            self.thready = VoltageThread(
-                self.devices.volty,
+            self.thready.configure(
                 self.local_measurement_config.voltage_precision,
                 self.local_measurement_config.integration_time)
-        else:
-            self.thready = None
 
         if self.local_measurement_config.voltz_enable:
-            self.threadz = VoltageThread(
-                self.devices.voltz,
+            self.threadz.configure(
                 self.local_measurement_config.voltage_precision,
                 self.local_measurement_config.integration_time)
-        else:
-            self.threadz = None
 
     def endAutomaticMeasurements(self, setpoint_changed):
         """End automatic measurements."""
@@ -1174,9 +1168,6 @@ class MeasurementWidget(_QWidget):
             del self.threadx
             del self.thready
             del self.threadz
-            self.threadx = None
-            self.thready = None
-            self.threadz = None
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             pass
@@ -1191,7 +1182,7 @@ class MeasurementWidget(_QWidget):
             second_axis = self.local_measurement_config.second_axis
             fixed_axes = self.getFixedAxes()
 
-            self.createVoltageThreads()
+            self.configureVoltageThreads()
 
             for axis in fixed_axes:
                 if self.stop is True:
@@ -1238,12 +1229,12 @@ class MeasurementWidget(_QWidget):
             self.ui.nr_measurements_la.setText('')
 
             self.plotField()
-            self.killVoltageThreads()
+            self.quitVoltageThreads()
             return True
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            self.killVoltageThreads()
+            self.quitVoltageThreads()
             self.turn_off_power_supply.emit(True)
             self.ui.nr_measurements_la.setText('')
             msg = 'Measurement failure.'
@@ -1371,7 +1362,7 @@ class MeasurementWidget(_QWidget):
                 self.local_measurement_config.voltage_precision,
                 self.local_measurement_config.voltage_range)
         _QApplication.processEvents()
-        
+
         self.startVoltageThreads()
 
         if self.stop is False:
@@ -1382,17 +1373,29 @@ class MeasurementWidget(_QWidget):
 
         self.stopTrigger()
         self.waitVoltageThreads()
-        self.voltage_scan.avgx = (
-            self.threadx.voltage if self.threadx is not None else [])
-        self.voltage_scan.avgy = (
-            self.thready.voltage if self.thready is not None else [])
-        self.voltage_scan.avgz = (
-            self.threadz.voltage if self.threadz is not None else [])
         _QApplication.processEvents()
         
+        self.voltage_scan.avgx = self.threadx.voltage
+        self.voltage_scan.avgy = self.thready.voltage
+        self.voltage_scan.avgz = self.threadz.voltage
+                
+        _QApplication.processEvents()
+        self.quitVoltageThreads()
+        
+        if self.voltage_scan.npts == 0:
+            return True
+
         if not to_pos:
             self.voltage_scan.reverse()
         
+        if self.local_measurement_config.subtract_voltage_offset:
+            self.voltage_scan.offsetx_start = self.voltage_scan.avgx[0]
+            self.voltage_scan.offsetx_end = self.voltage_scan.avgx[-1]
+            self.voltage_scan.offsety_start = self.voltage_scan.avgy[0]
+            self.voltage_scan.offsety_end = self.voltage_scan.avgy[-1]
+            self.voltage_scan.offsetz_start = self.voltage_scan.avgz[0]
+            self.voltage_scan.offsetz_end = self.voltage_scan.avgz[-1]
+
         if self.stop is True:
             return False
         else:
@@ -1476,20 +1479,9 @@ class MeasurementWidget(_QWidget):
         Args:
             idx (int): index of the plot to update.
         """
-        if self.threadx is not None:
-            voltagex = [v for v in self.threadx.voltage]
-        else:
-            voltagex = []
-
-        if self.thready is not None:
-            voltagey = [v for v in self.thready.voltage]
-        else:
-            voltagey = []
-
-        if self.threadz is not None:
-            voltagez = [v for v in self.threadz.voltage]
-        else:
-            voltagez = []
+        voltagex = [v for v in self.threadx.voltage]
+        voltagey = [v for v in self.thready.voltage]
+        voltagez = [v for v in self.threadz.voltage]
 
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
@@ -1685,7 +1677,7 @@ class MeasurementWidget(_QWidget):
                     idx, to_pos, first_axis, start, end, step, extra, npts):
                 return False
 
-            if self.voltage_scan.npts == 0:   
+            if self.voltage_scan.npts == 0:                
                 if not self.measureVoltageScan(
                         idx, to_pos, first_axis, start, end, step, extra, npts):
                     return False                
@@ -1779,13 +1771,13 @@ class MeasurementWidget(_QWidget):
 
     def startVoltageThreads(self):
         """Start threads to read voltage values."""
-        if self.threadx is not None:
+        if self.local_measurement_config.voltx_enable:
             self.threadx.start()
 
-        if self.thready is not None:
+        if self.local_measurement_config.volty_enable:
             self.thready.start()
 
-        if self.threadz is not None:
+        if self.local_measurement_config.voltz_enable:
             self.threadz.start()
 
     def stopMeasurement(self):
@@ -1808,12 +1800,15 @@ class MeasurementWidget(_QWidget):
     def stopTrigger(self):
         """Stop trigger."""
         self.devices.pmac.stop_trigger()
-        if self.threadx is not None:
-            self.threadx.end_measurement = True
-        if self.thready is not None:
-            self.thready.end_measurement = True
-        if self.threadz is not None:
-            self.threadz.end_measurement = True
+        self.threadx.end_measurement = True
+        self.thready.end_measurement = True
+        self.threadz.end_measurement = True
+
+    def quitVoltageThreads(self):
+        """Quit voltage threads."""
+        self.threadx.quit()
+        self.thready.quit()
+        self.threadz.quit()
 
     def updateHallProbe(self):
         """Update hall probe."""
@@ -1848,29 +1843,25 @@ class MeasurementWidget(_QWidget):
 
     def waitVoltageThreads(self):
         """Wait threads."""
-        if self.threadx is not None:
-            while self.threadx.isRunning() and self.stop is False:
-                _QApplication.processEvents()
+        while self.threadx.isRunning() and self.stop is False:
+            _QApplication.processEvents()
 
-        if self.thready is not None:
-            while self.thready.isRunning() and self.stop is False:
-                _QApplication.processEvents()
+        while self.thready.isRunning() and self.stop is False:
+            _QApplication.processEvents()
 
-        if self.threadz is not None:
-            while self.threadz.isRunning() and self.stop is False:
-                _QApplication.processEvents()
-        _time.sleep(1)
+        while self.threadz.isRunning() and self.stop is False:
+            _QApplication.processEvents()
 
 
 class VoltageThread(_QThread):
     """Thread to read values from multimeters."""
 
-    def __init__(self, multimeter, precision, integration_time):
+    def __init__(self, multimeter):
         """Initialize object."""
         super().__init__()
         self.multimeter = multimeter
-        self.precision = precision
-        self.integration_time = integration_time
+        self.precision = None
+        self.integration_time = None
         self.voltage = _np.array([])
         self.end_measurement = False
 
@@ -1878,6 +1869,11 @@ class VoltageThread(_QThread):
         """Clear voltage values."""
         self.voltage = _np.array([])
         self.end_measurement = False
+
+    def configure(self, precision, integration_time):
+        """Configure voltage thread."""
+        self.precision = precision
+        self.integration_time = integration_time
 
     def run(self):
         """Read voltage from the device."""

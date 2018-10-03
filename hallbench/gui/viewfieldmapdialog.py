@@ -52,9 +52,24 @@ class ViewFieldmapDialog(_QDialog):
 
     def accept(self):
         """Close dialog."""
+        self.clear()
         self.closeDialogs()
         super().accept()
 
+    def clear(self):
+        """Clear data."""
+        self.fieldmap = None
+        self.pos = None
+        self.bx_lines = None
+        self.by_lines = None
+        self.bz_lines = None
+        self.graphx = None
+        self.graphy = None
+        self.graphz = None
+        self.xlabel = ''
+        self.clearGraph()
+        self.ui.text_te.setText('')       
+    
     def clearGraph(self):
         """Clear plots."""
         self.ui.graph_pw.plotItem.curves.clear()
@@ -63,6 +78,7 @@ class ViewFieldmapDialog(_QDialog):
     def closeDialogs(self):
         """Close dialogs."""
         try:
+            self.clear()
             self.temperature_dialog.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

@@ -102,39 +102,6 @@ class DatabaseWidget(_QWidget):
         self.tables = []
         self.ui.database_tab.clear()
 
-    def clearVoltageScanTable(self):
-        """Clear voltage scan table."""
-        try:
-            con = _sqlite3.connect(self.database)
-            cur = con.cursor()
-
-            cmd = 'SELECT MAX(id) FROM {0}'.format(
-                self._voltage_scan_table_name)
-            max_idn = cur.execute(cmd).fetchone()[0]
-            if max_idn is None:
-                con.close()
-                return
-
-            msg = (
-                'Are you sure you want to delete all rows in the ' +
-                self._voltage_scan_table_name + ' table?')
-            reply = _QMessageBox.question(
-                self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
-
-            if reply == _QMessageBox.Yes:
-                cmd = 'DELETE FROM {0}'.format(self._voltage_scan_table_name)
-                cur.execute(cmd)
-                con.commit()
-                con.close()
-                self.updateDatabaseTables()
-            else:
-                con.close()
-                return
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to clear voltage scan table.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-
     def closeDialogs(self):
         """Close dialogs."""
         try:
@@ -207,8 +174,6 @@ class DatabaseWidget(_QWidget):
             lambda: self.readFiles(_VoltageScan))
         self.ui.delete_voltage_scan_btn.clicked.connect(
             lambda: self.deleteDatabaseRecords(self._voltage_scan_table_name))
-        self.ui.clear_voltage_scan_btn.clicked.connect(
-            self.clearVoltageScanTable)
         self.ui.convert_to_field_scan_btn.clicked.connect(
             self.convertToFieldScan)
 

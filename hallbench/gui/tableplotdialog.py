@@ -61,8 +61,18 @@ class TablePlotDialog(_QDialog):
 
     def accept(self):
         """Close dialog."""
+        self.clear()
         self.closeDialogs()
         super().accept()
+
+    def clear(self):
+        """Clear data."""
+        self._plot_label = ''
+        self._timestamp = []
+        self._data_labels = []
+        self._legend_items = []
+        self._readings = {}
+        self._graphs = {}
 
     def closeDialogs(self):
         """Close dialogs."""
@@ -75,6 +85,7 @@ class TablePlotDialog(_QDialog):
     def closeEvent(self, event):
         """Close widget."""
         try:
+            self.clear()
             self.closeDialogs()
             event.accept()
         except Exception:

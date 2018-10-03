@@ -58,8 +58,19 @@ class ViewProbeDialog(_QDialog):
 
     def accept(self):
         """Close dialog."""
+        self.clear()
         self.closeDialogs()
         super().accept()
+
+    def clear(self):
+        """Clear."""
+        self.local_hall_probe = None
+        self.graphx = []
+        self.graphy = []
+        self.graphz = []
+        self.ui.plot_pw.clear()
+        self.interpolation_dialog.clear()
+        self.polynomial_dialog.clear()        
 
     def closeDialogs(self):
         """Close dialogs."""
@@ -73,6 +84,7 @@ class ViewProbeDialog(_QDialog):
     def closeEvent(self, event):
         """Close widget."""
         try:
+            self.clear()
             self.closeDialogs()
             event.accept()
         except Exception:
@@ -386,6 +398,16 @@ class InterpolationTableDialog(_QDialog):
                 table.setItem(i, j, _QTableWidgetItem(
                     formatstr.format(row[j])))
 
+    def clear(self):
+        """Clear tables."""
+        self.local_hall_probe = None
+        self.ui.sensorx_ta.clearContents()
+        self.ui.sensorx_ta.setRowCount(0)
+        self.ui.sensory_ta.clearContents()
+        self.ui.sensory_ta.setRowCount(0)
+        self.ui.sensorz_ta.clearContents()
+        self.ui.sensorz_ta.setRowCount(0)
+
     def copyToClipboard(self, sensor):
         """Copy table data to clipboard."""
         table = getattr(self.ui, 'sensor' + sensor + '_ta')
@@ -498,6 +520,16 @@ class PolynomialTableDialog(_QDialog):
                 else:
                     table.setItem(i, j, _QTableWidgetItem(
                         cformatstr.format(row[j])))
+
+    def clear(self):
+        """Clear tables."""
+        self.local_hall_probe = None
+        self.ui.sensorx_ta.clearContents()
+        self.ui.sensorx_ta.setRowCount(0)
+        self.ui.sensory_ta.clearContents()
+        self.ui.sensory_ta.setRowCount(0)
+        self.ui.sensorz_ta.clearContents()
+        self.ui.sensorz_ta.setRowCount(0)
 
     def copyToClipboard(self, sensor):
         """Copy table data to clipboard."""

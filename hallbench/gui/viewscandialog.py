@@ -148,9 +148,9 @@ class ViewScanDialog(_QDialog):
                 x=x, y=first_integral, initial=0)
 
             self.ui.first_integral_le.setText(
-                '{0:.5e}'.format(first_integral[-1]))
+                '{0:.8e}'.format(first_integral[-1]))
             self.ui.second_integral_le.setText(
-                '{0:.5e}'.format(second_integral[-1]))
+                '{0:.8e}'.format(second_integral[-1]))
 
             if len(unit) > 0:
                 first_integral_unit = unit + '.mm'

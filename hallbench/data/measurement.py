@@ -736,7 +736,7 @@ class VoltageScan(Scan):
         ('offsety_end', ['offsety_end', 'REAL']),
         ('offsetz_start', ['offsetz_start', 'REAL']),
         ('offsetz_end', ['offsetz_end', 'REAL']),
-        ('nr_voltage_scans', ['nr_voltage_scans', 'INTEGER']),  
+        ('nr_voltage_scans', ['_nr_voltage_scans', 'INTEGER']),  
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
@@ -887,7 +887,7 @@ class FieldScan(Scan):
         ('offsety_end', ['offsety_end', 'REAL']),
         ('offsetz_start', ['offsetz_start', 'REAL']),
         ('offsetz_end', ['offsetz_end', 'REAL']),
-        ('nr_voltage_scans', ['nr_voltage_scans', 'INTEGER']),  
+        ('nr_voltage_scans', ['_nr_voltage_scans', 'INTEGER']),  
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
@@ -1470,7 +1470,7 @@ def get_current_values(scan_list, nmeas):
                 ps_stds.append(scan.ps_current_std)
             else:
                 ps_stds.append(0)
-    
+   
     setpoint = None
     if len(setpoint_set) == 1:
         setpoint = list(setpoint_set)[0]

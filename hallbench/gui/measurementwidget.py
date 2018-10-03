@@ -46,6 +46,7 @@ class MeasurementWidget(_QWidget):
 
     _update_graph_time_interval = 0.05  # [s]
     _measurement_axes = [1, 2, 3, 5]
+    _voltage_offset_avg_interval = 10 # [mm]
 
     def __init__(self, parent=None):
         """Set up the ui, add widgets and create connections."""
@@ -1389,12 +1390,30 @@ class MeasurementWidget(_QWidget):
             self.voltage_scan.reverse()
         
         if self.local_measurement_config.subtract_voltage_offset:
-            self.voltage_scan.offsetx_start = self.voltage_scan.avgx[0]
-            self.voltage_scan.offsetx_end = self.voltage_scan.avgx[-1]
-            self.voltage_scan.offsety_start = self.voltage_scan.avgy[0]
-            self.voltage_scan.offsety_end = self.voltage_scan.avgy[-1]
-            self.voltage_scan.offsetz_start = self.voltage_scan.avgz[0]
-            self.voltage_scan.offsetz_end = self.voltage_scan.avgz[-1]
+            scan_pos = self.voltage_scan.scan_pos
+            if scan_pos[-1] - scan_pos[0] <= self._voltage_offset_avg_interval: 
+                self.voltage_scan.offsetx_start = self.voltage_scan.avgx[0]
+                self.voltage_scan.offsetx_end = self.voltage_scan.avgx[-1]
+                self.voltage_scan.offsety_start = self.voltage_scan.avgy[0]
+                self.voltage_scan.offsety_end = self.voltage_scan.avgy[-1]
+                self.voltage_scan.offsetz_start = self.voltage_scan.avgz[0]
+                self.voltage_scan.offsetz_end = self.voltage_scan.avgz[-1]
+            else:
+                idx_start = _np.where(_np.cumsum(_np.diff(
+                    scan_pos)) >= self._voltage_offset_avg_interval)[0][0] + 1
+                idx_end = len(scan_pos) - idx_start 
+                self.voltage_scan.offsetx_start = _np.mean(
+                    self.voltage_scan.avgx[:idx_start])
+                self.voltage_scan.offsetx_end = _np.mean(
+                    self.voltage_scan.avgx[idx_end:])
+                self.voltage_scan.offsety_start = _np.mean(
+                    self.voltage_scan.avgy[:idx_start])
+                self.voltage_scan.offsety_end = _np.mean(
+                    self.voltage_scan.avgy[idx_end:])
+                self.voltage_scan.offsetz_start = _np.mean(
+                    self.voltage_scan.avgz[:idx_start])
+                self.voltage_scan.offsetz_end = _np.mean(
+                    self.voltage_scan.avgz[idx_end:])
 
         if self.stop is True:
             return False
@@ -1660,7 +1679,8 @@ class MeasurementWidget(_QWidget):
                 self.position_list = to_neg_scan_list
 
             # save positions in voltage scan
-            self.voltage_scan = _VoltageScan() 
+            self.voltage_scan = _VoltageScan()
+            self.voltage_scan.nr_voltage_scans = 1 
             for axis in self.voltage_scan.axis_list:
                 if axis == first_axis:
                     setattr(self.voltage_scan, 'pos' + str(first_axis),

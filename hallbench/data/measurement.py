@@ -71,6 +71,7 @@ class Scan(_database.DatabaseObject):
         self._offsety_end = None
         self._offsetz_start = None
         self._offsetz_end = None
+        self._nr_voltage_scans = None
         self._pos1 = _np.array([])
         self._pos2 = _np.array([])
         self._pos3 = _np.array([])
@@ -114,6 +115,7 @@ class Scan(_database.DatabaseObject):
         r += fmtstr.format('offsety_end[V]', str(self._offsety_end))
         r += fmtstr.format('offsetz_start[V]', str(self._offsetz_start))
         r += fmtstr.format('offsetz_end[V]', str(self._offsetz_end))
+        r += fmtstr.format('nr_voltage_scans', str(self._nr_voltage_scans))
         r += fmtstr.format('npts', str(self.npts))
         r += fmtstr.format('scan_axis', str(self.scan_axis))
         r += fmtstr.format('pos1[mm]', str(self._pos1))
@@ -320,6 +322,11 @@ class Scan(_database.DatabaseObject):
         self._offsetz_end = self._get_float_property_value(value)
 
     @property
+    def nr_voltage_scans(self):
+        """Number of voltage scans used to get average values."""
+        return self._nr_voltage_scans
+
+    @property
     def pos1(self):
         """Position 1 (Axis +Z) [mm]."""
         return self._pos1
@@ -478,6 +485,7 @@ class Scan(_database.DatabaseObject):
         self._offsety_end = None
         self._offsetz_start = None
         self._offsetz_end = None
+        self._nr_voltage_scans = None
         for key in self.__dict__:
             if isinstance(self.__dict__[key], _np.ndarray):
                 self.__dict__[key] = _np.array([])
@@ -514,6 +522,8 @@ class Scan(_database.DatabaseObject):
         self.offsety_end = _utils.find_value(flines, 'offsety_end')
         self.offsetz_start = _utils.find_value(flines, 'offsetz_start')
         self.offsetz_end = _utils.find_value(flines, 'offsetz_end')
+        self._nr_voltage_scans = _utils.find_value(
+            flines, 'nr_voltage_scans', vtype=int)
 
         scan_axis = _utils.find_value(flines, 'scan_axis', int)
         for axis in self._axis_list:
@@ -666,6 +676,7 @@ class Scan(_database.DatabaseObject):
             f.write('offsety_end[V]:      \t%s\n' % offsety_end)
             f.write('offsetz_start[V]:    \t%s\n' % offsetz_start)
             f.write('offsetz_end[V]:      \t%s\n' % offsetz_end)
+            f.write('nr_voltage_scans:    \t%d\n' % self._nr_voltage_scans)
             f.write('scan_axis:           \t%s\n' % scan_axis)
             f.write('pos1[mm]:            \t%s\n' % pos1_str)
             f.write('pos2[mm]:            \t%s\n' % pos2_str)
@@ -724,7 +735,8 @@ class VoltageScan(Scan):
         ('offsety_start', ['offsety_start', 'REAL']),        
         ('offsety_end', ['offsety_end', 'REAL']),
         ('offsetz_start', ['offsetz_start', 'REAL']),
-        ('offsetz_end', ['offsetz_end', 'REAL']),  
+        ('offsetz_end', ['offsetz_end', 'REAL']),
+        ('nr_voltage_scans', ['nr_voltage_scans', 'INTEGER']),  
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
@@ -744,6 +756,11 @@ class VoltageScan(Scan):
         """
         super().__init__(
             filename=filename, database=database, idn=idn, data_unit='V')
+
+    @Scan.nr_voltage_scans.setter
+    def nr_voltage_scans(self, value):
+        """Set number of voltage scans."""
+        self._nr_voltage_scans = int(value)
 
     @Scan.pos1.setter
     def pos1(self, value):
@@ -869,7 +886,8 @@ class FieldScan(Scan):
         ('offsety_start', ['offsety_start', 'REAL']),        
         ('offsety_end', ['offsety_end', 'REAL']),
         ('offsetz_start', ['offsetz_start', 'REAL']),
-        ('offsetz_end', ['offsetz_end', 'REAL']),  
+        ('offsetz_end', ['offsetz_end', 'REAL']),
+        ('nr_voltage_scans', ['nr_voltage_scans', 'INTEGER']),  
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
@@ -918,11 +936,13 @@ class FieldScan(Scan):
         self._stdy = by_std
         self._stdz = bz_std
 
+        self._nr_voltage_scans = len(voltage_scan_list)
+
         self._temperature = get_temperature_values(
             voltage_scan_list)
         
         setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
-            voltage_scan_list, 1)
+            voltage_scan_list, voltage_scan_list[0].nr_voltage_scans)
         self.current_setpoint = setpoint
         self.dcct_current_avg = dcct_avg
         self.dcct_current_std = dcct_std
@@ -1418,7 +1438,7 @@ class Fieldmap(_database.DatabaseObject):
         self._temperature = get_temperature_values(field_scan_list)
 
         setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
-            field_scan_list, 2)
+            field_scan_list, field_scan_list[0].nr_voltage_scans)
         self.current_setpoint = setpoint
         self.dcct_current_avg = dcct_avg
         self.dcct_current_std = dcct_std

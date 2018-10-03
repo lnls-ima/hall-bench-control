@@ -549,7 +549,7 @@ class PowerSupplyConfig(Configuration):
         ('sinusoidal amplitude', ['sinusoidal_amplitude', 'REAL NOT NULL']),
         ('sinusoidal offset', ['sinusoidal_offset', 'REAL NOT NULL']),
         ('sinusoidal frequency', ['sinusoidal_frequency', 'REAL NOT NULL']),
-        ('sinusoidal n cicles', ['sinusoidal_ncicles', 'INTEGER NOT NULL']),
+        ('sinusoidal n cycles', ['sinusoidal_ncycles', 'INTEGER NOT NULL']),
         ('sinusoidal initial phase', ['sinusoidal_phasei', 'REAL NOT NULL']),
         ('sinusoidal final phase', ['sinusoidal_phasef', 'REAL NOT NULL']),
         ('damped sinusoidal amplitude', ['dsinusoidal_amplitude',
@@ -557,7 +557,7 @@ class PowerSupplyConfig(Configuration):
         ('damped sinusoidal offset', ['dsinusoidal_offset', 'REAL NOT NULL']),
         ('damped sinusoidal frequency', ['dsinusoidal_frequency',
                                          'REAL NOT NULL']),
-        ('damped sinusoidal n cicles', ['dsinusoidal_ncicles',
+        ('damped sinusoidal n cycles', ['dsinusoidal_ncycles',
                                         'INTEGER NOT NULL']),
         ('damped sinusoidal initial phase', ['dsinusoidal_phasei',
                                              'REAL NOT NULL']),
@@ -603,13 +603,13 @@ class PowerSupplyConfig(Configuration):
         self.sinusoidal_amplitude = None
         self.sinusoidal_offset = None
         self.sinusoidal_frequency = None
-        self.sinusoidal_ncicles = None
+        self.sinusoidal_ncycles = None
         self.sinusoidal_phasei = None
         self.sinusoidal_phasef = None
         self.dsinusoidal_amplitude = None
         self.dsinusoidal_offset = None
         self.dsinusoidal_frequency = None
-        self.dsinusoidal_ncicles = None
+        self.dsinusoidal_ncycles = None
         self.dsinusoidal_phasei = None
         self.dsinusoidal_phasef = None
         self.dsinusoidal_damp = None
@@ -618,7 +618,7 @@ class PowerSupplyConfig(Configuration):
     def get_attribute_type(self, name):
         """Get attribute type."""
         if name in ['ps_type', 'dcct_head', 'status', 'status_loop', 'dcct',
-                    'sinusoidal_ncicles', 'dsinusoidal_ncicles']:
+                    'sinusoidal_ncycles', 'dsinusoidal_ncycles']:
             return int
         elif name in ['ps_name']:
             return str
@@ -657,8 +657,8 @@ class PowerSupplyConfig(Configuration):
                     self.sinusoidal_offset),
                 'sinusoidal_frequency  \t{0:2f}\n'.format(
                     self.sinusoidal_frequency),
-                'sinusoidal_ncicles    \t{0:d}\n'.format(
-                    self.sinusoidal_ncicles),
+                'sinusoidal_ncycles    \t{0:d}\n'.format(
+                    self.sinusoidal_ncycles),
                 'sinusoidal_phasei     \t{0:2f}\n'.format(
                     self.sinusoidal_phasei),
                 'sinusoidal_phasef     \t{0:2f}\n\n'.format(
@@ -670,8 +670,8 @@ class PowerSupplyConfig(Configuration):
                     self.dsinusoidal_offset),
                 'dsinusoidal_frequency \t{0:2f}\n'.format(
                     self.dsinusoidal_frequency),
-                'dsinusoidal_ncicles   \t{0:d}\n'.format(
-                    self.dsinusoidal_ncicles),
+                'dsinusoidal_ncycles   \t{0:d}\n'.format(
+                    self.dsinusoidal_ncycles),
                 'dsinusoidal_phasei    \t{0:2f}\n'.format(
                     self.dsinusoidal_phasei),
                 'dsinusoidal_phasef    \t{0:2f}\n'.format(

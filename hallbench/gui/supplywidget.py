@@ -54,7 +54,7 @@ class SupplyWidget(_QWidget):
         self.ui.pb_send_curve.clicked.connect(self.send_curve)
         self.ui.pb_config_pid.clicked.connect(self.config_pid)
         self.ui.pb_reset_inter.clicked.connect(self.reset_interlocks)
-        self.ui.pb_cicle.clicked.connect(self.cicling_ps)
+        self.ui.pb_cycle.clicked.connect(self.cycling_ps)
         self.ui.pb_plot.clicked.connect(self.plot)
         self.ui.pb_config_ps.clicked.connect(self.config_ps)
         self.ui.pb_add_row.clicked.connect(self.add_row)
@@ -339,7 +339,7 @@ class SupplyWidget(_QWidget):
                 self.config.main_current = 0
                 self.ui.le_status_loop.setText('Open')
                 self.ui.pb_send.setEnabled(False)
-                self.ui.pb_cicle.setEnabled(False)
+                self.ui.pb_cycle.setEnabled(False)
                 self.ui.pb_send_curve.setEnabled(False)
                 self.change_ps_button(True)
                 self.timer.stop()
@@ -393,8 +393,8 @@ class SupplyWidget(_QWidget):
             self.ui.le_sinusoidal_offset.text())
         self.config.sinusoidal_frequency = float(
             self.ui.le_sinusoidal_frequency.text())
-        self.config.sinusoidal_ncicles = int(
-            self.ui.le_sinusoidal_ncicles.text())
+        self.config.sinusoidal_ncycles = int(
+            self.ui.le_sinusoidal_ncycles.text())
         self.config.sinusoidal_phasei = float(
             self.ui.le_sinusoidal_phase.text())
         self.config.sinusoidal_phasef = float(
@@ -405,8 +405,8 @@ class SupplyWidget(_QWidget):
             self.ui.le_damp_sin_offset.text())
         self.config.dsinusoidal_frequency = float(
             self.ui.le_damp_sin_freq.text())
-        self.config.dsinusoidal_ncicles = int(
-            self.ui.le_damp_sin_ncicles.text())
+        self.config.dsinusoidal_ncycles = int(
+            self.ui.le_damp_sin_ncycles.text())
         self.config.dsinusoidal_phasei = float(
             self.ui.le_damp_sin_phase.text())
         self.config.dsinusoidal_phasef = float(
@@ -434,8 +434,8 @@ class SupplyWidget(_QWidget):
             self.config.sinusoidal_offset))
         self.ui.le_sinusoidal_frequency.setText(str(
             self.config.sinusoidal_frequency))
-        self.ui.le_sinusoidal_ncicles.setText(str(
-            self.config.sinusoidal_ncicles))
+        self.ui.le_sinusoidal_ncycles.setText(str(
+            self.config.sinusoidal_ncycles))
         self.ui.le_sinusoidal_phase.setText(str(self.config.sinusoidal_phasei))
         self.ui.le_sinusoidal_phasef.setText(str(
             self.config.sinusoidal_phasef))
@@ -444,8 +444,8 @@ class SupplyWidget(_QWidget):
         self.ui.le_damp_sin_offset.setText(str(self.config.dsinusoidal_offset))
         self.ui.le_damp_sin_freq.setText(str(
             self.config.dsinusoidal_frequency))
-        self.ui.le_damp_sin_ncicles.setText(str(
-            self.config.dsinusoidal_ncicles))
+        self.ui.le_damp_sin_ncycles.setText(str(
+            self.config.dsinusoidal_ncycles))
         self.ui.le_damp_sin_phase.setText(str(self.config.dsinusoidal_phasei))
         self.ui.le_damp_sin_phasef.setText(str(self.config.dsinusoidal_phasef))
         self.ui.le_damp_sin_damping.setText(str(self.config.dsinusoidal_damp))
@@ -709,7 +709,7 @@ class SupplyWidget(_QWidget):
                                      _QMessageBox.Ok)
             self.ui.tabWidget_2.setEnabled(True)
             self.ui.pb_send.setEnabled(True)
-            self.ui.pb_cicle.setEnabled(True)
+            self.ui.pb_cycle.setEnabled(True)
             _QApplication.processEvents()
         else:
             _QMessageBox.warning(self, 'Warning', 'Failed to send curve.',
@@ -758,12 +758,12 @@ class SupplyWidget(_QWidget):
                 _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Frequency parameter of the curve.',
                                      _QMessageBox.Ok)
-            # For N-cicles
+            # For N-cycles
             try:
-                _n_cicles = int(self.config.sinusoidal_ncicles)
+                _n_cycles = int(self.config.sinusoidal_ncycles)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     '#cicles parameter of the curve.',
+                                     '#cycles parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Phase shift
             try:
@@ -811,12 +811,12 @@ class SupplyWidget(_QWidget):
                 _QMessageBox.warning(self, 'Warning', 'Please verify the '
                                      'Frequency parameter of the curve.',
                                      _QMessageBox.Ok)
-            # For N-cicles
+            # For N-cycles
             try:
-                _n_cicles = int(self.config.dsinusoidal_ncicles)
+                _n_cycles = int(self.config.dsinusoidal_ncycles)
             except Exception:
                 _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     '#cicles parameter of the curve.',
+                                     '#cycles parameter of the curve.',
                                      _QMessageBox.Ok)
             # For Phase shift
             try:
@@ -849,7 +849,7 @@ class SupplyWidget(_QWidget):
                 self.drs.Write_sigGen_Freq(float(_freq))
                 self.drs.Write_sigGen_Amplitude(float(_amp))
                 self.drs.Write_sigGen_Offset(float(_offset))
-                self.drs.ConfigSigGen(_sigType, _n_cicles, _phase_shift,
+                self.drs.ConfigSigGen(_sigType, _n_cycles, _phase_shift,
                                       _final_phase)
 
             # Damped Sinusoidal
@@ -861,7 +861,7 @@ class SupplyWidget(_QWidget):
 
                 # Sending sigGenDamped
                 self.drs.Write_sigGen_Aux(_damping)
-                self.drs.ConfigSigGen(_sigType, _n_cicles,
+                self.drs.ConfigSigGen(_sigType, _n_cycles,
                                       _phase_shift, _final_phase)
 
             return True
@@ -900,8 +900,8 @@ class SupplyWidget(_QWidget):
                                  _QMessageBox.Ok)
             return
 
-    def cicling_ps(self):
-        """Initializes power supply cicling routine."""
+    def cycling_ps(self):
+        """Initializes power supply cycling routine."""
         _curve_type = int(self.ui.tabWidget_3.currentIndex())
 
         _ps_type = self.config.ps_type
@@ -924,14 +924,14 @@ class SupplyWidget(_QWidget):
             if _curve_type == 1:
                 self.drs.EnableSigGen()
                 _freq = self.config.sinusoidal_frequency
-                _n_cicles = self.config.sinusoidal_ncicles
+                _n_cycles = self.config.sinusoidal_ncycles
                 _offset = self.config.sinusoidal_offset
             if _curve_type == 0:
                 self.drs.EnableSigGen()
                 _freq = self.config.dsinusoidal_frequency
-                _n_cicles = self.config.dsinusoidal_ncicles
+                _n_cycles = self.config.dsinusoidal_ncycles
                 _offset = self.config.dsinusoidal_offset
-            _deadline = _time.monotonic() + (1/_freq*_n_cicles)
+            _deadline = _time.monotonic() + (1/_freq*_n_cycles)
             while _time.monotonic() < _deadline:
                 self.ui.tabWidget_2.setEnabled(False)
                 self.ui.pb_send.setEnabled(False)
@@ -1037,7 +1037,7 @@ class SupplyWidget(_QWidget):
                 a = float(self.ui.le_sinusoidal_amplitude.text())
                 offset = float(self.ui.le_sinusoidal_offset.text())
                 f = float(self.ui.le_sinusoidal_frequency.text())
-                ncicles = int(self.ui.le_sinusoidal_ncicles.text())
+                ncycles = int(self.ui.le_sinusoidal_ncycles.text())
                 theta = float(self.ui.le_sinusoidal_phase.text())
                 sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) +
                                  offset)
@@ -1047,13 +1047,13 @@ class SupplyWidget(_QWidget):
                 a = float(self.ui.le_damp_sin_ampl.text())
                 offset = float(self.ui.le_damp_sin_offset.text())
                 f = float(self.ui.le_damp_sin_freq.text())
-                ncicles = int(self.ui.le_damp_sin_ncicles.text())
+                ncycles = int(self.ui.le_damp_sin_ncycles.text())
                 theta = float(self.ui.le_damp_sin_phase.text())
                 tau = float(self.ui.le_damp_sin_damping.text())
                 sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) *
                                  _np.exp(-t/tau) + offset)
 
-            x = _np.linspace(0, ncicles, 500)
+            x = _np.linspace(0, ncycles, 500)
             y = sen(x)
             fig = self.plot_dialog.figure
             ax = self.plot_dialog.ax

@@ -360,7 +360,7 @@ class SupplyWidget(_QWidget):
             is_off (bool): True when the power supply is turned off;
                 False if turned on"""
         self.ui.pb_ps_button.setEnabled(True)
-        if on:
+        if is_off:
             self.ui.pb_ps_button.setChecked(False)
             self.ui.pb_ps_button.setText('Turn ON')
         else:
@@ -593,7 +593,6 @@ class SupplyWidget(_QWidget):
                 self.ui.tabWidget_2.setEnabled(True)
                 self.ui.pb_send.setEnabled(True)
                 return False
-            self.config.ps_setpoint = _setpoint
 
             # send setpoint and wait until current is set
             self.drs.SetISlowRef(_setpoint)
@@ -604,6 +603,7 @@ class SupplyWidget(_QWidget):
                 if abs(_compare - _setpoint) <= 0.5:
                     self.ui.tabWidget_2.setEnabled(True)
                     self.ui.pb_send.setEnabled(True)
+                    self.config.ps_setpoint = _setpoint
                     return True
                 _QApplication.processEvents()
                 _time.sleep(1)
@@ -619,8 +619,7 @@ class SupplyWidget(_QWidget):
     def send_setpoint(self):
         """Sends configured current setpoint to the power supply."""
         try:
-            self.config_ps()
-            _setpoint = self.config.ps_setpoint
+            _setpoint = self.ui.sb_current_setpoint.value()
             _ans = self.current_setpoint(_setpoint)
             if _ans:
                 _QMessageBox.information(self, 'Information',

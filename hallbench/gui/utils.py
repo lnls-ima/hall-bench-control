@@ -10,11 +10,14 @@ import traceback as _traceback
 from PyQt5.QtCore import Qt as _Qt
 from PyQt5.QtWidgets import (
     QDialog as _QDialog,
+    QComboBox as _QComboBox,
+    QListView as _QListView,
     QVBoxLayout as _QVBoxLayout,
     QPushButton as _QPushButton,
     QTableWidget as _QTableWidget,
     QTableWidgetItem as _QTableWidgetItem,
     )
+from PyQt5.QtGui import QStandardItemModel as _QStandardItemModel
 from matplotlib.figure import Figure as _Figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as _FigureCanvas
@@ -109,6 +112,52 @@ def tableToDataFrame(table):
         tdata.append(ldata)
     df = _pd.DataFrame(_np.array(tdata), index=idx_labels, columns=col_labels)
     return df
+
+
+class CheckableComboBox(_QComboBox):
+    """Combo box with checkable items."""
+
+    def __init__(self, parent=None):
+        """Initialize object."""
+        super().__init__(parent)
+        self.setView(_QListView(self))
+        self.view().pressed.connect(self.handleItemPressed)
+        self.setModel(_QStandardItemModel(self))
+
+    def handleItemPressed(self, index):
+        """Change item check state."""
+        item = self.model().itemFromIndex(index)
+        if item.checkState() == _Qt.Checked:
+            item.setCheckState(_Qt.Unchecked)
+        else:
+            item.setCheckState(_Qt.Checked)
+
+    def checkedItems(self):
+        """Get checked items."""
+        checkedItems = []
+        for index in range(self.count()):
+            item = self.model().item(index)
+            if item.checkState() == _Qt.Checked:
+                checkedItems.append(item)
+        return checkedItems
+
+    def checkedIndexes(self):
+        """Get checked indexes."""
+        checkedIndexes = []
+        for index in range(self.count()):
+            item = self.model().item(index)
+            if item.checkState() == _Qt.Checked:
+                checkedIndexes.append(index)
+        return checkedIndexes
+
+    def checkedItemsText(self):
+        """Get checked items text."""
+        checkedItemsText = []
+        for index in range(self.count()):
+            item = self.model().item(index)
+            if item.checkState() == _Qt.Checked:
+                checkedItemsText.append(item.text())
+        return checkedItemsText
 
 
 class TableDialog(_QDialog):

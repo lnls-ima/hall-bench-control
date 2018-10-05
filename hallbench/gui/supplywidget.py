@@ -126,6 +126,13 @@ class SupplyWidget(_QWidget):
                                  _QMessageBox.Ok)
             return False
 
+    def set_op_mode(self, mode=0):
+        self.drs.OpMode(mode)
+        _time.sleep(0.1)
+        if self.drs.Read_ps_OpMode() == mode:
+            return True
+        return False
+
     def change_ps(self):
         """Sets the Load Power Supply button disabled if the selected supply is
            already loaded."""
@@ -239,7 +246,13 @@ class SupplyWidget(_QWidget):
                         return
                     # Set ISlowRef for DC Link (Capacitor Bank)
                     # Operation mode selection for Slowref
-                    self.drs.OpMode(0)
+                    if not self.set_op_mode(0):
+                        _QMessageBox.warning(self, 'Warning',
+                                             'Could not set the slowRef '
+                                             'operation mode.',
+                                             _QMessageBox.Ok)
+                        self.change_ps_button(True)
+                        return
 
                     _dclink_value = self.config.dclink
                     # Set 90 V for Capacitor Bank (default value)
@@ -510,7 +523,8 @@ class SupplyWidget(_QWidget):
         _ps_type = self.config.ps_type
         if not self.set_address(_ps_type):
             return
-        self.drs.OpMode(0)
+        if not self.set_op_mode(0):
+            self.set_op_mode(0)
         self.drs.SetISlowRef(0)
         _time.sleep(0.1)
         self.drs.TurnOff()
@@ -910,12 +924,12 @@ class SupplyWidget(_QWidget):
             return
 
         try:
-            self.drs.OpMode(3)
-            if self.drs.Read_ps_OpMode() != 3:
-                _QMessageBox.warning(self, 'Warning', 'Power supply is not '
-                                     'in signal generator mode.',
+            if not self.set_op_mode(3):
+                _QMessageBox.warning(self, 'Warning',
+                                     'Could not set the sigGen '
+                                     'operation mode.',
                                      _QMessageBox.Ok)
-                return False
+                return
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning', 'Power supply is not in '
@@ -955,7 +969,11 @@ class SupplyWidget(_QWidget):
             if _curve_type == 2:
                 pass
             # returns to mode ISlowRef
-            self.drs.OpMode(0)
+            if not self.set_op_mode(0):
+                _QMessageBox.warning(self, 'Warning',
+                                     'Could not set the slowRef '
+                                     'operation mode.',
+                                     _QMessageBox.Ok)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning',

@@ -42,11 +42,77 @@ def getUiFile(widget):
     return uifile
 
 
+def getValueFromStringExpresssion(text):
+    """Get float value from string expression."""
+    if len(text.strip()) == 0:
+        return None
+
+    try:
+        if '-' in text or '+' in text:
+            tl = [ti for ti in text.split('-')]
+            for i in range(1, len(tl)):
+                tl[i] = '-' + tl[i]
+            ntl = []
+            for ti in tl:
+                ntl = ntl + ti.split('+')
+            ntl = [ti.replace(' ', '') for ti in ntl]
+            values = [float(ti) for ti in ntl if len(ti) > 0]
+            value = sum(values)
+        else:
+            value = float(text)
+        return value
+
+    except Exception:
+        return None
+
+
+def setFloatLineEditText(
+        line_edit, precision=4, expression=True,
+        positive=False, nonzero=False):
+    """Set the line edit string format for float value."""
+    try:
+        str_format = '{0:.%if}' % precision
+        if line_edit.isModified():
+            text = line_edit.text()
+
+            if len(text.strip()) == 0:
+                line_edit.setText('')
+                return False
+
+            if expression:
+                value = getValueFromStringExpresssion(text)
+            else:
+                value = float(text)
+
+            if value is not None:
+                if positive and value < 0:
+                    value = None
+                if nonzero and value == 0:
+                    value = None
+
+                if value is not None:
+                    line_edit.setText(str_format.format(value))
+                    return True
+                else:
+                    line_edit.setText('')
+                    return False
+            else:
+                line_edit.setText('')
+                return False
+
+        else:
+            return True
+
+    except Exception:
+        line_edit.setText('')
+        return False
+
+
 def scientificNotation(value, error):
     """Return a string with value and error in scientific notation."""
     if value is None:
         return ''
-    
+
     if error is None or error == 0:
         value_str = '{0:f}'.format(value)
         return value_str
@@ -240,7 +306,7 @@ class TableDialog(_QDialog):
 
         if self.table_df is None:
             return
-        
+
         nrows = self.table_df.shape[0]
         ncols = self.table_df.shape[1]
 

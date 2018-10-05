@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     )
 import PyQt5.uic as _uic
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui import utils as _utils
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
 
@@ -31,7 +31,7 @@ class MoveAxisWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # add position widget
@@ -79,8 +79,10 @@ class MoveAxisWidget(_QWidget):
             if len(targetpos_str) == 0 or len(targetvel_str) == 0:
                 return
 
-            targetpos = float(self.ui.targetpos_le.text())
-            targetvel = float(self.ui.targetvel_le.text())
+            targetpos = _utils.getValueFromStringExpresssion(
+                self.ui.targetpos_le.text())
+            targetvel = _utils.getValueFromStringExpresssion(
+                self.ui.targetvel_le.text())
 
             axis = self.selectedAxis()
             if axis is None:
@@ -110,13 +112,13 @@ class MoveAxisWidget(_QWidget):
         else:
             return None
 
-    def setVelocityPositionStrFormat(self, obj):
+    def setVelocityPositionStrFormat(self, line_edit):
         """Set the velocity and position string format."""
         try:
-            value = float(obj.text())
-            obj.setText(self._position_format.format(value))
+            if not _utils.setFloatLineEditText(line_edit, precision=3):
+                self.updateVelocityAndPosition()
         except Exception:
-            self.updateVelocityAndPosition()
+            pass
 
     def stopAxis(self):
         """Stop the selected axis."""

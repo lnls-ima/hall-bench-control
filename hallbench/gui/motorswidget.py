@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     )
 import PyQt5.uic as _uic
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui import utils as _utils
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
 
@@ -33,7 +33,7 @@ class MotorsWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # add position widget
@@ -95,17 +95,23 @@ class MotorsWidget(_QWidget):
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.minax1_le.editingFinished.connect(
-            lambda: self.setAxisLimitsStrFormat(self.ui.minax1_le))
+            lambda: _utils.setFloatLineEditText(
+                self.ui.minax1_le, precision=3))
         self.ui.minax2_le.editingFinished.connect(
-            lambda: self.setAxisLimitsStrFormat(self.ui.minax2_le))
+            lambda: _utils.setFloatLineEditText(
+                self.ui.minax2_le, precision=3))
         self.ui.minax3_le.editingFinished.connect(
-            lambda: self.setAxisLimitsStrFormat(self.ui.minax3_le))
+            lambda: _utils.setFloatLineEditText(
+                self.ui.minax3_le, precision=3))
         self.ui.maxax1_le.editingFinished.connect(
-            lambda: self.setAxisLimitsStrFormat(self.ui.maxax1_le))
+            lambda: _utils.setFloatLineEditText(
+                self.ui.maxax1_le, precision=3))
         self.ui.maxax2_le.editingFinished.connect(
-            lambda: self.setAxisLimitsStrFormat(self.ui.maxax2_le))
+            lambda: _utils.setFloatLineEditText(
+                self.ui.maxax2_le, precision=3))
         self.ui.maxax3_le.editingFinished.connect(
-            lambda: self.setAxisLimitsStrFormat(self.ui.maxax3_le))
+            lambda: _utils.setFloatLineEditText(
+                self.ui.maxax3_le, precision=3))
 
         self.ui.targetvel_le.editingFinished.connect(
             lambda: self.setVelocityPositionStrFormat(self.ui.targetvel_le))
@@ -168,42 +174,39 @@ class MotorsWidget(_QWidget):
 
     def fixPositionValues(self):
         """Fix step and end position value."""
-        start_text = self.ui.trigstart_le.text()
-        if not bool(start_text and start_text.strip()):
+        start = _utils.getValueFromStringExpresssion(
+            self.ui.trigstart_le.text())
+        if start is None:
             return
-        start = float(start_text)
 
-        step_text = self.ui.trigstep_le.text()
-        if not bool(step_text and step_text.strip()):
+        step = _utils.getValueFromStringExpresssion(self.ui.trigstep_le.text())
+        if step is None:
             return
-        step = float(step_text)
 
-        end_text = self.ui.trigend_le.text()
-        if not bool(end_text and end_text.strip()):
+        end = _utils.getValueFromStringExpresssion(self.ui.trigend_le.text())
+        if end is None:
             return
-        end = float(end_text)
 
-        if start is not None and step is not None and end is not None:
-            if step == 0:
-                self.ui.trigend_le.setText('{0:0.4f}'.format(start))
-                return
+        if step == 0:
+            self.ui.trigend_le.setText('{0:0.4f}'.format(start))
+            return
 
-            npts = _np.abs(_np.round(round((end - start) / step, 4) + 1))
-            if start <= end and step < 0:
-                self.ui.trigstep_le.setText('')
-                return
-            elif start > end and step > 0:
-                self.ui.trigstep_le.setText('')
-                return
-            elif start <= end:
-                corrected_step = _np.abs(step)
-                corrected_end = start + (npts-1)*corrected_step
-            else:
-                corrected_step = _np.abs(step)*(-1)
-                corrected_end = start + (npts-1)*corrected_step
+        npts = _np.abs(_np.round(round((end - start) / step, 4) + 1))
+        if start <= end and step < 0:
+            self.ui.trigstep_le.setText('')
+            return
+        elif start > end and step > 0:
+            self.ui.trigstep_le.setText('')
+            return
+        elif start <= end:
+            corrected_step = _np.abs(step)
+            corrected_end = start + (npts-1)*corrected_step
+        else:
+            corrected_step = _np.abs(step)*(-1)
+            corrected_end = start + (npts-1)*corrected_step
 
-            self.ui.trigstep_le.setText('{0:0.4f}'.format(corrected_step))
-            self.ui.trigend_le.setText('{0:0.4f}'.format(corrected_end))
+        self.ui.trigstep_le.setText('{0:0.4f}'.format(corrected_step))
+        self.ui.trigend_le.setText('{0:0.4f}'.format(corrected_end))
 
     def killAllAxis(self):
         """Kill all axis."""
@@ -222,12 +225,12 @@ class MotorsWidget(_QWidget):
     def moveToTarget(self, axis):
         """Move Hall probe to target position."""
         try:
-            targetpos_str = self.ui.targetpos_le.text()
-            targetvel_str = self.ui.targetvel_le.text()
-            if len(targetpos_str) == 0 or len(targetvel_str) == 0:
+            targetpos = _utils.getValueFromStringExpresssion(
+                self.ui.targetpos_le.text())
+            targetvel = _utils.getValueFromStringExpresssion(
+                self.ui.targetvel_le.text())
+            if targetpos is None or targetvel is None:
                 return
-            targetpos = float(targetpos_str)
-            targetvel = float(targetvel_str)
 
             axis = self.selectedAxis()
             if axis is None:
@@ -357,24 +360,36 @@ class MotorsWidget(_QWidget):
             pos_list = self.pmac.commands.i_softlimit_pos_list
             cts_mm_axis = self.pmac.commands.CTS_MM_AXIS
 
-            if (len(self.ui.minax1_le.text()) != 0 and
-               len(self.ui.maxax1_le.text()) != 0):
-                minax1 = float(self.ui.minax1_le.text())*cts_mm_axis[0]
-                maxax1 = float(self.ui.maxax1_le.text())*cts_mm_axis[0]
+            minax1 = _utils.getValueFromStringExpresssion(
+                self.ui.minax1_le.text())
+            maxax1 = _utils.getValueFromStringExpresssion(
+                self.ui.maxax1_le.text())
+
+            minax2 = _utils.getValueFromStringExpresssion(
+                self.ui.minax2_le.text())
+            maxax2 = _utils.getValueFromStringExpresssion(
+                self.ui.maxax2_le.text())
+
+            minax3 = _utils.getValueFromStringExpresssion(
+                self.ui.minax3_le.text())
+            maxax3 = _utils.getValueFromStringExpresssion(
+                self.ui.maxax3_le.text())
+
+            if minax1 is not None and maxax1 is not None:
+                minax1 = minax1*cts_mm_axis[0]
+                maxax1 = maxax1*cts_mm_axis[0]
                 self.pmac.get_response(self.pmac.set_par(neg_list[0], minax1))
                 self.pmac.get_response(self.pmac.set_par(pos_list[0], maxax1))
 
-            if (len(self.ui.minax2_le.text()) != 0 and
-               len(self.ui.maxax2_le.text()) != 0):
-                minax2 = float(self.ui.minax2_le.text())*cts_mm_axis[1]
-                maxax2 = float(self.ui.maxax2_le.text())*cts_mm_axis[1]
+            if minax2 is not None and maxax2 is not None:
+                minax2 = minax2*cts_mm_axis[1]
+                maxax2 = maxax2*cts_mm_axis[1]
                 self.pmac.get_response(self.pmac.set_par(neg_list[1], minax2))
                 self.pmac.get_response(self.pmac.set_par(pos_list[1], maxax2))
 
-            if (len(self.ui.minax3_le.text()) != 0 and
-               len(self.ui.maxax3_le.text()) != 0):
-                minax3 = float(self.ui.minax3_le.text())*cts_mm_axis[2]
-                maxax3 = float(self.ui.maxax3_le.text())*cts_mm_axis[2]
+            if minax3 is not None and maxax3 is not None:
+                minax3 = minax3*cts_mm_axis[2]
+                maxax3 = maxax3*cts_mm_axis[2]
                 self.pmac.get_response(self.pmac.set_par(neg_list[2], minax3))
                 self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
 
@@ -390,14 +405,6 @@ class MotorsWidget(_QWidget):
         self.ui.limits_gb.setEnabled(enabled)
         self.ui.setlimits_btn.setEnabled(enabled)
         self.ui.resetlimits_btn.setEnabled(enabled)
-
-    def setAxisLimitsStrFormat(self, obj):
-        """Set the axis limit string format."""
-        try:
-            value = float(obj.text())
-            obj.setText(self._position_format.format(value))
-        except Exception:
-            obj.setText('')
 
     def setHomingEnabled(self, enabled):
         """Enable/Disable homing controls."""
@@ -416,13 +423,13 @@ class MotorsWidget(_QWidget):
         self.ui.trigandmove_btn.setEnabled(enabled)
         self.ui.trigstop_btn.setEnabled(enabled)
 
-    def setVelocityPositionStrFormat(self, obj):
+    def setVelocityPositionStrFormat(self, line_edit):
         """Set the velocity and position string format."""
         try:
-            value = float(obj.text())
-            obj.setText(self._position_format.format(value))
+            if not _utils.setFloatLineEditText(line_edit, precision=3):
+                self.updateVelocityAndPosition()
         except Exception:
-            self.updateVelocityAndPosition()
+            pass
 
     def setTriggerandMove(self, axis):
         """Set trigger and move axis."""
@@ -432,25 +439,25 @@ class MotorsWidget(_QWidget):
             return
 
         try:
-            start_text = self.ui.trigstart_le.text()
-            if len(start_text) == 0:
+            start = _utils.getValueFromStringExpresssion(
+                self.ui.trigstart_le.text())
+            if start is None:
                 return
-            start = float(start_text)
 
-            step_text = self.ui.trigstep_le.text()
-            if len(step_text) == 0:
+            step = _utils.getValueFromStringExpresssion(
+                self.ui.trigstep_le.text())
+            if step is None:
                 return
-            step = float(step_text)
 
-            end_text = self.ui.trigend_le.text()
-            if len(end_text) == 0:
+            end = _utils.getValueFromStringExpresssion(
+                self.ui.trigend_le.text())
+            if end is None:
                 return
-            end = float(end_text)
 
-            targetvel_text = self.ui.trigvel_le.text()
-            if len(targetvel_text) == 0:
+            targetvel = _utils.getValueFromStringExpresssion(
+                self.ui.trigvel_le.text())
+            if targetvel is None:
                 return
-            targetvel = float(targetvel_text)
 
             npts = _np.abs(_np.ceil(round((end - start) / step, 4) + 1))
 
@@ -517,7 +524,7 @@ class MotorsWidget(_QWidget):
                     obj.setChecked(False)
                 msg = 'Finished homing of the selected axes.'
                 _QMessageBox.information(self, 'Homing', msg, _QMessageBox.Ok)
-                
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Homing failed.'
@@ -568,7 +575,8 @@ class MotorsWidget(_QWidget):
                 return
 
             position = self.pmac.get_position(axis)
-            targetpos = float(self.ui.targetpos_le.text())
+            targetpos = _utils.getValueFromStringExpresssion(
+                self.ui.targetpos_le.text())
             reldisp = targetpos - position
             self.ui.reldisp_le.setText(self._position_format.format(reldisp))
 
@@ -583,7 +591,8 @@ class MotorsWidget(_QWidget):
                 return
 
             position = self.pmac.get_position(axis)
-            reldisp = float(self.ui.reldisp_le.text())
+            reldisp = _utils.getValueFromStringExpresssion(
+                self.ui.reldisp_le.text())
             targetpos = position + reldisp
             self.ui.targetpos_le.setText(self._position_format.format(
                 targetpos))

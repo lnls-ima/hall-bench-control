@@ -17,14 +17,12 @@ from PyQt5.QtWidgets import (
     QMessageBox as _QMessageBox,
     )
 from PyQt5.QtCore import (
-    QTimer as _QTimer,
     QThread as _QThread,
-    QEventLoop as _QEventLoop,
     pyqtSignal as _pyqtSignal,
     )
 import PyQt5.uic as _uic
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui import utils as _utils
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
 from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
@@ -46,14 +44,14 @@ class MeasurementWidget(_QWidget):
 
     _update_graph_time_interval = 0.05  # [s]
     _measurement_axes = [1, 2, 3, 5]
-    _voltage_offset_avg_interval = 10 # [mm]
+    _voltage_offset_avg_interval = 10  # [mm]
 
     def __init__(self, parent=None):
         """Set up the ui, add widgets and create connections."""
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # add position widget
@@ -201,25 +199,22 @@ class MeasurementWidget(_QWidget):
 
     def fixEndPositionValue(self, axis):
         """Fix end position value."""
-        start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
-        start_le_text = start_le.text()
-        if not bool(start_le_text and start_le_text.strip()):
-            return
-        start = float(start_le_text)
+        try:
+            start_le = getattr(self.ui, 'start_ax' + str(axis) + '_le')
+            start = _utils.getValueFromStringExpresssion(start_le.text())
+            if start is None:
+                return
 
-        step_le = getattr(self.ui, 'step_ax' + str(axis) + '_le')
-        step_le_text = step_le.text()
-        if not bool(step_le_text and step_le_text.strip()):
-            return
-        step = float(step_le_text)
+            step_le = getattr(self.ui, 'step_ax' + str(axis) + '_le')
+            step = _utils.getValueFromStringExpresssion(step_le.text())
+            if step is None:
+                return
 
-        end_le = getattr(self.ui, 'end_ax' + str(axis) + '_le')
-        end_le_text = end_le.text()
-        if not bool(end_le_text and end_le_text.strip()):
-            return
-        end = float(end_le_text)
+            end_le = getattr(self.ui, 'end_ax' + str(axis) + '_le')
+            end = _utils.getValueFromStringExpresssion(end_le.text())
+            if end is None:
+                return
 
-        if start is not None and step is not None and end is not None:
             npts = _np.round(round((end - start) / step, 4) + 1)
             if start <= end:
                 corrected_end = start + (npts-1)*step
@@ -227,20 +222,19 @@ class MeasurementWidget(_QWidget):
                 corrected_end = start
             end_le.setText('{0:0.4f}'.format(corrected_end))
 
+        except Exception:
+            pass
+
     def getAxisParam(self, param, axis):
         """Get axis parameter."""
         le = getattr(self.ui, param + '_ax' + str(axis) + '_le')
-        le_text = le.text()
-        if bool(le_text and le_text.strip()):
-            return float(le_text)
-        else:
-            return None
+        return _utils.getValueFromStringExpresssion(le.text())
 
     def loadConfig(self):
         """Set measurement parameters."""
         try:
             self.ui.magnet_name_le.setText(self.measurement_config.magnet_name)
-            
+
             current_sp = self.measurement_config.current_setpoint
             if current_sp is None:
                 self.ui.current_setpoint_le.setText('')
@@ -462,89 +456,17 @@ class MeasurementWidget(_QWidget):
                 msg = 'Failed to save configuration to file.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def setStrFormatFloat(self, obj):
+    def setFloatLineEditText(
+            self, line_edit, precision=4, expression=True,
+            positive=False, nonzero=False):
         """Set the line edit string format for float value."""
         try:
-            if obj.isModified():
+            if line_edit.isModified():
                 self.clearLoadOptions()
-                value = float(obj.text())
-                obj.setText('{0:0.4f}'.format(value))
+                _utils.setFloatLineEditText(
+                    line_edit, precision, expression, positive, nonzero)
         except Exception:
-            obj.setText('')
-
-    def setStrFormatFloatSumSub(self, obj):
-        """Set the line edit string format for float value."""
-        try:
-            if obj.isModified():
-                self.clearLoadOptions()
-                text = obj.text()
-                if '-' in text or '+' in text:
-                    tl = [ti for ti in text.split('-')]
-                    for i in range(1, len(tl)):
-                        tl[i] = '-' + tl[i]
-                    ntl = []
-                    for ti in tl:
-                        ntl = ntl + ti.split('+')
-                    ntl = [ti.replace(' ', '') for ti in ntl]
-                    values = [float(ti) for ti in ntl if len(ti) > 0]
-                    value = sum(values)
-                else:
-                    value = float(text)
-                obj.setText('{0:0.4f}'.format(value))
-        except Exception:
-            obj.setText('')
-
-    def setStrFormatPositiveFloat(self, obj):
-        """Set the line edit string format for positive float value."""
-        try:
-            if obj.isModified():
-                self.clearLoadOptions()
-                value = float(obj.text())
-                if value >= 0:
-                    obj.setText('{0:0.4f}'.format(value))
-                else:
-                    obj.setText('')
-        except Exception:
-            obj.setText('')
-
-    def setStrFormatPositiveFloatOrInt(self, obj):
-        """Set the line edit string format for float or integer value."""
-        try:
-            if obj.isModified():
-                self.clearLoadOptions()
-                value = float(obj.text())
-                if value >= 0:
-                    obj.setText(str(value))
-                else:
-                    obj.setText('')
-        except Exception:
-            obj.setText('')
-
-    def setStrFormatPositiveNonZeroFloat(self, obj):
-        """Set the line edit string format for positive float value."""
-        try:
-            if obj.isModified():
-                self.clearLoadOptions()
-                value = float(obj.text())
-                if value > 0:
-                    obj.setText('{0:0.4f}'.format(value))
-                else:
-                    obj.setText('')
-        except Exception:
-            obj.setText('')
-
-    def setStrFormatNonZeroFloat(self, obj):
-        """Set the line edit string format for positive float value."""
-        try:
-            if obj.isModified():
-                self.clearLoadOptions()
-                value = float(obj.text())
-                if value != 0:
-                    obj.setText('{0:0.4f}'.format(value))
-                else:
-                    obj.setText('')
-        except Exception:
-            obj.setText('')
+            pass
 
     def showViewProbeDialog(self):
         """Open view probe dialog."""
@@ -565,11 +487,9 @@ class MeasurementWidget(_QWidget):
             _s = self.ui.magnet_name_le.text().strip()
             self.measurement_config.magnet_name = _s if len(_s) != 0 else None
 
-            _s = self.ui.current_setpoint_le.text().strip()
-            if len(_s) == 0:
-                self.measurement_config.current_setpoint = None
-            else:
-                self.measurement_config.current_setpoint = float(_s)
+            current_setpoint = _utils.getValueFromStringExpresssion(
+                self.ui.current_setpoint_le.text())
+            self.measurement_config.current_setpoint = current_setpoint
 
             _s = self.ui.probe_name_cmb.currentText().strip()
             self.measurement_config.probe_name = _s if len(_s) != 0 else None
@@ -597,28 +517,26 @@ class MeasurementWidget(_QWidget):
             nr_meas = self.ui.nr_measurements_sb.value()
             self.measurement_config.nr_measurements = nr_meas
 
-            integration_time = self.ui.integration_time_le.text()
-            if bool(integration_time and integration_time.strip()):
-                self.measurement_config.integration_time = float(
-                    integration_time)
+            integration_time = _utils.getValueFromStringExpresssion(
+                self.ui.integration_time_le.text())
+            self.measurement_config.integration_time = integration_time
 
-            voltage_range = self.ui.voltage_range_le.text()
-            if bool(voltage_range and voltage_range.strip()):
-                self.measurement_config.voltage_range = float(
-                    voltage_range)            
+            voltage_range = _utils.getValueFromStringExpresssion(
+                self.ui.voltage_range_le.text())
+            self.measurement_config.voltage_range = voltage_range
 
             _ch = self.ui.subtract_voltage_offset_chb.isChecked()
             self.measurement_config.subtract_voltage_offset = 1 if _ch else 0
-            
-            _ch= self.ui.save_voltage_chb.isChecked()
+
+            _ch = self.ui.save_voltage_chb.isChecked()
             self.measurement_config.save_voltage = 1 if _ch else 0
-            
+
             _ch = self.ui.save_current_chb.isChecked()
             self.measurement_config.save_current = 1 if _ch else 0
-            
+
             _ch = self.ui.save_temperature_chb.isChecked()
             self.measurement_config.save_temperature = 1 if _ch else 0
-            
+
             _ch = self.ui.automatic_ramp_chb.isChecked()
             self.measurement_config.automatic_ramp = 1 if _ch else 0
 
@@ -665,13 +583,14 @@ class MeasurementWidget(_QWidget):
                 step = self.measurement_config.get_step(first_axis)
                 vel = self.measurement_config.get_velocity(first_axis)
                 trigger_step = _np.abs(step/vel)
-                
+
                 if self.measurement_config.integration_time > trigger_step:
                     self.local_measurement_config = None
                     msg = (
                         'The integration time must be ' +
                         'less than {0:.4f} seconds.'.format(trigger_step))
-                    _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                    _QMessageBox.critical(
+                        self, 'Failure', msg, _QMessageBox.Ok)
                     return False
 
                 if not any([
@@ -680,7 +599,8 @@ class MeasurementWidget(_QWidget):
                         self.measurement_config.voltz_enable]):
                     self.local_measurement_config = None
                     msg = 'No multimeter selected.'
-                    _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                    _QMessageBox.critical(
+                        self, 'Failure', msg, _QMessageBox.Ok)
                     return False
 
                 self.local_measurement_config = self.measurement_config.copy()
@@ -836,7 +756,8 @@ class MeasurementWidget(_QWidget):
         self.ui.second_ax3_rb.clicked.connect(self.clearLoadOptions)
         self.ui.second_ax5_rb.clicked.connect(self.clearLoadOptions)
         self.ui.magnet_name_le.editingFinished.connect(self.clearLoadOptions)
-        self.ui.current_setpoint_le.editingFinished.connect(self.clearLoadOptions)
+        self.ui.current_setpoint_le.editingFinished.connect(
+            self.clearLoadOptions)
         self.ui.temperature_le.editingFinished.connect(self.clearLoadOptions)
         self.ui.operator_le.editingFinished.connect(self.clearLoadOptions)
         self.ui.comments_le.editingFinished.connect(self.clearLoadOptions)
@@ -855,59 +776,71 @@ class MeasurementWidget(_QWidget):
             self.copyCurrentStartPosition)
 
         self.ui.current_setpoint_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.current_setpoint_le))
+            lambda: self.setFloatLineEditText(self.ui.current_setpoint_le))
 
         self.ui.start_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatFloatSumSub(self.ui.start_ax1_le))
+            lambda: self.setFloatLineEditText(self.ui.start_ax1_le))
         self.ui.start_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatFloatSumSub(self.ui.start_ax2_le))
+            lambda: self.setFloatLineEditText(self.ui.start_ax2_le))
         self.ui.start_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatFloatSumSub(self.ui.start_ax3_le))
+            lambda: self.setFloatLineEditText(self.ui.start_ax3_le))
         self.ui.start_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatFloatSumSub(self.ui.start_ax5_le))
+            lambda: self.setFloatLineEditText(self.ui.start_ax5_le))
 
         self.ui.end_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatFloatSumSub(self.ui.end_ax1_le))
+            lambda: self.setFloatLineEditText(self.ui.end_ax1_le))
         self.ui.end_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatFloatSumSub(self.ui.end_ax2_le))
+            lambda: self.setFloatLineEditText(self.ui.end_ax2_le))
         self.ui.end_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatFloatSumSub(self.ui.end_ax3_le))
+            lambda: self.setFloatLineEditText(self.ui.end_ax3_le))
         self.ui.end_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatFloatSumSub(self.ui.end_ax5_le))
+            lambda: self.setFloatLineEditText(self.ui.end_ax5_le))
 
         self.ui.step_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax1_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.step_ax1_le, positive=True, nonzero=True))
         self.ui.step_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax2_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.step_ax2_le, positive=True, nonzero=True))
         self.ui.step_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax3_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.step_ax3_le, positive=True, nonzero=True))
         self.ui.step_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveNonZeroFloat(self.ui.step_ax5_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.step_ax5_le, positive=True, nonzero=True))
 
         self.ui.extra_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloat(self.ui.extra_ax1_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.extra_ax1_le, positive=True))
         self.ui.extra_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloat(self.ui.extra_ax2_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.extra_ax2_le, positive=True))
         self.ui.extra_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloat(self.ui.extra_ax3_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.extra_ax3_le, positive=True))
         self.ui.extra_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloat(self.ui.extra_ax5_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.extra_ax5_le, positive=True))
 
         self.ui.vel_ax1_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloat(self.ui.vel_ax1_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.vel_ax1_le, positive=True, nonzero=True))
         self.ui.vel_ax2_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloat(self.ui.vel_ax2_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.vel_ax2_le, positive=True, nonzero=True))
         self.ui.vel_ax3_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloat(self.ui.vel_ax3_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.vel_ax3_le, positive=True, nonzero=True))
         self.ui.vel_ax5_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloat(self.ui.vel_ax5_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.vel_ax5_le, positive=True, nonzero=True))
 
         self.ui.integration_time_le.editingFinished.connect(
-            lambda: self.setStrFormatFloat(self.ui.integration_time_le))
+            lambda: self.setFloatLineEditText(self.ui.integration_time_le))
 
         self.ui.voltage_range_le.editingFinished.connect(
-            lambda: self.setStrFormatPositiveFloatOrInt(
-                self.ui.voltage_range_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.voltage_range_le, precision=1))
 
         self.ui.step_ax1_le.editingFinished.connect(
             lambda: self.updateTriggerStep(1))
@@ -985,7 +918,7 @@ class MeasurementWidget(_QWidget):
         self.ui.update_probe_name_btn.clicked.connect(self.updateProbeNames)
         self.ui.clear_probe_btn.clicked.connect(self.clearHallProbe)
         self.ui.view_probe_btn.clicked.connect(self.showViewProbeDialog)
-        
+
         self.ui.measure_btn.clicked.connect(self.measureButtonClicked)
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
         self.ui.create_fieldmap_btn.clicked.connect(self.showFieldmapDialog)
@@ -1294,13 +1227,13 @@ class MeasurementWidget(_QWidget):
             dcct_head = self.local_power_supply_config.dcct_head
             ps_type = self.local_power_supply_config.ps_type
             ts = _time.time()
-           
+
             # Read power supply current
-            if self.ui.save_current_chb.isChecked() and ps_type is not None:   
+            if self.ui.save_current_chb.isChecked() and ps_type is not None:
                 self.devices.ps.SetSlaveAdd(ps_type)
                 ps_current = float(self.devices.ps.Read_iLoad1())
                 self.voltage_scan.ps_current_avg = ps_current
-                     
+
             # Read multichannel
             r = self.devices.multich.get_converted_readings(
                 dcct_head=dcct_head)
@@ -1308,19 +1241,19 @@ class MeasurementWidget(_QWidget):
             dcct_channels = self.devices.multich.dcct_channels
             for i, ch in enumerate(channels):
                 if ch in dcct_channels:
-                    if (dcct_head is not None and 
+                    if (dcct_head is not None and
                        self.ui.save_current_chb.isChecked()):
                         self.voltage_scan.dcct_current_avg = r[i]
                 else:
                     temperature_dict[ch] = [[ts, r[i]]]
-            _QApplication.processEvents()            
-           
+            _QApplication.processEvents()
+
             if self.ui.save_temperature_chb.isChecked():
                 self.voltage_scan.temperature = temperature_dict
 
             _QApplication.processEvents()
             return True
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return False
@@ -1330,20 +1263,20 @@ class MeasurementWidget(_QWidget):
         """Measure one voltage scan."""
         if self.stop is True:
             return False
-                   
+
         self.voltage_scan.avgx = []
         self.voltage_scan.avgy = []
         self.voltage_scan.avgz = []
         self.voltage_scan.dcct_current_avg = None
         self.voltage_scan.ps_current_avg = None
         self.voltage_scan.temperature = {}
-        
+
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
             self.graphx[idx].setData([], [])
             self.graphy[idx].setData([], [])
             self.graphz[idx].setData([], [])
-        
+
         # go to initial position
         if to_pos:
             self.moveAxis(axis, start - extra)
@@ -1392,23 +1325,23 @@ class MeasurementWidget(_QWidget):
         self.stopTrigger()
         self.waitVoltageThreads()
         _QApplication.processEvents()
-        
+
         self.voltage_scan.avgx = self.threadx.voltage
         self.voltage_scan.avgy = self.thready.voltage
         self.voltage_scan.avgz = self.threadz.voltage
-                
+
         _QApplication.processEvents()
         self.quitVoltageThreads()
-        
+
         if self.voltage_scan.npts == 0:
             return True
 
         if not to_pos:
             self.voltage_scan.reverse()
-        
+
         if self.local_measurement_config.subtract_voltage_offset:
             scan_pos = self.voltage_scan.scan_pos
-            if scan_pos[-1] - scan_pos[0] <= self._voltage_offset_avg_interval: 
+            if scan_pos[-1] - scan_pos[0] <= self._voltage_offset_avg_interval:
                 self.voltage_scan.offsetx_start = self.voltage_scan.avgx[0]
                 self.voltage_scan.offsetx_end = self.voltage_scan.avgx[-1]
                 self.voltage_scan.offsety_start = self.voltage_scan.avgy[0]
@@ -1418,7 +1351,7 @@ class MeasurementWidget(_QWidget):
             else:
                 idx_start = _np.where(_np.cumsum(_np.diff(
                     scan_pos)) >= self._voltage_offset_avg_interval)[0][0] + 1
-                idx_end = len(scan_pos) - idx_start 
+                idx_end = len(scan_pos) - idx_start
                 self.voltage_scan.offsetx_start = _np.mean(
                     self.voltage_scan.avgx[:idx_start])
                 self.voltage_scan.offsetx_end = _np.mean(
@@ -1677,12 +1610,12 @@ class MeasurementWidget(_QWidget):
         self.clearGraph()
         self.configureGraph(2*nr_measurements, 'Voltage [V]')
         _QApplication.processEvents()
-        
+
         voltage_scan_list = []
         for idx in range(2*nr_measurements):
             if self.stop is True:
                 return False
-          
+
             self.nr_measurements_la.setText(
                 '{0:d}'.format(int(_np.ceil((idx + 1)/2))))
 
@@ -1697,7 +1630,7 @@ class MeasurementWidget(_QWidget):
 
             # save positions in voltage scan
             self.voltage_scan = _VoltageScan()
-            self.voltage_scan.nr_voltage_scans = 1 
+            self.voltage_scan.nr_voltage_scans = 1
             for axis in self.voltage_scan.axis_list:
                 if axis == first_axis:
                     setattr(self.voltage_scan, 'pos' + str(first_axis),
@@ -1714,20 +1647,21 @@ class MeasurementWidget(_QWidget):
                     idx, to_pos, first_axis, start, end, step, extra, npts):
                 return False
 
-            if self.voltage_scan.npts == 0:            
+            if self.voltage_scan.npts == 0:
                 if not self.measureVoltageScan(
-                        idx, to_pos, first_axis, start, end, step, extra, npts):
-                    return False                
-    
+                        idx, to_pos, first_axis,
+                        start, end, step, extra, npts):
+                    return False
+
                 if self.voltage_scan.npts == 0:
                     raise Exception(
                         'Invalid number of points in voltage scan.')
                     return False
-    
+
             if self.ui.save_voltage_chb.isChecked():
                 if not self.saveVoltageScan():
                     return False
-    
+
             voltage_scan_list.append(self.voltage_scan.copy())
 
         for vd in voltage_scan_list:

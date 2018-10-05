@@ -1600,6 +1600,10 @@ class MeasurementWidget(_QWidget):
         extra = self.local_measurement_config.get_extra(first_axis)
         vel = self.local_measurement_config.get_velocity(first_axis)
 
+        if start == end:
+            raise Exception('Start and end positions are equal.')
+            return False
+
         aper_displacement = self.local_measurement_config.integration_time*vel
         npts = _np.ceil(round((end - start) / step, 4) + 1)
         scan_list = _np.linspace(start, end, npts)

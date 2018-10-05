@@ -28,7 +28,7 @@ class PSCurrentWidget(_TablePlotWidget):
 
     _plot_label = 'Current [A]'
     _data_format = '{0:.4f}'
-    _data_labels = ['DCCT', 'PS']
+    _data_labels = ['DCCT [A]', 'PS [A]']
     _colors = [(230, 25, 75), (60, 180, 75)]
 
     def __init__(self, parent=None):

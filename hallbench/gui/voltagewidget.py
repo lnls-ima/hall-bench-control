@@ -23,7 +23,7 @@ class VoltageWidget(_TablePlotWidget):
     _plot_label = 'Voltage [mV]'
     _data_mult_factor = 1000  # [V] -> [mV]
     _data_format = '{0:.6f}'
-    _data_labels = ['ProbeX [mV]', 'ProbeY [mV]', 'ProbeZ [mV]']
+    _data_labels = ['X [mV]', 'Y [mV]', 'Z [mV]']
     _colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
 
     def __init__(self, parent=None):

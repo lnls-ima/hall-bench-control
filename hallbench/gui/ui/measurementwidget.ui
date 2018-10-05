@@ -1041,7 +1041,7 @@
       <item row="4" column="1" alignment="Qt::AlignHCenter">
        <widget class="QRadioButton" name="first_ax5_rb">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string/>

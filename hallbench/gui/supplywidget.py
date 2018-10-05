@@ -540,6 +540,9 @@ class SupplyWidget(_QWidget):
 
     def display_current(self):
         """Displays current on interface."""
+        if not self.isVisible() or not self.config.update_display:
+            return
+            
         _ps_type = self.config.ps_type
         try:
             if not self.set_address(_ps_type):

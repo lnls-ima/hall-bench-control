@@ -589,6 +589,8 @@ class PowerSupplyConfig(Configuration):
         self.dcct = False
         # Main current
         self.main_current = 0
+        # Flag to enable or disable display update
+        self.update_display = True
 
         # database variables
         self.current_array = None

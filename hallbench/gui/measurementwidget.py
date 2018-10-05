@@ -1112,6 +1112,8 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
+            self.power_supply_config.update_display = False
+
             first_axis = self.local_measurement_config.first_axis
             second_axis = self.local_measurement_config.second_axis
             fixed_axes = self.getFixedAxes()
@@ -1164,6 +1166,7 @@ class MeasurementWidget(_QWidget):
 
             self.plotField()
             self.quitVoltageThreads()
+            self.power_supply_config.update_display = True
             return True
 
         except Exception:
@@ -1171,6 +1174,7 @@ class MeasurementWidget(_QWidget):
             self.quitVoltageThreads()
             if self.local_measurement_config.automatic_ramp:
                 self.turn_off_power_supply.emit(True)
+            self.power_supply_config.update_display = True
             self.ui.nr_measurements_la.setText('')
             msg = 'Measurement failure.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)

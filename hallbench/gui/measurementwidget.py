@@ -1236,7 +1236,8 @@ class MeasurementWidget(_QWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             self.quitVoltageThreads()
-            self.turn_off_power_supply.emit(True)
+            if self.local_measurement_config.automatic_ramp:
+                self.turn_off_power_supply.emit(True)
             self.ui.nr_measurements_la.setText('')
             msg = 'Measurement failure.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
@@ -1336,6 +1337,12 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan.dcct_current_avg = None
         self.voltage_scan.ps_current_avg = None
         self.voltage_scan.temperature = {}
+        
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("ignore")
+            self.graphx[idx].setData([], [])
+            self.graphy[idx].setData([], [])
+            self.graphz[idx].setData([], [])
         
         # go to initial position
         if to_pos:
@@ -1707,7 +1714,7 @@ class MeasurementWidget(_QWidget):
                     idx, to_pos, first_axis, start, end, step, extra, npts):
                 return False
 
-            if self.voltage_scan.npts == 0:                
+            if self.voltage_scan.npts == 0:            
                 if not self.measureVoltageScan(
                         idx, to_pos, first_axis, start, end, step, extra, npts):
                     return False                

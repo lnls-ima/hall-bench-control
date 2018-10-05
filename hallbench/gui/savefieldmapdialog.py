@@ -343,6 +343,34 @@ class SaveFieldmapDialog(_QDialog):
             msg = 'Invalid hall probe data.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
+       
+        mns = []
+        for i in range(self.ui.predefined_cmb.count()):
+            mns.append(self.ui.predefined_cmb.itemText(i))
+
+        mn = field_scan_list[0].magnet_name   
+        if all([fs.magnet_name == mn for fs in field_scan_list]):
+            if mn is not None:
+                mag = mn.split('-')[0]
+                if mag == 'B120':
+                    mag = 'B2'
+                    mn = mn.replace('B120', 'B2')
+                if mag == 'B80':
+                    mag = 'B1'
+                    mn = mn.replace('B80', 'B1')
+                idx = self.ui.predefined_cmb.findText(mag)
+                self.ui.predefined_cmb.setCurrentIndex(idx)
+                self.loadMagnetInfo()
+                self.ui.magnet_name_le.setText(mn)
+
+        cs = field_scan_list[0].current_setpoint
+        if all([fs.current_setpoint == cs for fs in field_scan_list]):
+            if cs is not None:
+                try:
+                    self.ui.current_main_le.setText(str(cs))
+                except Exception:
+                    _traceback.print_exc(file=_sys.stdout)
+                    pass
 
         self.field_scan_list = field_scan_list
         self.local_hall_probe = hall_probe

@@ -1242,18 +1242,28 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def measureAndEmitSignal(self, current_setpoint):
+    def updateCurrentSetpoint(self, current_setpoint):
+        """Update current setpoint value."""
+        try:
+            current_value_str = str(current_setpoint)
+            self.measurement_config.current_setpoint = current_setpoint
+            self.ui.current_setpoint_le.setText(current_value_str)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to update current setpoint.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+    def measureAndEmitSignal(self):
         """Measure and emit signal to change current setpoint."""
         self.clearCurrentMeasurement()
 
         try:
-            current_value_str = str(current_setpoint)
-            self.measurement_config.current_setpoint = current_setpoint
-            self.local_measurement_config.current_setpoint = current_setpoint
-            self.ui.current_setpoint_le.setText(current_value_str)
+            self.local_measurement_config.current_setpoint = (
+                self.measurement_config.current_setpoint)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to set configuration main current.'
+            msg = 'Failed to update current setpoint.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 

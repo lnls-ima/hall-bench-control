@@ -99,6 +99,9 @@ class HallBenchWindow(_QMainWindow):
             self.power_supply_tab.turn_off)
 
         self.power_supply_tab.current_setpoint_changed.connect(
+            self.measurement_tab.updateCurrentSetpoint)
+
+        self.power_supply_tab.start_measurement.connect(
             self.measurement_tab.measureAndEmitSignal)
 
         self.power_supply_tab.current_ramp_end.connect(

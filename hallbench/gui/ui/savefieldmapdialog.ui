@@ -1073,6 +1073,9 @@
           <bold>false</bold>
          </font>
         </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
         <item>
          <property name="text">
           <string>+ Axis #3 (+X)</string>

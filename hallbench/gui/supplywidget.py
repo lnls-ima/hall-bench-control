@@ -24,8 +24,9 @@ from hallbench.gui import utils as _utils
 class SupplyWidget(_QWidget):
     """Power Supply widget class for the Hall Bench Control application."""
 
-    current_setpoint_changed = _pyqtSignal([float])
+    start_measurement = _pyqtSignal([bool])
     current_ramp_end = _pyqtSignal([bool])
+    current_setpoint_changed = _pyqtSignal([float])
 
     def __init__(self, parent=None):
         """Set up the ui."""
@@ -570,7 +571,7 @@ class SupplyWidget(_QWidget):
         _setpoint = self.config.current_array[self.current_array_index]
         if self.current_setpoint(setpoint=_setpoint):
             self.current_array_index = self.current_array_index + 1
-            self.current_setpoint_changed.emit(_setpoint)
+            self.start_measurement.emit(True)
         else:
             self.current_array_index = 0
             self.current_ramp_end.emit(False)
@@ -604,6 +605,7 @@ class SupplyWidget(_QWidget):
                     self.ui.tabWidget_2.setEnabled(True)
                     self.ui.pb_send.setEnabled(True)
                     self.config.ps_setpoint = _setpoint
+                    self.current_setpoint_changed.emit(_setpoint)
                     return True
                 _QApplication.processEvents()
                 _time.sleep(1)

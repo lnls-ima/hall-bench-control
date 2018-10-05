@@ -192,6 +192,7 @@ class ViewFieldmapDialog(_QDialog):
         self.ui.nr_scans_le.setText('')
         self.ui.initial_scan_le.setText('')
         self.ui.final_scan_le.setText('')
+        self.ui.current_setpoint_le.setText('')
         self.ui.dcct_current_le.setText('')
         self.ui.ps_current_le.setText('')
         self.ui.magnet_center_pos3_le.setText('')
@@ -230,6 +231,12 @@ class ViewFieldmapDialog(_QDialog):
             ps_std = self.fieldmap.ps_current_std
             ps_str = _utils.scientificNotation(ps_avg, ps_std)
             self.ui.ps_current_le.setText(ps_str)
+
+            current_setpoint = self.fieldmap.current_setpoint
+            if current_setpoint is None:
+                self.ui.current_setpoint_le.setText('')
+            else:
+                self.ui.current_setpoint_le.setText(str(current_setpoint))
 
             mc = self.fieldmap.magnet_center
             if mc is None:

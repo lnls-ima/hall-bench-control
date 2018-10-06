@@ -535,6 +535,10 @@ class DatabaseWidget(_QWidget):
             reply = _QMessageBox.question(
                 self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
             if reply == _QMessageBox.Yes:
+            
+                self.blockSignals(True)
+                _QApplication.setOverrideCursor(_Qt.WaitCursor)
+        
                 vs_idns = _VoltageScan.get_table_column(
                     self.database, 'configuration_id')
                 fs_idns = _FieldScan.get_table_column(
@@ -554,10 +558,16 @@ class DatabaseWidget(_QWidget):
                 cur.execute(cmd, unused_idns)
                 con.commit()
                 con.close()
+
                 self.updateDatabaseTables()
+
+                self.blockSignals(False)
+                _QApplication.restoreOverrideCursor()
             else:
                 return
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to remove unused configurations.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
@@ -680,12 +690,21 @@ class DatabaseWidget(_QWidget):
             return
 
         try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)            
+            
             scan_list = []
             for idn in idns:
                 scan_list.append(_VoltageScan(database=self.database, idn=idn))
             self.view_scan_dialog.accept()
             self.view_scan_dialog.show(scan_list, idns, 'Voltage [V]')
+            
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+        
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to show voltage scan dialog.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
@@ -698,12 +717,21 @@ class DatabaseWidget(_QWidget):
             return
 
         try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+            
             scan_list = []
             for idn in idns:
                 scan_list.append(_FieldScan(database=self.database, idn=idn))
             self.view_scan_dialog.accept()
             self.view_scan_dialog.show(scan_list, idns, 'Magnetic Field [T]')
+        
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+        
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to show field scan dialog.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
@@ -716,10 +744,18 @@ class DatabaseWidget(_QWidget):
             return
 
         try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)            
+
             fieldmap = _Fieldmap(database=self.database, idn=idn)
             self.view_fieldmap_dialog.accept()
             self.view_fieldmap_dialog.show(fieldmap, idn)
+            
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to show fieldmap dialog.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)

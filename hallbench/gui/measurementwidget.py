@@ -1768,10 +1768,12 @@ class MeasurementWidget(_QWidget):
             self.ui.stop_btn.setEnabled(False)
             self.ui.clear_graph_btn.setEnabled(True)
             self.ui.nr_measurements_la.setText('')
+            self.power_supply_config.update_display = True
             msg = 'The user stopped the measurements.'
             _QMessageBox.information(
                 self, 'Abort', msg, _QMessageBox.Ok)
         except Exception:
+            self.power_supply_config.update_display = True
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to stop measurements.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)

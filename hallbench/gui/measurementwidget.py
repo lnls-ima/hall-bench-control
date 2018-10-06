@@ -34,6 +34,7 @@ from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
 from hallbench.data.measurement import VoltageScan as _VoltageScan
 from hallbench.data.measurement import FieldScan as _FieldScan
+from scipy.sparse.linalg._expm_multiply import _trace
 
 
 class MeasurementWidget(_QWidget):
@@ -73,8 +74,6 @@ class MeasurementWidget(_QWidget):
         self.local_power_supply_config = None
         self.voltage_scan = None
         self.field_scan = None
-        self.voltage_scan_list = []
-        self.field_scan_list = []
         self.position_list = []
         self.field_scan_id_list = []
         self.voltage_scan_id_list = []
@@ -685,8 +684,6 @@ class MeasurementWidget(_QWidget):
         self.local_power_supply_config = None
         self.voltage_scan = None
         self.field_scan = None
-        self.voltage_scan_list = []
-        self.field_scan_list = []
         self.position_list = []
         self.field_scan_id_list = []
         self.voltage_scan_id_list = []
@@ -710,8 +707,6 @@ class MeasurementWidget(_QWidget):
         """Clear current measurement data."""
         self.voltage_scan = None
         self.field_scan = None
-        self.voltage_scan_list = []
-        self.field_scan_list = []
         self.position_list = []
         self.field_scan_id_list = []
         self.voltage_scan_id_list = []
@@ -922,7 +917,7 @@ class MeasurementWidget(_QWidget):
         self.ui.measure_btn.clicked.connect(self.measureButtonClicked)
         self.ui.stop_btn.clicked.connect(self.stopMeasurement)
         self.ui.create_fieldmap_btn.clicked.connect(self.showFieldmapDialog)
-        self.ui.save_scan_files_btn.clicked.connect(self.saveScanFiles)
+        self.ui.save_scan_files_btn.clicked.connect(self.saveFieldScanFiles)
         self.ui.view_scan_btn.clicked.connect(self.showViewScanDialog)
         self.ui.clear_graph_btn.clicked.connect(self.clearButtonClicked)
 
@@ -1139,7 +1134,6 @@ class MeasurementWidget(_QWidget):
                     self.moveAxis(second_axis, pos)
                     if not self.scanLine(first_axis, second_axis, pos):
                         return
-                    self.field_scan_list.append(self.field_scan)
 
                 # move to initial position
                 if self.stop is True:
@@ -1153,7 +1147,6 @@ class MeasurementWidget(_QWidget):
                     return
                 if not self.scanLine(first_axis):
                     return
-                self.field_scan_list.append(self.field_scan)
 
             if self.stop is True:
                 return
@@ -1433,18 +1426,23 @@ class MeasurementWidget(_QWidget):
         if self.local_hall_probe is None:
             return
 
+        field_scan_list = []
+        for idn in self.field_scan_id_list:
+            fs = _FieldScan(database=self.database, idn=idn)
+            field_scan_list.append(fs)
+
         self.clearGraph()
-        nr_curves = len(self.field_scan_list)
+        nr_curves = len(field_scan_list)
         self.configureGraph(nr_curves, 'Magnetic Field [T]')
 
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
             for i in range(nr_curves):
-                fd = self.field_scan_list[i]
-                positions = fd.scan_pos
-                self.graphx[i].setData(positions, fd.avgx)
-                self.graphy[i].setData(positions, fd.avgy)
-                self.graphz[i].setData(positions, fd.avgz)
+                fs = field_scan_list[i]
+                positions = fs.scan_pos
+                self.graphx[i].setData(positions, fs.avgx)
+                self.graphy[i].setData(positions, fs.avgy)
+                self.graphz[i].setData(positions, fs.avgz)
 
     def plotVoltage(self, idx):
         """Plot voltage values.
@@ -1538,10 +1536,12 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def saveScanFiles(self):
+    def saveFieldScanFiles(self):
         """Save scan files."""
-        scan_list = self.field_scan_list
-        scan_id_list = self.field_scan_id_list
+        field_scan_list = []
+        for idn in self.field_scan_id_list:
+            fs = _FieldScan(database=self.database, idn=idn)
+            field_scan_list.append(fs)
 
         directory = _QFileDialog.getExistingDirectory(
             self, caption='Save scan files', directory=self.directory)
@@ -1553,8 +1553,8 @@ class MeasurementWidget(_QWidget):
             return
 
         try:
-            for i, scan in enumerate(scan_list):
-                idn = scan_id_list[i]
+            for i, scan in enumerate(field_scan_list):
+                idn = self.field_scan_id_list[i]
                 default_filename = scan.default_filename
                 if '.txt' in default_filename:
                     default_filename = default_filename.replace(
@@ -1672,9 +1672,6 @@ class MeasurementWidget(_QWidget):
 
             voltage_scan_list.append(self.voltage_scan.copy())
 
-        for vd in voltage_scan_list:
-            self.voltage_scan_list.append(vd)
-
         if self.local_hall_probe is not None:
             self.field_scan.set_field_scan(
                 voltage_scan_list, self.local_hall_probe)
@@ -1687,23 +1684,41 @@ class MeasurementWidget(_QWidget):
 
     def showFieldmapDialog(self):
         """Open fieldmap dialog."""
+        field_scan_list = []
+        for idn in self.field_scan_id_list:
+            fs = _FieldScan(database=self.database, idn=idn)
+            field_scan_list.append(fs)
+        
         self.save_fieldmap_dialog.show(
-            self.field_scan_list,
+            field_scan_list,
             self.local_hall_probe,
             self.field_scan_id_list)
 
     def showViewScanDialog(self):
         """Open view data dialog."""
-        if self.local_hall_probe is None:
-            self.view_scan_dialog.show(
-                self.voltage_scan_list,
-                self.voltage_scan_id_list,
-                'Voltage [V]')
-        else:
-            self.view_scan_dialog.show(
-                self.field_scan_list,
-                self.field_scan_id_list,
-                'Magnetic Field [T]')
+        try:
+            if self.local_hall_probe is None:
+                voltage_scan_list = []
+                for idn in self.voltage_scan_id_list:
+                    vs = _VoltageScan(database=self.database, idn=idn)
+                    voltage_scan_list.append(vs)
+                
+                self.view_scan_dialog.show(
+                    voltage_scan_list,
+                    self.voltage_scan_id_list,
+                    'Voltage [V]')
+            else:
+                field_scan_list = []
+                for idn in self.field_scan_id_list:
+                    fs = _FieldScan(database=self.database, idn=idn)
+                    field_scan_list.append(fs)
+                
+                self.view_scan_dialog.show(
+                    field_scan_list,
+                    self.field_scan_id_list,
+                    'Magnetic Field [T]')
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def startAutomaticMeasurements(self):
         """Configure and emit signal to start automatic ramp measurements."""

@@ -991,6 +991,8 @@ class DatabaseTable(_QTableWidget):
                                 cmd = cmd + column + ' >= ' + fs[0]
                                 cmd = cmd + ' AND '
                                 cmd = cmd + column + ' <= ' + fs[1]
+                        elif filt.lower() == 'none' or filt.lower() == 'null':
+                            cmd = cmd + column + ' IS NULL'
                         else:
                             try:
                                 value = data_type(filt)

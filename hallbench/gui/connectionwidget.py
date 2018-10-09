@@ -128,6 +128,10 @@ class ConnectionWidget(_QWidget):
                not self.devices.elcomat.connected):
                 return False
 
+            if (self.connection_config.dcct_enable and
+               not self.devices.dcct.connected):
+                return False
+
             if (self.connection_config.ps_enable and
                not self.devices.ps.ser.is_open):
                 return False
@@ -159,6 +163,11 @@ class ConnectionWidget(_QWidget):
             self.clearLoadOptions)
         self.ui.elcomat_baudrate_cmb.currentIndexChanged.connect(
             self.clearLoadOptions)
+        self.ui.dcct_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.dcct_port_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        self.ui.dcct_baudrate_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)        
         self.ui.ps_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.ui.ps_port_cmb.currentIndexChanged.connect(self.clearLoadOptions)
         self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
@@ -297,6 +306,15 @@ class ConnectionWidget(_QWidget):
                 self.ui.elcomat_baudrate_cmb.findText(
                     str(self.connection_config.elcomat_baudrate)))
 
+            self.ui.dcct_enable_chb.setChecked(
+                self.connection_config.dcct_enable)
+            self.ui.dcct_port_cmb.setCurrentIndex(
+                self.ui.dcct_port_cmb.findText(
+                    self.connection_config.dcct_port))
+            self.ui.dcct_baudrate_cmb.setCurrentIndex(
+                self.ui.dcct_baudrate_cmb.findText(
+                    str(self.connection_config.dcct_baudrate)))
+
             self.ui.ps_enable_chb.setChecked(
                 self.connection_config.ps_enable)
             self.ui.ps_port_cmb.setCurrentIndex(
@@ -417,6 +435,13 @@ class ConnectionWidget(_QWidget):
             self.connection_config.elcomat_baudrate = int(
                 self.ui.elcomat_baudrate_cmb.currentText())
 
+            self.connection_config.dcct_enable = (
+                self.ui.dcct_enable_chb.isChecked())
+            self.connection_config.dcct_port = (
+                self.ui.dcct_port_cmb.currentText())
+            self.connection_config.dcct_baudrate = int(
+                self.ui.dcct_baudrate_cmb.currentText())
+
             self.connection_config.ps_enable = (
                 self.ui.ps_enable_chb.isChecked())
             self.connection_config.ps_port = (
@@ -448,6 +473,7 @@ class ConnectionWidget(_QWidget):
             self.ui.multich_led_la.setEnabled(self.devices.multich.connected)
             self.ui.nmr_led_la.setEnabled(self.devices.nmr.connected)
             self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
+            self.ui.dcct_led_la.setEnabled(self.devices.dcct.connected)
             self.ui.ps_led_la.setEnabled(self.devices.ps.ser.is_open)
 
         except Exception:
@@ -478,3 +504,6 @@ class ConnectionWidget(_QWidget):
 
         self.ui.elcomat_port_cmb.clear()
         self.ui.elcomat_port_cmb.addItems(_ports)
+
+        self.ui.dcct_port_cmb.clear()
+        self.ui.dcct_port_cmb.addItems(_ports)

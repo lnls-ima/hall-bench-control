@@ -2,10 +2,10 @@
 """Hall Bench Devices."""
 
 import os as _os
-from . import ElcomatLib as _ElcomatLib
 from . import GPIBLib as _GPIBLib
 from . import PmacLib as _PmacLib
 from . import NMRLib as _NMRLib
+from . import SerialLib as _SerialLib
 from . import SerialDRS as _SerialDRS
 
 _logs_dir = 'logs'
@@ -31,8 +31,10 @@ class HallBenchDevices(object):
         self.multich = _GPIBLib.Agilent34970A(
             _os.path.join(_logs_path, 'multich.log'))
         self.nmr = _NMRLib.NMR(_os.path.join(_logs_path, 'nmr.log'))
-        self.elcomat = _ElcomatLib.Elcomat(
+        self.elcomat = _SerialLib.Elcomat(
             _os.path.join(_logs_path, 'elcomat.log'))
+        self.dcct = _SerialLib.Agilent34401A(
+            _os.path.join(_logs_path, 'dcct.log'))
         self.ps = _SerialDRS.SerialDRS_FBP()
 
     def connect(self, config):
@@ -62,6 +64,9 @@ class HallBenchDevices(object):
         if config.elcomat_enable:
             self.elcomat.connect(config.elcomat_port, config.elcomat_baudrate)
 
+        if config.dcct_enable:
+            self.dcct.connect(config.dcct_port, config.dcct_baudrate)
+
         if config.ps_enable:
             self.ps.Connect(config.ps_port)
 
@@ -74,4 +79,5 @@ class HallBenchDevices(object):
         self.multich.disconnect()
         self.nmr.disconnect()
         self.elcomat.disconnect()
+        self.dcct.disconnect()
         self.ps.Disconnect()

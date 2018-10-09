@@ -159,6 +159,9 @@ class ConnectionConfig(Configuration):
         ('elcomat_enable', ['elcomat_enable', 'INTEGER NOT NULL']),
         ('elcomat_port', ['elcomat_port', 'TEXT NOT NULL']),
         ('elcomat_baudrate', ['elcomat_baudrate', 'INTEGER NOT NULL']),
+        ('dcct_enable', ['dcct_enable', 'INTEGER NOT NULL']),
+        ('dcct_port', ['dcct_port', 'TEXT NOT NULL']),
+        ('dcct_baudrate', ['dcct_baudrate', 'INTEGER NOT NULL']),
         ('ps_enable', ['ps_enable', 'INTEGER NOT NULL']),
         ('ps_port', ['ps_port', 'TEXT NOT NULL'])
     ])
@@ -186,6 +189,9 @@ class ConnectionConfig(Configuration):
         self.elcomat_enable = None
         self.elcomat_port = None
         self.elcomat_baudrate = None
+        self.dcct_enable = None
+        self.dcct_port = None
+        self.dcct_baudrate = None        
         self.ps_enable = None
         self.ps_port = None
         super().__init__(filename=filename, database=database, idn=idn)
@@ -218,7 +224,7 @@ class ConnectionConfig(Configuration):
                 'voltx_address    \t{0:1d}\n'.format(self.voltx_address),
                 'volty_enable     \t{0:1d}\n'.format(self.volty_enable),
                 'volty_address    \t{0:1d}\n'.format(self.volty_address),
-                'voltz_enable     \t{0:1d}\n\n'.format(self.voltz_enable),
+                'voltz_enable     \t{0:1d}\n'.format(self.voltz_enable),
                 'voltz_address    \t{0:1d}\n\n'.format(self.voltz_address),
                 'multich_enable   \t{0:1d}\n'.format(self.multich_enable),
                 'multich_address  \t{0:1d}\n\n'.format(self.multich_address),
@@ -228,6 +234,9 @@ class ConnectionConfig(Configuration):
                 'elcomat_enable   \t{0:1d}\n'.format(self.elcomat_enable),
                 'elcomat_port     \t{0:s}\n'.format(self.elcomat_port),
                 'elcomat_baudrate \t{0:1d}\n\n'.format(self.elcomat_baudrate),
+                'dcct_enable      \t{0:1d}\n'.format(self.dcct_enable),
+                'dcct_port        \t{0:s}\n'.format(self.dcct_port),
+                'dcct_baudrate    \t{0:1d}\n\n'.format(self.dcct_baudrate),
                 'ps_enable        \t{0:1d}\n'.format(self.ps_enable),
                 'ps_port          \t{0:s}\n'.format(self.ps_port),
                 ]

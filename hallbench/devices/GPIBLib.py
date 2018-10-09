@@ -47,7 +47,7 @@ class GPIB(object):
             self.logger.addHandler(fileHandler)
             self.logger.setLevel(_logging.ERROR)
 
-    def connect(self, address):
+    def connect(self, address, gpib=0):
         """Connect to a GPIB device with the given address.
 
         Args:
@@ -60,7 +60,7 @@ class GPIB(object):
             # resource manager
             _rm = _visa.ResourceManager()
             # connects to the device
-            _cmd = 'GPIB0::'+str(address)+'::INSTR'
+            _cmd = 'GPIB' + str(gpib) + '::' + str(address) + '::INSTR'
             # instrument
             _inst = _rm.open_resource(_cmd.encode('utf-8'))
 
@@ -146,70 +146,6 @@ class GPIB(object):
             return _reading
         except Exception:
             return ''
-
-
-
-class Agilent34401ACommands(object):
-    """Commands of Agilent 34401A Digital Multimeter."""
-
-    def __init__(self):
-        """Load commands."""
-        self._preset()
-        self._query()
-        self._config()
-
-    def _preset(self):
-        """Preset function."""
-        self.preset = 'STAT:PRES'
-
-    def _query(self):
-        """Query commands."""
-        self.qbeep = 'SYST:BEEP:STAT?'
-        self.qid = '*IDN?'
-
-    def _config(self):
-        """Configure measure."""
-        self.volt_dc = 'CONF:VOLT:DC'
-
-
-class Agilent34401A(GPIB):
-    """Agilent 34401A digital multimeter."""
-
-    def __init__(self, logfile=None):
-        """Initiaze variables and prepare log file.
-
-        Args:
-            logfile (str): log file path.
-        """
-        self.commands = Agilent34401ACommands()
-        self.logfile = logfile
-        super().__init__(self.logfile)
-
-    def connect(self, address):
-        """Connect to a GPIB device with the given address.
-
-        Args:
-            address (int): device address.
-
-        Return:
-            True if successful, False otherwise.
-        """
-        if super().connect(address):
-            try:
-                self.inst.write(self.commands.qid)
-                self.inst.read()
-                self._connected = True
-                return True
-            except Exception:
-                self._connected = False
-                return False
-        else:
-            self._connected = False
-            return False
-
-    def preset(self):
-        """Preset."""
-        self.send_command(self.commands.preset)
 
 
 class Agilent3458ACommands(object):

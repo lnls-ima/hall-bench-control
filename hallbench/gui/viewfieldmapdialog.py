@@ -154,6 +154,8 @@ class ViewFieldmapDialog(_QDialog):
             self.updateText()
             if len(self.fieldmap.temperature) != 0:
                 self.ui.view_temperature_btn.setEnabled(True)
+            else:
+                self.ui.view_temperature_btn.setEnabled(False)
             super().show()
 
         except Exception:

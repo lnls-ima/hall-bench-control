@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QPushButton as _QPushButton,
     QVBoxLayout as _QVBoxLayout,
     )
+from PyQt5.QtCore import Qt as _Qt
 
 from hallbench.gui.moveaxiswidget import MoveAxisWidget as _MoveAxisWidget
 from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
@@ -124,8 +125,17 @@ class VoltageWidget(_TablePlotWidget):
             return
 
         try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+            
             self.devices.voltx.reset()
             self.devices.volty.reset()
             self.devices.voltz.reset()
+            
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+            
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)

@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import (
     pyqtSignal as _pyqtSignal,
     QDateTime as _QDateTime,
+    Qt as _Qt,
     )
 import PyQt5.uic as _uic
 
@@ -70,10 +71,15 @@ class PSCurrentWidget(_TablePlotWidget):
             return
 
         try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+            
             ps_type = self.power_supply_config.ps_type
             if ps_type is not None:
                 self.devices.ps.SetSlaveAdd(ps_type)
             else:
+                self.blockSignals(False)
+                _QApplication.restoreOverrideCursor()
                 _QMessageBox.critical(
                     self, 'Failure',
                     'Invalid power supply configuration.', _QMessageBox.Ok)
@@ -82,6 +88,9 @@ class PSCurrentWidget(_TablePlotWidget):
             selected_channels = self.devices.multich.dcct_channels
             self._configured = self.devices.multich.configure(selected_channels)
             
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+            
             if self._configured:
                 self.configure_btn.setEnabled(False)
             else:
@@ -89,6 +98,8 @@ class PSCurrentWidget(_TablePlotWidget):
                 msg = 'Failed to configure devices.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
 
     def enableConfigureButton(self):

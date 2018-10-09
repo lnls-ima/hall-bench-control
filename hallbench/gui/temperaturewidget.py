@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import (
     pyqtSignal as _pyqtSignal,
     QDateTime as _QDateTime,
+    Qt as _Qt,
     )
 import PyQt5.uic as _uic
 
@@ -84,9 +85,16 @@ class TemperatureWidget(_TablePlotWidget):
             return
 
         try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+            
             wait = self.channels_widget.delay
             self._configured = self.devices.multich.configure(
                 selected_channels, wait=wait)
+
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+            
             if self._configured:
                 self.configure_btn.setEnabled(False)
             else:
@@ -94,6 +102,8 @@ class TemperatureWidget(_TablePlotWidget):
                 msg = 'Failed to configure Multichannel.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
         except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
 
     def enableConfigureButton(self):
@@ -151,7 +161,7 @@ class TemperatureWidget(_TablePlotWidget):
             self.updatePlot()
 
         except Exception:
-            pass
+            _traceback.print_exc(file=_sys.stdout)
 
 
 class TemperatureChannelsWidget(_QWidget):

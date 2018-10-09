@@ -67,6 +67,7 @@ class TablePlotDialog(_QDialog):
 
     def clear(self):
         """Clear data."""
+        self.clearLegendItems()
         self._plot_label = ''
         self._timestamp = []
         self._data_labels = []

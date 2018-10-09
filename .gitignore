@@ -9,6 +9,9 @@ toPyQt5.sh
 
 dipole_deflection_B120-026.py
 
+# Figures
+*.PNG
+
 # --------------- Default lnls-ima ---------------
 *~
 

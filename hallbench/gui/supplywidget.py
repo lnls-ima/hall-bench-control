@@ -1067,7 +1067,7 @@ class SupplyWidget(_QWidget):
                 sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) *
                                  _np.exp(-t/tau) + offset)
 
-            x = _np.linspace(0, ncycles, 500)
+            x = _np.linspace(0, ncycles/f, ncycles*20)
             y = sen(x)
             fig = self.plot_dialog.figure
             ax = self.plot_dialog.ax

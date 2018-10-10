@@ -551,20 +551,12 @@ class SupplyWidget(_QWidget):
             self.ui.lcd_ps_reading.display(_refresh_current)
             _QApplication.processEvents()
             if all([self.ui.chb_dcct.isChecked(),
-                    self.connection_config.multich_enable]):
+                    self.connection_config.dcct_enable]):
                 self.ui.lcd_current_dcct.setEnabled(True)
                 self.ui.label_161.setEnabled(True)
                 self.ui.label_164.setEnabled(True)
-                _ch_list = self.devices.multich.config_channels
-                if '104' in _ch_list:
-                    _idx = _ch_list.index('104')
-                else:
-                    if self.devices.multich.configure(['104']):
-                        _idx = 0
-                    else:
-                        raise Exception
-                _current = round(self.devices.multich.get_converted_readings(
-                                 self.config.dcct_head)[_idx], 3)
+                _current = round(self.devices.dcct.read_current(
+                    dcct_head=self.config.dcct_head), 3)
                 self.ui.lcd_current_dcct.display(_current)
             _QApplication.processEvents()
         except Exception:

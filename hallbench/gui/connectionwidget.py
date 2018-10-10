@@ -164,10 +164,7 @@ class ConnectionWidget(_QWidget):
         self.ui.elcomat_baudrate_cmb.currentIndexChanged.connect(
             self.clearLoadOptions)
         self.ui.dcct_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.dcct_port_cmb.currentIndexChanged.connect(
-            self.clearLoadOptions)
-        self.ui.dcct_baudrate_cmb.currentIndexChanged.connect(
-            self.clearLoadOptions)        
+        self.ui.dcct_address_sb.valueChanged.connect(self.clearLoadOptions)       
         self.ui.ps_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.ui.ps_port_cmb.currentIndexChanged.connect(self.clearLoadOptions)
         self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
@@ -308,12 +305,8 @@ class ConnectionWidget(_QWidget):
 
             self.ui.dcct_enable_chb.setChecked(
                 self.connection_config.dcct_enable)
-            self.ui.dcct_port_cmb.setCurrentIndex(
-                self.ui.dcct_port_cmb.findText(
-                    self.connection_config.dcct_port))
-            self.ui.dcct_baudrate_cmb.setCurrentIndex(
-                self.ui.dcct_baudrate_cmb.findText(
-                    str(self.connection_config.dcct_baudrate)))
+            self.ui.dcct_address_sb.setValue(
+                self.connection_config.dcct_address)
 
             self.ui.ps_enable_chb.setChecked(
                 self.connection_config.ps_enable)
@@ -437,10 +430,8 @@ class ConnectionWidget(_QWidget):
 
             self.connection_config.dcct_enable = (
                 self.ui.dcct_enable_chb.isChecked())
-            self.connection_config.dcct_port = (
-                self.ui.dcct_port_cmb.currentText())
-            self.connection_config.dcct_baudrate = int(
-                self.ui.dcct_baudrate_cmb.currentText())
+            self.connection_config.dcct_address = (
+                self.ui.dcct_address_sb.value())
 
             self.connection_config.ps_enable = (
                 self.ui.ps_enable_chb.isChecked())
@@ -504,6 +495,3 @@ class ConnectionWidget(_QWidget):
 
         self.ui.elcomat_port_cmb.clear()
         self.ui.elcomat_port_cmb.addItems(_ports)
-
-        self.ui.dcct_port_cmb.clear()
-        self.ui.dcct_port_cmb.addItems(_ports)

@@ -33,7 +33,7 @@ class HallBenchDevices(object):
         self.nmr = _NMRLib.NMR(_os.path.join(_logs_path, 'nmr.log'))
         self.elcomat = _SerialLib.Elcomat(
             _os.path.join(_logs_path, 'elcomat.log'))
-        self.dcct = _SerialLib.Agilent34401A(
+        self.dcct = _GPIBLib.Agilent34401A(
             _os.path.join(_logs_path, 'dcct.log'))
         self.ps = _SerialDRS.SerialDRS_FBP()
 
@@ -65,7 +65,7 @@ class HallBenchDevices(object):
             self.elcomat.connect(config.elcomat_port, config.elcomat_baudrate)
 
         if config.dcct_enable:
-            self.dcct.connect(config.dcct_port, config.dcct_baudrate)
+            self.dcct.connect(config.dcct_address)
 
         if config.ps_enable:
             self.ps.Connect(config.ps_port)

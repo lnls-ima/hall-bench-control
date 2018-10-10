@@ -148,6 +148,108 @@ class GPIB(object):
             return ''
 
 
+class Agilent34401ACommands(object):
+    """Commands of Agilent 34401A Digital Multimeter."""
+
+    def __init__(self):
+        """Load commands."""
+        self._reset()
+        self._query()
+        self._config()
+        self._clear()
+        self._read()
+        self._remote()
+
+    def _reset(self):
+        """Reset and preset functions."""
+        self.reset = '*RST'
+        self.preset = ':STAT:PRES'
+
+    def _query(self):
+        """Query commands."""
+        self.qid = '*IDN?'
+        self.qbeep = ':SYST:BEEP:STAT?'
+        self.qerror = ':SYST:ERR?'
+
+    def _config(self):
+        """Configure measure."""
+        self.config_volt = ':CONF:VOLT:DC DEF, DEF'
+        self.trig = ':TRIG:SOUR EXT'
+    
+    def _clear(self):
+        self.clear = '*CLS'
+        
+    def _read(self):
+        self.read = ':READ?'
+
+    def _remote(self):
+        self.remote = ':SYST:REM'
+
+
+class Agilent34401A(GPIB):
+    """Agilent 34401A digital multimeter."""
+
+    def __init__(self, logfile=None):
+        """Initiaze variables and prepare log file.
+
+        Args:
+            logfile (str): log file path.
+        """
+        self.commands = Agilent34401ACommands()
+        self.logfile = logfile
+        super().__init__(self.logfile)
+
+    def connect(self, address):
+        """Connect to a GPIB device with the given address.
+
+        Args:
+            address (int): device address.
+
+        Return:
+            True if successful, False otherwise.
+        """
+        if super().connect(address):
+            try:
+                self.inst.write(self.commands.qid)
+                self.inst.read()
+                self._connected = True
+                return True
+            except Exception:
+                self._connected = False
+                return False
+        else:
+            self._connected = False
+            return False
+
+    def reset(self):
+        """Reset device."""
+        self.send_command(self.commands.reset)
+
+    def config(self):
+        self.reset()
+        self.send_command(self.commands.config_volt)
+        self.send_command(self.commands.clear)
+
+    def read_voltage(self):
+        """Read voltage from the device."""
+        self.send_command(self.commands.clear)
+        self.send_command(self.commands.read)
+        try:
+            val = float(self.read_from_device()[:-1])
+            return val
+        except Exception:
+            return None
+
+    def read_current(self, dcct_head=None):
+        """Read voltage and convert to current."""
+        voltage = self.read_voltage()
+        if voltage is not None and dcct_head in [40, 160, 320, 600, 1125]:
+            current = voltage * dcct_head/10
+        else:
+            current = _np.nan
+        return current
+
+
 class Agilent3458ACommands(object):
     """Commands of Agilent 3458A Digital Multimeter."""
 

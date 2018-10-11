@@ -20,7 +20,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QStandardItemModel as _QStandardItemModel
 from matplotlib.figure import Figure as _Figure
 from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg as _FigureCanvas
+    FigureCanvasQTAgg as _FigureCanvas,
+    NavigationToolbar2QT as _Toolbar
     )
 
 
@@ -451,6 +452,8 @@ class PlotDialog(_QDialog):
 
         _layout = _QVBoxLayout()
         _layout.addWidget(self.canvas)
+        self.toolbar = _Toolbar(self.canvas, self)
+        _layout.addWidget(self.toolbar)
         self.setLayout(_layout)
 
     def updatePlot(self):

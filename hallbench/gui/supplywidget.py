@@ -1053,6 +1053,11 @@ class SupplyWidget(_QWidget):
                 f = float(self.ui.le_sinusoidal_frequency.text())
                 ncycles = int(self.ui.le_sinusoidal_ncycles.text())
                 theta = float(self.ui.le_sinusoidal_phase.text())
+                if any(a == 0, f == 0, ncycles == 0):
+                    _QMessageBox.waring(self, 'Warning',
+                                        'Please check the parameters.',
+                                        _QMessageBox.Ok)
+                    return
                 sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) +
                                  offset)
 
@@ -1064,6 +1069,11 @@ class SupplyWidget(_QWidget):
                 ncycles = int(self.ui.le_damp_sin_ncycles.text())
                 theta = float(self.ui.le_damp_sin_phase.text())
                 tau = float(self.ui.le_damp_sin_damping.text())
+                if any(a == 0, f == 0, ncycles == 0, tau == 0):
+                    _QMessageBox.waring(self, 'Warning',
+                                        'Please check the parameters.',
+                                        _QMessageBox.Ok)
+                    return
                 sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) *
                                  _np.exp(-t/tau) + offset)
 

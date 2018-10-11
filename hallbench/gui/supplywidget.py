@@ -144,6 +144,8 @@ class SupplyWidget(_QWidget):
     def start_powersupply(self):
         """Starts/Stops the Power Supply."""
         try:
+            self.devices.dcct.config()
+
             if self.config.ps_type is None:
                 _QMessageBox.warning(self, 'Warning',
                                      'Please configure the power supply and '

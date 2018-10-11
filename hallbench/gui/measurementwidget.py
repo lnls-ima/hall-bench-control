@@ -1611,8 +1611,9 @@ class MeasurementWidget(_QWidget):
         aper_displacement = self.local_measurement_config.integration_time*vel
         npts = _np.ceil(round((end - start) / step, 4) + 1)
         scan_list = _np.linspace(start, end, npts)
-        to_pos_scan_list = scan_list + aper_displacement/2
-        to_neg_scan_list = (scan_list - aper_displacement/2)[::-1]
+
+        to_pos_scan_list = scan_list + aper_displacement/2 
+        to_neg_scan_list = (scan_list -  aper_displacement/2 + 0.0014*vel)[::-1]
 
         nr_measurements = self.local_measurement_config.nr_measurements
         self.clearGraph()

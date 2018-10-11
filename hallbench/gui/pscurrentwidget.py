@@ -64,10 +64,10 @@ class PSCurrentWidget(_TablePlotWidget):
 
     def configureDevices(self):
         """Configure channels for current measurement."""
-        if not self.devices.multich.connected:
+        if not self.devices.dcct.connected:
             _QMessageBox.critical(
                 self, 'Failure',
-                'Multichannel not connected.', _QMessageBox.Ok)
+                'DCCT not connected.', _QMessageBox.Ok)
             return
 
         try:
@@ -84,9 +84,8 @@ class PSCurrentWidget(_TablePlotWidget):
                     self, 'Failure',
                     'Invalid power supply configuration.', _QMessageBox.Ok)
                 return       
-    
-            selected_channels = self.devices.multich.dcct_channels
-            self._configured = self.devices.multich.configure(selected_channels)
+            
+            self.devices.dcct.config()
             
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -97,6 +96,7 @@ class PSCurrentWidget(_TablePlotWidget):
                 self.configure_btn.setEnabled(True)
                 msg = 'Failed to configure devices.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+        
         except Exception:
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -108,43 +108,27 @@ class PSCurrentWidget(_TablePlotWidget):
 
     def readValue(self, monitor=False):
         """Read value."""
-        if not self.devices.multich.connected:
+        if not self.devices.dcct.connected:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure',
-                    'Multichannel not connected.', _QMessageBox.Ok)
-            return
-
-        if not self._configured:
-            if not monitor:
-                _QMessageBox.critical(
-                    self, 'Failure',
-                    'Multichannel not configured.', _QMessageBox.Ok)
+                    'DCCT not connected.', _QMessageBox.Ok)
             return
 
         try:
             ts = _time.time()
-            channels = self.devices.multich.config_channels
             dcct_head = self.power_supply_config.dcct_head
             ps_type = self.power_supply_config.ps_type
                         
-            rl = self.devices.multich.get_converted_readings(
-                dcct_head=dcct_head)
-            if len(rl) != len(channels):
-                return
-            readings = [r if _np.abs(r) < 1e37 else _np.nan for r in rl]
+            dcct_current = self.devices.dcct.read_current(dcct_head=dcct_head)
+            self._readings['DCCT'].append(dcct_current)
 
-            label = 'PS'    
             if ps_type is not None:
                 self.devices.ps.SetSlaveAdd(ps_type)
                 ps_current = float(self.devices.ps.Read_iLoad1())
-                self._readings[label].append(ps_current)
+                self._readings['PS'].append(ps_current)
             else:
-                self._readings[label].append(_np.nan)
-            
-            label = 'DCCT'
-            dcct_current = readings[0]
-            self._readings[label].append(dcct_current)
+                self._readings['PS'].append(_np.nan)
 
             self._timestamp.append(ts)
             self.addLastValueToTable()

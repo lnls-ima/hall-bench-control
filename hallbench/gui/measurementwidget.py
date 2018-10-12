@@ -255,7 +255,7 @@ class MeasurementWidget(_QWidget):
             self.ui.voltz_enable_chb.setChecked(
                 self.measurement_config.voltz_enable)
 
-            self.ui.integration_time_le.setText('{0:0.4f}'.format(
+            self.ui.integration_time_le.setText('{0:0.5f}'.format(
                 self.measurement_config.integration_time))
             self.ui.voltage_precision_cmb.setCurrentIndex(
                 self.measurement_config.voltage_precision)
@@ -831,7 +831,8 @@ class MeasurementWidget(_QWidget):
                 self.ui.vel_ax5_le, positive=True, nonzero=True))
 
         self.ui.integration_time_le.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.integration_time_le))
+            lambda: self.setFloatLineEditText(
+                self.ui.integration_time_le, precision=5))
 
         self.ui.voltage_range_le.editingFinished.connect(
             lambda: self.setFloatLineEditText(
@@ -1231,18 +1232,18 @@ class MeasurementWidget(_QWidget):
                 ps_current = float(self.devices.ps.Read_iLoad1())
                 self.voltage_scan.ps_current_avg = ps_current
 
+            # Read dcct current
+            if dcct_head is not None:
+                dcct_current = self.devices.dcct.read_current(
+                    dcct_head=dcct_head)
+                self.voltage_scan.dcct_current_avg = dcct_current
+
             # Read multichannel
             r = self.devices.multich.get_converted_readings(
                 dcct_head=dcct_head)
             channels = self.devices.multich.config_channels
-            dcct_channels = self.devices.multich.dcct_channels
             for i, ch in enumerate(channels):
-                if ch in dcct_channels:
-                    if (dcct_head is not None and
-                       self.ui.save_current_chb.isChecked()):
-                        self.voltage_scan.dcct_current_avg = r[i]
-                else:
-                    temperature_dict[ch] = [[ts, r[i]]]
+                temperature_dict[ch] = [[ts, r[i]]]
             _QApplication.processEvents()
 
             if self.ui.save_temperature_chb.isChecked():
@@ -1313,6 +1314,33 @@ class MeasurementWidget(_QWidget):
 
         self.startVoltageThreads()
 
+#         self.voltage_scan.pos1 = []
+#         self.voltage_scan.avgx = []
+#         self.voltage_scan.avgy = []
+#         self.voltage_scan.avgz = []
+#         for p in self.position_list:
+#             _QApplication.processEvents()
+#             if self.stop is False:
+#                 self.moveAxis(axis, p)
+#                 pos = self.devices.pmac.get_position(axis)
+#                 self.voltage_scan.pos1 = _np.append(self.voltage_scan.pos1, 
+#                     pos)
+#                 print('\n', p)
+#                 print(pos)
+#                 vx = self.devices.voltx.read_from_device()
+#                 vy = self.devices.volty.read_from_device()
+#                 vz = self.devices.voltz.read_from_device()
+#                 self.voltage_scan.avgx = _np.append(
+#                     self.voltage_scan.avgx,
+#                     float(vx[:-2]))
+#                 self.voltage_scan.avgy = _np.append(
+#                     self.voltage_scan.avgy,
+#                     float(vy[:-2]))
+#                 self.voltage_scan.avgz = _np.append(
+#                     self.voltage_scan.avgz,
+#                     float(vz[:-2]))
+#                 self.plotVoltage(idx)
+
         if self.stop is False:
             if to_pos:
                 self.moveAxisAndUpdateGraph(axis, end + extra, idx)
@@ -1326,7 +1354,7 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan.avgx = self.threadx.voltage
         self.voltage_scan.avgy = self.thready.voltage
         self.voltage_scan.avgz = self.threadz.voltage
-
+ 
         _QApplication.processEvents()
         self.quitVoltageThreads()
 
@@ -1613,7 +1641,7 @@ class MeasurementWidget(_QWidget):
         scan_list = _np.linspace(start, end, npts)
 
         to_pos_scan_list = scan_list + aper_displacement/2 
-        to_neg_scan_list = (scan_list -  aper_displacement/2 + 0.0014*vel)[::-1]
+        to_neg_scan_list = (scan_list-  aper_displacement/2)[::-1]
 
         nr_measurements = self.local_measurement_config.nr_measurements
         self.clearGraph()
@@ -1657,6 +1685,9 @@ class MeasurementWidget(_QWidget):
                 return False
 
             if self.voltage_scan.npts == 0:
+                _warnings.warn(
+                    'Invalid number of points in voltage scan. ' + 
+                    'Making a second attempt.')
                 if not self.measureVoltageScan(
                         idx, to_pos, first_axis,
                         start, end, step, extra, npts):
@@ -1664,7 +1695,8 @@ class MeasurementWidget(_QWidget):
 
                 if self.voltage_scan.npts == 0:
                     raise Exception(
-                        'Invalid number of points in voltage scan.')
+                        'Invalid number of points in voltage scan. ' + 
+                        'Stopping measure.')
                     return False
 
             if self.ui.save_voltage_chb.isChecked():

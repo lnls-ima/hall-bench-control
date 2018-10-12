@@ -607,7 +607,7 @@ class Agilent3458A(GPIB):
         self.send_command(self.commands.azero_once)
         self.send_command(self.commands.trig_buffer_off)
         self.send_command(self.commands.delay_0)
-        self.send_command(self.commands.aper + '{0:.4f}'.format(aper))
+        self.send_command(self.commands.aper + '{0:.5f}'.format(aper))
         self.send_command(self.commands.disp_off)
         self.send_command(self.commands.scratch)
         self.send_command(self.commands.end_gpib_always)
@@ -666,7 +666,6 @@ class Agilent34970A(GPIB):
     """Agilent 34970A multichannel for temperatures readings."""
 
     _probe_channels = ['101', '102', '103']
-    _dcct_channels = ['104']
     _temperature_channels = [
         '201', '202', '203', '204', '205', '206', '207', '208', '209']
 
@@ -691,11 +690,6 @@ class Agilent34970A(GPIB):
     def temperature_channels(self):
         """Bench temperature channels."""
         return self._temperature_channels
-
-    @property
-    def dcct_channels(self):
-        """DCCT current channels."""
-        return self._dcct_channels
 
     @property
     def config_channels(self):
@@ -727,7 +721,7 @@ class Agilent34970A(GPIB):
     def configure(self, channel_list='all', wait=0.5):
         """Configure channels."""
         if channel_list == 'all':
-            volt_channel_list = self._probe_channels + self._dcct_channels
+            volt_channel_list = self._probe_channels
             temp_channel_list = self._temperature_channels
 
         else:
@@ -735,7 +729,7 @@ class Agilent34970A(GPIB):
             temp_channel_list = []
             channel_list = [str(ch) for ch in channel_list]
             for ch in channel_list:
-                if ch in self._probe_channels or ch in self._dcct_channels:
+                if ch in self._probe_channels:
                     volt_channel_list.append(ch)
                 else:
                     temp_channel_list.append(ch)
@@ -772,18 +766,17 @@ class Agilent34970A(GPIB):
         except Exception:
             return False
 
-    def convert_voltage_to_temperature(self, voltage):
+    def convert_voltage_to_temperature(self, voltage, channel):
         """Convert probe voltage to temperature value."""
-        temperature = (voltage + 70e-3)/20e-3
-        return temperature
-
-    def convert_voltage_to_current(self, voltage, dcct_head):
-        """Convert dcct voltage to current value."""
-        if dcct_head in [40, 160, 320, 600, 1125]:
-            current = voltage * dcct_head/10
+        if channel == '101':
+            temperature = (voltage + 70e-3)/20e-3
+        elif channel == '102':
+            temperature = (voltage + 70e-3)/20e-3
+        elif channel == '103':
+            temperature = (voltage + 70e-3)/20e-3
         else:
-            current = _np.nan
-        return current
+            temperature = _np.nan
+        return temperature
 
     def get_readings(self, wait=0.5):
         """Get reading list."""
@@ -814,10 +807,7 @@ class Agilent34970A(GPIB):
                     rd = rlist[i]
                     if ch in self._probe_channels:
                         conv_rlist.append(
-                            self.convert_voltage_to_temperature(rd))
-                    elif ch in self._dcct_channels:
-                        conv_rlist.append(
-                            self.convert_voltage_to_current(rd, dcct_head))
+                            self.convert_voltage_to_temperature(rd, ch))
                     else:
                         conv_rlist.append(rd)
                 return conv_rlist

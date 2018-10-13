@@ -453,7 +453,7 @@ class MeasurementConfig(Configuration):
                 'voltx_enable\t{0:1d}\n'.format(self.voltx_enable),
                 'volty_enable\t{0:1d}\n'.format(self.volty_enable),
                 'voltz_enable\t{0:1d}\n\n'.format(self.voltz_enable),
-                '# Digital Multimeter (aper [s])\n',
+                '# Digital Multimeter (aper [ms])\n',
                 'integration_time \t{0:4f}\n\n'.format(self.integration_time),
                 '# Digital Multimeter (precision [single=0 or double=1])\n',
                 'voltage_precision \t{0:1d}\n\n'.format(self.voltage_precision),

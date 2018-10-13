@@ -592,7 +592,7 @@ class Agilent3458A(GPIB):
         """Configure device.
 
         Args:
-            aper (float): A/D converter integration time in seconds.
+            aper (float): A/D converter integration time in ms.
             formtype (int): format type [single=0 or double=1].
             range (float): measurement range in volts.
         """
@@ -607,7 +607,7 @@ class Agilent3458A(GPIB):
         self.send_command(self.commands.azero_once)
         self.send_command(self.commands.trig_buffer_off)
         self.send_command(self.commands.delay_0)
-        self.send_command(self.commands.aper + '{0:.5f}'.format(aper))
+        self.send_command(self.commands.aper + '{0:.10f}'.format(aper/1000))
         self.send_command(self.commands.disp_off)
         self.send_command(self.commands.scratch)
         self.send_command(self.commands.end_gpib_always)

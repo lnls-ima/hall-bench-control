@@ -255,7 +255,7 @@ class MeasurementWidget(_QWidget):
             self.ui.voltz_enable_chb.setChecked(
                 self.measurement_config.voltz_enable)
 
-            self.ui.integration_time_le.setText('{0:0.5f}'.format(
+            self.ui.integration_time_le.setText('{0:0.4f}'.format(
                 self.measurement_config.integration_time))
             self.ui.voltage_precision_cmb.setCurrentIndex(
                 self.measurement_config.voltage_precision)
@@ -581,13 +581,13 @@ class MeasurementWidget(_QWidget):
                 first_axis = self.measurement_config.first_axis
                 step = self.measurement_config.get_step(first_axis)
                 vel = self.measurement_config.get_velocity(first_axis)
-                trigger_step = _np.abs(step/vel)
+                trigger_step = _np.abs(step/vel)*1000
 
                 if self.measurement_config.integration_time > trigger_step:
                     self.local_measurement_config = None
                     msg = (
                         'The integration time must be ' +
-                        'less than {0:.4f} seconds.'.format(trigger_step))
+                        'less than {0:.4f} ms.'.format(trigger_step))
                     _QMessageBox.critical(
                         self, 'Failure', msg, _QMessageBox.Ok)
                     return False
@@ -663,8 +663,8 @@ class MeasurementWidget(_QWidget):
                 step = self.getAxisParam('step', axis)
                 vel = self.getAxisParam('vel', axis)
                 if step is not None and vel is not None:
-                    trigger_step = _np.abs(step/vel)
-                    _s = 'Trigger Step [s]:\t  {0:.4f}'.format(trigger_step)
+                    trigger_step = _np.abs(step/vel)*1000
+                    _s = 'Trigger Step [ms]:\t  {0:.4f}'.format(trigger_step)
                     self.ui.trigger_step_la.setText(_s)
                 else:
                     self.ui.trigger_step_la.setText('')
@@ -832,7 +832,7 @@ class MeasurementWidget(_QWidget):
 
         self.ui.integration_time_le.editingFinished.connect(
             lambda: self.setFloatLineEditText(
-                self.ui.integration_time_le, precision=5))
+                self.ui.integration_time_le, precision=4))
 
         self.ui.voltage_range_le.editingFinished.connect(
             lambda: self.setFloatLineEditText(
@@ -1314,33 +1314,6 @@ class MeasurementWidget(_QWidget):
 
         self.startVoltageThreads()
 
-#         self.voltage_scan.pos1 = []
-#         self.voltage_scan.avgx = []
-#         self.voltage_scan.avgy = []
-#         self.voltage_scan.avgz = []
-#         for p in self.position_list:
-#             _QApplication.processEvents()
-#             if self.stop is False:
-#                 self.moveAxis(axis, p)
-#                 pos = self.devices.pmac.get_position(axis)
-#                 self.voltage_scan.pos1 = _np.append(self.voltage_scan.pos1, 
-#                     pos)
-#                 print('\n', p)
-#                 print(pos)
-#                 vx = self.devices.voltx.read_from_device()
-#                 vy = self.devices.volty.read_from_device()
-#                 vz = self.devices.voltz.read_from_device()
-#                 self.voltage_scan.avgx = _np.append(
-#                     self.voltage_scan.avgx,
-#                     float(vx[:-2]))
-#                 self.voltage_scan.avgy = _np.append(
-#                     self.voltage_scan.avgy,
-#                     float(vy[:-2]))
-#                 self.voltage_scan.avgz = _np.append(
-#                     self.voltage_scan.avgz,
-#                     float(vz[:-2]))
-#                 self.plotVoltage(idx)
-
         if self.stop is False:
             if to_pos:
                 self.moveAxisAndUpdateGraph(axis, end + extra, idx)
@@ -1636,12 +1609,11 @@ class MeasurementWidget(_QWidget):
             raise Exception('Start and end positions are equal.')
             return False
 
-        aper_displacement = self.local_measurement_config.integration_time*vel
         npts = _np.ceil(round((end - start) / step, 4) + 1)
         scan_list = _np.linspace(start, end, npts)
 
-        to_pos_scan_list = scan_list + aper_displacement/2 
-        to_neg_scan_list = (scan_list-  aper_displacement/2)[::-1]
+        to_pos_scan_list = scan_list
+        to_neg_scan_list = scan_list[::-1]
 
         nr_measurements = self.local_measurement_config.nr_measurements
         self.clearGraph()
@@ -1686,8 +1658,7 @@ class MeasurementWidget(_QWidget):
 
             if self.voltage_scan.npts == 0:
                 _warnings.warn(
-                    'Invalid number of points in voltage scan. ' + 
-                    'Making a second attempt.')
+                    'Invalid number of points in voltage scan. Making a second attempt.')
                 if not self.measureVoltageScan(
                         idx, to_pos, first_axis,
                         start, end, step, extra, npts):
@@ -1695,8 +1666,7 @@ class MeasurementWidget(_QWidget):
 
                 if self.voltage_scan.npts == 0:
                     raise Exception(
-                        'Invalid number of points in voltage scan. ' + 
-                        'Stopping measure.')
+                        'Invalid number of points in voltage scan. Stopping measure.')
                     return False
 
             if self.ui.save_voltage_chb.isChecked():
@@ -1911,7 +1881,7 @@ class VoltageThread(_QThread):
             if self.multimeter.inst.stb & 128:
                 voltage = self.multimeter.read_voltage(self.precision)
                 self.voltage = _np.append(self.voltage, voltage)
-            _time.sleep(self.integration_time)
+            _time.sleep(self.integration_time/1000)
         else:
             # check memory
             self.multimeter.send_command(self.multimeter.commands.mcount)

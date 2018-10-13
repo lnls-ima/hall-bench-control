@@ -1629,20 +1629,17 @@ def _get_avg_voltage(voltage_scan_list):
     voltz_list = []
     for vs in voltage_scan_list:        
         if len(vs.avgx) == npts:
-            fr = _interpolate.splrep(vs.scan_pos, vs.avgx, s=0, k=1)
-            voltx = _interpolate.splev(interp_pos, fr, der=0)
+            voltx = vs.avgx
         else:
             voltx = _np.zeros(npts)
 
         if len(vs.avgy) == npts:
-            fs = _interpolate.splrep(vs.scan_pos, vs.avgy, s=0, k=1)
-            volty = _interpolate.splev(interp_pos, fs, der=0)
+            volty = vs.avgy
         else:
             volty = _np.zeros(npts)
 
         if len(vs.avgz) == npts:
-            ft = _interpolate.splrep(vs.scan_pos, vs.avgz, s=0, k=1)
-            voltz = _interpolate.splev(interp_pos, ft, der=0)
+            voltz = vs.avgz
         else:
             voltz = _np.zeros(npts)
 

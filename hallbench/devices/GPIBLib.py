@@ -612,6 +612,7 @@ class Agilent3458A(GPIB):
         self.send_command(self.commands.scratch)
         self.send_command(self.commands.end_gpib_always)
         self.send_command(self.commands.mem_fifo)
+        # self.send_command(self.commands.extout_rcomp_pos)
         if formtype == 0:
             self.send_command(self.commands.oformat_sreal)
             self.send_command(self.commands.mformat_sreal)

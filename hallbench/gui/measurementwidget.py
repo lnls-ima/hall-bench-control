@@ -1294,7 +1294,7 @@ class MeasurementWidget(_QWidget):
             else:
                 self.devices.pmac.set_trigger(
                     axis, end, step*(-1), 10, npts, 1)
-
+        
         if self.local_measurement_config.voltx_enable:
             self.devices.voltx.config(
                 self.local_measurement_config.integration_time,
@@ -1322,6 +1322,7 @@ class MeasurementWidget(_QWidget):
 
         self.stopTrigger()
         self.waitVoltageThreads()
+        
         _QApplication.processEvents()
 
         self.voltage_scan.avgx = self.threadx.voltage
@@ -1612,8 +1613,10 @@ class MeasurementWidget(_QWidget):
         npts = _np.ceil(round((end - start) / step, 4) + 1)
         scan_list = _np.linspace(start, end, npts)
 
-        to_pos_scan_list = scan_list
-        to_neg_scan_list = scan_list[::-1]
+        integration_time = self.local_measurement_config.integration_time/1000
+        aper_displacement = integration_time*vel
+        to_pos_scan_list = scan_list + aper_displacement/2
+        to_neg_scan_list = (scan_list - aper_displacement/2)[::-1]
 
         nr_measurements = self.local_measurement_config.nr_measurements
         self.clearGraph()
@@ -1881,9 +1884,7 @@ class VoltageThread(_QThread):
             if self.multimeter.inst.stb & 128:
                 voltage = self.multimeter.read_voltage(self.precision)
                 self.voltage = _np.append(self.voltage, voltage)
-            _time.sleep(self.integration_time/1000)
         else:
-            # check memory
             self.multimeter.send_command(self.multimeter.commands.mcount)
             npoints = int(self.multimeter.read_from_device())
             if npoints > 0:

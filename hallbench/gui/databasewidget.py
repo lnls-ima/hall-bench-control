@@ -228,6 +228,39 @@ class DatabaseWidget(_QWidget):
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return
 
+            use_offset, ok = _QInputDialog.getItem(
+                self, "Voltage Offset", "Subtract Voltage Offset? ",
+                ['True', 'False'], 0, editable=False)
+
+            if not ok:
+                return
+            
+            if use_offset == 'False':
+                subtract_voltage_offset = 0
+                for vs in voltage_scan_list:
+                    vs.offsetx_start = None
+                    vs.offsetx_end = None
+                    vs.offsety_start = None
+                    vs.offsety_end = None
+                    vs.offsetz_start = None
+                    vs.offsetz_end = None
+            else:
+                subtract_voltage_offset = 1
+                for vs in voltage_scan_list:
+                    off_list = [
+                        vs.offsetx_start,
+                        vs.offsetx_end,
+                        vs.offsety_start,
+                        vs.offsety_end,
+                        vs.offsetz_start,
+                        vs.offsetz_end,
+                        ]
+                    if any([off is None for off in off_list]):
+                        msg = 'Invalid voltage offset value found.'
+                        _QMessageBox.critical(
+                            self, 'Failure', msg, _QMessageBox.Ok)
+                        return                        
+
             probe_name, ok = _QInputDialog.getItem(
                 self, "Hall Probe", "Select the Hall Probe:",
                 probe_names, 0, editable=False)
@@ -251,6 +284,7 @@ class DatabaseWidget(_QWidget):
                 configuration_id = unique_configuration_id_list[i]
                 config = configuration_list[index[i]]
                 config.probe_name = probe_name
+                config.subtract_voltage_offset = subtract_voltage_offset
                 new_config_id = config.save_to_database(self.database)
                 unique_configuration_id_list[i] = new_config_id
 

@@ -96,6 +96,9 @@
       </item>
       <item row="13" column="1" colspan="2">
        <widget class="QLineEdit" name="channel210_le">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -381,6 +384,9 @@
       </item>
       <item row="13" column="0">
        <widget class="QCheckBox" name="channel210_chb">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="font">
          <font>
           <weight>50</weight>

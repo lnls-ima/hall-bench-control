@@ -581,13 +581,13 @@ class MeasurementWidget(_QWidget):
                 first_axis = self.measurement_config.first_axis
                 step = self.measurement_config.get_step(first_axis)
                 vel = self.measurement_config.get_velocity(first_axis)
-                trigger_step = _np.abs(step/vel)*1000
+                max_int_time = _np.abs(step/vel)*1000 - 5
 
-                if self.measurement_config.integration_time > trigger_step:
+                if self.measurement_config.integration_time > max_int_time:
                     self.local_measurement_config = None
                     msg = (
                         'The integration time must be ' +
-                        'less than {0:.4f} ms.'.format(trigger_step))
+                        'less than {0:.4f} ms.'.format(max_int_time))
                     _QMessageBox.critical(
                         self, 'Failure', msg, _QMessageBox.Ok)
                     return False
@@ -663,11 +663,12 @@ class MeasurementWidget(_QWidget):
                 step = self.getAxisParam('step', axis)
                 vel = self.getAxisParam('vel', axis)
                 if step is not None and vel is not None:
-                    trigger_step = _np.abs(step/vel)*1000
-                    _s = 'Trigger Step [ms]:\t  {0:.4f}'.format(trigger_step)
-                    self.ui.trigger_step_la.setText(_s)
+                    max_int_time = _np.abs(step/vel)*1000 - 5
+                    _s = 'Max. Int. Time [ms]:  {0:.4f}'.format(
+                        max_int_time)
+                    self.ui.max_integration_time_la.setText(_s)
                 else:
-                    self.ui.trigger_step_la.setText('')
+                    self.ui.max_integration_time_la.setText('')
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             pass
@@ -1004,9 +1005,7 @@ class MeasurementWidget(_QWidget):
             if self.ui.save_temperature_chb.isChecked():
                 channels = channels + self.devices.multich.probe_channels
                 channels = channels + self.devices.multich.temperature_channels
-            if self.ui.save_current_chb.isChecked():
-                channels = channels + self.devices.multich.dcct_channels
-
+            
             if len(channels) == 0:
                 return True
 
@@ -1659,6 +1658,9 @@ class MeasurementWidget(_QWidget):
                     idx, to_pos, first_axis, start, end, step, extra, npts):
                 return False
 
+            if self.stop is True:
+                return
+
             if self.voltage_scan.npts == 0:
                 _warnings.warn(
                     'Invalid number of points in voltage scan. Making a second attempt.')
@@ -1666,6 +1668,9 @@ class MeasurementWidget(_QWidget):
                         idx, to_pos, first_axis,
                         start, end, step, extra, npts):
                     return False
+                
+                if self.stop is True:
+                    return
 
                 if self.voltage_scan.npts == 0:
                     raise Exception(

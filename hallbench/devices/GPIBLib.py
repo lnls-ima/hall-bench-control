@@ -243,7 +243,8 @@ class Agilent34401A(GPIB):
     def read_current(self, dcct_head=None):
         """Read voltage and convert to current."""
         voltage = self.read_voltage()
-        if voltage is not None and dcct_head in [40, 160, 320, 600, 1125]:
+        dcct_heads = [40, 160, 320, 600, 1000, 1125]
+        if voltage is not None and dcct_head in dcct_heads:
             current = voltage * dcct_head/10
         else:
             current = _np.nan
@@ -281,6 +282,7 @@ class Agilent3458ACommands(object):
         self._memory_format()
         self._input_buffer()
         self._query()
+        self._fixedz()
 
     def _reset(self):
         """Reset function."""
@@ -535,6 +537,9 @@ class Agilent3458ACommands(object):
     def _query(self):
         self.qbeep = 'BEEP?'
         self.qid = 'ID?'
+        
+    def _fixedz(self):
+        self.fixedz_on = "FIXEDZ ON"
 
 
 class Agilent3458A(GPIB):
@@ -602,6 +607,7 @@ class Agilent3458A(GPIB):
         self.send_command(self.commands.trig_auto)
         self.send_command(self.commands.nrdgs_ext)
         self.send_command(self.commands.arange_off)
+        self.send_command(self.commands.fixedz_on)
         self.send_command(self.commands.range + str(range))
         self.send_command(self.commands.math_off)
         self.send_command(self.commands.azero_once)
@@ -612,7 +618,6 @@ class Agilent3458A(GPIB):
         self.send_command(self.commands.scratch)
         self.send_command(self.commands.end_gpib_always)
         self.send_command(self.commands.mem_fifo)
-        # self.send_command(self.commands.extout_rcomp_pos)
         if formtype == 0:
             self.send_command(self.commands.oformat_sreal)
             self.send_command(self.commands.mformat_sreal)
@@ -770,11 +775,11 @@ class Agilent34970A(GPIB):
     def convert_voltage_to_temperature(self, voltage, channel):
         """Convert probe voltage to temperature value."""
         if channel == '101':
-            temperature = (voltage + 70e-3)/20e-3
+            temperature = (voltage + 50e-3)/20e-3
         elif channel == '102':
-            temperature = (voltage + 70e-3)/20e-3
+            temperature = (voltage + 40e-3)/20e-3
         elif channel == '103':
-            temperature = (voltage + 70e-3)/20e-3
+            temperature = (voltage + 50e-3)/20e-3
         else:
             temperature = _np.nan
         return temperature

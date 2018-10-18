@@ -46,9 +46,9 @@ class CoolingSystemWidget(_TablePlotWidget):
         self.addRightAxes()
 
     @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
+    def udc(self):
+        """Honeywell UDC3500."""
+        return _QApplication.instance().devices.udc
     
     def addRightAxes(self):
         """Add axis to graph."""
@@ -77,9 +77,9 @@ class CoolingSystemWidget(_TablePlotWidget):
         """Read value."""
         try:
             ts = _time.time()
-            pv1 = self.devices.udc.read_pv1()
-            pv2 = self.devices.udc.read_pv2()
-            output = self.devices.udc.read_co()
+            pv1 = self.udc.read_pv1()
+            pv2 = self.udc.read_pv2()
+            output = self.udc.read_co()
             self._readings['PV1'].append(pv1)
             self._readings['PV2'].append(pv2)
             self._readings['Output'].append(output)

@@ -136,6 +136,10 @@ class ConnectionWidget(_QWidget):
                not self.devices.ps.ser.is_open):
                 return False
 
+            if (self.connection_config.udc_enable and
+               not self.devices.udc.connected):
+                return False
+
             return True
 
         except Exception:
@@ -488,6 +492,7 @@ class ConnectionWidget(_QWidget):
             self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
             self.ui.dcct_led_la.setEnabled(self.devices.dcct.connected)
             self.ui.ps_led_la.setEnabled(self.devices.ps.ser.is_open)
+            self.ui.udc_led_la.setEnabled(self.devices.udc.connected)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

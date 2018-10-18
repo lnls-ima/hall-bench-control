@@ -86,3 +86,4 @@ class HallBenchDevices(object):
         self.elcomat.disconnect()
         self.dcct.disconnect()
         self.ps.Disconnect()
+        self.udc.disconnect()

@@ -193,8 +193,8 @@ class PreferencesDialog(_QDialog):
                 'voltage',
                 'current',
                 'temperature',
-                'angular_error',
                 'cooling_system',
+                'angular_error',
                 'database',
                 ]
             idx = 0

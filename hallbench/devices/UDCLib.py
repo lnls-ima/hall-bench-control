@@ -23,10 +23,29 @@ class UDC3500():
         self.flag_collect = True
         self.interval = 1
 
+    @property
+    def connected(self):
+        """Return True if the port is open, False otherwise."""
+        if self.inst is None:
+            return False
+        else:
+            return self.inst.serial.is_open
+
     def connect(self, port, baudrate):
         """Connect device."""
         self.inst = _minimalmodbus.Instrument(port, 14)
         self.inst.serial.baudrate = baudrate
+        if not self.inst.serial.is_open:
+            self.inst.serial.open()
+
+    def disconnect(self):
+        """Disconnect the device."""
+        try:
+            if self.inst is not None:
+                self.inst.serial.close()
+            return True
+        except Exception:
+            return None
 
     def read_pv1(self):
         """Returns process variable."""

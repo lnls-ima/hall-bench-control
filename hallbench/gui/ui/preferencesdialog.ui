@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>224</width>
+    <width>221</width>
     <height>377</height>
    </rect>
   </property>
@@ -150,6 +150,19 @@
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="cooling_system_chb">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Cooling System</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="angular_error_chb">
         <property name="font">
          <font>
@@ -162,19 +175,6 @@
         </property>
         <property name="checked">
          <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="cooling_system_chb">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Cooling System</string>
         </property>
        </widget>
       </item>

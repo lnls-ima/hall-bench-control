@@ -35,6 +35,8 @@ from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
 from hallbench.gui.angularerrorwidget import AngularErrorWidget \
     as _AngularErrorWidget
+from hallbench.gui.coolingsystemwidget import CoolingSystemWidget \
+    as _CoolingSystemWidget
 
 
 class HallBenchWindow(_QMainWindow):
@@ -77,6 +79,9 @@ class HallBenchWindow(_QMainWindow):
 
         self.temperature_tab = _TemperatureWidget(self)
         self.ui.main_tab.addTab(self.temperature_tab, 'Temperature')
+
+        self.cooling_system_tab = _CoolingSystemWidget(self)
+        self.ui.main_tab.addTab(self.cooling_system_tab, 'Cooling System')
 
         self.angular_error_tab = _AngularErrorWidget(self)
         self.ui.main_tab.addTab(self.angular_error_tab, 'Angular Error')
@@ -189,6 +194,7 @@ class PreferencesDialog(_QDialog):
                 'current',
                 'temperature',
                 'angular_error',
+                'cooling_system',
                 'database',
                 ]
             idx = 0

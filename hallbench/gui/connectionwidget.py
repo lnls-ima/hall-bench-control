@@ -167,6 +167,12 @@ class ConnectionWidget(_QWidget):
         self.ui.dcct_address_sb.valueChanged.connect(self.clearLoadOptions)       
         self.ui.ps_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.ui.ps_port_cmb.currentIndexChanged.connect(self.clearLoadOptions)
+        self.ui.udc_enable_chb.stateChanged.connect(self.clearLoadOptions)
+        self.ui.udc_port_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        self.ui.udc_baudrate_cmb.currentIndexChanged.connect(
+            self.clearLoadOptions)
+        
         self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
         self.ui.update_idn_btn.clicked.connect(self.updateConnectionIDs)
 
@@ -314,6 +320,15 @@ class ConnectionWidget(_QWidget):
                 self.ui.ps_port_cmb.findText(
                     self.connection_config.ps_port))
 
+            self.ui.udc_enable_chb.setChecked(
+                self.connection_config.udc_enable)
+            self.ui.udc_port_cmb.setCurrentIndex(
+                self.ui.udc_port_cmb.findText(
+                    self.connection_config.udc_port))
+            self.ui.udc_baudrate_cmb.setCurrentIndex(
+                self.ui.udc_baudrate_cmb.findText(
+                    str(self.connection_config.udc_baudrate)))
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to load configuration.'
@@ -438,6 +453,13 @@ class ConnectionWidget(_QWidget):
             self.connection_config.ps_port = (
                 self.ui.ps_port_cmb.currentText())
 
+            self.connection_config.udc_enable = (
+                self.ui.udc_enable_chb.isChecked())
+            self.connection_config.udc_port = (
+                self.ui.udc_port_cmb.currentText())
+            self.connection_config.udc_baudrate = int(
+                self.ui.udc_baudrate_cmb.currentText())
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             self.connection_config.clear()
@@ -495,3 +517,6 @@ class ConnectionWidget(_QWidget):
 
         self.ui.elcomat_port_cmb.clear()
         self.ui.elcomat_port_cmb.addItems(_ports)
+        
+        self.ui.udc_port_cmb.clear()
+        self.ui.udc_port_cmb.addItems(_ports)

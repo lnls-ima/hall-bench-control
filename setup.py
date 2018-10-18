@@ -24,6 +24,7 @@ setup(
         'pyqtgraph',
         'pyserial',
         'matplotlib',
+        'minimalmodbus',
         'pyqt5',
     ],
     test_suite='nose.collector',

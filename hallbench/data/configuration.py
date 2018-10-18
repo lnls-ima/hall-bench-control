@@ -162,7 +162,10 @@ class ConnectionConfig(Configuration):
         ('dcct_enable', ['dcct_enable', 'INTEGER NOT NULL']),
         ('dcct_address', ['dcct_address', 'INTEGER NOT NULL']),
         ('ps_enable', ['ps_enable', 'INTEGER NOT NULL']),
-        ('ps_port', ['ps_port', 'TEXT NOT NULL'])
+        ('ps_port', ['ps_port', 'TEXT NOT NULL']),
+        ('udc_enable', ['udc_enable', 'INTEGER NOT NULL']),
+        ('udc_port', ['udc_port', 'TEXT NOT NULL']),
+        ('udc_baudrate', ['udc_baudrate', 'INTEGER NOT NULL']),   
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -192,6 +195,9 @@ class ConnectionConfig(Configuration):
         self.dcct_address = None        
         self.ps_enable = None
         self.ps_port = None
+        self.udc_enable = None
+        self.udc_port = None
+        self.udc_baudrate = None
         super().__init__(filename=filename, database=database, idn=idn)
 
     def get_attribute_type(self, name):
@@ -236,6 +242,9 @@ class ConnectionConfig(Configuration):
                 'dcct_address     \t{0:d}\n'.format(self.dcct_address),
                 'ps_enable        \t{0:d}\n'.format(self.ps_enable),
                 'ps_port          \t{0:s}\n'.format(self.ps_port),
+                'udc_enable       \t{0:d}\n'.format(self.udc_enable),
+                'udc_port         \t{0:s}\n'.format(self.udc_port),
+                'udc_baudrate     \t{0:d}\n\n'.format(self.udc_baudrate),                
                 ]
 
             with open(filename, mode='w') as f:

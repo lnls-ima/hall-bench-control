@@ -7,6 +7,7 @@ from . import PmacLib as _PmacLib
 from . import NMRLib as _NMRLib
 from . import SerialLib as _SerialLib
 from . import SerialDRS as _SerialDRS
+from . import UDCLib as _UDCLib
 
 _logs_dir = 'logs'
 
@@ -36,6 +37,7 @@ class HallBenchDevices(object):
         self.dcct = _GPIBLib.Agilent34401A(
             _os.path.join(_logs_path, 'dcct.log'))
         self.ps = _SerialDRS.SerialDRS_FBP()
+        self.udc = _UDCLib.UDC3500()
 
     def connect(self, config):
         """Connect devices.
@@ -69,6 +71,9 @@ class HallBenchDevices(object):
 
         if config.ps_enable:
             self.ps.Connect(config.ps_port)
+            
+        if config.udc_enable:
+            self.udc.connect(config.udc_port, config.udc_baudrate)
 
     def disconnect(self):
         """Disconnect devices."""

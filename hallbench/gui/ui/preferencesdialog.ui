@@ -166,6 +166,19 @@
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="cooling_system_chb">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Cooling System</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="database_chb">
         <property name="font">
          <font>

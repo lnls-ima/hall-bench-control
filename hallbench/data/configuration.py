@@ -192,7 +192,7 @@ class ConnectionConfig(Configuration):
         self.elcomat_port = None
         self.elcomat_baudrate = None
         self.dcct_enable = None
-        self.dcct_address = None        
+        self.dcct_address = None
         self.ps_enable = None
         self.ps_port = None
         self.udc_enable = None
@@ -244,7 +244,7 @@ class ConnectionConfig(Configuration):
                 'ps_port          \t{0:s}\n'.format(self.ps_port),
                 'udc_enable       \t{0:d}\n'.format(self.udc_enable),
                 'udc_port         \t{0:s}\n'.format(self.udc_port),
-                'udc_baudrate     \t{0:d}\n\n'.format(self.udc_baudrate),                
+                'udc_baudrate     \t{0:d}\n\n'.format(self.udc_baudrate),
                 ]
 
             with open(filename, mode='w') as f:
@@ -439,17 +439,17 @@ class MeasurementConfig(Configuration):
                 current_setpoint = str(self.current_setpoint)
             else:
                 current_setpoint = _empty_str
-            
+
             if self.comments is not None and len(self.comments) != 0:
                 comments = self.comments.replace(' ', '_')
             else:
                 comments = _empty_str
-            
+
             if self.probe_name is not None and len(self.probe_name) != 0:
                 probe_name = self.probe_name
             else:
                 probe_name = _empty_str
-            
+
             data = [
                 '# Measurement Setup\n\n',
                 'magnet_name \t{0:s}\n'.format(self.magnet_name),
@@ -465,7 +465,8 @@ class MeasurementConfig(Configuration):
                 '# Digital Multimeter (aper [ms])\n',
                 'integration_time \t{0:4f}\n\n'.format(self.integration_time),
                 '# Digital Multimeter (precision [single=0 or double=1])\n',
-                'voltage_precision \t{0:1d}\n\n'.format(self.voltage_precision),
+                'voltage_precision \t{0:1d}\n\n'.format(
+                    self.voltage_precision),
                 '# Digital Multimeter (range [V])\n',
                 'voltage_range \t{0:f}\n\n'.format(self.voltage_range),
                 '# Number of measurements\n',
@@ -537,7 +538,7 @@ class MeasurementConfig(Configuration):
         """Set velocity value for the given axis."""
         param = 'vel_ax'
         self._set_axis_param(param, axis, value)
-        
+
     def valid_data(self):
         """Check if parameters are valid."""
         return super().valid_data(valid_none=[
@@ -561,6 +562,7 @@ class PowerSupplyConfig(Configuration):
         ('Kp', ['Kp', 'REAL NOT NULL']),
         ('Ki', ['Ki', 'REAL NOT NULL']),
         ('current array', ['current_array', 'TEXT']),
+        ('trapezoidal array', ['trapezoidal_array', 'TEXT']),
         ('sinusoidal amplitude', ['sinusoidal_amplitude', 'REAL NOT NULL']),
         ('sinusoidal offset', ['sinusoidal_offset', 'REAL NOT NULL']),
         ('sinusoidal frequency', ['sinusoidal_frequency', 'REAL NOT NULL']),
@@ -579,6 +581,19 @@ class PowerSupplyConfig(Configuration):
         ('damped sinusoidal final phase', ['dsinusoidal_phasef',
                                            'REAL NOT NULL']),
         ('damped sinusoidal damping', ['dsinusoidal_damp', 'REAL NOT NULL']),
+        ('damped sinusoidal2 amplitude', ['dsinusoidal2_amplitude',
+                                          'REAL NOT NULL']),
+        ('damped sinusoidal2 offset', ['dsinusoidal2_offset',
+                                       'REAL NOT NULL']),
+        ('damped sinusoidal2 frequency', ['dsinusoidal2_frequency',
+                                          'REAL NOT NULL']),
+        ('damped sinusoidal2 n cycles', ['dsinusoidal2_ncycles',
+                                         'INTEGER NOT NULL']),
+        ('damped sinusoidal2 initial phase', ['dsinusoidal2_phasei',
+                                              'REAL NOT NULL']),
+        ('damped sinusoidal2 final phase', ['dsinusoidal2_phasef',
+                                            'REAL NOT NULL']),
+        ('damped sinusoidal2 damping', ['dsinusoidal2_damp', 'REAL NOT NULL']),
     ])
     _db_json_str = ['current_array']
 
@@ -609,6 +624,7 @@ class PowerSupplyConfig(Configuration):
 
         # database variables
         self.current_array = None
+        self.trapezoidal_array = None
         self.ps_name = None
         self.ps_type = None
         self.ps_setpoint = None
@@ -630,6 +646,13 @@ class PowerSupplyConfig(Configuration):
         self.dsinusoidal_phasei = None
         self.dsinusoidal_phasef = None
         self.dsinusoidal_damp = None
+        self.dsinusoidal2_amplitude = None
+        self.dsinusoidal2_offset = None
+        self.dsinusoidal2_frequency = None
+        self.dsinusoidal2_ncycles = None
+        self.dsinusoidal2_phasei = None
+        self.dsinusoidal2_phasef = None
+        self.dsinusoidal2_damp = None
         super().__init__(filename=filename, database=database, idn=idn)
 
     def get_attribute_type(self, name):
@@ -695,6 +718,21 @@ class PowerSupplyConfig(Configuration):
                     self.dsinusoidal_phasef),
                 'dsinusoidal_damp      \t{0:2f}\n\n'.format(
                     self.dsinusoidal_damp),
+                '# Damped Sinusoidal^2 Signal Generator\n',
+                'dsinusoidal2_amplitude \t{0:2f}\n'.format(
+                    self.dsinusoidal2_amplitude),
+                'dsinusoidal2_offset    \t{0:2f}\n'.format(
+                    self.dsinusoidal2_offset),
+                'dsinusoidal2_frequency \t{0:2f}\n'.format(
+                    self.dsinusoidal2_frequency),
+                'dsinusoidal2_ncycles   \t{0:d}\n'.format(
+                    self.dsinusoidal2_ncycles),
+                'dsinusoidal2_phasei    \t{0:2f}\n'.format(
+                    self.dsinusoidal2_phasei),
+                'dsinusoidal2_phasef    \t{0:2f}\n'.format(
+                    self.dsinusoidal2_phasef),
+                'dsinusoidal2_damp      \t{0:2f}\n\n'.format(
+                    self.dsinusoidal2_damp),
                 '#DCCT Settings\n',
                 'dcct                  \t{0}\n'.format(int(self.dcct)),
                 'dcct_head             \t{0}\n\n'.format(self.dcct_head),

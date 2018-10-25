@@ -758,8 +758,8 @@ class SupplyWidget(_QWidget):
                                      'low.', _QMessageBox.Ok)
                 return False
         else:
-            if any((_current + offset) > _current_max,
-                   ((-1*_current + offset) < _current_min)):
+            if any([(_current + offset) > _current_max,
+                    (-1*_current + offset) < _current_min]):
                 _QMessageBox.warning(self, 'Warning', 'Peak-to-peak current '
                                      'values out of bounds.', _QMessageBox.Ok)
                 return False
@@ -937,7 +937,7 @@ class SupplyWidget(_QWidget):
                     if not _curve_type:
                         _sigType = 4
                     else:
-                        _sigType = 3
+                        _sigType = 6
                     self.drs.Write_sigGen_Aux(_damping)
                 self.drs.ConfigSigGen(_sigType, _n_cycles,
                                       _phase_shift, _final_phase)

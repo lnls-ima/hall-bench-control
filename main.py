@@ -12,3 +12,4 @@ if _thread:
     thread = hallbenchapp.run_in_thread()
 else:
     hallbenchapp.run()
+

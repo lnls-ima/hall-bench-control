@@ -401,112 +401,124 @@ class SupplyWidget(_QWidget):
     def config_ps(self):
         """Sets Power Supply configurations according to current UI inputs."""
 
-        self.config.ps_name = self.ui.cb_ps_name.currentText()
-        self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
-        self.config.dclink = self.ui.sb_dclink.value()
-        self.config.ps_setpoint = self.ui.sb_current_setpoint.value()
-        self.config.maximum_current = float(self.ui.le_maximum_current.text())
-        self.config.minimum_current = float(self.ui.le_minimum_current.text())
-        dcct_head_str = self.ui.cb_dcct_select.currentText().replace(' A', '')
         try:
-            self.config.dcct_head = int(dcct_head_str)
-        except Exception:
-            self.config.dcct_head = None
-        self.config.Kp = self.ui.sb_kp.value()
-        self.config.Ki = self.ui.sb_ki.value()
-        self.config.current_array = self.table_to_array(self.ui.tw_currents)
-        self.config.trapezoidal_array = self.table_to_array(
-            self.ui.tw_trapezoidal)
-        self.config.sinusoidal_amplitude = float(
-            self.ui.le_sinusoidal_amplitude.text())
-        self.config.sinusoidal_offset = float(
-            self.ui.le_sinusoidal_offset.text())
-        self.config.sinusoidal_frequency = float(
-            self.ui.le_sinusoidal_frequency.text())
-        self.config.sinusoidal_ncycles = int(
-            self.ui.le_sinusoidal_ncycles.text())
-        self.config.sinusoidal_phasei = float(
-            self.ui.le_sinusoidal_phase.text())
-        self.config.sinusoidal_phasef = float(
-            self.ui.le_sinusoidal_phasef.text())
-        self.config.dsinusoidal_amplitude = float(
-            self.ui.le_damp_sin_ampl.text())
-        self.config.dsinusoidal_offset = float(
-            self.ui.le_damp_sin_offset.text())
-        self.config.dsinusoidal_frequency = float(
-            self.ui.le_damp_sin_freq.text())
-        self.config.dsinusoidal_ncycles = int(
-            self.ui.le_damp_sin_ncycles.text())
-        self.config.dsinusoidal_phasei = float(
-            self.ui.le_damp_sin_phase.text())
-        self.config.dsinusoidal_phasef = float(
-            self.ui.le_damp_sin_phasef.text())
-        self.config.dsinusoidal_damp = float(
-            self.ui.le_damp_sin_damping.text())
-        self.config.dsinusoidal2_amplitude = float(
-            self.ui.le_damp_sin_ampl.text())
-        self.config.dsinusoidal2_offset = float(
-            self.ui.le_damp_sin2_offset.text())
-        self.config.dsinusoidal2_frequency = float(
-            self.ui.le_damp_sin2_freq.text())
-        self.config.dsinusoidal2_ncycles = int(
-            self.ui.le_damp_sin2_ncycles.text())
-        self.config.dsinusoidal2_phasei = float(
-            self.ui.le_damp_sin2_phase.text())
-        self.config.dsinusoidal2_phasef = float(
-            self.ui.le_damp_sin2_phasef.text())
-        self.config.dsinusoidal2_damp = float(
-            self.ui.le_damp_sin2_damping.text())
+            self.config.ps_name = self.ui.cb_ps_name.currentText()
+            self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
+            self.config.dclink = self.ui.sb_dclink.value()
+            self.config.ps_setpoint = self.ui.sb_current_setpoint.value()
+            self.config.maximum_current = float(self.ui.le_maximum_current.text())
+            self.config.minimum_current = float(self.ui.le_minimum_current.text())
+            dcct_head_str = self.ui.cb_dcct_select.currentText().replace(' A', '')
+            try:
+                self.config.dcct_head = int(dcct_head_str)
+            except Exception:
+                self.config.dcct_head = None
+            self.config.Kp = self.ui.sb_kp.value()
+            self.config.Ki = self.ui.sb_ki.value()
+            self.config.current_array = self.table_to_array(self.ui.tw_currents)
+            self.config.trapezoidal_array = self.table_to_array(
+                self.ui.tw_trapezoidal)
+            self.config.trapezoidal_offset = float(
+                self.ui.le_trapezoidal_offset.text())
+            self.config.sinusoidal_amplitude = float(
+                self.ui.le_sinusoidal_amplitude.text())
+            self.config.sinusoidal_offset = float(
+                self.ui.le_sinusoidal_offset.text())
+            self.config.sinusoidal_frequency = float(
+                self.ui.le_sinusoidal_frequency.text())
+            self.config.sinusoidal_ncycles = int(
+                self.ui.le_sinusoidal_ncycles.text())
+            self.config.sinusoidal_phasei = float(
+                self.ui.le_sinusoidal_phase.text())
+            self.config.sinusoidal_phasef = float(
+                self.ui.le_sinusoidal_phasef.text())
+            self.config.dsinusoidal_amplitude = float(
+                self.ui.le_damp_sin_ampl.text())
+            self.config.dsinusoidal_offset = float(
+                self.ui.le_damp_sin_offset.text())
+            self.config.dsinusoidal_frequency = float(
+                self.ui.le_damp_sin_freq.text())
+            self.config.dsinusoidal_ncycles = int(
+                self.ui.le_damp_sin_ncycles.text())
+            self.config.dsinusoidal_phasei = float(
+                self.ui.le_damp_sin_phase.text())
+            self.config.dsinusoidal_phasef = float(
+                self.ui.le_damp_sin_phasef.text())
+            self.config.dsinusoidal_damp = float(
+                self.ui.le_damp_sin_damping.text())
+            self.config.dsinusoidal2_amplitude = float(
+                self.ui.le_damp_sin2_ampl.text())
+            self.config.dsinusoidal2_offset = float(
+                self.ui.le_damp_sin2_offset.text())
+            self.config.dsinusoidal2_frequency = float(
+                self.ui.le_damp_sin2_freq.text())
+            self.config.dsinusoidal2_ncycles = int(
+                self.ui.le_damp_sin2_ncycles.text())
+            self.config.dsinusoidal2_phasei = float(
+                self.ui.le_damp_sin2_phase.text())
+            self.config.dsinusoidal2_phasef = float(
+                self.ui.le_damp_sin2_phasef.text())
+            self.config.dsinusoidal2_damp = float(
+                self.ui.le_damp_sin2_damping.text())
+        except:
+            _traceback.print_exc(file=_sys.stdout)
 
     def config_widget(self):
         """Sets current configuration variables into the widget."""
 
-        self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
-        self.ui.cb_ps_type.setCurrentIndex(self.config.ps_type - 2)
-        self.ui.sb_dclink.setValue(self.config.dclink)
-        self.ui.sb_current_setpoint.setValue(self.config.ps_setpoint)
-        self.ui.le_maximum_current.setText(str(self.config.maximum_current))
-        self.ui.le_minimum_current.setText(str(self.config.minimum_current))
-        self.ui.cb_dcct_select.setCurrentText(str(self.config.dcct_head) +
-                                              ' A')
-        self.ui.sb_kp.setValue(self.config.Kp)
-        self.ui.sb_ki.setValue(self.config.Ki)
-        self.array_to_table(self.config.current_array, self.ui.tw_currents)
-        self.ui.le_sinusoidal_amplitude.setText(str(
-            self.config.sinusoidal_amplitude))
-        self.ui.le_sinusoidal_offset.setText(str(
-            self.config.sinusoidal_offset))
-        self.ui.le_sinusoidal_frequency.setText(str(
-            self.config.sinusoidal_frequency))
-        self.ui.le_sinusoidal_ncycles.setText(str(
-            self.config.sinusoidal_ncycles))
-        self.ui.le_sinusoidal_phase.setText(str(self.config.sinusoidal_phasei))
-        self.ui.le_sinusoidal_phasef.setText(str(
-            self.config.sinusoidal_phasef))
-        self.ui.le_damp_sin_ampl.setText(str(
-            self.config.dsinusoidal_amplitude))
-        self.ui.le_damp_sin_offset.setText(str(self.config.dsinusoidal_offset))
-        self.ui.le_damp_sin_freq.setText(str(
-            self.config.dsinusoidal_frequency))
-        self.ui.le_damp_sin_ncycles.setText(str(
-            self.config.dsinusoidal_ncycles))
-        self.ui.le_damp_sin_phase.setText(str(self.config.dsinusoidal_phasei))
-        self.ui.le_damp_sin_phasef.setText(str(self.config.dsinusoidal_phasef))
-        self.ui.le_damp_sin_damping.setText(str(self.config.dsinusoidal_damp))
-        self.ui.le_damp_sin2_ampl.setText(str(
-            self.config.dsinusoidal2_amplitude))
-        self.ui.le_damp_sin2_offset.setText(str(
-            self.config.dsinusoidal2_offset))
-        self.ui.le_damp_sin2_freq.setText(str(
-            self.config.dsinusoidal2_frequency))
-        self.ui.le_damp_sin2_ncycles.setText(str(
-            self.config.dsinusoidal2_ncycles))
-        self.ui.le_damp_sin2_phase.setText(str(
-            self.config.dsinusoidal2_phasei))
-        self.ui.le_damp_sin2_phasef.setText(str(
-            self.config.dsinusoidal2_phasef))
-        self.ui.le_damp_sin2_damping.setText(str(
-            self.config.dsinusoidal2_damp))
+        try:
+            self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
+            self.ui.cb_ps_type.setCurrentIndex(self.config.ps_type - 2)
+            self.ui.sb_dclink.setValue(self.config.dclink)
+            self.ui.sb_current_setpoint.setValue(self.config.ps_setpoint)
+            self.ui.le_maximum_current.setText(str(self.config.maximum_current))
+            self.ui.le_minimum_current.setText(str(self.config.minimum_current))
+            self.ui.cb_dcct_select.setCurrentText(str(self.config.dcct_head) +
+                                                  ' A')
+            self.ui.sb_kp.setValue(self.config.Kp)
+            self.ui.sb_ki.setValue(self.config.Ki)
+            self.array_to_table(self.config.current_array, self.ui.tw_currents)
+            self.array_to_table(self.config.trapezoidal_array,
+                                self.ui.tw_trapezoidal)
+            self.ui.le_trapezoidal_offset.setText(str(
+                self.config.trapezoidal_offset))
+            self.ui.le_sinusoidal_amplitude.setText(str(
+                self.config.sinusoidal_amplitude))
+            self.ui.le_sinusoidal_offset.setText(str(
+                self.config.sinusoidal_offset))
+            self.ui.le_sinusoidal_frequency.setText(str(
+                self.config.sinusoidal_frequency))
+            self.ui.le_sinusoidal_ncycles.setText(str(
+                self.config.sinusoidal_ncycles))
+            self.ui.le_sinusoidal_phase.setText(str(self.config.sinusoidal_phasei))
+            self.ui.le_sinusoidal_phasef.setText(str(
+                self.config.sinusoidal_phasef))
+            self.ui.le_damp_sin_ampl.setText(str(
+                self.config.dsinusoidal_amplitude))
+            self.ui.le_damp_sin_offset.setText(str(self.config.dsinusoidal_offset))
+            self.ui.le_damp_sin_freq.setText(str(
+                self.config.dsinusoidal_frequency))
+            self.ui.le_damp_sin_ncycles.setText(str(
+                self.config.dsinusoidal_ncycles))
+            self.ui.le_damp_sin_phase.setText(str(self.config.dsinusoidal_phasei))
+            self.ui.le_damp_sin_phasef.setText(str(self.config.dsinusoidal_phasef))
+            self.ui.le_damp_sin_damping.setText(str(self.config.dsinusoidal_damp))
+            self.ui.le_damp_sin2_ampl.setText(str(
+                self.config.dsinusoidal2_amplitude))
+            self.ui.le_damp_sin2_offset.setText(str(
+                self.config.dsinusoidal2_offset))
+            self.ui.le_damp_sin2_freq.setText(str(
+                self.config.dsinusoidal2_frequency))
+            self.ui.le_damp_sin2_ncycles.setText(str(
+                self.config.dsinusoidal2_ncycles))
+            self.ui.le_damp_sin2_phase.setText(str(
+                self.config.dsinusoidal2_phasei))
+            self.ui.le_damp_sin2_phasef.setText(str(
+                self.config.dsinusoidal2_phasef))
+            self.ui.le_damp_sin2_damping.setText(str(
+                self.config.dsinusoidal2_damp))
+        except:
+            _traceback.print_exc(file=_sys.stdout)
 
     def config_pid(self):
         """Configures PID settings."""
@@ -973,12 +985,13 @@ class SupplyWidget(_QWidget):
             return
 
         try:
-            if not self.set_op_mode(3):
-                _QMessageBox.warning(self, 'Warning',
-                                     'Could not set the sigGen '
-                                     'operation mode.',
-                                     _QMessageBox.Ok)
-                return
+            if _curve_type < 3:
+                if not self.set_op_mode(3):
+                    _QMessageBox.warning(self, 'Warning',
+                                         'Could not set the sigGen '
+                                         'operation mode.',
+                                         _QMessageBox.Ok)
+                    return
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.warning(self, 'Warning', 'Power supply is not in '
@@ -1002,6 +1015,7 @@ class SupplyWidget(_QWidget):
                 _n_cycles = self.config.dsinusoidal2_ncycles
                 _offset = self.config.dsinusoidal2_offset
             if _curve_type == 3:
+                _offset = self.config.trapezoidal_offset
                 if not self.trapezoidal_cycle():
                     raise Exception('Failure during trapezoidal cycle.')
             else:
@@ -1065,12 +1079,12 @@ class SupplyWidget(_QWidget):
                 _t_border = abs(_i - _i0) / _slope
                 self.drs.SetISlowRef(_i)
                 _deadline = _time.monotonic() + _t_border + _t
-                while _time.monotonic < _deadline:
+                while _time.monotonic() < _deadline:
                     _QApplication.processEvents()
                     _time.sleep(0.01)
                 self.drs.SetISlowRef(_offset)
                 _deadline = _time.monotonic() + _t_border + _t
-                while _time.monotonic < _deadline:
+                while _time.monotonic() < _deadline:
                     _QApplication.processEvents()
                     _time.sleep(0.01)
             return True

@@ -563,6 +563,7 @@ class PowerSupplyConfig(Configuration):
         ('Ki', ['Ki', 'REAL NOT NULL']),
         ('current array', ['current_array', 'TEXT']),
         ('trapezoidal array', ['trapezoidal_array', 'TEXT']),
+        ('trapezoidal offset', ['trapezoidal_offset', 'REAL NOT NULL']),
         ('sinusoidal amplitude', ['sinusoidal_amplitude', 'REAL NOT NULL']),
         ('sinusoidal offset', ['sinusoidal_offset', 'REAL NOT NULL']),
         ('sinusoidal frequency', ['sinusoidal_frequency', 'REAL NOT NULL']),
@@ -595,7 +596,7 @@ class PowerSupplyConfig(Configuration):
                                             'REAL NOT NULL']),
         ('damped sinusoidal2 damping', ['dsinusoidal2_damp', 'REAL NOT NULL']),
     ])
-    _db_json_str = ['current_array']
+    _db_json_str = ['current_array', 'trapezoidal_array']
 
     def __init__(self, filename=None, database=None, idn=None):
         """Initialize object.
@@ -625,6 +626,7 @@ class PowerSupplyConfig(Configuration):
         # database variables
         self.current_array = None
         self.trapezoidal_array = None
+        self.trapezoidal_offset = None
         self.ps_name = None
         self.ps_type = None
         self.ps_setpoint = None
@@ -658,11 +660,12 @@ class PowerSupplyConfig(Configuration):
     def get_attribute_type(self, name):
         """Get attribute type."""
         if name in ['ps_type', 'dcct_head', 'status', 'status_loop', 'dcct',
-                    'sinusoidal_ncycles', 'dsinusoidal_ncycles']:
+                    'sinusoidal_ncycles', 'dsinusoidal_ncycles',
+                    'dsinusoidal2_ncycles']:
             return int
         elif name in ['ps_name']:
             return str
-        elif name in ['current_array']:
+        elif name in ['current_array', 'trapezoidal_array']:
             return _np.ndarray
         else:
             return float

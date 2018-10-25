@@ -69,7 +69,7 @@ class UDC3500():
     def _collect(self):
         """Collects data."""
         self.clear()
-        _t0 = time.time()
+        _t0 = _time.time()
         while self.flag_collect:
             self.pv1 = _np.append(self.pv1, self.read_pv1())
             self.pv2 = _np.append(self.pv2, self.read_pv2())
@@ -77,7 +77,7 @@ class UDC3500():
             self.t = _np.append(self.t, _time.time() - _t0)
             _time.sleep(self.interval)
 
-    def start_collect(self):
+    def start_collect(self, time_interval):
         """Starts collect data routine."""
         self.interval = time_interval
         thread = _threading.Thread(target=self._collect)

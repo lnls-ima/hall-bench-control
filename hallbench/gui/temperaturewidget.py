@@ -30,16 +30,16 @@ class TemperatureWidget(_TablePlotWidget):
     _plot_label = 'Temperature [deg C]'
     _data_format = '{0:.2f}'
     _data_labels = [
-        '101', '102', '103', '201',
+        '101', '102', '103', '105','201',
         '202', '203', '204',
         '205', '206', '207',
-        '208', '209', '210',
+        '208', '209',
     ]
     _colors = [
-        (230, 25, 75), (60, 180, 75), (0, 130, 200), (245, 130, 48),
-        (145, 30, 180), (255, 225, 25), (70, 240, 240),
+        (230, 25, 75), (60, 180, 75), (0, 130, 200), (0, 255, 0), 
+        (245, 130, 48), (145, 30, 180), (255, 225, 25), (70, 240, 240),
         (240, 50, 230), (170, 110, 40), (128, 0, 0),
-        (0, 0, 0), (128, 128, 128), (170, 255, 195),
+        (0, 0, 0), (128, 128, 128),
     ]
 
     def __init__(self, parent=None):
@@ -170,8 +170,8 @@ class TemperatureChannelsWidget(_QWidget):
     channelChanged = _pyqtSignal()
 
     _channels = [
-        '101', '102', '103', '201', '202', '203', '204',
-        '205', '206', '207', '208', '209', '210',
+        '101', '102', '103', '105', '201', '202', '203', '204',
+        '205', '206', '207', '208', '209',
     ]
 
     def __init__(self, parent=None):
@@ -188,6 +188,7 @@ class TemperatureChannelsWidget(_QWidget):
         self.ui.channel101_chb.stateChanged.connect(self.clearChannelText)
         self.ui.channel102_chb.stateChanged.connect(self.clearChannelText)
         self.ui.channel103_chb.stateChanged.connect(self.clearChannelText)
+        self.ui.channel105_chb.stateChanged.connect(self.clearChannelText)
         self.ui.channel201_chb.stateChanged.connect(self.clearChannelText)
         self.ui.channel202_chb.stateChanged.connect(self.clearChannelText)
         self.ui.channel203_chb.stateChanged.connect(self.clearChannelText)
@@ -197,7 +198,6 @@ class TemperatureChannelsWidget(_QWidget):
         self.ui.channel207_chb.stateChanged.connect(self.clearChannelText)
         self.ui.channel208_chb.stateChanged.connect(self.clearChannelText)
         self.ui.channel209_chb.stateChanged.connect(self.clearChannelText)
-        self.ui.channel210_chb.stateChanged.connect(self.clearChannelText)
 
     @property
     def selected_channels(self):

@@ -89,14 +89,7 @@ class PSCurrentWidget(_TablePlotWidget):
             
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
-            
-            if self._configured:
-                self.configure_btn.setEnabled(False)
-            else:
-                self.configure_btn.setEnabled(True)
-                msg = 'Failed to configure devices.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-        
+       
         except Exception:
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -121,18 +114,19 @@ class PSCurrentWidget(_TablePlotWidget):
             ps_type = self.power_supply_config.ps_type
                         
             dcct_current = self.devices.dcct.read_current(dcct_head=dcct_head)
-            self._readings['DCCT'].append(dcct_current)
+            self._readings['DCCT [A]'].append(dcct_current)
 
             if ps_type is not None:
                 self.devices.ps.SetSlaveAdd(ps_type)
                 ps_current = float(self.devices.ps.Read_iLoad1())
-                self._readings['PS'].append(ps_current)
+                self._readings['PS [A]'].append(ps_current)
             else:
-                self._readings['PS'].append(_np.nan)
+                self._readings['PS [A]'].append(_np.nan)
 
             self._timestamp.append(ts)
             self.addLastValueToTable()
             self.updatePlot()
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             pass

@@ -1197,6 +1197,10 @@ class MeasurementWidget(_QWidget):
             msg = 'Failed to update current setpoint.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
+        
+        if self.local_measurement_config.current_setpoint == 0:
+            self.change_current_setpoint.emit(True)
+            return
 
         if not self.saveConfiguration():
             return

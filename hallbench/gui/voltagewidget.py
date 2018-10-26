@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import (
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
     QVBoxLayout as _QVBoxLayout,
+    QHBoxLayout as _QHBoxLayout,
+    QCheckBox as _QCheckBox,
     )
 from PyQt5.QtCore import Qt as _Qt
 
@@ -38,6 +40,17 @@ class VoltageWidget(_TablePlotWidget):
         _layout.addWidget(self.move_axis_widget)
         self.ui.widget_wg.setLayout(_layout)
 
+        # add check box
+        _layout = _QHBoxLayout()
+        self.voltx_chb = _QCheckBox(' X ')
+        self.volty_chb = _QCheckBox(' Y ')
+        self.voltz_chb = _QCheckBox(' Z ')
+        _layout.addWidget(self.voltx_chb)
+        _layout.addWidget(self.volty_chb)
+        _layout.addWidget(self.voltz_chb)
+        self.ui.layout_lt.addLayout(_layout)
+        self.ui.layout_lt.addSpacing(5)
+
         # add reset multimeters button
         self.reset_btn = _QPushButton('Reset Multimeters')
         self.reset_btn.setMinimumHeight(45)
@@ -46,7 +59,7 @@ class VoltageWidget(_TablePlotWidget):
         self.reset_btn.setFont(font)
         self.ui.layout_lt.addWidget(self.reset_btn)
         self.reset_btn.clicked.connect(self.resetMultimeters)
-
+        
         # variables initialisation
         self._position = []
         self.configureTable()
@@ -77,11 +90,21 @@ class VoltageWidget(_TablePlotWidget):
         if len(self._data_labels) == 0:
             return
 
-        if (not self.devices.voltx.connected or
-           not self.devices.volty.connected or
-           not self.devices.voltz.connected):
+        if self.voltx_chb.isChecked() and not self.devices.voltx.connected:
             if not monitor:
-                msg = 'Multimeters not connected.'
+                msg = 'Multimeter X not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+        if self.volty_chb.isChecked() and not self.devices.volty.connected:
+            if not monitor:
+                msg = 'Multimeter Y not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+        if self.voltz_chb.isChecked() and not self.devices.voltz.connected:
+            if not monitor:
+                msg = 'Multimeter Z not connected.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
@@ -96,16 +119,25 @@ class VoltageWidget(_TablePlotWidget):
                 if pos is None:
                     pos = _np.nan
 
-            voltx = float(self.devices.voltx.read_from_device()[:-2])
-            voltx = voltx*self._data_mult_factor
+            if self.voltx_chb.isChecked():
+                voltx = float(self.devices.voltx.read_from_device()[:-2])
+                voltx = voltx*self._data_mult_factor
+            else:
+                voltx = _np.nan           
             self._readings[self._data_labels[0]].append(voltx)
 
-            volty = float(self.devices.volty.read_from_device()[:-2])
-            volty = volty*self._data_mult_factor
+            if self.volty_chb.isChecked():
+                volty = float(self.devices.volty.read_from_device()[:-2])
+                volty = volty*self._data_mult_factor
+            else:
+                volty = _np.nan 
             self._readings[self._data_labels[1]].append(volty)
 
-            voltz = float(self.devices.voltz.read_from_device()[:-2])
-            voltz = voltz*self._data_mult_factor
+            if self.voltz_chb.isChecked():
+                voltz = float(self.devices.voltz.read_from_device()[:-2])
+                voltz = voltz*self._data_mult_factor
+            else:
+                voltz = _np.nan
             self._readings[self._data_labels[2]].append(voltz)
 
             self._timestamp.append(ts)
@@ -117,20 +149,36 @@ class VoltageWidget(_TablePlotWidget):
 
     def resetMultimeters(self):
         """Reset multimeters."""
-        if (not self.devices.voltx.connected or
-           not self.devices.volty.connected or
-           not self.devices.voltz.connected):
-            msg = 'Multimeters not connected.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+        if self.voltx_chb.isChecked() and not self.devices.voltx.connected:
+            if not monitor:
+                msg = 'Multimeter X not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+        if self.volty_chb.isChecked() and not self.devices.volty.connected:
+            if not monitor:
+                msg = 'Multimeter Y not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+        if self.voltz_chb.isChecked() and not self.devices.voltz.connected:
+            if not monitor:
+                msg = 'Multimeter Z not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
             
-            self.devices.voltx.reset()
-            self.devices.volty.reset()
-            self.devices.voltz.reset()
+            if self.voltx_chb.isChecked():
+                self.devices.voltx.reset()
+                
+            if self.volty_chb.isChecked():
+                self.devices.volty.reset()
+                
+            if self.voltz_chb.isChecked():
+                self.devices.voltz.reset()
             
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()

@@ -671,7 +671,7 @@ class Agilent34970ACommands(object):
 class Agilent34970A(GPIB):
     """Agilent 34970A multichannel for temperatures readings."""
 
-    _probe_channels = ['101', '102', '103']
+    _probe_channels = ['101', '102', '103', '105']
     _temperature_channels = [
         '201', '202', '203', '204', '205', '206', '207', '208', '209']
 
@@ -780,6 +780,8 @@ class Agilent34970A(GPIB):
             temperature = (voltage + 40e-3)/20e-3
         elif channel == '103':
             temperature = (voltage + 50e-3)/20e-3
+        elif channel == '105':
+            temperature = (voltage + 30e-3)/20e-3
         else:
             temperature = _np.nan
         return temperature

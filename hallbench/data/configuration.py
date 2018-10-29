@@ -3,6 +3,7 @@
 """Implementation of classes to handle configuration files."""
 
 import numpy as _np
+import json as _json
 import collections as _collections
 
 from . import utils as _utils
@@ -118,9 +119,13 @@ class Configuration(_database.DatabaseObject):
                 if value_str == _empty_str:
                     setattr(self, name, None)
                 else:
-                    value = _utils.find_value(data, name, vtype=tp)
+                    if tp == _np.ndarray:
+                        value = _utils.find_value(data, name)
+                        value = _np.array(_json.loads(value))
+                    else:
+                        value = _utils.find_value(data, name, vtype=tp)
                     setattr(self, name, value)
-
+                
     def save_file(self, filename):
         """Save configuration to file."""
         pass
@@ -670,6 +675,31 @@ class PowerSupplyConfig(Configuration):
         else:
             return float
 
+    def read_file(self, filename):
+        """Read configuration from file.
+
+        Args:
+            filename (str): configuration filepath.
+        """
+        data = _utils.read_file(filename)
+        status_vars = [
+            'status', 'status_loop', 'status_con',
+            'status_interlock', 'main_current', 'update_display']
+        for name in self.__dict__:
+            if name not in status_vars:
+                tp = self.get_attribute_type(name)
+                if tp is not None:
+                    value_str = _utils.find_value(data, name)
+                    if value_str == _empty_str:
+                        setattr(self, name, None)
+                    else:
+                        if tp == _np.ndarray:
+                            value = _utils.find_value(data, name)
+                            value = _np.array(_json.loads(value))
+                        else:
+                            value = _utils.find_value(data, name, vtype=tp)
+                        setattr(self, name, value)
+
     def save_file(self, filename):
         """Save measurement configuration to file.
 
@@ -684,11 +714,16 @@ class PowerSupplyConfig(Configuration):
             raise ConfigurationError(message)
 
         try:
+            current_array = _json.dumps(
+                self.current_array.tolist()).replace(' ', '')
+            trapezoidal_array = _json.dumps(
+                self.trapezoidal_array.tolist()).replace(' ', '')
+            
             data = [
                 '# Power Supply Settings\n\n',
                 'ps_name          \t{0:s}\n'.format(self.ps_name),
                 'ps_type          \t{0}\n'.format(self.ps_type),
-                'current_setpoint \t{0:2f}\n'.format(self.ps_setpoint),
+                'ps_setpoint      \t{0:2f}\n'.format(self.ps_setpoint),
                 'minimum_current  \t{0:2f}\n'.format(self.minimum_current),
                 'maximum_current  \t{0:2f}\n'.format(self.maximum_current),
                 'Kp               \t{0:2f}\n'.format(self.Kp),
@@ -736,18 +771,23 @@ class PowerSupplyConfig(Configuration):
                     self.dsinusoidal2_phasef),
                 'dsinusoidal2_damp      \t{0:2f}\n\n'.format(
                     self.dsinusoidal2_damp),
+                '# Trapezoidal Demagnetization Curve\n',
+                'trapezoidal_offset     \t{0:2f}\n'.format(
+                    self.trapezoidal_offset),
+                'trapezoidal_array      \t{0:s}\n\n'.format(trapezoidal_array),                
                 '#DCCT Settings\n',
                 'dcct                  \t{0}\n'.format(int(self.dcct)),
                 'dcct_head             \t{0}\n\n'.format(self.dcct_head),
                 '#Automatic current ramp\n'
-                'current_array         \t{0}'.format(
-                    str(self.current_array)[1:-1])
+                'current_array         \t{0:s}\n\n'.format(current_array),
+                '#DC Link\n'
+                'dclink                \t{0:2f}'.format(self.dclink),
                 ]
 
             with open(filename, mode='w') as f:
                 for item in data:
                     f.write(item)
-
+ 
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
             raise ConfigurationError(message)

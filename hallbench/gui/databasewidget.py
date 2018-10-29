@@ -685,6 +685,9 @@ class DatabaseWidget(_QWidget):
 
     def updateDatabaseTables(self):
         """Update database tables."""
+        if not self.isVisible():
+            return
+        
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)

@@ -150,21 +150,18 @@ class VoltageWidget(_TablePlotWidget):
     def resetMultimeters(self):
         """Reset multimeters."""
         if self.voltx_chb.isChecked() and not self.devices.voltx.connected:
-            if not monitor:
-                msg = 'Multimeter X not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            msg = 'Multimeter X not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         if self.volty_chb.isChecked() and not self.devices.volty.connected:
-            if not monitor:
-                msg = 'Multimeter Y not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            msg = 'Multimeter Y not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         if self.voltz_chb.isChecked() and not self.devices.voltz.connected:
-            if not monitor:
-                msg = 'Multimeter Z not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            msg = 'Multimeter Z not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
         try:

@@ -53,6 +53,7 @@ class HallBenchWindow(_QMainWindow):
 
         # clear the current tabs
         self.ui.main_tab.clear()
+        self.changing_tabs = False
 
         # add preferences dialog
         self.preferences_dialog = PreferencesDialog()
@@ -91,8 +92,6 @@ class HallBenchWindow(_QMainWindow):
 
         self.ui.database_le.setText(self.database)
 
-        self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
-
         self.positions_thread = PositionsThread()
         self.positions_thread.start()
 
@@ -114,6 +113,8 @@ class HallBenchWindow(_QMainWindow):
         
         self.ui.preferences_btn.clicked.connect(self.preferences_dialog.show)
         self.preferences_dialog.tabsPreferencesChanged()
+        
+        self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
 
     @property
     def database(self):
@@ -143,6 +144,7 @@ class HallBenchWindow(_QMainWindow):
     def changeTabs(self, tab_status):
         """Hide or show tabs."""
         try:
+            self.changing_tabs = True
             current_tab = self.ui.main_tab.currentWidget()
             self.ui.main_tab.clear()
             sorted_ts = sorted(tab_status.items(), key=lambda x:x[1][1])
@@ -156,12 +158,17 @@ class HallBenchWindow(_QMainWindow):
         
             idx = self.ui.main_tab.indexOf(current_tab)
             self.ui.main_tab.setCurrentIndex(idx)
+            self.changing_tabs = False
         
         except Exception:
+            self.changing_tabs = False
             _traceback.print_exc(file=_sys.stdout)
 
     def updateDatabaseTab(self):
         """Update database tab."""
+        if self.changing_tabs:
+            return
+
         database_tab_idx = self.ui.main_tab.indexOf(self.database_tab)
         if self.ui.main_tab.currentIndex() == database_tab_idx:
             self.database_tab.updateDatabaseTables()
@@ -180,6 +187,16 @@ class PreferencesDialog(_QDialog):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
         self.ui.apply_btn.clicked.connect(self.tabsPreferencesChanged)
+        self.ui.connection_chb.setChecked(True)
+        self.ui.motors_chb.setChecked(True)
+        self.ui.power_supply_chb.setChecked(True)
+        self.ui.measurement_chb.setChecked(True)
+        self.ui.voltage_chb.setChecked(False)
+        self.ui.current_chb.setChecked(False)
+        self.ui.temperature_chb.setChecked(False)
+        self.ui.cooling_system_chb.setChecked(False)
+        self.ui.angular_error_chb.setChecked(False)
+        self.ui.database_chb.setChecked(True)
         
     def tabsPreferencesChanged(self):
         """Get tabs checkbox status and emit signal to change tabs."""

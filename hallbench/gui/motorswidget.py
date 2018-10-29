@@ -522,6 +522,7 @@ class MotorsWidget(_QWidget):
                 for axis in list_of_axis:
                     obj = getattr(self.ui, 'homingax' + str(axis) + '_chb')
                     obj.setChecked(False)
+                _QApplication.processEvents()
                 msg = 'Finished homing of the selected axes.'
                 _QMessageBox.information(self, 'Homing', msg, _QMessageBox.Ok)
 

@@ -118,7 +118,9 @@ class SupplyWidget(_QWidget):
 
     def turn_off(self):
         """Turn off the Power Supply if it's turned on."""
+        self.current_array_index = 0
         if self.config.status:
+            self.current_setpoint(setpoint=0)
             self.start_powersupply()
 
     def list_powersupply(self):

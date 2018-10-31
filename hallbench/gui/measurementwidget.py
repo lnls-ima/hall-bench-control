@@ -1285,6 +1285,9 @@ class MeasurementWidget(_QWidget):
             self.moveAxis(axis, end + extra)
         _QApplication.processEvents()
 
+        if self.stop is True:
+            return False
+
         self.measureCurrentAndTemperature()
         _QApplication.processEvents()
 

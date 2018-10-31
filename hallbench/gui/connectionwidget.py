@@ -501,8 +501,11 @@ class ConnectionWidget(_QWidget):
     def updateSerialPorts(self):
         """Update avaliable serial ports."""
         _l = [p[0] for p in _list_ports.comports()]
-        _ports = []
 
+        if len(_l) ==0:
+            return
+
+        _ports = []
         _s = ''
         _k = str
         if 'COM' in _l[0]:

@@ -68,8 +68,8 @@ class ViewFieldmapDialog(_QDialog):
         self.graphz = None
         self.xlabel = ''
         self.clearGraph()
-        self.ui.text_te.setText('')       
-    
+        self.ui.text_te.setText('')
+
     def clearGraph(self):
         """Clear plots."""
         self.ui.graph_pw.plotItem.curves.clear()

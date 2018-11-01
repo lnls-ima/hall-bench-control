@@ -10,19 +10,8 @@ import pyqtgraph as _pyqtgraph
 import traceback as _traceback
 from PyQt5.QtWidgets import (
     QApplication as _QApplication,
-    QMessageBox as _QMessageBox,
-    QPushButton as _QPushButton,
-    QVBoxLayout as _QVBoxLayout,
-    QWidget as _QWidget,
     )
-from PyQt5.QtCore import (
-    pyqtSignal as _pyqtSignal,
-    QDateTime as _QDateTime,
-    Qt as _Qt,
-    )
-import PyQt5.uic as _uic
 
-import hallbench.gui.utils as _utils
 from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
 
 
@@ -49,7 +38,7 @@ class CoolingSystemWidget(_TablePlotWidget):
     def udc(self):
         """Honeywell UDC3500."""
         return _QApplication.instance().devices.udc
-    
+
     def addRightAxes(self):
         """Add axis to graph."""
         p = self.ui.plot_pw.plotItem
@@ -71,8 +60,8 @@ class CoolingSystemWidget(_TablePlotWidget):
         self.right_axis.setStyle(showValues=True)
         self.right_axis_curve = _pyqtgraph.PlotCurveItem(
             [], [], pen=(0, 0, 255))
-        self.right_axis.linkedView().addItem(self.right_axis_curve)  
-    
+        self.right_axis.linkedView().addItem(self.right_axis_curve)
+
     def readValue(self, monitor=False):
         """Read value."""
         try:
@@ -90,7 +79,7 @@ class CoolingSystemWidget(_TablePlotWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             pass
-        
+
     def updatePlot(self):
         """Update plot values."""
         if len(self._timestamp) == 0:
@@ -100,7 +89,7 @@ class CoolingSystemWidget(_TablePlotWidget):
                         _np.array([]), _np.array([]))
                 else:
                     self._graphs[label].setData(
-                        _np.array([]), _np.array([]))                    
+                        _np.array([]), _np.array([]))
             return
 
         with _warnings.catch_warnings():
@@ -113,4 +102,4 @@ class CoolingSystemWidget(_TablePlotWidget):
                 if label == 'Output':
                     self.right_axis_curve.setData(dt, rd)
                 else:
-                    self._graphs[label].setData(dt, rd)     
+                    self._graphs[label].setData(dt, rd)

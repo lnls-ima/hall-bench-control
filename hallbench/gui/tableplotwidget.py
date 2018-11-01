@@ -279,11 +279,11 @@ class TablePlotWidget(_QWidget):
             hour = dt.strftime("%H:%M:%S")
             self.ui.table_ta.setItem(i, 0, _QTableWidgetItem(date))
             self.ui.table_ta.setItem(i, 1, _QTableWidgetItem(hour))
-       
+
             if hasattr(self, '_position'):
                 pos = '{0:.4f}'.format(self._position[i])
                 self.ui.table_ta.setItem(i, 2, _QTableWidgetItem(pos))
-            
+
             for j in range(len(self._data_labels)):
                 reading = self._readings[self._data_labels[j]][i]
                 if hasattr(self, '_position'):

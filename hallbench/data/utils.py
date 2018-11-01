@@ -130,23 +130,23 @@ def getAverageStd(avgs, stds, nmeas):
     if len(avgs) != len(stds):
         raise ValueError('Inconsistent size of input arguments')
         return None, None
-    
+
     if nmeas == 0:
         raise ValueError('Invalid number of measurements.')
         return None, None
-    
+
     elif nmeas == 1:
         avg = _np.mean(avgs)
         std = _np.std(avgs, ddof=1)
-    
+
     else:
         n = len(avgs)*nmeas
         avgs = _np.array(avgs)
         stds = _np.array(stds)
-        
+
         avg = _np.sum(avgs)*nmeas/n
         std = _np.sqrt((1/(n-1))*(
-            _np.sum((nmeas-1)*(stds**2) + nmeas*(avgs**2)) - 
-            (1/n)*(_np.sum( avgs*nmeas )**2)))
-    
+            _np.sum((nmeas-1)*(stds**2) + nmeas*(avgs**2)) -
+            (1/n)*(_np.sum(avgs*nmeas)**2)))
+
     return avg, std

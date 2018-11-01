@@ -70,7 +70,7 @@ class ViewProbeDialog(_QDialog):
         self.graphz = []
         self.ui.plot_pw.clear()
         self.interpolation_dialog.clear()
-        self.polynomial_dialog.clear()        
+        self.polynomial_dialog.clear()
 
     def closeDialogs(self):
         """Close dialogs."""

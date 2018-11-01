@@ -175,10 +175,10 @@ class Agilent34401ACommands(object):
         """Configure measure."""
         self.config_volt = ':CONF:VOLT:DC DEF, DEF'
         self.trig = ':TRIG:SOUR EXT'
-    
+
     def _clear(self):
         self.clear = '*CLS'
-        
+
     def _read(self):
         self.read = ':READ?'
 
@@ -226,6 +226,7 @@ class Agilent34401A(GPIB):
         self.send_command(self.commands.reset)
 
     def config(self):
+        """Configure device for voltage measurements."""
         self.reset()
         self.send_command(self.commands.config_volt)
         self.send_command(self.commands.clear)
@@ -537,7 +538,7 @@ class Agilent3458ACommands(object):
     def _query(self):
         self.qbeep = 'BEEP?'
         self.qid = 'ID?'
-        
+
     def _fixedz(self):
         self.fixedz_on = "FIXEDZ ON"
 

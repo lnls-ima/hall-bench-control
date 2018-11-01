@@ -30,13 +30,13 @@ class TemperatureWidget(_TablePlotWidget):
     _plot_label = 'Temperature [deg C]'
     _data_format = '{0:.2f}'
     _data_labels = [
-        '101', '102', '103', '105','201',
+        '101', '102', '103', '105', '201',
         '202', '203', '204',
         '205', '206', '207',
         '208', '209',
     ]
     _colors = [
-        (230, 25, 75), (60, 180, 75), (0, 130, 200), 
+        (230, 25, 75), (60, 180, 75), (0, 130, 200),
         (245, 130, 48), (145, 30, 180), (255, 225, 25), (70, 240, 240),
         (240, 50, 230), (170, 110, 40), (128, 0, 0),
         (0, 0, 0), (128, 128, 128), (0, 255, 0),
@@ -87,14 +87,14 @@ class TemperatureWidget(_TablePlotWidget):
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
-            
+
             wait = self.channels_widget.delay
             self._configured = self.devices.multich.configure(
                 selected_channels, wait=wait)
 
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
-            
+
             if self._configured:
                 self.configure_btn.setEnabled(False)
             else:

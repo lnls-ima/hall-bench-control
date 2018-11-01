@@ -30,7 +30,7 @@ from hallbench.gui.databasewidget import DatabaseWidget \
 from hallbench.gui.voltagewidget import VoltageWidget \
     as _VoltageWidget
 from hallbench.gui.pscurrentwidget import PSCurrentWidget \
-    as _PSCurrentWidget    
+    as _PSCurrentWidget
 from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
 from hallbench.gui.angularerrorwidget import AngularErrorWidget \
@@ -110,10 +110,10 @@ class HallBenchWindow(_QMainWindow):
 
         self.power_supply_tab.current_ramp_end.connect(
             self.measurement_tab.endAutomaticMeasurements)
-        
+
         self.ui.preferences_btn.clicked.connect(self.preferences_dialog.show)
         self.preferences_dialog.tabsPreferencesChanged()
-        
+
         self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
 
     @property
@@ -147,19 +147,19 @@ class HallBenchWindow(_QMainWindow):
             self.changing_tabs = True
             current_tab = self.ui.main_tab.currentWidget()
             self.ui.main_tab.clear()
-            sorted_ts = sorted(tab_status.items(), key=lambda x:x[1][1])
+            sorted_ts = sorted(tab_status.items(), key=lambda x: x[1][1])
             for i in range(len(sorted_ts)):
                 tab_name = sorted_ts[i][0]
                 status = sorted_ts[i][1][0]
                 if status and hasattr(self, tab_name + '_tab'):
-                    tab = getattr(self, tab_name + '_tab')               
+                    tab = getattr(self, tab_name + '_tab')
                     tab_label = tab_name.replace('_', ' ').capitalize()
                     self.ui.main_tab.addTab(tab, tab_label)
-        
+
             idx = self.ui.main_tab.indexOf(current_tab)
             self.ui.main_tab.setCurrentIndex(idx)
             self.changing_tabs = False
-        
+
         except Exception:
             self.changing_tabs = False
             _traceback.print_exc(file=_sys.stdout)
@@ -197,7 +197,7 @@ class PreferencesDialog(_QDialog):
         self.ui.cooling_system_chb.setChecked(False)
         self.ui.angular_error_chb.setChecked(False)
         self.ui.database_chb.setChecked(True)
-        
+
     def tabsPreferencesChanged(self):
         """Get tabs checkbox status and emit signal to change tabs."""
         try:

@@ -236,7 +236,7 @@ class DatabaseWidget(_QWidget):
 
             if not ok:
                 return
-            
+
             if use_offset == 'False':
                 subtract_voltage_offset = 0
                 for vs in voltage_scan_list:
@@ -261,7 +261,7 @@ class DatabaseWidget(_QWidget):
                         msg = 'Invalid voltage offset value found.'
                         _QMessageBox.critical(
                             self, 'Failure', msg, _QMessageBox.Ok)
-                        return                        
+                        return
 
             probe_name, ok = _QInputDialog.getItem(
                 self, "Hall Probe", "Select the Hall Probe:",
@@ -476,12 +476,12 @@ class DatabaseWidget(_QWidget):
             res = cur.execute(
                 "SELECT name FROM sqlite_master WHERE type='table';")
 
-            for r in res:                  
+            for r in res:
                 table_name = r[0]
                 if (self.ui.short_version_chb.isChecked() and
                    table_name not in self.short_version_tables):
                     continue
-                
+
                 table = DatabaseTable(self.ui.database_tab)
                 tab = _QWidget()
                 vlayout = _QVBoxLayout()
@@ -566,28 +566,28 @@ class DatabaseWidget(_QWidget):
             idns = _MeasurementConfig.get_table_column(self.database, 'id')
             if len(idns) == 0:
                 return
-            
+
             msg = 'Remove all unused configurations from database table?'
             reply = _QMessageBox.question(
                 self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
             if reply == _QMessageBox.Yes:
-            
+
                 self.blockSignals(True)
                 _QApplication.setOverrideCursor(_Qt.WaitCursor)
-        
+
                 vs_idns = _VoltageScan.get_table_column(
                     self.database, 'configuration_id')
                 fs_idns = _FieldScan.get_table_column(
                     self.database, 'configuration_id')
-    
+
                 unused_idns = []
                 for idn in idns:
                     if (idn not in vs_idns) and (idn not in fs_idns):
                         unused_idns.append(idn)
-    
+
                 con = _sqlite3.connect(self.database)
                 cur = con.cursor()
-                
+
                 seq = ','.join(['?']*len(unused_idns))
                 cmd = 'DELETE FROM {0} WHERE id IN ({1})'.format(
                     self._configuration_table_name, seq)
@@ -687,7 +687,7 @@ class DatabaseWidget(_QWidget):
         """Update database tables."""
         if not self.isVisible():
             return
-        
+
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
@@ -730,17 +730,17 @@ class DatabaseWidget(_QWidget):
 
         try:
             self.blockSignals(True)
-            _QApplication.setOverrideCursor(_Qt.WaitCursor)            
-            
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+
             scan_list = []
             for idn in idns:
                 scan_list.append(_VoltageScan(database=self.database, idn=idn))
             self.view_scan_dialog.accept()
             self.view_scan_dialog.show(scan_list, idns, 'Voltage [V]')
-            
+
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
-        
+
         except Exception:
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -758,16 +758,16 @@ class DatabaseWidget(_QWidget):
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
-            
+
             scan_list = []
             for idn in idns:
                 scan_list.append(_FieldScan(database=self.database, idn=idn))
             self.view_scan_dialog.accept()
             self.view_scan_dialog.show(scan_list, idns, 'Magnetic Field [T]')
-        
+
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
-        
+
         except Exception:
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -784,12 +784,12 @@ class DatabaseWidget(_QWidget):
 
         try:
             self.blockSignals(True)
-            _QApplication.setOverrideCursor(_Qt.WaitCursor)            
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
             fieldmap = _Fieldmap(database=self.database, idn=idn)
             self.view_fieldmap_dialog.accept()
             self.view_fieldmap_dialog.show(fieldmap, idn)
-            
+
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
         except Exception:
@@ -872,7 +872,7 @@ class DatabaseTable(_QTableWidget):
         """Update table."""
         if self.database is None or self.table_name is None:
             return
-        
+
         self.blockSignals(True)
         self.setColumnCount(0)
         self.setRowCount(0)
@@ -883,7 +883,7 @@ class DatabaseTable(_QTableWidget):
         cmd = "PRAGMA TABLE_INFO({0})".format(self.table_name)
         cur.execute(cmd)
         table_info = cur.fetchall()
-        
+
         self.column_names = []
         self.data_types = []
         for ti in table_info:
@@ -892,21 +892,22 @@ class DatabaseTable(_QTableWidget):
             if column_name not in self._hidden_columns:
                 self.column_names.append(column_name)
                 self.data_types.append(self._datatype_dict[column_type])
-               
+
         self.setColumnCount(len(self.column_names))
         self.setHorizontalHeaderLabels(self.column_names)
 
         self.setRowCount(1)
         for j in range(len(self.column_names)):
             self.setItem(0, j, _QTableWidgetItem(''))
-  
+
         column_names_str = ''
         for col_name in self.column_names:
             column_names_str = column_names_str + '"{0:s}", '.format(col_name)
         column_names_str = column_names_str[:-2]
 
-        cmd = 'SELECT * FROM (SELECT {0:s} FROM {1:s} ORDER BY id DESC LIMIT {2:d}) ORDER BY id ASC'.format(
-             column_names_str, self.table_name, _max_number_rows)
+        sel = '(SELECT {0:s} FROM {1:s} ORDER BY id DESC LIMIT {2:d})'.format(
+            column_names_str, self.table_name, _max_number_rows)
+        cmd = 'SELECT * FROM ' + sel + ' ORDER BY id ASC'
         data = cur.execute(cmd).fetchall()
 
         if len(data) > 0:
@@ -915,9 +916,9 @@ class DatabaseTable(_QTableWidget):
             self.initial_id_sb.setMinimum(min_idn)
 
             cmd = 'SELECT MAX(id) FROM {0}'.format(self.table_name)
-            max_idn = cur.execute(cmd).fetchone()[0]               
+            max_idn = cur.execute(cmd).fetchone()[0]
             self.initial_id_sb.setMaximum(max_idn)
-            
+
             self.max_number_rows_sb.setValue(len(data))
             self.data = data[:]
             self.addRowsToTable(data)
@@ -925,7 +926,7 @@ class DatabaseTable(_QTableWidget):
             self.initial_id_sb.setMinimum(0)
             self.initial_id_sb.setMaximum(0)
             self.max_number_rows_sb.setValue(0)
-        
+
         self.setSelectionBehavior(_QAbstractItemView.SelectRows)
         self.blockSignals(False)
         self.itemChanged.connect(self.filterChanged)
@@ -991,13 +992,14 @@ class DatabaseTable(_QTableWidget):
            or self.columnCount() == 0
            or len(self.column_names) == 0 or len(self.data_types) == 0):
             return
-        
+
         try:
             con = _sqlite3.connect(self.database)
             cur = con.cursor()
             column_names_str = ''
             for col_name in self.column_names:
-                column_names_str = column_names_str + '"{0:s}", '.format(col_name)
+                column_names_str = column_names_str + '"{0:s}", '.format(
+                    col_name)
             column_names_str = column_names_str[:-2]
             cmd = 'SELECT {0:s} FROM {1:s}'.format(
                 column_names_str, self.table_name)
@@ -1006,21 +1008,21 @@ class DatabaseTable(_QTableWidget):
             filters = []
             for idx in range(len(self.column_names)):
                 filters.append(self.item(0, idx).text())
-    
+
             if any(filt != '' for filt in filters):
                 cmd = cmd + ' WHERE '
-    
+
             for idx in range(len(self.column_names)):
                 column = self.column_names[idx]
                 data_type = self.data_types[idx]
                 filt = filters[idx]
-    
+
                 if filt != '':
-    
+
                     if and_flag:
                         cmd = cmd + ' AND '
                     and_flag = True
-    
+
                     if data_type == str:
                         cmd = cmd + column + ' LIKE "%' + filt + '%"'
                     else:
@@ -1038,19 +1040,25 @@ class DatabaseTable(_QTableWidget):
                                 cmd = cmd + column + ' = ' + str(value)
                             except ValueError:
                                 cmd = cmd + column + ' ' + filt
-    
+
             if initial_id is not None:
                 if 'WHERE' in cmd:
-                    cmd = 'SELECT * FROM (' + cmd + ' AND id >= {0:d} LIMIT {1:d})'.format(
-                        initial_id, _max_number_rows)
+                    cmd = (
+                        'SELECT * FROM (' + cmd +
+                        ' AND id >= {0:d} LIMIT {1:d})'.format(
+                            initial_id, _max_number_rows))
                 else:
-                    cmd = 'SELECT * FROM (' + cmd + ' WHERE id >= {0:d} LIMIT {1:d})'.format(
-                        initial_id, _max_number_rows)
-    
+                    cmd = (
+                        'SELECT * FROM (' + cmd +
+                        ' WHERE id >= {0:d} LIMIT {1:d})'.format(
+                            initial_id, _max_number_rows))
+
             else:
-                cmd = 'SELECT * FROM (' + cmd + ' ORDER BY id DESC LIMIT {0:d}) ORDER BY id ASC'.format(
-                    _max_number_rows)
-        
+                cmd = (
+                    'SELECT * FROM (' + cmd +
+                    ' ORDER BY id DESC LIMIT {0:d}) ORDER BY id ASC'.format(
+                        _max_number_rows))
+
             cur.execute(cmd)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

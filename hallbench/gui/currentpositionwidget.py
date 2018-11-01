@@ -34,7 +34,7 @@ class CurrentPositionWidget(_QWidget):
 
     @property
     def positions(self):
-        """Current posiitons."""
+        """Return current posiitons dict."""
         return _QApplication.instance().positions
 
     def closeEvent(self, event):
@@ -51,7 +51,7 @@ class CurrentPositionWidget(_QWidget):
         try:
             if not self.isVisible():
                 return
-            
+
             for axis in self._list_of_axis:
                 le = getattr(self.ui, 'posax' + str(axis) + '_le')
                 if axis in self.positions:

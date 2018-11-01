@@ -10,17 +10,11 @@ from PyQt5.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
-    QVBoxLayout as _QVBoxLayout,
-    QWidget as _QWidget,
     )
 from PyQt5.QtCore import (
-    pyqtSignal as _pyqtSignal,
-    QDateTime as _QDateTime,
     Qt as _Qt,
     )
-import PyQt5.uic as _uic
 
-import hallbench.gui.utils as _utils
 from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
 
 
@@ -56,7 +50,7 @@ class PSCurrentWidget(_TablePlotWidget):
     def devices(self):
         """Hall Bench Devices."""
         return _QApplication.instance().devices
-    
+
     @property
     def power_supply_config(self):
         """Power supply configuration."""
@@ -73,7 +67,7 @@ class PSCurrentWidget(_TablePlotWidget):
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
-            
+
             ps_type = self.power_supply_config.ps_type
             if ps_type is not None:
                 self.devices.ps.SetSlaveAdd(ps_type)
@@ -83,13 +77,13 @@ class PSCurrentWidget(_TablePlotWidget):
                 _QMessageBox.critical(
                     self, 'Failure',
                     'Invalid power supply configuration.', _QMessageBox.Ok)
-                return       
-            
+                return
+
             self.devices.dcct.config()
-            
+
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
-       
+
         except Exception:
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -112,7 +106,7 @@ class PSCurrentWidget(_TablePlotWidget):
             ts = _time.time()
             dcct_head = self.power_supply_config.dcct_head
             ps_type = self.power_supply_config.ps_type
-                        
+
             dcct_current = self.devices.dcct.read_current(dcct_head=dcct_head)
             self._readings['DCCT [A]'].append(dcct_current)
 

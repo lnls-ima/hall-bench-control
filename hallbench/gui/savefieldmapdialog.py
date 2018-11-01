@@ -264,7 +264,8 @@ class SaveFieldmapDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-        if self.field_scan_id_list is None or len(self.field_scan_id_list) == 0:
+        if (self.field_scan_id_list is None or
+           len(self.field_scan_id_list) == 0):
             msg = 'Invalid list of scan IDs.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
@@ -343,12 +344,12 @@ class SaveFieldmapDialog(_QDialog):
             msg = 'Invalid hall probe data.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
-       
+
         mns = []
         for i in range(self.ui.predefined_cmb.count()):
             mns.append(self.ui.predefined_cmb.itemText(i))
 
-        mn = field_scan_list[0].magnet_name   
+        mn = field_scan_list[0].magnet_name
         if all([fs.magnet_name == mn for fs in field_scan_list]):
             if mn is not None:
                 mag = mn.split('-')[0]

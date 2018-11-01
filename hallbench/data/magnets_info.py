@@ -167,7 +167,6 @@ def _get_magnets_info():
     _d['nr_turns_main'] = 23
     magnets_info.append(_d)
 
-
     return magnets_info
 
 

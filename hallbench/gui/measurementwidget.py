@@ -34,7 +34,6 @@ from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
 from hallbench.data.measurement import VoltageScan as _VoltageScan
 from hallbench.data.measurement import FieldScan as _FieldScan
-from scipy.sparse.linalg._expm_multiply import _trace
 
 
 class MeasurementWidget(_QWidget):
@@ -1005,7 +1004,7 @@ class MeasurementWidget(_QWidget):
             if self.ui.save_temperature_chb.isChecked():
                 channels = channels + self.devices.multich.probe_channels
                 channels = channels + self.devices.multich.temperature_channels
-            
+
             if len(channels) == 0:
                 return True
 
@@ -1197,7 +1196,7 @@ class MeasurementWidget(_QWidget):
             msg = 'Failed to update current setpoint.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
-        
+
         if self.local_measurement_config.current_setpoint == 0:
             self.change_current_setpoint.emit(True)
             return
@@ -1300,7 +1299,7 @@ class MeasurementWidget(_QWidget):
             else:
                 self.devices.pmac.set_trigger(
                     axis, end, step*(-1), 10, npts, 1)
-        
+
         if self.local_measurement_config.voltx_enable:
             self.devices.voltx.config(
                 self.local_measurement_config.integration_time,
@@ -1328,13 +1327,13 @@ class MeasurementWidget(_QWidget):
 
         self.stopTrigger()
         self.waitVoltageThreads()
-        
+
         _QApplication.processEvents()
 
         self.voltage_scan.avgx = self.threadx.voltage
         self.voltage_scan.avgy = self.thready.voltage
         self.voltage_scan.avgz = self.threadz.voltage
- 
+
         _QApplication.processEvents()
         self.quitVoltageThreads()
 
@@ -1670,18 +1669,18 @@ class MeasurementWidget(_QWidget):
 
             if self.voltage_scan.npts == 0:
                 _warnings.warn(
-                    'Invalid number of points in voltage scan. Making a second attempt.')
+                    'Invalid number of points in voltage scan.')
                 if not self.measureVoltageScan(
                         idx, to_pos, first_axis,
                         start, end, step, extra, npts):
                     return False
-                
+
                 if self.stop is True:
                     return
 
                 if self.voltage_scan.npts == 0:
                     raise Exception(
-                        'Invalid number of points in voltage scan. Stopping measure.')
+                        'Invalid number of points in voltage scan.')
                     return False
 
             if self.ui.save_voltage_chb.isChecked():
@@ -1706,7 +1705,7 @@ class MeasurementWidget(_QWidget):
         for idn in self.field_scan_id_list:
             fs = _FieldScan(database=self.database, idn=idn)
             field_scan_list.append(fs)
-        
+
         self.save_fieldmap_dialog.show(
             field_scan_list,
             self.local_hall_probe,
@@ -1720,7 +1719,7 @@ class MeasurementWidget(_QWidget):
                 for idn in self.voltage_scan_id_list:
                     vs = _VoltageScan(database=self.database, idn=idn)
                     voltage_scan_list.append(vs)
-                
+
                 self.view_scan_dialog.show(
                     voltage_scan_list,
                     self.voltage_scan_id_list,
@@ -1730,7 +1729,7 @@ class MeasurementWidget(_QWidget):
                 for idn in self.field_scan_id_list:
                     fs = _FieldScan(database=self.database, idn=idn)
                     field_scan_list.append(fs)
-                
+
                 self.view_scan_dialog.show(
                     field_scan_list,
                     self.field_scan_id_list,

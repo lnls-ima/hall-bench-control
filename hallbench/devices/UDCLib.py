@@ -1,8 +1,9 @@
-'''
+"""UDC communication.
+
 Created on 9 de out de 2018
 
 @author: Vitor Soares
-'''
+"""
 
 import minimalmodbus as _minimalmodbus
 import numpy as _np
@@ -12,7 +13,7 @@ import time as _time
 
 class UDC3500():
     """Honeywell UDC-3500 control class."""
-    
+
     def __init__(self):
         """Honeywell UDC-3500 control class."""
         self.inst = None
@@ -48,26 +49,26 @@ class UDC3500():
             return None
 
     def read_pv1(self):
-        """Returns process variable."""
+        """Return process variable."""
         return self.inst.read_float(72)
 
     def read_pv2(self):
-        """Returns process variable 2."""
+        """Return process variable 2."""
         return self.inst.read_float(74)
 
     def read_co(self):
-        """Returns controller output."""
+        """Return controller output."""
         return self.inst.read_float(70)
 
     def clear(self):
-        """Clears arrays."""
+        """Clear arrays."""
         self.pv1 = _np.array([])
         self.pv2 = _np.array([])
         self.co = _np.array([])
         self.t = _np.array([])
 
     def _collect(self):
-        """Collects data."""
+        """Collect data."""
         self.clear()
         _t0 = _time.time()
         while self.flag_collect:
@@ -78,13 +79,13 @@ class UDC3500():
             _time.sleep(self.interval)
 
     def start_collect(self, time_interval):
-        """Starts collect data routine."""
+        """Start collect data routine."""
         self.interval = time_interval
         thread = _threading.Thread(target=self._collect)
         thread.daemon = True
         thread.start()
 
     def stop_collect(self):
-        """Stops collect data routine."""
+        """Stop collect data routine."""
         self.flag_collect = False
-        time.sleep(2*self.interval)
+        _time.sleep(2*self.interval)

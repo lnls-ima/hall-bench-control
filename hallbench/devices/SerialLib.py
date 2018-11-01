@@ -158,7 +158,7 @@ class Elcomat(object):
                         y = y/3600
                     elif unit == 'rad':
                         x = x/206264.8062471
-                        y = y/206264.8062471                    
+                        y = y/206264.8062471
                     return (x, y)
                 else:
                     return (None, None)
@@ -187,7 +187,7 @@ class Elcomat(object):
                         y = y/3600
                     elif unit == 'rad':
                         x = x/206264.8062471
-                        y = y/206264.8062471 
+                        y = y/206264.8062471
                     return (x, y)
                 else:
                     return (None, None)

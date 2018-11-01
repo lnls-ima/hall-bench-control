@@ -71,7 +71,7 @@ class HallBenchDevices(object):
 
         if config.ps_enable:
             self.ps.Connect(config.ps_port)
-            
+
         if config.udc_enable:
             self.udc.connect(config.udc_port, config.udc_baudrate)
 

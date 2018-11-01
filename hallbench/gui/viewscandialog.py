@@ -66,13 +66,13 @@ class ViewScanDialog(_QDialog):
         _layout = _QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(self.select_scan_cmb)
-        self.ui.select_scan_wg.setLayout(_layout)        
+        self.ui.select_scan_wg.setLayout(_layout)
 
         self.select_component_cmb = _utils.CheckableComboBox()
         _layout = _QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(self.select_component_cmb)
-        self.ui.select_component_wg.setLayout(_layout)    
+        self.ui.select_component_wg.setLayout(_layout)
 
         self.addRightAxes()
         self.connectSignalSlots()
@@ -110,14 +110,14 @@ class ViewScanDialog(_QDialog):
             pr2.linkedViewChanged(p.vb, pr2.XAxis)
 
         updateViews()
-        p.vb.sigResized.connect(updateViews) 
+        p.vb.sigResized.connect(updateViews)
 
     def calcCurveFit(self):
         """Calculate curve fit."""
         x, y = self.getSelectedXY()
         if x is None or y is None:
             return
-        
+
         func = self.ui.fitfunction_cmb.currentText()
         if func.lower() == 'linear':
             xfit, yfit, param, label = _linear_fit(x, y)
@@ -154,11 +154,11 @@ class ViewScanDialog(_QDialog):
 
         sel = self.scan_dict[selected_idx][selected_comp]
         unit = sel['unit']
-        
+
         x, y = self.getSelectedXY()
         if x is None or y is None:
             return
-        
+
         if len(y) > 0:
             first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
             second_integral = _integrate.cumtrapz(
@@ -230,7 +230,7 @@ class ViewScanDialog(_QDialog):
         self.ui.first_integral_le.setText('')
         self.ui.second_integral_le.setText('')
         self.ui.first_integral_unit_la.setText('')
-        self.ui.second_integral_unit_la.setText('')                   
+        self.ui.second_integral_unit_la.setText('')
 
     def clearGraph(self):
         """Clear plots."""
@@ -279,7 +279,7 @@ class ViewScanDialog(_QDialog):
         self.legend.removeItem('X')
         self.legend.removeItem('Y')
         self.legend.removeItem('Z')
-        
+
         if nr_curves == 0:
             return
 
@@ -364,22 +364,22 @@ class ViewScanDialog(_QDialog):
             selected_idx = idx_list[0]
         else:
             selected_idx = None
-        
+
         text_list = self.select_component_cmb.checkedItemsText()
         if len(text_list) == 1:
             selected_comp = text_list[0].lower()
         else:
             selected_comp = None
-        
+
         return selected_idx, selected_comp
 
     def getSelectedScansComponents(self):
         """Get all selected scans and components."""
         selected_idx = self.select_scan_cmb.checkedIndexes()
-        
+
         text_list = self.select_component_cmb.checkedItemsText()
         selected_comp = [t.lower() for t in text_list]
-        
+
         return selected_idx, selected_comp
 
     def getSelectedXY(self):
@@ -387,7 +387,7 @@ class ViewScanDialog(_QDialog):
         selected_idx, selected_comp = self.getSelectedScanComponent()
         if selected_idx is None or selected_comp is None:
             return None, None
-        
+
         sel = self.scan_dict[selected_idx][selected_comp]
 
         pos = sel['pos']
@@ -411,7 +411,7 @@ class ViewScanDialog(_QDialog):
         selected_idx, selected_comp = self.getSelectedScanComponent()
         if selected_idx is None or selected_comp is None:
             return
-        
+
         od = self.ui.polyorder_sb.value()
         self.scan_dict[selected_idx][selected_comp]['fit_polyorder'] = od
 
@@ -420,7 +420,7 @@ class ViewScanDialog(_QDialog):
         selected_idx, selected_comp = self.getSelectedScanComponent()
         if selected_idx is None or selected_comp is None:
             return
-        
+
         pos = self.scan_dict[selected_idx][selected_comp]['pos']
         xoff = self.scan_dict[selected_idx][selected_comp]['xoff']
         xmult = self.scan_dict[selected_idx][selected_comp]['xmult']
@@ -492,7 +492,7 @@ class ViewScanDialog(_QDialog):
             state = _Qt.Checked
         else:
             state = _Qt.Unchecked
-        
+
         for idx in range(self.select_scan_cmb.count()):
             item = self.select_scan_cmb.model().item(idx, 0)
             item.setCheckState(state)
@@ -500,23 +500,23 @@ class ViewScanDialog(_QDialog):
         for idx in range(self.select_component_cmb.count()):
             item = self.select_component_cmb.model().item(idx, 0)
             item.setCheckState(state)
-        
+
         self.blockSignals(False)
         self.updateControls()
         self.updatePlot()
 
     def show(self, scan_list, scan_id_list, plot_label=''):
         """Update data and show dialog."""
-        try:            
+        try:
             if scan_list is None or len(scan_list) == 0:
                 msg = 'Invalid data list.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return
-    
+
             self.scan_list = [d.copy() for d in scan_list]
             self.scan_id_list = scan_id_list
             self.plot_label = plot_label
-            
+
             idx = 0
             for i in range(len(self.scan_list)):
                 self.scan_dict[idx] = {}
@@ -614,7 +614,7 @@ class ViewScanDialog(_QDialog):
                 self.ui.view_current_btn.setEnabled(True)
 
             self.temperature = _measurement.get_temperature_values(
-                self.scan_list)            
+                self.scan_list)
             if len(self.temperature) != 0:
                 self.ui.view_temperature_btn.setEnabled(True)
 
@@ -638,7 +638,7 @@ class ViewScanDialog(_QDialog):
             return
 
         try:
-             self.current_dialog.show(self.current)
+            self.current_dialog.show(self.current)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to open dialog.'
@@ -673,7 +673,7 @@ class ViewScanDialog(_QDialog):
         """Enable offset and fit group box and update offset values."""
         self.clearFit()
         self.clearIntegrals()
-        
+
         selected_idx, selected_comp = self.getSelectedScanComponent()
         if selected_idx is None or selected_comp is None:
             self.ui.offset_gb.setEnabled(False)
@@ -751,21 +751,21 @@ class ViewScanDialog(_QDialog):
         try:
             self.clearGraph()
             self.updateXLimits()
-            
+
             selected_idx, selected_comp = self.getSelectedScansComponents()
-            
+
             if len(selected_idx) == 0 or len(selected_comp) == 0:
                 show_xlines = False
                 return
-            
+
             if len(selected_idx) > 1 or len(selected_comp) > 1:
                 show_xlines = False
             else:
                 show_xlines = True
-            
+
             nr_curves = len(selected_idx)
             self.configureGraph(nr_curves, self.plot_label)
-         
+
             scan_dict = {}
             for idx in selected_idx:
                 scan_dict[idx] = {}
@@ -825,7 +825,7 @@ class ViewScanDialog(_QDialog):
         selected_idx, selected_comp = self.getSelectedScanComponent()
         if selected_idx is None or selected_comp is None:
             return
-        
+
         self.ui.xmin_sb.setValue(
             self.scan_dict[selected_idx][selected_comp]['xmin'])
         self.ui.xmax_sb.setValue(
@@ -836,7 +836,7 @@ class ViewScanDialog(_QDialog):
         selected_idx, selected_comp = self.getSelectedScanComponent()
         if selected_idx is None or selected_comp is None:
             return
-        
+
         self.scan_dict[selected_idx][selected_comp]['xmax'] = (
             self.ui.xmax_sb.value())
 

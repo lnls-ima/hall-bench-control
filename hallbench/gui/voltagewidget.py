@@ -59,7 +59,7 @@ class VoltageWidget(_TablePlotWidget):
         self.reset_btn.setFont(font)
         self.ui.layout_lt.addWidget(self.reset_btn)
         self.reset_btn.clicked.connect(self.resetMultimeters)
-        
+
         # variables initialisation
         self._position = []
         self.configureTable()
@@ -123,14 +123,14 @@ class VoltageWidget(_TablePlotWidget):
                 voltx = float(self.devices.voltx.read_from_device()[:-2])
                 voltx = voltx*self._data_mult_factor
             else:
-                voltx = _np.nan           
+                voltx = _np.nan
             self._readings[self._data_labels[0]].append(voltx)
 
             if self.volty_chb.isChecked():
                 volty = float(self.devices.volty.read_from_device()[:-2])
                 volty = volty*self._data_mult_factor
             else:
-                volty = _np.nan 
+                volty = _np.nan
             self._readings[self._data_labels[1]].append(volty)
 
             if self.voltz_chb.isChecked():
@@ -167,19 +167,19 @@ class VoltageWidget(_TablePlotWidget):
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
-            
+
             if self.voltx_chb.isChecked():
                 self.devices.voltx.reset()
-                
+
             if self.volty_chb.isChecked():
                 self.devices.volty.reset()
-                
+
             if self.voltz_chb.isChecked():
                 self.devices.voltz.reset()
-            
+
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
-            
+
         except Exception:
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()

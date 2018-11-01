@@ -271,7 +271,7 @@ class Scan(_database.DatabaseObject):
     def offsetx_start(self):
         """Sensor X Voltage Offset at the start of the scan [V]."""
         return self._offsetx_start
-    
+
     @offsetx_start.setter
     def offsetx_start(self, value):
         self._offsetx_start = self._get_float_property_value(value)
@@ -280,7 +280,7 @@ class Scan(_database.DatabaseObject):
     def offsetx_end(self):
         """Sensor X Voltage Offset at the end of the scan [V]."""
         return self._offsetx_end
-    
+
     @offsetx_end.setter
     def offsetx_end(self, value):
         self._offsetx_end = self._get_float_property_value(value)
@@ -289,7 +289,7 @@ class Scan(_database.DatabaseObject):
     def offsety_start(self):
         """Sensor Y Voltage Offset at the start of the scan [V]."""
         return self._offsety_start
-    
+
     @offsety_start.setter
     def offsety_start(self, value):
         self._offsety_start = self._get_float_property_value(value)
@@ -298,7 +298,7 @@ class Scan(_database.DatabaseObject):
     def offsety_end(self):
         """Sensor Y Voltage Offset at the end of the scan [V]."""
         return self._offsety_end
-    
+
     @offsety_end.setter
     def offsety_end(self, value):
         self._offsety_end = self._get_float_property_value(value)
@@ -307,7 +307,7 @@ class Scan(_database.DatabaseObject):
     def offsetz_start(self):
         """Sensor Z Voltage Offset at the start of the scan [V]."""
         return self._offsetz_start
-    
+
     @offsetz_start.setter
     def offsetz_start(self, value):
         self._offsetz_start = self._get_float_property_value(value)
@@ -316,14 +316,14 @@ class Scan(_database.DatabaseObject):
     def offsetz_end(self):
         """Sensor Z Voltage Offset at the end of the scan [V]."""
         return self._offsetz_end
-    
+
     @offsetz_end.setter
     def offsetz_end(self, value):
         self._offsetz_end = self._get_float_property_value(value)
 
     @property
     def nr_voltage_scans(self):
-        """Number of voltage scans used to get average values."""
+        """Return the number of voltage scans used to get average values."""
         return self._nr_voltage_scans
 
     @property
@@ -708,7 +708,7 @@ class VoltageScan(Scan):
         ('hour', [None, 'TEXT NOT NULL']),
         ('configuration_id', ['configuration_id', 'INTEGER']),
         ('magnet_name', ['magnet_name', 'TEXT']),
-        ('current_setpoint', ['current_setpoint', 'REAL']),     
+        ('current_setpoint', ['current_setpoint', 'REAL']),
         ('dcct_current_avg', ['dcct_current_avg', 'REAL']),
         ('dcct_current_std', ['dcct_current_std', 'REAL']),
         ('ps_current_avg', ['ps_current_avg', 'REAL']),
@@ -732,11 +732,11 @@ class VoltageScan(Scan):
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
         ('offsetx_start', ['offsetx_start', 'REAL']),
         ('offsetx_end', ['offsetx_end', 'REAL']),
-        ('offsety_start', ['offsety_start', 'REAL']),        
+        ('offsety_start', ['offsety_start', 'REAL']),
         ('offsety_end', ['offsety_end', 'REAL']),
         ('offsetz_start', ['offsetz_start', 'REAL']),
         ('offsetz_end', ['offsetz_end', 'REAL']),
-        ('nr_voltage_scans', ['_nr_voltage_scans', 'INTEGER']),  
+        ('nr_voltage_scans', ['_nr_voltage_scans', 'INTEGER']),
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
@@ -859,7 +859,7 @@ class FieldScan(Scan):
         ('hour', [None, 'TEXT NOT NULL']),
         ('configuration_id', ['configuration_id', 'INTEGER']),
         ('magnet_name', ['magnet_name', 'TEXT']),
-        ('current_setpoint', ['current_setpoint', 'REAL']),     
+        ('current_setpoint', ['current_setpoint', 'REAL']),
         ('dcct_current_avg', ['dcct_current_avg', 'REAL']),
         ('dcct_current_std', ['dcct_current_std', 'REAL']),
         ('ps_current_avg', ['ps_current_avg', 'REAL']),
@@ -883,11 +883,11 @@ class FieldScan(Scan):
         ('temperature', ['_temperature', 'TEXT NOT NULL']),
         ('offsetx_start', ['offsetx_start', 'REAL']),
         ('offsetx_end', ['offsetx_end', 'REAL']),
-        ('offsety_start', ['offsety_start', 'REAL']),        
+        ('offsety_start', ['offsety_start', 'REAL']),
         ('offsety_end', ['offsety_end', 'REAL']),
         ('offsetz_start', ['offsetz_start', 'REAL']),
         ('offsetz_end', ['offsetz_end', 'REAL']),
-        ('nr_voltage_scans', ['_nr_voltage_scans', 'INTEGER']),  
+        ('nr_voltage_scans', ['_nr_voltage_scans', 'INTEGER']),
     ])
     _db_json_str = [
         '_pos1', '_pos2', '_pos3', '_pos5',
@@ -940,7 +940,7 @@ class FieldScan(Scan):
 
         self._temperature = get_temperature_values(
             voltage_scan_list)
-        
+
         setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
             voltage_scan_list, voltage_scan_list[0].nr_voltage_scans)
         self.current_setpoint = setpoint
@@ -959,7 +959,7 @@ class Fieldmap(_database.DatabaseObject):
         ('date', [None, 'TEXT NOT NULL']),
         ('hour', [None, 'TEXT NOT NULL']),
         ('magnet_name', ['magnet_name', 'TEXT']),
-        ('current_setpoint', ['current_setpoint', 'REAL']),     
+        ('current_setpoint', ['current_setpoint', 'REAL']),
         ('dcct_current_avg', ['dcct_current_avg', 'REAL']),
         ('dcct_current_std', ['dcct_current_std', 'REAL']),
         ('ps_current_avg', ['ps_current_avg', 'REAL']),
@@ -1420,7 +1420,7 @@ class Fieldmap(_database.DatabaseObject):
 
         tm = _get_transformation_matrix(magnet_x_axis, magnet_y_axis)
         _map = _get_fieldmap(field_scan_list, hall_probe, correct_positions)
-        
+
         for i in range(len(_map)):
             p = _map[i, :3]
             b = _map[i, 3:]
@@ -1456,30 +1456,30 @@ def get_current_values(scan_list, nmeas):
     for scan in scan_list:
         if scan.current_setpoint is not None:
             setpoint_set.add(_np.around(scan.current_setpoint, 5))
-        
+
         if scan.dcct_current_avg is not None:
             dcct_avgs.append(scan.dcct_current_avg)
             if scan.dcct_current_std is not None:
                 dcct_stds.append(scan.dcct_current_std)
             else:
                 dcct_stds.append(0)
-        
+
         if scan.ps_current_avg is not None:
             ps_avgs.append(scan.ps_current_avg)
             if scan.ps_current_std is not None:
                 ps_stds.append(scan.ps_current_std)
             else:
                 ps_stds.append(0)
-   
+
     setpoint = None
     if len(setpoint_set) == 1:
         setpoint = list(setpoint_set)[0]
 
     dcct_avg, dcct_std = _utils.getAverageStd(dcct_avgs, dcct_stds, nmeas)
     ps_avg, ps_std = _utils.getAverageStd(ps_avgs, ps_stds, nmeas)
-        
+
     return setpoint, dcct_avg, dcct_std, ps_avg, ps_std
-    
+
 
 def get_temperature_values(scan_list):
     """Get temperature values."""
@@ -1519,6 +1519,7 @@ def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
     transf_vector = _np.dot(transf_matrix, vector_array - center)
     return transf_vector
 
+
 def _correct_voltage_offset(vs):
     """Subtract voltage offset from measurement values."""
     if vs.npts == 0:
@@ -1535,19 +1536,19 @@ def _correct_voltage_offset(vs):
         if npts == 1:
             vs.avgx = vs.avgx - (vi + vf)/2
         else:
-            vs.avgx = vs.avgx - vi - ((vf- vi)/(p[-1] - p[0]))*(p - p[0])
+            vs.avgx = vs.avgx - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
     elif vi is not None:
         vs.avgx = vs.avgx - vi
     elif vf is not None:
         vs.avgx = vs.avgx - vf
-    
+
     vi = vs.offsety_start
     vf = vs.offsety_end
     if vi is not None and vf is not None:
         if npts == 1:
             vs.avgy = vs.avgy - (vi + vf)/2
         else:
-            vs.avgy = vs.avgy - vi - ((vf- vi)/(p[-1] - p[0]))*(p - p[0])
+            vs.avgy = vs.avgy - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
     elif vi is not None:
         vs.avgy = vs.avgy - vi
     elif vf is not None:
@@ -1559,13 +1560,14 @@ def _correct_voltage_offset(vs):
         if npts == 1:
             vs.avgz = vs.avgz - (vi + vf)/2
         else:
-            vs.avgz = vs.avgz - vi - ((vf- vi)/(p[-1] - p[0]))*(p - p[0])
+            vs.avgz = vs.avgz - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
     elif vi is not None:
         vs.avgz = vs.avgz - vi
     elif vf is not None:
         vs.avgz = vs.avgz - vf
 
     return vs
+
 
 def _cut_data_frame(df, idx_min, idx_max, axis=0):
     if axis == 0:
@@ -1627,7 +1629,7 @@ def _get_avg_voltage(voltage_scan_list):
     voltx_list = []
     volty_list = []
     voltz_list = []
-    for vs in voltage_scan_list:        
+    for vs in voltage_scan_list:
         if len(vs.avgx) == npts:
             ft = _interpolate.splrep(vs.scan_pos, vs.avgx, s=0, k=1)
             voltx = _interpolate.splev(interp_pos, ft, der=0)

@@ -168,7 +168,7 @@ class ConnectionWidget(_QWidget):
         self.ui.elcomat_baudrate_cmb.currentIndexChanged.connect(
             self.clearLoadOptions)
         self.ui.dcct_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.dcct_address_sb.valueChanged.connect(self.clearLoadOptions)       
+        self.ui.dcct_address_sb.valueChanged.connect(self.clearLoadOptions)
         self.ui.ps_enable_chb.stateChanged.connect(self.clearLoadOptions)
         self.ui.ps_port_cmb.currentIndexChanged.connect(self.clearLoadOptions)
         self.ui.udc_enable_chb.stateChanged.connect(self.clearLoadOptions)
@@ -176,7 +176,7 @@ class ConnectionWidget(_QWidget):
             self.clearLoadOptions)
         self.ui.udc_baudrate_cmb.currentIndexChanged.connect(
             self.clearLoadOptions)
-        
+
         self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
         self.ui.update_idn_btn.clicked.connect(self.updateConnectionIDs)
 
@@ -502,7 +502,7 @@ class ConnectionWidget(_QWidget):
         """Update avaliable serial ports."""
         _l = [p[0] for p in _list_ports.comports()]
 
-        if len(_l) ==0:
+        if len(_l) == 0:
             return
 
         _ports = []
@@ -525,6 +525,6 @@ class ConnectionWidget(_QWidget):
 
         self.ui.elcomat_port_cmb.clear()
         self.ui.elcomat_port_cmb.addItems(_ports)
-        
+
         self.ui.udc_port_cmb.clear()
         self.ui.udc_port_cmb.addItems(_ports)

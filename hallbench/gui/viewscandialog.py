@@ -10,14 +10,14 @@ import scipy.integrate as _integrate
 import collections as _collections
 import warnings as _warnings
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QDialog as _QDialog,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
     )
-from PyQt5.QtCore import Qt as _Qt
-import PyQt5.uic as _uic
+from qtpy.QtCore import Qt as _Qt
+import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.tableplotdialog import TablePlotDialog as _TablePlotDialog

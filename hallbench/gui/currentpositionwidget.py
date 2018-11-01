@@ -4,12 +4,12 @@
 
 import sys as _sys
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget as _QWidget,
     QApplication as _QApplication,
     )
-from PyQt5.QtCore import QTimer as _QTimer
-import PyQt5.uic as _uic
+from qtpy.QtCore import QTimer as _QTimer
+import qtpy.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 

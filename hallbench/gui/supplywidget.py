@@ -6,16 +6,16 @@ import sys as _sys
 import numpy as _np
 import time as _time
 import traceback as _traceback
-import PyQt5.uic as _uic
-from PyQt5.QtWidgets import (
+import qtpy.uic as _uic
+from qtpy.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     QTableWidgetItem as _QTableWidgetItem,
     )
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QTimer as _QTimer,
-    pyqtSignal as _pyqtSignal,
+    Signal as _Signal,
     )
 
 from hallbench.gui import utils as _utils
@@ -24,9 +24,9 @@ from hallbench.gui import utils as _utils
 class SupplyWidget(_QWidget):
     """Power Supply widget class for the Hall Bench Control application."""
 
-    start_measurement = _pyqtSignal([bool])
-    current_ramp_end = _pyqtSignal([bool])
-    current_setpoint_changed = _pyqtSignal([float])
+    start_measurement = _Signal([bool])
+    current_ramp_end = _Signal([bool])
+    current_setpoint_changed = _Signal([float])
 
     def __init__(self, parent=None):
         """Set up the ui."""
@@ -38,7 +38,7 @@ class SupplyWidget(_QWidget):
 
         # variables initialization
         self.current_array_index = 0
-        #power supply current slope, [F1000A, F225A, F10A] [A/s]
+        # power supply current slope, [F1000A, F225A, F10A] [A/s]
         self.slope = [50, 90, 1000]
         self.flag_trapezoidal = False
         self.config = self.power_supply_config

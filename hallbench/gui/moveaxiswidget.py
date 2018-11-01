@@ -4,13 +4,13 @@
 
 import sys as _sys
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget as _QWidget,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt5.uic as _uic
+import qtpy.uic as _uic
 
 from hallbench.gui import utils as _utils
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \

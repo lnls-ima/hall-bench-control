@@ -25,6 +25,7 @@ setup(
         'pyserial',
         'matplotlib',
         'minimalmodbus',
+        'qtpy',
     ],
     test_suite='nose.collector',
     tests_require=['nose'],

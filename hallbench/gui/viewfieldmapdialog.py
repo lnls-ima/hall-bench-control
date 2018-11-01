@@ -7,11 +7,11 @@ import numpy as _np
 import pandas as _pd
 import warnings as _warnings
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QDialog as _QDialog,
     QMessageBox as _QMessageBox,
     )
-import PyQt5.uic as _uic
+import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.tableplotdialog import TablePlotDialog as _TablePlotDialog

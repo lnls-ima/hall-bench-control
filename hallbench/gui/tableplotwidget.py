@@ -8,15 +8,15 @@ import datetime as _datetime
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QTableWidgetItem as _QTableWidgetItem,
     QWidget as _QWidget,
     )
-from PyQt5.QtCore import QTimer as _QTimer
-import PyQt5.uic as _uic
+from qtpy.QtCore import QTimer as _QTimer
+import qtpy.uic as _uic
 
 import hallbench.gui.utils as _utils
 

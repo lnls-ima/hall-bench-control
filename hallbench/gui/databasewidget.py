@@ -5,9 +5,9 @@ import sys as _sys
 import numpy as _np
 import sqlite3 as _sqlite3
 import traceback as _traceback
-import PyQt5.uic as _uic
-from PyQt5.QtCore import Qt as _Qt
-from PyQt5.QtWidgets import (
+import qtpy.uic as _uic
+from qtpy.QtCore import Qt as _Qt
+from qtpy.QtWidgets import (
     QWidget as _QWidget,
     QApplication as _QApplication,
     QLabel as _QLabel,

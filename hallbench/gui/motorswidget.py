@@ -6,12 +6,12 @@ import sys as _sys
 import time as _time
 import numpy as _np
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget as _QWidget,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
-import PyQt5.uic as _uic
+import qtpy.uic as _uic
 
 from hallbench.gui import utils as _utils
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \

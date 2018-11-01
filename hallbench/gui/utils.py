@@ -7,8 +7,8 @@ import numpy as _np
 import pandas as _pd
 import os.path as _path
 import traceback as _traceback
-from PyQt5.QtCore import Qt as _Qt
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import Qt as _Qt
+from qtpy.QtWidgets import (
     QDialog as _QDialog,
     QComboBox as _QComboBox,
     QListView as _QListView,
@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import (
     QTableWidget as _QTableWidget,
     QTableWidgetItem as _QTableWidgetItem,
     )
-from PyQt5.QtGui import QStandardItemModel as _QStandardItemModel
+from qtpy.QtGui import QStandardItemModel as _QStandardItemModel
 from matplotlib.figure import Figure as _Figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as _FigureCanvas,

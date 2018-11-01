@@ -6,7 +6,7 @@ import sys as _sys
 import numpy as _np
 import time as _time
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout as _QHBoxLayout,
     QCheckBox as _QCheckBox,
     )
-from PyQt5.QtCore import Qt as _Qt
+from qtpy.QtCore import Qt as _Qt
 
 from hallbench.gui.moveaxiswidget import MoveAxisWidget as _MoveAxisWidget
 from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget

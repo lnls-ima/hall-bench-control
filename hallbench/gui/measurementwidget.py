@@ -9,18 +9,18 @@ import numpy as _np
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget as _QWidget,
     QFileDialog as _QFileDialog,
     QApplication as _QApplication,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
     )
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QThread as _QThread,
-    pyqtSignal as _pyqtSignal,
+    Signal as _Signal,
     )
-import PyQt5.uic as _uic
+import qtpy.uic as _uic
 
 from hallbench.gui import utils as _utils
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
@@ -39,8 +39,8 @@ from hallbench.data.measurement import FieldScan as _FieldScan
 class MeasurementWidget(_QWidget):
     """Measurement widget class for the Hall Bench Control application."""
 
-    change_current_setpoint = _pyqtSignal([bool])
-    turn_off_power_supply = _pyqtSignal([bool])
+    change_current_setpoint = _Signal([bool])
+    turn_off_power_supply = _Signal([bool])
 
     _update_graph_time_interval = 0.05  # [s]
     _measurement_axes = [1, 2, 3, 5]

@@ -8,7 +8,7 @@ import time as _time
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication as _QApplication,
     )
 

@@ -4,19 +4,19 @@
 
 import sys as _sys
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QDesktopWidget as _QDesktopWidget,
     QMainWindow as _QMainWindow,
     QDialog as _QDialog,
     )
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QTimer as _QTimer,
     QThread as _QThread,
     QEventLoop as _QEventLoop,
-    pyqtSignal as _pyqtSignal,
+    Signal as _Signal,
     )
-import PyQt5.uic as _uic
+import qtpy.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 from hallbench.gui.connectionwidget import ConnectionWidget \
@@ -177,7 +177,7 @@ class HallBenchWindow(_QMainWindow):
 class PreferencesDialog(_QDialog):
     """Preferences dialog class for Hall Bench Control application."""
 
-    preferences_changed = _pyqtSignal([dict])
+    preferences_changed = _Signal([dict])
 
     def __init__(self, parent=None):
         """Set up the ui and create connections."""

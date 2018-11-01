@@ -5,15 +5,15 @@
 import os as _os
 import sys as _sys
 import traceback as _traceback
-from PyQt5.QtCore import Qt as _Qt
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import Qt as _Qt
+from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QDialog as _QDialog,
     QFileDialog as _QFileDialog,
     QLineEdit as _QLineEdit,
     QMessageBox as _QMessageBox,
     )
-import PyQt5.uic as _uic
+import qtpy.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 import hallbench.data.magnets_info as _magnets_info

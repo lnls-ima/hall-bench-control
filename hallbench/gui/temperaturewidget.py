@@ -6,19 +6,19 @@ import sys as _sys
 import numpy as _np
 import time as _time
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
     QVBoxLayout as _QVBoxLayout,
     QWidget as _QWidget,
     )
-from PyQt5.QtCore import (
-    pyqtSignal as _pyqtSignal,
+from qtpy.QtCore import (
+    Signal as _Signal,
     QDateTime as _QDateTime,
     Qt as _Qt,
     )
-import PyQt5.uic as _uic
+import qtpy.uic as _uic
 
 import hallbench.gui.utils as _utils
 from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
@@ -167,7 +167,7 @@ class TemperatureWidget(_TablePlotWidget):
 class TemperatureChannelsWidget(_QWidget):
     """Temperature channels widget class."""
 
-    channelChanged = _pyqtSignal()
+    channelChanged = _Signal()
 
     _channels = [
         '101', '102', '103', '105', '201', '202', '203', '204',

@@ -7,13 +7,13 @@ import numpy as _np
 import json as _json
 import warnings as _warnings
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QDialog as _QDialog,
     QApplication as _QApplication,
     QTableWidgetItem as _QTableWidgetItem,
     QMessageBox as _QMessageBox,
     )
-import PyQt5.uic as _uic
+import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.utils import getUiFile as _getUiFile

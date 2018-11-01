@@ -6,7 +6,7 @@ import sys as _sys
 import numpy as _np
 import time as _time
 import traceback as _traceback
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QComboBox as _QComboBox,
     QLabel as _QLabel,

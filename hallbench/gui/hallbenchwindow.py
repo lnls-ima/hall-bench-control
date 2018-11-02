@@ -9,6 +9,7 @@ from qtpy.QtWidgets import (
     QDesktopWidget as _QDesktopWidget,
     QMainWindow as _QMainWindow,
     QDialog as _QDialog,
+    QFileDialog as _QFileDialog,
     )
 from qtpy.QtCore import (
     QTimer as _QTimer,
@@ -89,7 +90,6 @@ class HallBenchWindow(_QMainWindow):
 
         self.database_tab = _DatabaseWidget(self)
         self.ui.main_tab.addTab(self.database_tab, 'Database')
-
         self.ui.database_le.setText(self.database)
 
         self.positions_thread = PositionsThread()
@@ -114,12 +114,23 @@ class HallBenchWindow(_QMainWindow):
         self.ui.preferences_btn.clicked.connect(self.preferences_dialog.show)
         self.preferences_dialog.tabsPreferencesChanged()
 
+        self.ui.database_btn.clicked.connect(self.changeDatabase)
+
         self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
 
     @property
     def database(self):
         """Return the database filename."""
         return _QApplication.instance().database
+
+    @database.setter
+    def database(self, value):
+        _QApplication.instance().database = value
+
+    @property
+    def directory(self):
+        """Return the default directory."""
+        return _QApplication.instance().directory
 
     def closeEvent(self, event):
         """Close main window and dialogs."""
@@ -133,6 +144,21 @@ class HallBenchWindow(_QMainWindow):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
+
+    def changeDatabase(self):
+        """Change database file."""
+        fn = _QFileDialog.getOpenFileName(
+            self, caption='Database file', directory=self.directory,
+            filter="Database File (*.db)")
+
+        if isinstance(fn, tuple):
+            fn = fn[0]
+
+        if len(fn) == 0:
+            return
+        
+        self.database = fn
+        self.ui.database_le.setText(self.database)
 
     def centralizeWindow(self):
         """Centralize window."""

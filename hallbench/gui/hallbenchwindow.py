@@ -132,12 +132,36 @@ class HallBenchWindow(_QMainWindow):
         """Return the default directory."""
         return _QApplication.instance().directory
 
+    @property
+    def save_fieldmap_dialog(self):
+        """Save fieldmap dialog."""
+        return _QApplication.instance().save_fieldmap_dialog
+
+    @property
+    def view_probe_dialog(self):
+        """View probe dialog."""
+        return _QApplication.instance().view_probe_dialog
+
+    @property
+    def view_scan_dialog(self):
+        """View scan dialog."""
+        return _QApplication.instance().view_scan_dialog
+
+    @property
+    def view_fieldmap_dialog(self):
+        """View fieldmap dialog."""
+        return _QApplication.instance().view_fieldmap_dialog
+
     def closeEvent(self, event):
         """Close main window and dialogs."""
         try:
             for idx in range(self.ui.main_tab.count()):
                 widget = self.ui.main_tab.widget(idx)
                 widget.close()
+            self.view_probe_dialog.accept()
+            self.view_scan_dialog.accept()
+            self.save_fieldmap_dialog.accept()
+            self.view_fieldmap_dialog.accept()
             self.preferences_dialog.close()
             self.positions_thread.quit()
             event.accept()

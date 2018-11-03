@@ -551,7 +551,7 @@ class ViewScanDialog(_QDialog):
                     'ymult': 1,
                     'xmin': xmin,
                     'xmax': xmax,
-                    'fit_function': 'Linear',
+                    'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
 
@@ -566,7 +566,7 @@ class ViewScanDialog(_QDialog):
                     'ymult': 1,
                     'xmin': xmin,
                     'xmax': xmax,
-                    'fit_function': 'Linear',
+                    'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
 
@@ -581,7 +581,7 @@ class ViewScanDialog(_QDialog):
                     'ymult': 1,
                     'xmin': xmin,
                     'xmax': xmax,
-                    'fit_function': 'Linear',
+                    'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
 

@@ -25,11 +25,6 @@ import qtpy.uic as _uic
 from hallbench.gui import utils as _utils
 from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
     as _CurrentPositionWidget
-from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
-    as _SaveFieldmapDialog
-from hallbench.gui.viewprobedialog import ViewProbeDialog \
-    as _ViewProbeDialog
-from hallbench.gui.viewscandialog import ViewScanDialog as _ViewScanDialog
 from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
 from hallbench.data.measurement import VoltageScan as _VoltageScan
@@ -60,11 +55,6 @@ class MeasurementWidget(_QWidget):
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(self.current_position_widget)
         self.ui.position_wg.setLayout(_layout)
-
-        # create dialogs
-        self.save_fieldmap_dialog = _SaveFieldmapDialog()
-        self.view_probe_dialog = _ViewProbeDialog()
-        self.view_scan_dialog = _ViewScanDialog()
 
         self.measurement_configured = False
         self.local_measurement_config = None
@@ -132,6 +122,21 @@ class MeasurementWidget(_QWidget):
     def power_supply_config(self):
         """Power supply configuration."""
         return _QApplication.instance().power_supply_config
+
+    @property
+    def save_fieldmap_dialog(self):
+        """Save fieldmap dialog."""
+        return _QApplication.instance().save_fieldmap_dialog
+
+    @property
+    def view_probe_dialog(self):
+        """View probe dialog."""
+        return _QApplication.instance().view_probe_dialog
+
+    @property
+    def view_scan_dialog(self):
+        """View scan dialog."""
+        return _QApplication.instance().view_scan_dialog
 
     def clearHallProbe(self):
         """Clear hall probe calibration data."""
@@ -719,21 +724,10 @@ class MeasurementWidget(_QWidget):
         self.graphy = []
         self.graphz = []
 
-    def closeDialogs(self):
-        """Close dialogs."""
-        try:
-            self.current_position_widget.close()
-            self.save_fieldmap_dialog.accept()
-            self.view_probe_dialog.accept()
-            self.view_scan_dialog.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            pass
-
     def closeEvent(self, event):
         """Close widget."""
         try:
-            self.closeDialogs()
+            self.current_position_widget.close()
             self.killVoltageThreads()
             event.accept()
         except Exception:

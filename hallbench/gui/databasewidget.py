@@ -23,13 +23,6 @@ from qtpy.QtWidgets import (
     )
 
 from hallbench.gui.utils import getUiFile as _getUiFile
-from hallbench.gui.viewprobedialog import ViewProbeDialog \
-    as _ViewProbeDialog
-from hallbench.gui.viewscandialog import ViewScanDialog as _ViewScanDialog
-from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
-    as _SaveFieldmapDialog
-from hallbench.gui.viewfieldmapdialog import ViewFieldmapDialog \
-    as _ViewFieldmapDialog
 import hallbench.data as _data
 
 
@@ -66,12 +59,6 @@ class DatabaseWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        # create dialogs
-        self.view_probe_dialog = _ViewProbeDialog()
-        self.view_scan_dialog = _ViewScanDialog()
-        self.save_fieldmap_dialog = _SaveFieldmapDialog()
-        self.view_fieldmap_dialog = _ViewFieldmapDialog()
-
         self.short_version_tables = [
             self._configuration_table_name,
             self._voltage_scan_table_name,
@@ -93,6 +80,26 @@ class DatabaseWidget(_QWidget):
         """Return the default directory."""
         return _QApplication.instance().directory
 
+    @property
+    def save_fieldmap_dialog(self):
+        """Save fieldmap dialog."""
+        return _QApplication.instance().save_fieldmap_dialog
+
+    @property
+    def view_probe_dialog(self):
+        """View probe dialog."""
+        return _QApplication.instance().view_probe_dialog
+
+    @property
+    def view_scan_dialog(self):
+        """View scan dialog."""
+        return _QApplication.instance().view_scan_dialog
+
+    @property
+    def view_fieldmap_dialog(self):
+        """View fieldmap dialog."""
+        return _QApplication.instance().view_fieldmap_dialog
+
     def clear(self):
         """Clear."""
         ntabs = self.ui.database_tab.count()
@@ -101,26 +108,6 @@ class DatabaseWidget(_QWidget):
             self.tables[idx].deleteLater()
         self.tables = []
         self.ui.database_tab.clear()
-
-    def closeDialogs(self):
-        """Close dialogs."""
-        try:
-            self.view_probe_dialog.accept()
-            self.view_scan_dialog.accept()
-            self.save_fieldmap_dialog.accept()
-            self.view_fieldmap_dialog.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            pass
-
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.closeDialogs()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""

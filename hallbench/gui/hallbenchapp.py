@@ -8,6 +8,14 @@ import threading as _threading
 from qtpy.QtWidgets import QApplication as _QApplication
 
 from hallbench.gui.hallbenchwindow import HallBenchWindow as _HallBenchWindow
+from hallbench.gui.viewprobedialog import ViewProbeDialog \
+    as _ViewProbeDialog
+from hallbench.gui.viewscandialog import ViewScanDialog \
+    as _ViewScanDialog
+from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
+    as _SaveFieldmapDialog
+from hallbench.gui.viewfieldmapdialog import ViewFieldmapDialog \
+    as _ViewFieldmapDialog
 import hallbench.data as _data
 import hallbench.devices as _devices
 
@@ -43,12 +51,22 @@ class HallBenchApp(_QApplication):
         self.database = _os.path.join(self.directory, _database_filename)
         self.create_database()
 
+        # configurations
         self.connection_config = _ConnectionConfig()
         self.measurement_config = _MeasurementConfig()
         self.power_supply_config = _PowerSupplyConfig()
         self.hall_probe = _HallProbe()
         self.devices = _HallBenchDevices()
+        
+        # positions dict
         self.positions = {}
+        
+        # create dialogs
+        self.view_probe_dialog = _ViewProbeDialog()
+        self.view_scan_dialog = _ViewScanDialog()
+        self.save_fieldmap_dialog = _SaveFieldmapDialog()
+        self.view_fieldmap_dialog = _ViewFieldmapDialog()
+        
 
     def create_database(self):
         """Create database and tables."""

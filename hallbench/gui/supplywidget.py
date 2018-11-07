@@ -109,19 +109,18 @@ class SupplyWidget(_QWidget):
     def closeEvent(self, event):
         """Close widget."""
         try:
-            self.turn_off()
+            if self.config.status:
+               self.start_powersupply()             
             self.closeDialogs()
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def turn_off(self):
-        """Turn off the Power Supply if it's turned on."""
+    def set_current_to_zero(self):
+        """Set Power Supply current to zero."""
         self.current_array_index = 0
-        if self.config.status:
-            self.current_setpoint(setpoint=0)
-            self.start_powersupply()
+        self.current_setpoint(setpoint=0)
 
     def list_powersupply(self):
         """Updates available power supply supply names."""

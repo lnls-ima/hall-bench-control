@@ -366,7 +366,7 @@ class SaveFieldmapDialog(_QDialog):
             if len(self.fieldmap_list) == 1:
                 filename = _QFileDialog.getSaveFileName(
                     self, caption='Save fieldmap file',
-                    directory=fns[0],
+                    directory=_os.path.join(self.directory, fns[0]),
                     filter="Text files (*.txt *.dat)")
     
                 if isinstance(filename, tuple):

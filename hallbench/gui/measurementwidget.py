@@ -35,7 +35,7 @@ class MeasurementWidget(_QWidget):
     """Measurement widget class for the Hall Bench Control application."""
 
     change_current_setpoint = _Signal([bool])
-    turn_off_power_supply = _Signal([bool])
+    turn_off_power_supply_current = _Signal([bool])
 
     _update_graph_time_interval = 0.05  # [s]
     _measurement_axes = [1, 2, 3, 5]
@@ -1071,7 +1071,7 @@ class MeasurementWidget(_QWidget):
         self.ui.save_scan_files_btn.setEnabled(False)
         self.ui.view_scan_btn.setEnabled(False)
         self.ui.clear_graph_btn.setEnabled(True)
-        self.turn_off_power_supply.emit(True)
+        self.turn_off_power_supply_current.emit(True)
 
         msg = 'End of automatic measurements.'
         _QMessageBox.information(
@@ -1162,7 +1162,7 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             self.quitVoltageThreads()
             if self.local_measurement_config.automatic_ramp:
-                self.turn_off_power_supply.emit(True)
+                self.turn_off_power_supply_current.emit(True)
             self.power_supply_config.update_display = True
             self.ui.nr_measurements_la.setText('')
             msg = 'Measurement failure.'

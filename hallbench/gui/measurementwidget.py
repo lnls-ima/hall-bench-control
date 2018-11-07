@@ -64,6 +64,7 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan = None
         self.field_scan = None
         self.position_list = []
+        self.automatic_measurements_id_list = []
         self.field_scan_id_list = []
         self.voltage_scan_id_list = []
         self.graphx = []
@@ -692,6 +693,7 @@ class MeasurementWidget(_QWidget):
         self.position_list = []
         self.field_scan_id_list = []
         self.voltage_scan_id_list = []
+        self.automatic_measurements_id_list = []
         self.stop = False
         self.clearGraph()
         self.ui.view_scan_btn.setEnabled(False)
@@ -1065,8 +1067,9 @@ class MeasurementWidget(_QWidget):
 
         self.ui.stop_btn.setEnabled(False)
         self.ui.measure_btn.setEnabled(True)
-        self.ui.save_scan_files_btn.setEnabled(True)
-        self.ui.view_scan_btn.setEnabled(True)
+        self.ui.create_fieldmap_btn.setEnabled(True)
+        self.ui.save_scan_files_btn.setEnabled(False)
+        self.ui.view_scan_btn.setEnabled(False)
         self.ui.clear_graph_btn.setEnabled(True)
         self.turn_off_power_supply.emit(True)
 
@@ -1201,6 +1204,7 @@ class MeasurementWidget(_QWidget):
         if not self.measure():
             return
 
+        self.automatic_measurements_id_list.append(self.field_scan_id_list)
         self.change_current_setpoint.emit(True)
 
     def measureButtonClicked(self):
@@ -1695,15 +1699,25 @@ class MeasurementWidget(_QWidget):
 
     def showFieldmapDialog(self):
         """Open fieldmap dialog."""
-        field_scan_list = []
-        for idn in self.field_scan_id_list:
-            fs = _FieldScan(database=self.database, idn=idn)
-            field_scan_list.append(fs)
+        if self.local_measurement_config.automatic_ramp == 1:
+            field_scan_list = []
+            for lt in self.automatic_measurements_id_list:
+                fsl = []
+                for idn in lt:
+                    fs = _FieldScan(database=self.database, idn=idn)
+                    fsl.append(fs)
+                field_scan_list.append(fsl)
+            field_scan_id_list = self.automatic_measurements_id_list
+
+        else:
+            field_scan_id_list = self.field_scan_id_list
+            field_scan_list = []
+            for idn in self.field_scan_id_list:
+                fs = _FieldScan(database=self.database, idn=idn)
+                field_scan_list.append(fs)
 
         self.save_fieldmap_dialog.show(
-            field_scan_list,
-            self.local_hall_probe,
-            self.field_scan_id_list)
+            field_scan_list, self.local_hall_probe, field_scan_id_list)
 
     def showViewScanDialog(self):
         """Open view data dialog."""
@@ -1733,6 +1747,7 @@ class MeasurementWidget(_QWidget):
 
     def startAutomaticMeasurements(self):
         """Configure and emit signal to start automatic ramp measurements."""
+        self.automatic_measurements_id_list = []
         self.configureMeasurement()
         if not self.measurement_configured:
             return

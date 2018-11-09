@@ -397,7 +397,7 @@ class SaveFieldmapDialog(_QDialog):
                 self.fieldmap_list[idx].save_file(fn)
             
             if len(self.fieldmap_list) == 1:
-                msg = 'Fieldmap data saved to file: \n%s' % fns[0]
+                msg = 'Fieldmap data saved to file.'
             else:
                 msg = 'Fieldmaps saved to files.'
             _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)

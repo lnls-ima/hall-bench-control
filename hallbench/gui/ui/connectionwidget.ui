@@ -1461,6 +1461,39 @@ Power Supply</string>
   <zorder>groupBox_7</zorder>
   <zorder></zorder>
  </widget>
+ <tabstops>
+  <tabstop>idn_cmb</tabstop>
+  <tabstop>update_idn_btn</tabstop>
+  <tabstop>loaddb_btn</tabstop>
+  <tabstop>savedb_btn</tabstop>
+  <tabstop>filename_le</tabstop>
+  <tabstop>loadfile_btn</tabstop>
+  <tabstop>savefile_btn</tabstop>
+  <tabstop>voltx_enable_chb</tabstop>
+  <tabstop>voltx_address_sb</tabstop>
+  <tabstop>volty_enable_chb</tabstop>
+  <tabstop>volty_address_sb</tabstop>
+  <tabstop>voltz_enable_chb</tabstop>
+  <tabstop>voltz_address_sb</tabstop>
+  <tabstop>pmac_enable_chb</tabstop>
+  <tabstop>multich_enable_chb</tabstop>
+  <tabstop>multich_address_sb</tabstop>
+  <tabstop>ps_enable_chb</tabstop>
+  <tabstop>ps_port_cmb</tabstop>
+  <tabstop>nmr_enable_chb</tabstop>
+  <tabstop>nmr_port_cmb</tabstop>
+  <tabstop>nmr_baudrate_cmb</tabstop>
+  <tabstop>elcomat_enable_chb</tabstop>
+  <tabstop>elcomat_port_cmb</tabstop>
+  <tabstop>elcomat_baudrate_cmb</tabstop>
+  <tabstop>dcct_enable_chb</tabstop>
+  <tabstop>dcct_address_sb</tabstop>
+  <tabstop>udc_enable_chb</tabstop>
+  <tabstop>udc_port_cmb</tabstop>
+  <tabstop>udc_baudrate_cmb</tabstop>
+  <tabstop>connect_btn</tabstop>
+  <tabstop>disconnect_btn</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

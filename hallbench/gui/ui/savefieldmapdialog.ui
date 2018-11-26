@@ -1420,6 +1420,7 @@ Database</string>
  </widget>
  <tabstops>
   <tabstop>predefined_cmb</tabstop>
+  <tabstop>clear_btn</tabstop>
   <tabstop>magnet_name_le</tabstop>
   <tabstop>gap_le</tabstop>
   <tabstop>control_gap_le</tabstop>
@@ -1439,12 +1440,15 @@ Database</string>
   <tabstop>qs_chb</tabstop>
   <tabstop>current_qs_le</tabstop>
   <tabstop>nr_turns_qs_le</tabstop>
-  <tabstop>centerpos3_sb</tabstop>
-  <tabstop>centerpos2_sb</tabstop>
+  <tabstop>comments_te</tabstop>
+  <tabstop>correct_displacements_chb</tabstop>
   <tabstop>centerpos1_sb</tabstop>
+  <tabstop>centerpos2_sb</tabstop>
+  <tabstop>centerpos3_sb</tabstop>
   <tabstop>magnet_x_axis_cmb</tabstop>
   <tabstop>magnet_y_axis_cmb</tabstop>
   <tabstop>savedb_btn</tabstop>
+  <tabstop>savefile_btn</tabstop>
  </tabstops>
  <resources/>
  <connections/>

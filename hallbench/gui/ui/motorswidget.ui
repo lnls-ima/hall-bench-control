@@ -1416,9 +1416,17 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>activate_btn</tabstop>
+  <tabstop>stopall_btn</tabstop>
+  <tabstop>killall_btn</tabstop>
   <tabstop>homingax1_chb</tabstop>
   <tabstop>homingax2_chb</tabstop>
   <tabstop>homingax3_chb</tabstop>
+  <tabstop>homingax5_chb</tabstop>
+  <tabstop>homingax6_chb</tabstop>
+  <tabstop>homingax7_chb</tabstop>
+  <tabstop>homingax8_chb</tabstop>
+  <tabstop>homingax9_chb</tabstop>
   <tabstop>homing_btn</tabstop>
   <tabstop>minax1_le</tabstop>
   <tabstop>maxax1_le</tabstop>
@@ -1433,6 +1441,16 @@
   <tabstop>reldisp_le</tabstop>
   <tabstop>targetpos_le</tabstop>
   <tabstop>move_btn</tabstop>
+  <tabstop>stop_btn</tabstop>
+  <tabstop>selecttrigaxis_cmb</tabstop>
+  <tabstop>trigvel_le</tabstop>
+  <tabstop>trigstart_le</tabstop>
+  <tabstop>trigstep_le</tabstop>
+  <tabstop>trigend_le</tabstop>
+  <tabstop>trigpause_chb</tabstop>
+  <tabstop>trigdelay_sb</tabstop>
+  <tabstop>trigandmove_btn</tabstop>
+  <tabstop>trigstop_btn</tabstop>
  </tabstops>
  <resources/>
  <connections/>

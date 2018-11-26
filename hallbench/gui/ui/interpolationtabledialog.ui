@@ -375,6 +375,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>sensorx_ta</tabstop>
+  <tabstop>sensorxprec_sb</tabstop>
+  <tabstop>copysensorx_btn</tabstop>
+  <tabstop>sensory_ta</tabstop>
+  <tabstop>sensoryprec_sb</tabstop>
+  <tabstop>copysensory_btn</tabstop>
+  <tabstop>sensorz_ta</tabstop>
+  <tabstop>sensorzprec_sb</tabstop>
+  <tabstop>copysensorz_btn</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -724,6 +724,28 @@
    <header location="global">pyqtgraph</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>idn_le</tabstop>
+  <tabstop>plot_cmb</tabstop>
+  <tabstop>update_plot_btn</tabstop>
+  <tabstop>nr_scans_le</tabstop>
+  <tabstop>initial_scan_le</tabstop>
+  <tabstop>final_scan_le</tabstop>
+  <tabstop>current_setpoint_le</tabstop>
+  <tabstop>dcct_current_le</tabstop>
+  <tabstop>ps_current_le</tabstop>
+  <tabstop>magnet_center_pos1_le</tabstop>
+  <tabstop>magnet_center_pos2_le</tabstop>
+  <tabstop>magnet_center_pos3_le</tabstop>
+  <tabstop>magnet_x_axis_le</tabstop>
+  <tabstop>magnet_y_axis_le</tabstop>
+  <tabstop>corrected_positions_le</tabstop>
+  <tabstop>comments_te</tabstop>
+  <tabstop>view_temperature_btn</tabstop>
+  <tabstop>graph_pw</tabstop>
+  <tabstop>text_te</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

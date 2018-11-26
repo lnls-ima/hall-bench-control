@@ -1629,7 +1629,70 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>idn_cmb</tabstop>
+  <tabstop>update_idn_btn</tabstop>
+  <tabstop>loaddb_btn</tabstop>
+  <tabstop>savedb_btn</tabstop>
+  <tabstop>filename_le</tabstop>
+  <tabstop>loadfile_btn</tabstop>
+  <tabstop>savefile_btn</tabstop>
+  <tabstop>voltx_enable_chb</tabstop>
+  <tabstop>volty_enable_chb</tabstop>
+  <tabstop>voltz_enable_chb</tabstop>
+  <tabstop>integration_time_le</tabstop>
+  <tabstop>voltage_range_le</tabstop>
+  <tabstop>voltage_precision_cmb</tabstop>
+  <tabstop>current_start_btn</tabstop>
+  <tabstop>first_ax1_rb</tabstop>
+  <tabstop>second_ax1_rb</tabstop>
+  <tabstop>start_ax1_le</tabstop>
+  <tabstop>end_ax1_le</tabstop>
+  <tabstop>step_ax1_le</tabstop>
+  <tabstop>extra_ax1_le</tabstop>
+  <tabstop>vel_ax1_le</tabstop>
+  <tabstop>first_ax2_rb</tabstop>
+  <tabstop>second_ax2_rb</tabstop>
+  <tabstop>start_ax2_le</tabstop>
+  <tabstop>end_ax2_le</tabstop>
+  <tabstop>step_ax2_le</tabstop>
+  <tabstop>extra_ax2_le</tabstop>
+  <tabstop>vel_ax2_le</tabstop>
+  <tabstop>first_ax3_rb</tabstop>
+  <tabstop>second_ax3_rb</tabstop>
+  <tabstop>start_ax3_le</tabstop>
+  <tabstop>end_ax3_le</tabstop>
+  <tabstop>step_ax3_le</tabstop>
+  <tabstop>extra_ax3_le</tabstop>
+  <tabstop>vel_ax3_le</tabstop>
+  <tabstop>first_ax5_rb</tabstop>
+  <tabstop>second_ax5_rb</tabstop>
+  <tabstop>start_ax5_le</tabstop>
+  <tabstop>end_ax5_le</tabstop>
+  <tabstop>step_ax5_le</tabstop>
+  <tabstop>extra_ax5_le</tabstop>
+  <tabstop>vel_ax5_le</tabstop>
+  <tabstop>magnet_name_le</tabstop>
+  <tabstop>current_setpoint_le</tabstop>
+  <tabstop>temperature_le</tabstop>
+  <tabstop>operator_le</tabstop>
+  <tabstop>comments_le</tabstop>
+  <tabstop>nr_measurements_sb</tabstop>
+  <tabstop>probe_name_cmb</tabstop>
+  <tabstop>update_probe_name_btn</tabstop>
+  <tabstop>view_probe_btn</tabstop>
+  <tabstop>clear_probe_btn</tabstop>
+  <tabstop>subtract_voltage_offset_chb</tabstop>
+  <tabstop>save_voltage_chb</tabstop>
+  <tabstop>save_temperature_chb</tabstop>
+  <tabstop>save_current_chb</tabstop>
+  <tabstop>automatic_ramp_chb</tabstop>
+  <tabstop>measure_btn</tabstop>
+  <tabstop>stop_btn</tabstop>
   <tabstop>graph_pw</tabstop>
+  <tabstop>create_fieldmap_btn</tabstop>
+  <tabstop>save_scan_files_btn</tabstop>
+  <tabstop>view_scan_btn</tabstop>
+  <tabstop>clear_graph_btn</tabstop>
  </tabstops>
  <resources/>
  <connections/>

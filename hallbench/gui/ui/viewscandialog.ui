@@ -865,6 +865,29 @@ Limits</string>
    <header location="global">pyqtgraph</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>graph_pw</tabstop>
+  <tabstop>update_plot_btn</tabstop>
+  <tabstop>select_all_btn</tabstop>
+  <tabstop>clear_all_btn</tabstop>
+  <tabstop>xoff_sb</tabstop>
+  <tabstop>yoff_sb</tabstop>
+  <tabstop>xmult_sb</tabstop>
+  <tabstop>ymult_sb</tabstop>
+  <tabstop>offset_btn</tabstop>
+  <tabstop>xmin_sb</tabstop>
+  <tabstop>xmax_sb</tabstop>
+  <tabstop>resetlim_btn</tabstop>
+  <tabstop>fitfunction_cmb</tabstop>
+  <tabstop>polyorder_sb</tabstop>
+  <tabstop>fit_btn</tabstop>
+  <tabstop>fit_ta</tabstop>
+  <tabstop>first_integral_le</tabstop>
+  <tabstop>second_integral_le</tabstop>
+  <tabstop>integrals_btn</tabstop>
+  <tabstop>view_current_btn</tabstop>
+  <tabstop>view_temperature_btn</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

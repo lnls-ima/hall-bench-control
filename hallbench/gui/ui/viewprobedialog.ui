@@ -791,6 +791,30 @@
    <header location="global">pyqtgraph</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>probe_name_le</tabstop>
+  <tabstop>rod_shape_le</tabstop>
+  <tabstop>sensorx_name_le</tabstop>
+  <tabstop>sensorx_position_le</tabstop>
+  <tabstop>sensorx_direction_le</tabstop>
+  <tabstop>sensory_name_le</tabstop>
+  <tabstop>sensory_position_le</tabstop>
+  <tabstop>sensory_direction_le</tabstop>
+  <tabstop>sensorz_name_le</tabstop>
+  <tabstop>sensorz_position_le</tabstop>
+  <tabstop>sensorz_direction_le</tabstop>
+  <tabstop>showtable_btn</tabstop>
+  <tabstop>voltagemin_sb</tabstop>
+  <tabstop>voltagemax_sb</tabstop>
+  <tabstop>voltagenpts_sb</tabstop>
+  <tabstop>addmarkers_chb</tabstop>
+  <tabstop>updategraph_btn</tabstop>
+  <tabstop>voltage_sb</tabstop>
+  <tabstop>fieldx_le</tabstop>
+  <tabstop>fieldy_le</tabstop>
+  <tabstop>fieldz_le</tabstop>
+  <tabstop>plot_pw</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

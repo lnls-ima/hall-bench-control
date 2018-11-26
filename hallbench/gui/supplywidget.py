@@ -1299,9 +1299,9 @@ class SupplyWidget(_QWidget):
                     self.ui.le_status_con.setText('Not Ok')
                 if _interlock and not self.ui.pb_interlock.isEnabled():
                     self.ui.pb_interlock.setEnabled(True)
-                    _QMessageBox.warning(self, 'Warning',
-                                         'Power Supply interlock active.',
-                                         _QMessageBox.Ok)
+#                     _QMessageBox.warning(self, 'Warning',
+#                                          'Power Supply interlock active.',
+#                                          _QMessageBox.Ok)
                 elif not _interlock and self.ui.pb_interlock.isEnabled():
                     self.ui.pb_interlock.setEnabled(False)
                 _QApplication.processEvents()

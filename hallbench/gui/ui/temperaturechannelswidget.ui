@@ -689,6 +689,36 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>time_dte</tabstop>
+  <tabstop>channel101_chb</tabstop>
+  <tabstop>channel101_le</tabstop>
+  <tabstop>channel102_chb</tabstop>
+  <tabstop>channel102_le</tabstop>
+  <tabstop>channel103_chb</tabstop>
+  <tabstop>channel103_le</tabstop>
+  <tabstop>channel105_chb</tabstop>
+  <tabstop>channel105_le</tabstop>
+  <tabstop>channel201_chb</tabstop>
+  <tabstop>channel201_le</tabstop>
+  <tabstop>channel202_chb</tabstop>
+  <tabstop>channel202_le</tabstop>
+  <tabstop>channel203_chb</tabstop>
+  <tabstop>channel203_le</tabstop>
+  <tabstop>channel204_chb</tabstop>
+  <tabstop>channel204_le</tabstop>
+  <tabstop>channel205_chb</tabstop>
+  <tabstop>channel205_le</tabstop>
+  <tabstop>channel206_chb</tabstop>
+  <tabstop>channel206_le</tabstop>
+  <tabstop>channel207_chb</tabstop>
+  <tabstop>channel207_le</tabstop>
+  <tabstop>channel208_chb</tabstop>
+  <tabstop>channel208_le</tabstop>
+  <tabstop>channel209_chb</tabstop>
+  <tabstop>channel209_le</tabstop>
+  <tabstop>delay_sb</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -118,8 +118,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>201</width>
+          <height>180</height>
          </rect>
         </property>
         <attribute name="label">
@@ -217,8 +217,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>216</width>
+          <height>180</height>
          </rect>
         </property>
         <attribute name="label">
@@ -316,8 +316,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>201</width>
+          <height>180</height>
          </rect>
         </property>
         <attribute name="label">
@@ -415,8 +415,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>194</width>
+          <height>236</height>
          </rect>
         </property>
         <attribute name="label">
@@ -547,8 +547,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>254</width>
+          <height>236</height>
          </rect>
         </property>
         <attribute name="label">
@@ -678,8 +678,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>213</width>
+          <height>292</height>
          </rect>
         </property>
         <attribute name="label">
@@ -835,8 +835,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>194</width>
+          <height>292</height>
          </rect>
         </property>
         <attribute name="label">
@@ -992,8 +992,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>280</width>
-          <height>413</height>
+          <width>187</width>
+          <height>236</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1180,6 +1180,42 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>refresh_btn</tabstop>
+  <tabstop>short_version_chb</tabstop>
+  <tabstop>database_tab</tabstop>
+  <tabstop>save_connection_btn</tabstop>
+  <tabstop>delete_connection_btn</tabstop>
+  <tabstop>read_connection_btn</tabstop>
+  <tabstop>delete_power_supply_btn</tabstop>
+  <tabstop>save_power_supply_btn</tabstop>
+  <tabstop>read_power_supply_btn</tabstop>
+  <tabstop>save_hall_sensor_btn</tabstop>
+  <tabstop>delete_hall_sensor_btn</tabstop>
+  <tabstop>read_hall_sensor_btn</tabstop>
+  <tabstop>view_hall_probe_btn</tabstop>
+  <tabstop>save_hall_probe_btn</tabstop>
+  <tabstop>delete_hall_probe_btn</tabstop>
+  <tabstop>read_hall_probe_btn</tabstop>
+  <tabstop>read_configuration_btn</tabstop>
+  <tabstop>save_configuration_btn</tabstop>
+  <tabstop>delete_configuration_btn</tabstop>
+  <tabstop>remove_unused_configurations_btn</tabstop>
+  <tabstop>view_voltage_scan_btn</tabstop>
+  <tabstop>save_voltage_scan_btn</tabstop>
+  <tabstop>delete_voltage_scan_btn</tabstop>
+  <tabstop>read_voltage_scan_btn</tabstop>
+  <tabstop>convert_to_field_scan_btn</tabstop>
+  <tabstop>view_field_scan_btn</tabstop>
+  <tabstop>save_field_scan_btn</tabstop>
+  <tabstop>delete_field_scan_btn</tabstop>
+  <tabstop>read_field_scan_btn</tabstop>
+  <tabstop>create_fieldmap_btn</tabstop>
+  <tabstop>view_fieldmap_btn</tabstop>
+  <tabstop>save_fieldmap_btn</tabstop>
+  <tabstop>read_fieldmap_btn</tabstop>
+  <tabstop>delete_fieldmap_btn</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

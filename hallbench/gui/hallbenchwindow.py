@@ -239,7 +239,7 @@ class PreferencesDialog(_QDialog):
         self.ui.apply_btn.clicked.connect(self.tabsPreferencesChanged)
         self.ui.connection_chb.setChecked(True)
         self.ui.motors_chb.setChecked(True)
-        self.ui.power_supply_chb.setChecked(True)
+        self.ui.power_supply_chb.setChecked(False)
         self.ui.measurement_chb.setChecked(True)
         self.ui.voltage_chb.setChecked(False)
         self.ui.current_chb.setChecked(False)

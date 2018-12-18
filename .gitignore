@@ -2,6 +2,8 @@
 *.db
 *.db-journal
 
+fieldmaps/
+
 *.txt
 *.dat
 toPyQt4.sh

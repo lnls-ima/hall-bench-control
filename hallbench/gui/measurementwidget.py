@@ -64,7 +64,7 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan = None
         self.field_scan = None
         self.position_list = []
-        self.automatic_measurements_id_list = []
+        self.measurements_id_list = []
         self.field_scan_id_list = []
         self.voltage_scan_id_list = []
         self.graphx = []
@@ -541,8 +541,12 @@ class MeasurementWidget(_QWidget):
             _ch = self.ui.save_temperature_chb.isChecked()
             self.measurement_config.save_temperature = 1 if _ch else 0
 
-            _ch = self.ui.automatic_ramp_chb.isChecked()
-            self.measurement_config.automatic_ramp = 1 if _ch else 0
+            if self.ui.automatic_ramp_chb.isChecked():
+                self.measurement_config.automatic_ramp = 1
+                self.ui.nr_measurements_sb.setValue(1)
+                self.measurement_config.nr_measurements = 1
+            else:
+                self.measurement_config.automatic_ramp = 0
 
             for axis in self._measurement_axes:
                 first_rb = getattr(self.ui, 'first_ax' + str(axis) + '_rb')
@@ -693,7 +697,7 @@ class MeasurementWidget(_QWidget):
         self.position_list = []
         self.field_scan_id_list = []
         self.voltage_scan_id_list = []
-        self.automatic_measurements_id_list = []
+        self.measurements_id_list = []
         self.stop = False
         self.clearGraph()
         self.ui.view_scan_btn.setEnabled(False)
@@ -1105,57 +1109,78 @@ class MeasurementWidget(_QWidget):
         try:
             self.power_supply_config.update_display = False
 
+            nr_measurements = self.local_measurement_config.nr_measurements
             first_axis = self.local_measurement_config.first_axis
             second_axis = self.local_measurement_config.second_axis
             fixed_axes = self.getFixedAxes()
 
-            self.configureVoltageThreads()
-
-            for axis in fixed_axes:
-                if self.stop is True:
-                    return
-                pos = self.local_measurement_config.get_start(axis)
-                self.moveAxis(axis, pos)
-
-            if second_axis != -1:
-                start = self.local_measurement_config.get_start(second_axis)
-                end = self.local_measurement_config.get_end(second_axis)
-                step = self.local_measurement_config.get_step(second_axis)
-                npts = _np.abs(_np.ceil(round((end - start) / step, 4) + 1))
-                pos_list = _np.linspace(start, end, npts)
-
-                for pos in pos_list:
+            for nmeas in range(nr_measurements):
+                self.nr_measurements_la.setText('{0:d}'.format(nmeas+1))
+    
+                self.configureVoltageThreads()
+    
+                for axis in fixed_axes:
                     if self.stop is True:
                         return
-                    self.moveAxis(second_axis, pos)
-                    if not self.scanLine(first_axis, second_axis, pos):
+                    pos = self.local_measurement_config.get_start(axis)
+                    self.moveAxis(axis, pos)
+    
+                if second_axis != -1:
+                    start = self.local_measurement_config.get_start(
+                        second_axis)
+                    end = self.local_measurement_config.get_end(
+                        second_axis)
+                    step = self.local_measurement_config.get_step(
+                        second_axis)
+                    npts = _np.abs(
+                        _np.ceil(round((end - start) / step, 4) + 1))
+                    pos_list = _np.linspace(start, end, npts)
+    
+                    for pos in pos_list:
+                        if self.stop is True:
+                            return
+                        self.moveAxis(second_axis, pos)
+                        if not self.scanLine(first_axis, second_axis, pos):
+                            return
+    
+                    # move to initial position
+                    if self.stop is True:
                         return
-
+                    second_axis_start = self.local_measurement_config.get_start(
+                        second_axis)
+                    self.moveAxis(second_axis, second_axis_start)
+    
+                else:
+                    if self.stop is True:
+                        return
+                    if not self.scanLine(first_axis):
+                        return
+    
+                if self.stop is True:
+                    return
+    
                 # move to initial position
-                if self.stop is True:
-                    return
-                second_axis_start = self.local_measurement_config.get_start(
-                    second_axis)
-                self.moveAxis(second_axis, second_axis_start)
-
+                first_axis_start = self.local_measurement_config.get_start(
+                    first_axis)
+                self.moveAxis(first_axis, first_axis_start)
+                
+                self.plotField()
+                self.quitVoltageThreads()
+            
+            if nr_measurements > 1:
+                l = self.field_scan_id_list
+                if len(l) == nr_measurements:
+                    a = _np.transpose([l])
+                else:
+                    a = _np.reshape(
+                        l, (int(len(l)/nr_measurements), nr_measurements))
+                for lt in a.tolist():
+                    self.measurements_id_list.append(lt)
             else:
-                if self.stop is True:
-                    return
-                if not self.scanLine(first_axis):
-                    return
-
-            if self.stop is True:
-                return
-
-            # move to initial position
-            first_axis_start = self.local_measurement_config.get_start(
-                first_axis)
-            self.moveAxis(first_axis, first_axis_start)
-            self.ui.nr_measurements_la.setText('')
-
-            self.plotField()
-            self.quitVoltageThreads()
+                self.measurements_id_list.append(self.field_scan_id_list)
+           
             self.power_supply_config.update_display = True
+            self.ui.nr_measurements_la.setText('')
             return True
 
         except Exception:
@@ -1204,7 +1229,6 @@ class MeasurementWidget(_QWidget):
         if not self.measure():
             return
 
-        self.automatic_measurements_id_list.append(self.field_scan_id_list)
         self.change_current_setpoint.emit(True)
 
     def measureButtonClicked(self):
@@ -1621,18 +1645,14 @@ class MeasurementWidget(_QWidget):
         to_pos_scan_list = scan_list + aper_displacement/2
         to_neg_scan_list = (scan_list - aper_displacement/2)[::-1]
 
-        nr_measurements = self.local_measurement_config.nr_measurements
         self.clearGraph()
-        self.configureGraph(2*nr_measurements, 'Voltage [V]')
+        self.configureGraph(2, 'Voltage [V]')
         _QApplication.processEvents()
 
         voltage_scan_list = []
-        for idx in range(2*nr_measurements):
+        for idx in range(2):
             if self.stop is True:
                 return False
-
-            self.nr_measurements_la.setText(
-                '{0:d}'.format(int(_np.ceil((idx + 1)/2))))
 
             # flag to check if sensor is going or returning
             to_pos = not(bool(idx % 2))
@@ -1699,15 +1719,15 @@ class MeasurementWidget(_QWidget):
 
     def showFieldmapDialog(self):
         """Open fieldmap dialog."""
-        if self.local_measurement_config.automatic_ramp == 1:
+        if len(self.measurements_id_list) > 1:
             field_scan_list = []
-            for lt in self.automatic_measurements_id_list:
+            for lt in self.measurements_id_list:
                 fsl = []
                 for idn in lt:
                     fs = _FieldScan(database=self.database, idn=idn)
                     fsl.append(fs)
                 field_scan_list.append(fsl)
-            field_scan_id_list = self.automatic_measurements_id_list
+            field_scan_id_list = self.measurements_id_list
 
         else:
             field_scan_id_list = self.field_scan_id_list
@@ -1747,7 +1767,7 @@ class MeasurementWidget(_QWidget):
 
     def startAutomaticMeasurements(self):
         """Configure and emit signal to start automatic ramp measurements."""
-        self.automatic_measurements_id_list = []
+        self.measurements_id_list = []
         self.configureMeasurement()
         if not self.measurement_configured:
             return
@@ -1758,6 +1778,7 @@ class MeasurementWidget(_QWidget):
 
     def startMeasurement(self):
         """Configure devices and start measurement."""
+        self.measurements_id_list = []
         self.configureMeasurement()
         if not self.measurement_configured:
             return

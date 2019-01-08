@@ -28,8 +28,8 @@ def _get_magnets_info():
     _d = {}
     _d['magnet_name'] = 'BC'
     _d['description'] = 'BC - Storage Ring Dipole'
-    _d['gap[mm]'] = '11/31'
-    _d['control_gap[mm]'] = 3.2
+    _d['gap[mm]'] = '10.2/31'
+    _d['control_gap[mm]'] = 0
     _d['magnet_length[mm]'] = 913
     _d['pole_island_angle[deg]'] = 0
     _d['low_field_shift[mm]'] = 0

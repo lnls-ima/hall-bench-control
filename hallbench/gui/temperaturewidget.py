@@ -28,7 +28,7 @@ class TemperatureWidget(_TablePlotWidget):
     """Temperature Widget class for the Hall Bench Control application."""
 
     _plot_label = 'Temperature [deg C]'
-    _data_format = '{0:.2f}'
+    _data_format = '{0:.4f}'
     _data_labels = [
         '101', '102', '103', '105', '201',
         '202', '203', '204',

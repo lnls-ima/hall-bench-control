@@ -1173,7 +1173,7 @@ class MeasurementWidget(_QWidget):
                     a = _np.transpose([l])
                 else:
                     a = _np.reshape(
-                        l, (int(len(l)/nr_measurements), nr_measurements))
+                        l, (nr_measurements, int(len(l)/nr_measurements)))
                 for lt in a.tolist():
                     self.measurements_id_list.append(lt)
             else:

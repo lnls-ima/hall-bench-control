@@ -29,7 +29,4 @@ setup(
     ],
     test_suite='nose.collector',
     tests_require=['nose'],
-    entry_points={
-        'console_scripts': ['hall-bench-control=hallbench.hallbenchapp:run'],
-     },
     zip_safe=False)

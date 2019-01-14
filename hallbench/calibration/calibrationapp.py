@@ -27,6 +27,7 @@ class CalibrationApp(_QApplication):
         self.setStyle(_style)
         self.nmr = _devices.NMRLib.NMR()
         self.mult = _devices.GPIBLib.Agilent3458A()
+        self.mch = _devices.SerialLib.Agilent34970A()
        
 
 class GUIThread(_threading.Thread):

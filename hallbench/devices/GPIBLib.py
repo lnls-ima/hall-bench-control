@@ -503,6 +503,7 @@ class Agilent3458ACommands(object):
         SREAL - Single Real(IEEE 754), 32 bits - 4 bytes per reading
         DREAL - Double Real(IEEE 754), 64 bits - 8 bytes per reading
         """
+        self.oformat = 'OFORMAT?'
         self.oformat_ascii = 'OFORMAT ASCII'
         self.oformat_sreal = 'OFORMAT SREAL'
         self.oformat_dreal = 'OFORMAT DREAL'
@@ -519,6 +520,7 @@ class Agilent3458ACommands(object):
         SREAL - Single Real(IEEE 754), 32 bits - 4 bytes per reading
         DREAL - Double Real(IEEE 754), 64 bits - 8 bytes per reading
         """
+        self.mformat = 'MFORMAT?'
         self.mformat_ascii = 'MFORMAT ASCII'
         self.mformat_sreal = 'MFORMAT SREAL'
         self.mformat_dreal = 'MFORMAT DREAL'

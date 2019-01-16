@@ -14,7 +14,7 @@ import hallbench.devices as _devices
 
 # Style: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]
 _style = 'windows'
-_width = 1200
+_width = 1250
 _height = 700
 
 

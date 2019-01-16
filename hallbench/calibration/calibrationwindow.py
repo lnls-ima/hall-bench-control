@@ -3,7 +3,6 @@
 """Main window for the Hall Bench Control application."""
 
 import sys as _sys
-import struct as _struct
 import traceback as _traceback
 import serial.tools.list_ports as _list_ports
 from qtpy.QtWidgets import (
@@ -17,6 +16,7 @@ from qtpy.QtCore import Qt as _Qt
 import qtpy.uic as _uic
 
 from hallbench.calibration import utils as _utils
+from hallbench.calibration import measurementwidget as _measurementwidget
 
 
 class CalibrationWindow(_QMainWindow):
@@ -30,6 +30,10 @@ class CalibrationWindow(_QMainWindow):
         uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
         self.resize(width, height)
+
+        # add measurement tab
+        self.measurement_tab = _measurementwidget.MeasurementWidget(self)
+        self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')
 
         self.clear()
         self.updateSerialPorts()
@@ -308,26 +312,12 @@ class CalibrationWindow(_QMainWindow):
         """Read multimeter voltage value."""        
         try:
             fmt = '{0:.10e}'
-            r = self.mult.read_raw_from_device()
-            
-            if self.mult_reset_state:
-                voltage_str = fmt.format(float(r[:-2]))       
-                self.ui.mult_voltage_le.setText(voltage_str)                
+            voltage = _utils.readVoltageFromMultimeter(self.mult)
+            if voltage is None:
+                self.ui.mult_voltage_le.setText('')
             else:
-                if self.mult_format == 'SREAL':
-                    voltage = [_struct.unpack(
-                        '>f', r[i:i+4])[0] for i in range(0, len(r), 4)]
-                elif self.mult_format == 'DREAL':
-                    voltage = [_struct.unpack(
-                            '>d', r[i:i+8])[0] for i in range(0, len(r), 8)]
-                else:
-                    voltage = []
-                if len(voltage) >= 1:
-                    voltage_str = fmt.format(voltage[0])
-                else:
-                    voltage_str = ''
-                self.ui.mult_voltage_le.setText(voltage_str)
-        
+                self.ui.mult_voltage_le.setText(fmt.format(voltage))
+
         except Exception:
             self.ui.mult_voltage_le.setText('')
             _traceback.print_exc(file=_sys.stdout)
@@ -336,29 +326,17 @@ class CalibrationWindow(_QMainWindow):
         """Read NMR magnetic field value."""
         try:
             fmt = '{0:.10e}'
-            b = self.nmr.read_b_value().strip()
-            
-            if b.endswith('F'):
+            field, state = _utils.readFieldFromNMR(self.nmr)
+            if field is None:
                 self.ui.nmr_field_le.setText('')
                 self.ui.nmr_field_state_le.setText('')
-                return
-            
-            b = b.replace('T', '')
-            if b.startswith('L'):
-                state = 'Locked'
-            elif b.startswith('N'):
-                state = 'Not locked'
-            elif b.startswith('S'):
-                state = 'Signal'
-            elif b.startswith('W'):
-                state = 'Wrong'
             else:
-                state = ''
-            
-            field = float(b[1:])
-            self.ui.nmr_field_le.setText(fmt.format(field))
-            self.ui.nmr_field_state_le.setText(state)
-        
+                self.ui.nmr_field_le.setText(fmt.format(field))
+                if state is not None:
+                    self.ui.nmr_field_state_le.setText(state)
+                else:
+                    self.ui.nmr_field_state_le.setText('')
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             self.ui.nmr_field_le.setText('')
@@ -419,4 +397,3 @@ class CalibrationWindow(_QMainWindow):
             
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-

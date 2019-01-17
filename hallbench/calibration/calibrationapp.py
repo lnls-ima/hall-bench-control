@@ -14,8 +14,8 @@ import hallbench.devices as _devices
 
 # Style: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]
 _style = 'windows'
-_width = 1250
-_height = 700
+_width = 1600
+_height = 880
 
 
 class CalibrationApp(_QApplication):

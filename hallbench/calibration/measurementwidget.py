@@ -27,9 +27,13 @@ from hallbench.calibration import utils as _utils
 class MeasurementWidget(_QWidget):
     """Measurement Widget class for the Hall Bench calibration application."""
     
+    _plot_fontsize = 10
+    _plot_line_width = 2
+    _plot_symbol_size = 6
+    
     _temp_format = '{0:.4f}'
     _voltage_format = '{0:.8e}'
-    _field_format = '{0:.8e}'
+    _field_format = '{0:.7e}'
     
     _data_labels = [
         'CH101', 'CH102', 'CH103', 'CH105', 'CH201', 'Voltage', 'Field']
@@ -189,33 +193,46 @@ class MeasurementWidget(_QWidget):
 
         for i, label in enumerate(self._data_labels):
             color = self._colors[i]
+            pen = _pyqtgraph.mkPen(color, width=self._plot_line_width)
             if 'voltage' in label.lower():
                 graph = _pyqtgraph.PlotDataItem(
                     _np.array([]), _np.array([]),
-                    pen=color, symbol='o', symbolPen=color,
-                    symbolSize=3, symbolBrush=color)
+                    pen=pen, symbol='o', symbolPen=color,
+                    symbolSize=self._plot_symbol_size, symbolBrush=color)
                 self.first_right_axis.linkedView().addItem(graph)
             elif 'field' in label.lower():
                 graph = _pyqtgraph.PlotDataItem(
                     _np.array([]), _np.array([]),
-                    pen=color, symbol='o', symbolPen=color,
-                    symbolSize=3, symbolBrush=color)
+                    pen=pen, symbol='o', symbolPen=color,
+                    symbolSize=self._plot_symbol_size, symbolBrush=color)
                 self.second_right_axis.linkedView().addItem(graph)            
             else:
                 graph = self.ui.plot_pw.plotItem.plot(
                     _np.array([]), _np.array([]),
-                    pen=color, symbol='o', symbolPen=color,
-                    symbolSize=3, symbolBrush=color)
+                    pen=pen, symbol='o', symbolPen=color,
+                    symbolSize=self._plot_symbol_size, symbolBrush=color)
             self._graphs[label] = graph
 
         self.ui.plot_pw.showGrid(x=True, y=True)
-        self.ui.plot_pw.setLabel('bottom', 'Time interval [s]')
-        self.ui.plot_pw.setLabel('left', 'Temperature [deg C]')
-        self.first_right_axis.setLabel(
-            'Voltage [V]', color=self._voltage_color)
-        self.second_right_axis.setLabel(
-            'Magnetic Field [T]', color=self._field_color)
         self.updateLegendItems()
+        
+        font = self.ui.plot_pw.font()
+        font.setPointSize(self._plot_fontsize-1)
+        self.ui.plot_pw.plotItem.getAxis('bottom').tickFont = font
+        self.ui.plot_pw.plotItem.getAxis('left').tickFont = font
+        self.first_right_axis.tickFont = font
+        self.second_right_axis.tickFont = font
+        
+        label_style = {'font-size': '{0:d}pt'.format(
+            self._plot_fontsize)}
+        self.ui.plot_pw.setLabel(
+            'bottom', 'Time interval [s]', **label_style)
+        self.ui.plot_pw.setLabel(
+            'left', 'Temperature [deg C]', **label_style)
+        self.first_right_axis.setLabel(
+            'Voltage [V]', color=self._voltage_color, **label_style)
+        self.second_right_axis.setLabel(
+            'Magnetic Field [T]', color=self._field_color, **label_style)
 
     def configureTable(self):
         """Configure table."""
@@ -406,10 +423,18 @@ class MeasurementWidget(_QWidget):
         """Update legend items."""
         self.clearLegendItems()
         self._legend_items = []
+        label_style = {'size': '{0:d}pt'.format(
+            self._plot_fontsize)}
+        
         for label in self._data_labels:
             legend_label = label.split('[')[0]
             self._legend_items.append(legend_label)
             self.legend.addItem(self._graphs[label], legend_label)
+
+        for item in self.legend.items:
+            for single_item in item:
+                if isinstance(single_item, _pyqtgraph.graphicsItems.LabelItem.LabelItem):
+                    single_item.setText(single_item.text, **label_style)
 
     def updateMonitorInterval(self):
         """Update monitor interval value."""

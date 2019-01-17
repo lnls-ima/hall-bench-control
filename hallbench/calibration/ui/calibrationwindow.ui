@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>831</height>
+    <width>1600</width>
+    <height>880</height>
    </rect>
   </property>
   <property name="font">
@@ -936,6 +936,9 @@
                  <bold>false</bold>
                 </font>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item row="0" column="0">
@@ -947,7 +950,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>NMR Magnetic Field [T]:</string>
+                <string>Magnetic Field [T]:</string>
                </property>
               </widget>
              </item>
@@ -964,6 +967,9 @@
                  <weight>50</weight>
                  <bold>false</bold>
                 </font>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1743,7 +1749,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Multimeter Voltage [V]:</string>
+                <string>Voltage [V]:</string>
                </property>
               </widget>
              </item>
@@ -1760,6 +1766,9 @@
                  <weight>50</weight>
                  <bold>false</bold>
                 </font>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1809,8 +1818,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
-     <height>21</height>
+     <width>1600</width>
+     <height>25</height>
     </rect>
    </property>
   </widget>

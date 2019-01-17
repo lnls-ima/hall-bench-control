@@ -311,7 +311,7 @@ class CalibrationWindow(_QMainWindow):
     def readMultVoltage(self):
         """Read multimeter voltage value."""        
         try:
-            fmt = '{0:.10e}'
+            fmt = '{0:.8e}'
             voltage = _utils.readVoltageFromMultimeter(self.mult)
             if voltage is None:
                 self.ui.mult_voltage_le.setText('')
@@ -325,7 +325,7 @@ class CalibrationWindow(_QMainWindow):
     def readNMRField(self):
         """Read NMR magnetic field value."""
         try:
-            fmt = '{0:.10e}'
+            fmt = '{0:.7e}'
             field, state = _utils.readFieldFromNMR(self.nmr)
             if field is None:
                 self.ui.nmr_field_le.setText('')

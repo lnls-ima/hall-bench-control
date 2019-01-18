@@ -164,6 +164,15 @@ class MeasurementWidget(_QWidget):
                 le = getattr(self.ui, 'mch_' + channel.lower() + '_le')
                 le.setText('')
 
+    def clearFieldText(self):
+        """Clear field text."""
+        self.ui.nmr_field_le.setText('')
+        self.ui.nmr_field_sense_le.setText('')    
+
+    def clearVoltageText(self):
+        """Clear voltage text."""
+        self.ui.mult_voltage_le.setText('')
+
     def clearLegendItems(self):
         """Clear plot legend."""
         for label in self._legend_items:
@@ -249,6 +258,8 @@ class MeasurementWidget(_QWidget):
             chb = getattr(self.ui, 'mch_' + channel.lower() + '_chb')
             chb.stateChanged.connect(self.clearTempChannelText)
         
+        self.ui.mult_voltage_chb.stateChanged.connect(self.clearVoltageText)
+        self.ui.nmr_field_chb.stateChanged.connect(self.clearFieldText)
         self.ui.read_btn.clicked.connect(lambda: self.readValue(monitor=False))
         self.ui.monitor_btn.toggled.connect(self.monitorValue)
         self.ui.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)

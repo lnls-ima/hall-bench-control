@@ -336,6 +336,9 @@ class CalibrationWindow(_QMainWindow):
                     self.ui.nmr_field_state_le.setText(state)
                 else:
                     self.ui.nmr_field_state_le.setText('')
+        
+            dac = self.nmr.read_dac_value()
+            self.ui.nmr_dac_le.setText(str(dac))
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

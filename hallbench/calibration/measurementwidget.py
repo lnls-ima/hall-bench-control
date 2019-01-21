@@ -167,7 +167,7 @@ class MeasurementWidget(_QWidget):
     def clearFieldText(self):
         """Clear field text."""
         self.ui.nmr_field_le.setText('')
-        self.ui.nmr_field_sense_le.setText('')    
+        self.ui.nmr_field_state_le.setText('')    
 
     def clearVoltageText(self):
         """Clear voltage text."""

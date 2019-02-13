@@ -238,15 +238,15 @@ class PreferencesDialog(_QDialog):
         self.ui = _uic.loadUi(uifile, self)
         self.ui.apply_btn.clicked.connect(self.tabsPreferencesChanged)
         self.ui.connection_chb.setChecked(True)
-        self.ui.motors_chb.setChecked(True)
-        self.ui.power_supply_chb.setChecked(False)
-        self.ui.measurement_chb.setChecked(True)
+        self.ui.motors_chb.setChecked(False)
+        self.ui.power_supply_chb.setChecked(True)
+        self.ui.measurement_chb.setChecked(False)
         self.ui.voltage_chb.setChecked(False)
         self.ui.current_chb.setChecked(False)
         self.ui.temperature_chb.setChecked(False)
         self.ui.cooling_system_chb.setChecked(False)
         self.ui.angular_error_chb.setChecked(False)
-        self.ui.database_chb.setChecked(True)
+        self.ui.database_chb.setChecked(False)
 
     def tabsPreferencesChanged(self):
         """Get tabs checkbox status and emit signal to change tabs."""

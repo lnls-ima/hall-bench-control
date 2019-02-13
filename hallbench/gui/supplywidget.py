@@ -4,6 +4,7 @@
 
 import sys as _sys
 import numpy as _np
+import pandas as _pd
 import time as _time
 import traceback as _traceback
 import qtpy.uic as _uic
@@ -17,6 +18,7 @@ from qtpy.QtCore import (
     QTimer as _QTimer,
     Signal as _Signal,
     )
+import pyqtgraph as _pyqtgraph
 
 from hallbench.gui import utils as _utils
 
@@ -77,6 +79,12 @@ class SupplyWidget(_QWidget):
         self.ui.cb_ps_name.editTextChanged.connect(self.change_ps)
         self.ui.sb_current_setpoint.valueChanged.connect(self.check_setpoint)
         self.timer.timeout.connect(self.status_powersupply)
+
+        self.probe_calibration_config_plot()
+        self.ui.pc_measure_btn.clicked.connect(self.probe_calibration_measure)
+        self.ui.pc_updatefreq_btn.clicked.connect(
+            self.probe_calibration_update_nmr_freq)
+        self.ui.pc_copy_btn.clicked.connect(self.probe_calibration_copy)
 
     @property
     def connection_config(self):
@@ -1378,3 +1386,217 @@ class SupplyWidget(_QWidget):
                                  'Could not load the power supply settings.\n'
                                  'Check if the configuration values are '
                                  'correct.', _QMessageBox.Ok)
+
+    def probe_calibration_config_plot(self):
+        try:
+            legend = _pyqtgraph.LegendItem(offset=(100, 30))
+            legend.setParentItem(self.ui.pc_plot_pw.graphicsItem())
+            legend.setAutoFillBackground(1)            
+            
+            self.ui.pc_plot_pw.clear()
+            p = self.ui.pc_plot_pw.plotItem  
+            pr1 = _pyqtgraph.ViewBox()
+            p.showAxis('right')
+            ax_pr1 = p.getAxis('right')
+            p.scene().addItem(pr1)
+            ax_pr1.linkToView(pr1)
+            pr1.setXLink(p)
+    
+            def updateViews():
+                pr1.setGeometry(p.vb.sceneBoundingRect())
+                pr1.linkedViewChanged(p.vb, pr1.XAxis)
+    
+            updateViews()
+            p.vb.sigResized.connect(updateViews)
+            ax_pr1.setStyle(showValues=True)
+          
+            penv = (0, 0, 255)
+            graphv = self.ui.pc_plot_pw.plotItem.plot(
+                _np.array([]), _np.array([]), pen=penv,
+                symbol='o', symbolPen=penv, symbolSize=3, symbolBrush=penv)
+  
+            penf = (0, 255, 0)
+            graphf = _pyqtgraph.PlotDataItem(
+                _np.array([]), _np.array([]), pen=penf, 
+                symbol='o', symbolPen=penf, symbolSize=3, symbolBrush=penf)
+            ax_pr1.linkedView().addItem(graphf)
+    
+            legend.addItem(graphv, 'Voltage')
+            legend.addItem(graphf, 'Field')
+            self.ui.pc_plot_pw.showGrid(x=True, y=True)
+            self.ui.pc_plot_pw.setLabel('bottom', 'Time interval [s]')
+            self.ui.pc_plot_pw.setLabel('left', 'Voltage [V]')
+            ax_pr1.setLabel('Field [T]')
+
+            self.graphv = graphv
+            self.graphf = graphf
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)        
+
+    def probe_calibration_update_nmr_freq(self):
+        try:
+            nmr = self.devices.nmr
+            if not nmr.connected:
+                msg = 'NMR not connected.'
+                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
+                return False
+            
+            nmr_freq = self.ui.pc_nmrfreq_sb.value()
+            nmr.send_command(nmr.commands.frequency+str(nmr_freq))
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return False
+
+    def probe_calibration_measure(self):
+        try:
+            self.ui.pc_measure_btn.setEnabled(False)
+            
+            self.graphv.setData([], [])
+            self.graphf.setData([], [])
+            self.ui.pc_volt_le.setText('')
+            self.ui.pc_voltstd_le.setText('')          
+            self.ui.pc_field_le.setText('')
+            self.ui.pc_fieldstd_le.setText('')
+
+            nmr = self.devices.nmr
+            if not nmr.connected:
+                msg = 'NMR not connected.'
+                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
+                self.ui.pc_measure_btn.setEnabled(True)
+                return False
+            
+            if self.ui.pc_sensorx_rb.isChecked():
+                volt = self.ui.devices.voltx
+            elif self.ui.pc_sensory_rb.isChecked():
+                volt = self.ui.devices.volty
+            elif self.ui.pc_sensorz_rb.isChecked():
+                volt = self.ui.devices.voltz
+            else:    
+                msg = 'Invalid sensor selection.'
+                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)                
+                self.ui.pc_measure_btn.setEnabled(True)
+                return False
+            
+            if not volt.connected:
+                msg = 'Multimeter not connected.'
+                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
+                self.ui.pc_measure_btn.setEnabled(True)                
+                return False                
+            
+            nmr_channel = self.ui.pc_nmrchannel_cmb.currentText()
+            nmr_freq = self.ui.pc_nmrfreq_sb.value()
+            nmr_sense = self.ui.pc_nmrsense_cmb.currentIndex()
+            
+            if not nmr.configure(nmr_freq, 1, nmr_sense, 1, 0, 1, nmr_channel, 1):
+                msg = 'Failed to configure NMR.'
+                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
+                self.ui.pc_measure_btn.setEnabled(True)                
+                return False                 
+            
+            ps_type = self.config.ps_type
+            if not self.set_address(ps_type):
+                self.ui.pc_measure_btn.setEnabled(True)
+                return False
+ 
+            if ps_type in [2, 3]:
+                slope = self.slope[ps_type - 2]
+            else:
+                slope = self.slope[2]
+
+            self.drs.SetISlowRef(0)
+
+            ts = []
+            fs = []
+            vs = []
+
+            i = self.ui.pc_current_sb.value()
+            if not self.verify_current_limits(i):
+                self.ui.pc_measure_btn.setEnabled(True)
+                return False
+
+            current_time = self.ui.pc_time_sb.value()
+            reading_delay = self.ui.pc_delay_sb.value()
+            reading_time = self.ui.pc_readingtime_sb.value()
+            
+            if reading_time > current_time or reading_time == 0:
+                msg = 'Invalid reading time.'
+                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
+                self.ui.pc_measure_btn.setEnabled(True)                
+                return False                 
+            
+            t_border = abs(i) / slope
+            t0 = _time.monotonic()
+            deadline = t0 + t_border + current_time
+            tr0 = t0
+            
+            self.drs.SetISlowRef(i)
+            tr = 0            
+            while _time.monotonic() < deadline:
+                _QApplication.processEvents()
+                t = _time.monotonic() - t0
+                if t >= (reading_delay + t_border) and tr < reading_time:
+                    ts.append(t)
+                    b = nmr.read_b_value().strip().replace('\r\n', '')
+                    if b.endswith('T') and b.startswith('L'):
+                        try:
+                            b = b.replace('T', '')
+                            fs.append(float(b[1:]))
+                        except Exception:
+                            fs.append(_np.nan)
+                    else:
+                        fs.append(_np.nan)
+                    try:
+                        v = float(volt.read_from_device()[:-2])
+                        vs.append(v)
+                    except Exception:
+                        vs.append(_np.nan)
+                    tr = _time.monotonic() - tr0
+                    if not all([_np.isnan(v) for v in vs]):
+                        self.graphv.setData(ts, vs)
+                    if not all([_np.isnan(f) for f in fs]):
+                        self.graphf.setData(ts, fs)
+                else:
+                    tr0 = _time.monotonic()
+                _time.sleep(0.01)      
+            
+            self.drs.SetISlowRef(0)
+            
+            vn = [v for v in vs if not _np.isnan(v)]
+            fn = [f for f in fs if not _np.isnan(f)]
+            
+            if len(vn) > 0:
+                self.ui.pc_volt_le.setText('{0:.8f}'.format(_np.mean(vn)))
+                self.ui.pc_voltstd_le.setText('{0:.8f}'.format(_np.std(vn)))
+            else:
+                self.ui.pc_volt_le.setText('')
+                self.ui.pc_voltstd_le.setText('')
+
+            if len(fn) > 0:
+                self.ui.pc_field_le.setText('{0:.8f}'.format(_np.mean(fn)))
+                self.ui.pc_fieldstd_le.setText('{0:.8f}'.format(_np.std(fn)))
+            else:
+                self.ui.pc_field_le.setText('')
+                self.ui.pc_fieldstd_le.setText('')
+            
+            self.ui.pc_measure_btn.setEnabled(True)
+            msg = 'Measurement finished.'
+            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)           
+            return True
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            self.ui.pc_measure_btn.setEnabled(True)
+            return False
+
+    def probe_calibration_copy(self):
+        try:
+            f = self.ui.pc_field_le.text()
+            fstd = self.ui.pc_fieldstd_le.text()
+            v = self.ui.pc_volt_le.text()
+            vstd = self.ui.pc_voltstd_le.text()
+            df = _pd.DataFrame([[f, fstd, v, vstd]])
+            df.to_clipboard(header=False, index=False)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return False        

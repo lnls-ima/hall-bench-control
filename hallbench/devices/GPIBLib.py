@@ -778,13 +778,13 @@ class Agilent34970A(GPIB):
     def convert_voltage_to_temperature(self, voltage, channel):
         """Convert probe voltage to temperature value."""
         if channel == '101':
-            temperature = (voltage + 50e-3)/20e-3
+            temperature = voltage #(voltage + 50e-3)/20e-3
         elif channel == '102':
-            temperature = (voltage + 40e-3)/20e-3
+            temperature = voltage #(voltage + 40e-3)/20e-3
         elif channel == '103':
-            temperature = (voltage + 50e-3)/20e-3
+            temperature = voltage #(voltage + 50e-3)/20e-3
         elif channel == '105':
-            temperature = (voltage + 30e-3)/20e-3
+            temperature = voltage #(voltage + 30e-3)/20e-3
         else:
             temperature = _np.nan
         return temperature

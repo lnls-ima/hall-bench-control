@@ -448,7 +448,7 @@
          </font>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <property name="iconSize">
          <size>
@@ -1251,7 +1251,7 @@ p, li { white-space: pre-wrap; }
              <bool>true</bool>
             </property>
             <property name="currentIndex">
-             <number>3</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="tab0">
              <attribute name="title">
@@ -2782,6 +2782,522 @@ p, li { white-space: pre-wrap; }
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="tab_3">
+         <attribute name="title">
+          <string>Probe Calibration</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_21">
+          <item row="0" column="0">
+           <widget class="QGroupBox" name="groupBox_3">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="title">
+             <string>Measurement Configuration</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_19">
+             <item row="0" column="0" colspan="2">
+              <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <widget class="QRadioButton" name="pc_sensorx_rb">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Sensor X</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="pc_sensory_rb">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Sensor Y</string>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="pc_sensorz_rb">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Sensor Z</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_4">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Current [A]:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QDoubleSpinBox" name="pc_current_sb">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="decimals">
+                <number>3</number>
+               </property>
+               <property name="minimum">
+                <double>-1000.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>1000.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_6">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Constant Current Time[s]:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QSpinBox" name="pc_time_sb">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="maximum">
+                <number>1000</number>
+               </property>
+               <property name="value">
+                <number>10</number>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_7">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Reading Delay[s]:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QSpinBox" name="pc_delay_sb">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="maximum">
+                <number>1000</number>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Reading Time[s]:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="1">
+              <widget class="QSpinBox" name="pc_readingtime_sb">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="maximum">
+                <number>1000</number>
+               </property>
+               <property name="value">
+                <number>10</number>
+               </property>
+              </widget>
+             </item>
+             <item row="13" column="0" colspan="2">
+              <widget class="QPushButton" name="pc_updatefreq_btn">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Update NMR Frequency</string>
+               </property>
+              </widget>
+             </item>
+             <item row="14" column="0" colspan="2">
+              <widget class="QPushButton" name="pc_measure_btn">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Set Current and Measure</string>
+               </property>
+              </widget>
+             </item>
+             <item row="11" column="0">
+              <widget class="QLabel" name="label_14">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>NMR Frequency:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="0">
+              <widget class="QLabel" name="label_13">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>NMR Channel:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="11" column="1">
+              <widget class="QSpinBox" name="pc_nmrfreq_sb">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="maximum">
+                <number>4095</number>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="1">
+              <widget class="QComboBox" name="pc_nmrchannel_cmb">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <item>
+                <property name="text">
+                 <string>A</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>B</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>D</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>E</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>F</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>G</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>H</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="10" column="0">
+              <widget class="QLabel" name="label_15">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>NMR Field Sense:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="10" column="1">
+              <widget class="QComboBox" name="pc_nmrsense_cmb">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="currentIndex">
+                <number>1</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Negative</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Positive</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="0" column="1" rowspan="2">
+           <widget class="PlotWidget" name="pc_plot_pw">
+            <property name="backgroundBrush">
+             <brush brushstyle="NoBrush">
+              <color alpha="255">
+               <red>255</red>
+               <green>255</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </property>
+            <property name="foregroundBrush">
+             <brush brushstyle="NoBrush">
+              <color alpha="255">
+               <red>252</red>
+               <green>255</green>
+               <blue>255</blue>
+              </color>
+             </brush>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QGroupBox" name="groupBox_4">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="title">
+             <string>Results</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_20">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_9">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Average Field [T]:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="pc_field_le">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_11">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>STD Field [T]:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="pc_fieldstd_le">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_10">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Average Voltage [V]:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="pc_volt_le">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_12">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>STD Voltage [V]:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="pc_voltstd_le">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0" colspan="2">
+              <widget class="QPushButton" name="pc_copy_btn">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Copy</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
      </layout>
@@ -2932,6 +3448,12 @@ Status:</string>
         </item>
         <item row="2" column="1">
          <widget class="QLineEdit" name="le_status_con">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="maximumSize">
            <size>
             <width>80</width>
@@ -3152,6 +3674,84 @@ Status:</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>pb_refresh</tabstop>
+  <tabstop>pb_interlock</tabstop>
+  <tabstop>pb_reset_inter</tabstop>
+  <tabstop>pb_ps_button</tabstop>
+  <tabstop>le_status_loop</tabstop>
+  <tabstop>le_status_con</tabstop>
+  <tabstop>sb_current_setpoint</tabstop>
+  <tabstop>pb_send</tabstop>
+  <tabstop>pb_emergency</tabstop>
+  <tabstop>cb_ps_name</tabstop>
+  <tabstop>pb_load_ps</tabstop>
+  <tabstop>pb_save_ps</tabstop>
+  <tabstop>tabWidget_2</tabstop>
+  <tabstop>cb_ps_type</tabstop>
+  <tabstop>sb_dclink</tabstop>
+  <tabstop>le_maximum_current</tabstop>
+  <tabstop>le_minimum_current</tabstop>
+  <tabstop>chb_dcct</tabstop>
+  <tabstop>cb_dcct_select</tabstop>
+  <tabstop>sb_kp</tabstop>
+  <tabstop>sb_ki</tabstop>
+  <tabstop>pb_config_pid</tabstop>
+  <tabstop>pb_config_ps</tabstop>
+  <tabstop>tw_currents</tabstop>
+  <tabstop>pb_add_row</tabstop>
+  <tabstop>pb_remove_row</tabstop>
+  <tabstop>pb_clear_table</tabstop>
+  <tabstop>textBrowser</tabstop>
+  <tabstop>tabWidget_3</tabstop>
+  <tabstop>le_damp_sin_ampl</tabstop>
+  <tabstop>le_damp_sin_offset</tabstop>
+  <tabstop>le_damp_sin_freq</tabstop>
+  <tabstop>le_damp_sin_ncycles</tabstop>
+  <tabstop>le_damp_sin_phase</tabstop>
+  <tabstop>le_damp_sin_phasef</tabstop>
+  <tabstop>le_damp_sin_damping</tabstop>
+  <tabstop>pb_send_curve</tabstop>
+  <tabstop>pb_cycle</tabstop>
+  <tabstop>pb_plot</tabstop>
+  <tabstop>le_sinusoidal_amplitude</tabstop>
+  <tabstop>le_sinusoidal_offset</tabstop>
+  <tabstop>le_sinusoidal_frequency</tabstop>
+  <tabstop>le_sinusoidal_ncycles</tabstop>
+  <tabstop>le_sinusoidal_phase</tabstop>
+  <tabstop>le_sinusoidal_phasef</tabstop>
+  <tabstop>le_damp_sin2_ampl</tabstop>
+  <tabstop>le_damp_sin2_offset</tabstop>
+  <tabstop>le_damp_sin2_freq</tabstop>
+  <tabstop>le_damp_sin2_ncycles</tabstop>
+  <tabstop>le_damp_sin2_phase</tabstop>
+  <tabstop>le_damp_sin2_phasef</tabstop>
+  <tabstop>le_damp_sin2_damping</tabstop>
+  <tabstop>le_trapezoidal_offset</tabstop>
+  <tabstop>tw_trapezoidal</tabstop>
+  <tabstop>pb_add_row_2</tabstop>
+  <tabstop>pb_remove_row_2</tabstop>
+  <tabstop>pb_clear_table_2</tabstop>
+  <tabstop>pc_sensorx_rb</tabstop>
+  <tabstop>pc_sensorz_rb</tabstop>
+  <tabstop>pc_current_sb</tabstop>
+  <tabstop>pc_time_sb</tabstop>
+  <tabstop>pc_delay_sb</tabstop>
+  <tabstop>pc_readingtime_sb</tabstop>
+  <tabstop>pc_measure_btn</tabstop>
+  <tabstop>pc_field_le</tabstop>
+  <tabstop>pc_fieldstd_le</tabstop>
+  <tabstop>pc_volt_le</tabstop>
+  <tabstop>pc_voltstd_le</tabstop>
+  <tabstop>pc_plot_pw</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -3161,12 +3761,12 @@ Status:</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>928</x>
-     <y>280</y>
+     <x>355</x>
+     <y>485</y>
     </hint>
     <hint type="destinationlabel">
-     <x>125</x>
-     <y>64</y>
+     <x>280</x>
+     <y>93</y>
     </hint>
    </hints>
   </connection>
@@ -3177,12 +3777,12 @@ Status:</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>928</x>
-     <y>280</y>
+     <x>355</x>
+     <y>485</y>
     </hint>
     <hint type="destinationlabel">
-     <x>223</x>
-     <y>66</y>
+     <x>356</x>
+     <y>93</y>
     </hint>
    </hints>
   </connection>
@@ -3193,12 +3793,12 @@ Status:</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>928</x>
-     <y>280</y>
+     <x>355</x>
+     <y>485</y>
     </hint>
     <hint type="destinationlabel">
-     <x>148</x>
-     <y>99</y>
+     <x>302</x>
+     <y>118</y>
     </hint>
    </hints>
   </connection>

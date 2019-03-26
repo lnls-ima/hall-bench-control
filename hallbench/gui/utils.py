@@ -23,6 +23,7 @@ from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as _FigureCanvas,
     NavigationToolbar2QT as _Toolbar
     )
+import pyqtgraph as _pyqtgraph
 
 
 _basepath = _path.dirname(_path.abspath(__file__))
@@ -65,6 +66,24 @@ def getValueFromStringExpresssion(text):
 
     except Exception:
         return None
+
+
+def plotItemAddRightAxis(plot_item):
+    """Add axis to graph."""
+    plot_item.showAxis('right')
+    ax = plot_item.getAxis('right')
+    vb = _pyqtgraph.ViewBox()
+    plot_item.scene().addItem(vb)
+    ax.linkToView(vb)
+    vb.setXLink(plot_item)
+
+    def updateViews():
+        vb.setGeometry(plot_item.vb.sceneBoundingRect())
+        vb.linkedViewChanged(plot_item.vb, vb.XAxis)
+
+    updateViews()
+    plot_item.vb.sigResized.connect(updateViews)
+    return ax
 
 
 def setFloatLineEditText(

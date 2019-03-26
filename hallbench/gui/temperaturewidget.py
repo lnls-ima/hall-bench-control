@@ -14,9 +14,11 @@ from qtpy.QtWidgets import (
     QWidget as _QWidget,
     )
 from qtpy.QtCore import (
-    Signal as _Signal,
-    QDateTime as _QDateTime,
     Qt as _Qt,
+    QDateTime as _QDateTime,
+    QThread as _QThread,
+    QObject as _QObject,
+    Signal as _Signal,
     )
 import qtpy.uic as _uic
 
@@ -30,16 +32,14 @@ class TemperatureWidget(_TablePlotWidget):
     _plot_label = 'Temperature [deg C]'
     _data_format = '{0:.4f}'
     _data_labels = [
-        '101', '102', '103', '105', '201',
-        '202', '203', '204',
-        '205', '206', '207',
-        '208', '209',
+        'Ch101', 'Ch102', 'Ch103', 'Ch105',
+        'Ch201', 'Ch202', 'Ch203', 'Ch204',
+        'Ch205', 'Ch206', 'Ch207', 'Ch208', 'Ch209',
     ]
     _colors = [
-        (230, 25, 75), (60, 180, 75), (0, 130, 200),
-        (245, 130, 48), (145, 30, 180), (255, 225, 25), (70, 240, 240),
-        (240, 50, 230), (170, 110, 40), (128, 0, 0),
-        (0, 0, 0), (128, 128, 128), (0, 255, 0),
+        (230, 25, 75), (60, 180, 75), (0, 130, 200), (245, 130, 48),
+        (145, 30, 180), (255, 225, 25), (70, 240, 240), (240, 50, 230),
+        (170, 110, 40), (128, 0, 0), (0, 0, 0), (128, 128, 128), (0, 255, 0),
     ]
 
     def __init__(self, parent=None):
@@ -48,7 +48,6 @@ class TemperatureWidget(_TablePlotWidget):
 
         # add channels widget
         self.channels_widget = TemperatureChannelsWidget(self)
-        self.channels_widget.channelChanged.connect(self.enableConfigureButton)
         _layout = _QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(self.channels_widget)
@@ -69,19 +68,45 @@ class TemperatureWidget(_TablePlotWidget):
         self.ui.read_btn.setText('Read Temperature')
         self.ui.monitor_btn.setText('Monitor Temperature')
 
+        # Create reading thread
+        self.thread = _QThread()
+        self.worker = ReadValueWorker()
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.getReading)
+
     @property
     def devices(self):
         """Hall Bench Devices."""
         return _QApplication.instance().devices
 
+    def checkConnection(self, monitor=False):
+        """Check devices connection."""
+        if not self.devices.multich.connected:
+            if not monitor:
+                _QMessageBox.critical(
+                    self, 'Failure',
+                    'Multichannel not connected.', _QMessageBox.Ok)
+            return False
+        return True
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.timer.stop()
+            self.thread.quit()
+            del self.thread
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
     def configureChannels(self):
         """Configure channels for temperature measurement."""
         selected_channels = self.channels_widget.selected_channels
 
-        if not self.devices.multich.connected:
-            _QMessageBox.critical(
-                self, 'Failure',
-                'Multichannel not connected.', _QMessageBox.Ok)
+        if not self.checkConnection():
             return
 
         try:
@@ -95,36 +120,51 @@ class TemperatureWidget(_TablePlotWidget):
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
 
-            if self._configured:
-                self.configure_btn.setEnabled(False)
-            else:
-                self.configure_btn.setEnabled(True)
+            if not self._configured:
                 msg = 'Failed to configure Multichannel.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+
         except Exception:
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
 
-    def enableConfigureButton(self):
-        """Enable configure button."""
-        self.configure_btn.setEnabled(True)
+    def getReading(self):
+        """Get reading from worker thread."""
+        try:
+            r = self.worker.reading
+            if len(r) == 0 or all([_np.isnan(ri) for ri in r[1:]]):
+                return
+
+            self._timestamp.append(r[0])
+            self.channels_widget.updateDateTime(r[0])
+
+            for i, ch in enumerate(self.channels_widget.channels):
+                label = self._data_labels[i]
+                temperature = r[i+1]
+                if _np.isnan(temperature):
+                    text = ''
+                else:
+                    text = self._data_format.format(temperature)
+                self.channels_widget.updateChannelText(ch, text)
+                self._readings[label].append(temperature)
+
+            self.addLastValueToTable()
+            self.updatePlot()
+        except Exception:
+            pass
 
     def readValue(self, monitor=False):
         """Read value."""
+        if not self.checkConnection(monitor=monitor):
+            return
+
         selected_channels = self.channels_widget.selected_channels
         if len(selected_channels) == 0:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure',
                     'No channel selected.', _QMessageBox.Ok)
-            return
-
-        if not self.devices.multich.connected:
-            if not monitor:
-                _QMessageBox.critical(
-                    self, 'Failure',
-                    'Multichannel not connected.', _QMessageBox.Ok)
             return
 
         if not self._configured:
@@ -134,34 +174,13 @@ class TemperatureWidget(_TablePlotWidget):
                     'Channels not configured.', _QMessageBox.Ok)
             return
 
-        ts = _time.time()
-        wait = self.channels_widget.delay
-        rl = self.devices.multich.get_converted_readings(wait=wait)
-        if len(rl) != len(selected_channels):
-            return
-
-        readings = [r if _np.abs(r) < 1e37 else _np.nan for r in rl]
-
         try:
-            for i in range(len(selected_channels)):
-                label = selected_channels[i]
-                temperature = readings[i]
-                text = self._data_format.format(temperature)
-                self.channels_widget.updateChannelText(label, text)
-                self._readings[label].append(temperature)
-
-            for label in self._data_labels:
-                if label not in selected_channels:
-                    self.channels_widget.updateChannelText(label, '')
-                    self._readings[label].append(_np.nan)
-
-            self._timestamp.append(ts)
-            self.channels_widget.updateDateTime(ts)
-            self.addLastValueToTable()
-            self.updatePlot()
-
+            self.worker.delay = self.channels_widget.delay
+            self.worker.channels = self.channels_widget.channels
+            self.worker.selected_channels = selected_channels
+            self.thread.start()
         except Exception:
-            _traceback.print_exc(file=_sys.stdout)
+            pass
 
 
 class TemperatureChannelsWidget(_QWidget):
@@ -200,6 +219,11 @@ class TemperatureChannelsWidget(_QWidget):
         self.ui.channel209_chb.stateChanged.connect(self.clearChannelText)
 
     @property
+    def channels(self):
+        """Return channels."""
+        return self._channels
+
+    @property
     def selected_channels(self):
         """Return the selected channels."""
         selected_channels = []
@@ -232,3 +256,47 @@ class TemperatureChannelsWidget(_QWidget):
         dt = _QDateTime()
         dt.setTime_t(timestamp)
         self.ui.time_dte.setDateTime(dt)
+
+
+class ReadValueWorker(_QObject):
+    """Read values worker."""
+
+    finished = _Signal([bool])
+
+    def __init__(self):
+        """Initialize object."""
+        self.delay = 0
+        self.selected_channels = []
+        self.reading = []
+        super().__init__()
+
+    @property
+    def devices(self):
+        """Hall Bench Devices."""
+        return _QApplication.instance().devices
+
+    def run(self):
+        """Read values from devices."""
+        try:
+            self.reading = []
+
+            ts = _time.time()
+            rl = self.devices.multich.get_converted_readings(wait=self.delay)
+            if len(rl) == len(self.selected_channels):
+                rl = [r if _np.abs(r) < 1e37 else _np.nan for r in rl]
+            else:
+                rl = [_np.nan]*len(self.selected_channels)
+
+            count = 0
+            self.reading.append(ts)
+            for ch in self.channels:
+                if ch in self.selected_channels:
+                    self.reading.append(rl[count])
+                    count = count + 1
+                else:
+                    self.reading.append(_np.nan)
+            self.finished.emit(True)
+
+        except Exception:
+            self.reading = []
+            self.finished.emit(True)

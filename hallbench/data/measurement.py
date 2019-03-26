@@ -1759,19 +1759,19 @@ def _get_fieldmap(field_scan_list, hall_probe, correct_positions):
         columns = fieldx.columns
 
         # correct first axis positions
-        fieldx.index = index - _np.dot(first_axis_direction, px_disp)
-        fieldy.index = index - _np.dot(first_axis_direction, py_disp)
-        fieldz.index = index - _np.dot(first_axis_direction, pz_disp)
+        fieldx.index = index + _np.dot(first_axis_direction, px_disp)
+        fieldy.index = index + _np.dot(first_axis_direction, py_disp)
+        fieldz.index = index + _np.dot(first_axis_direction, pz_disp)
 
         # correct second axis positions
-        fieldx.columns = columns - _np.dot(second_axis_direction, px_disp)
-        fieldy.columns = columns - _np.dot(second_axis_direction, py_disp)
-        fieldz.columns = columns - _np.dot(second_axis_direction, pz_disp)
+        fieldx.columns = columns + _np.dot(second_axis_direction, px_disp)
+        fieldy.columns = columns + _np.dot(second_axis_direction, py_disp)
+        fieldz.columns = columns + _np.dot(second_axis_direction, pz_disp)
 
         # correct third axis positions
-        ptx = third_axis_pos - _np.dot(third_axis_direction, px_disp)
-        pty = third_axis_pos - _np.dot(third_axis_direction, py_disp)
-        ptz = third_axis_pos - _np.dot(third_axis_direction, pz_disp)
+        ptx = third_axis_pos + _np.dot(third_axis_direction, px_disp)
+        pty = third_axis_pos + _np.dot(third_axis_direction, py_disp)
+        ptz = third_axis_pos + _np.dot(third_axis_direction, pz_disp)
         if ptx == pty and ptx == ptz:
             third_axis_pos = ptx
         else:

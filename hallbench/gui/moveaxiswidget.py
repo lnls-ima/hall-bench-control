@@ -138,6 +138,10 @@ class MoveAxisWidget(_QWidget):
         try:
             axis = self.selectedAxis()
             if axis is None:
+                self.ui.targetvel_le.setText('')
+                self.ui.targetpos_le.setText('')
+                self.ui.targetvelunit_la.setText('')
+                self.ui.targetposunit_la.setText('')
                 return
 
             velocity = self.pmac.get_velocity(axis)

@@ -57,16 +57,16 @@ class HallBenchApp(_QApplication):
         self.power_supply_config = _PowerSupplyConfig()
         self.hall_probe = _HallProbe()
         self.devices = _HallBenchDevices()
-        
+        self.dev = _devices
+
         # positions dict
         self.positions = {}
-        
+
         # create dialogs
         self.view_probe_dialog = _ViewProbeDialog()
         self.view_scan_dialog = _ViewScanDialog()
         self.save_fieldmap_dialog = _SaveFieldmapDialog()
         self.view_fieldmap_dialog = _ViewFieldmapDialog()
-        
 
     def create_database(self):
         """Create database and tables."""

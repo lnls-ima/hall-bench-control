@@ -13,9 +13,9 @@ from qtpy.QtWidgets import (
     )
 from qtpy.QtCore import (
     QTimer as _QTimer,
-    QThread as _QThread,
-    QEventLoop as _QEventLoop,
     Signal as _Signal,
+    QRunnable as _QRunnable,
+    QThreadPool as _QThreadPool,
     )
 import qtpy.uic as _uic
 
@@ -42,6 +42,8 @@ from hallbench.gui.coolingsystemwidget import CoolingSystemWidget \
 
 class HallBenchWindow(_QMainWindow):
     """Main Window class for the Hall Bench Control application."""
+
+    _update_positions_timer_interval = 250  # [ms]
 
     def __init__(self, parent=None, width=1200, height=700):
         """Set up the ui and add main tabs."""
@@ -92,8 +94,11 @@ class HallBenchWindow(_QMainWindow):
         self.ui.main_tab.addTab(self.database_tab, 'Database')
         self.ui.database_le.setText(self.database)
 
-        self.positions_thread = PositionsThread()
-        self.positions_thread.start()
+        self.stop_positions_update = False
+        self.threadpool = _QThreadPool.globalInstance()
+        self.timer = _QTimer()
+        self.timer.timeout.connect(self.updatePositions)
+        self.timer.start(self._update_positions_timer_interval)
 
         # Connect automatic current ramp signals
         self.measurement_tab.change_current_setpoint.connect(
@@ -155,6 +160,9 @@ class HallBenchWindow(_QMainWindow):
     def closeEvent(self, event):
         """Close main window and dialogs."""
         try:
+            self.stop_positions_update = True
+            self.threadpool.waitForDone()
+            self.timer.stop()
             for idx in range(self.ui.main_tab.count()):
                 widget = self.ui.main_tab.widget(idx)
                 widget.close()
@@ -163,7 +171,6 @@ class HallBenchWindow(_QMainWindow):
             self.save_fieldmap_dialog.accept()
             self.view_fieldmap_dialog.accept()
             self.preferences_dialog.close()
-            self.positions_thread.quit()
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -180,7 +187,7 @@ class HallBenchWindow(_QMainWindow):
 
         if len(fn) == 0:
             return
-        
+
         self.database = fn
         self.ui.database_le.setText(self.database)
 
@@ -223,6 +230,17 @@ class HallBenchWindow(_QMainWindow):
         if self.ui.main_tab.currentIndex() == database_tab_idx:
             self.database_tab.updateDatabaseTables()
 
+    def updatePositions(self):
+        """Update pmac positions."""
+        if self.stop_positions_update:
+            return
+
+        try:
+            worker = PositionsWorker()
+            self.threadpool.start(worker)
+        except Exception:
+            pass
+
 
 class PreferencesDialog(_QDialog):
     """Preferences dialog class for Hall Bench Control application."""
@@ -238,15 +256,15 @@ class PreferencesDialog(_QDialog):
         self.ui = _uic.loadUi(uifile, self)
         self.ui.apply_btn.clicked.connect(self.tabsPreferencesChanged)
         self.ui.connection_chb.setChecked(True)
-        self.ui.motors_chb.setChecked(False)
-        self.ui.power_supply_chb.setChecked(True)
-        self.ui.measurement_chb.setChecked(False)
+        self.ui.motors_chb.setChecked(True)
+        self.ui.power_supply_chb.setChecked(False)
+        self.ui.measurement_chb.setChecked(True)
         self.ui.voltage_chb.setChecked(False)
         self.ui.current_chb.setChecked(False)
         self.ui.temperature_chb.setChecked(False)
         self.ui.cooling_system_chb.setChecked(False)
         self.ui.angular_error_chb.setChecked(False)
-        self.ui.database_chb.setChecked(False)
+        self.ui.database_chb.setChecked(True)
 
     def tabsPreferencesChanged(self):
         """Get tabs checkbox status and emit signal to change tabs."""
@@ -277,17 +295,8 @@ class PreferencesDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
 
 
-class PositionsThread(_QThread):
-    """Thread to read position values from pmac."""
-
-    _timer_interval = 250  # [ms]
-
-    def __init__(self):
-        """Initialize object."""
-        super().__init__()
-        self.timer = _QTimer()
-        self.timer.moveToThread(self)
-        self.timer.timeout.connect(self.updatePositions)
+class PositionsWorker(_QRunnable):
+    """QRunnable to read position values from pmac."""
 
     @property
     def pmac(self):
@@ -303,7 +312,7 @@ class PositionsThread(_QThread):
     def positions(self, value):
         _QApplication.instance().positions = value
 
-    def updatePositions(self):
+    def run(self):
         """Update axes positions."""
         if not self.pmac.connected:
             self.positions = {}
@@ -315,9 +324,3 @@ class PositionsThread(_QThread):
                 self.positions[axis] = pos
         except Exception:
             pass
-
-    def run(self):
-        """Target function."""
-        self.timer.start(self._timer_interval)
-        loop = _QEventLoop()
-        loop.exec_()

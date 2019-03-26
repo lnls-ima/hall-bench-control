@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>995</width>
-    <height>731</height>
+    <width>911</width>
+    <height>736</height>
    </rect>
   </property>
   <property name="font">
@@ -88,10 +88,10 @@
          <set>QAbstractItemView::NoEditTriggers</set>
         </property>
         <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>150</number>
+         <number>100</number>
         </attribute>
         <attribute name="horizontalHeaderMinimumSectionSize">
-         <number>150</number>
+         <number>100</number>
         </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
          <bool>true</bool>
@@ -260,10 +260,10 @@
          <set>QAbstractItemView::NoEditTriggers</set>
         </property>
         <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>150</number>
+         <number>100</number>
         </attribute>
         <attribute name="horizontalHeaderMinimumSectionSize">
-         <number>150</number>
+         <number>100</number>
         </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
          <bool>true</bool>
@@ -432,10 +432,10 @@
          <set>QAbstractItemView::NoEditTriggers</set>
         </property>
         <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>150</number>
+         <number>100</number>
         </attribute>
         <attribute name="horizontalHeaderMinimumSectionSize">
-         <number>150</number>
+         <number>100</number>
         </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
          <bool>true</bool>

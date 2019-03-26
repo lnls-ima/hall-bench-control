@@ -125,7 +125,7 @@ class Configuration(_database.DatabaseObject):
                     else:
                         value = _utils.find_value(data, name, vtype=tp)
                     setattr(self, name, value)
-                
+
     def save_file(self, filename):
         """Save configuration to file."""
         pass
@@ -170,7 +170,7 @@ class ConnectionConfig(Configuration):
         ('ps_port', ['ps_port', 'TEXT NOT NULL']),
         ('udc_enable', ['udc_enable', 'INTEGER NOT NULL']),
         ('udc_port', ['udc_port', 'TEXT NOT NULL']),
-        ('udc_baudrate', ['udc_baudrate', 'INTEGER NOT NULL']),   
+        ('udc_baudrate', ['udc_baudrate', 'INTEGER NOT NULL']),
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -718,7 +718,7 @@ class PowerSupplyConfig(Configuration):
                 self.current_array.tolist()).replace(' ', '')
             trapezoidal_array = _json.dumps(
                 self.trapezoidal_array.tolist()).replace(' ', '')
-            
+
             data = [
                 '# Power Supply Settings\n\n',
                 'ps_name          \t{0:s}\n'.format(self.ps_name),
@@ -774,7 +774,7 @@ class PowerSupplyConfig(Configuration):
                 '# Trapezoidal Demagnetization Curve\n',
                 'trapezoidal_offset     \t{0:2f}\n'.format(
                     self.trapezoidal_offset),
-                'trapezoidal_array      \t{0:s}\n\n'.format(trapezoidal_array),                
+                'trapezoidal_array      \t{0:s}\n\n'.format(trapezoidal_array),
                 '#DCCT Settings\n',
                 'dcct                  \t{0}\n'.format(int(self.dcct)),
                 'dcct_head             \t{0}\n\n'.format(self.dcct_head),
@@ -787,7 +787,7 @@ class PowerSupplyConfig(Configuration):
             with open(filename, mode='w') as f:
                 for item in data:
                     f.write(item)
- 
+
         except Exception:
             message = 'Failed to save configuration to file: "%s"' % filename
             raise ConfigurationError(message)

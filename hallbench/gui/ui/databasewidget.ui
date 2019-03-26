@@ -118,8 +118,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>201</width>
-          <height>180</height>
+          <width>280</width>
+          <height>413</height>
          </rect>
         </property>
         <attribute name="label">
@@ -217,8 +217,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>216</width>
-          <height>180</height>
+          <width>280</width>
+          <height>413</height>
          </rect>
         </property>
         <attribute name="label">
@@ -316,8 +316,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>201</width>
-          <height>180</height>
+          <width>280</width>
+          <height>413</height>
          </rect>
         </property>
         <attribute name="label">
@@ -415,8 +415,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>194</width>
-          <height>236</height>
+          <width>280</width>
+          <height>413</height>
          </rect>
         </property>
         <attribute name="label">
@@ -499,7 +499,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Delete Configuration</string>
+            <string>Delete Hall Probe</string>
            </property>
            <property name="icon">
             <iconset>
@@ -547,8 +547,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>254</width>
-          <height>236</height>
+          <width>280</width>
+          <height>413</height>
          </rect>
         </property>
         <attribute name="label">
@@ -678,8 +678,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>213</width>
-          <height>292</height>
+          <width>280</width>
+          <height>413</height>
          </rect>
         </property>
         <attribute name="label">
@@ -835,8 +835,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>194</width>
-          <height>292</height>
+          <width>280</width>
+          <height>413</height>
          </rect>
         </property>
         <attribute name="label">
@@ -992,8 +992,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>187</width>
-          <height>236</height>
+          <width>280</width>
+          <height>413</height>
          </rect>
         </property>
         <attribute name="label">

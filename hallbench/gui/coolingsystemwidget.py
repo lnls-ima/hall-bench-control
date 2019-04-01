@@ -28,8 +28,8 @@ class CoolingSystemWidget(_TablePlotWidget):
 
     _plot_label = 'Water Temperature [deg C]'
     _data_format = '{0:.4f}'
-    _data_labels = ['PV1', 'PV2', 'Output']
-    _colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+    _data_labels = ['PV1', 'PV2', 'Output1', 'Output2']
+    _colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (0, 255, 255)]
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
@@ -39,10 +39,12 @@ class CoolingSystemWidget(_TablePlotWidget):
         _layout = _QHBoxLayout()
         self.pv1_chb = _QCheckBox(' PV1 ')
         self.pv2_chb = _QCheckBox(' PV2 ')
-        self.output_chb = _QCheckBox(' Output ')
+        self.output1_chb = _QCheckBox(' Output1')
+        self.output2_chb = _QCheckBox(' Output2')
         _layout.addWidget(self.pv1_chb)
         _layout.addWidget(self.pv2_chb)
-        _layout.addWidget(self.output_chb)
+        _layout.addWidget(self.output1_chb)
+        _layout.addWidget(self.output2_chb)
         self.ui.layout_lt.addLayout(_layout)
 
         # Change default appearance
@@ -54,10 +56,14 @@ class CoolingSystemWidget(_TablePlotWidget):
         self.right_axis = _plotItemAddRightAxis(self.ui.plot_pw.plotItem)
         self.right_axis.setLabel('Controller Output', color="#0000FF")
         self.right_axis.setStyle(showValues=True)
-        self.right_axis_curve = _pyqtgraph.PlotCurveItem(
+        self.right_axis_curve1 = _pyqtgraph.PlotCurveItem(
             [], [], pen=(0, 0, 255))
-        self.right_axis.linkedView().addItem(self.right_axis_curve)
-        self._graphs[self._data_labels[2]] = self.right_axis_curve
+        self.right_axis_curve2 = _pyqtgraph.PlotCurveItem(
+            [], [], pen=(0, 255, 255))
+        self.right_axis.linkedView().addItem(self.right_axis_curve1)
+        self.right_axis.linkedView().addItem(self.right_axis_curve2)
+        self._graphs[self._data_labels[2]] = self.right_axis_curve1
+        self._graphs[self._data_labels[3]] = self.right_axis_curve2
 
         # Create reading thread
         self.thread = _QThread()
@@ -103,6 +109,7 @@ class CoolingSystemWidget(_TablePlotWidget):
             self._readings[self._data_labels[0]].append(r[1])
             self._readings[self._data_labels[1]].append(r[2])
             self._readings[self._data_labels[2]].append(r[3])
+            self._readings[self._data_labels[3]].append(r[4])
             self.addLastValueToTable()
             self.updatePlot()
         except Exception:
@@ -120,7 +127,8 @@ class CoolingSystemWidget(_TablePlotWidget):
         try:
             self.worker.pv1_enabled = self.pv1_chb.isChecked()
             self.worker.pv2_enabled = self.pv2_chb.isChecked()
-            self.worker.output_enabled = self.output_chb.isChecked()
+            self.worker.output1_enabled = self.output1_chb.isChecked()
+            self.worker.output2_enabled = self.output2_chb.isChecked()
             self.thread.start()
         except Exception:
             pass
@@ -135,7 +143,8 @@ class ReadValueWorker(_QObject):
         """Initialize object."""
         self.pv1_enabled = False
         self.pv2_enabled = False
-        self.output_enabled = False
+        self.output1_enabled = False
+        self.output2_enabled = False
         self.reading = []
         super().__init__()
 
@@ -160,15 +169,21 @@ class ReadValueWorker(_QObject):
             else:
                 pv2 = _np.nan
 
-            if self.output_enabled:
-                output = self.devices.udc.read_co()
+            if self.output1_enabled:
+                output1 = self.devices.udc.read_output1()
             else:
-                output = _np.nan
+                output1 = _np.nan
+
+            if self.output2_enabled:
+                output2 = self.devices.udc.read_output2()
+            else:
+                output2 = _np.nan
 
             self.reading.append(ts)
             self.reading.append(pv1)
             self.reading.append(pv2)
-            self.reading.append(output)
+            self.reading.append(output1)
+            self.reading.append(output2)
             self.finished.emit(True)
 
         except Exception:

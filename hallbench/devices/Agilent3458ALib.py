@@ -349,31 +349,28 @@ def Agilent3458A_factory(baseclass):
             Return:
                 list of reading values.
             """
-            if self.status():
-                r = self.read_raw_from_device()
-                if formtype == 1:
-                    values = float(r.replace('\r\n', ''))
-                elif formtype == 2:
-                    size = 2
-                    values = [_struct.unpack(
-                        '>h', r[i:i+size])[0] for i in range(0, len(r), size)]
-                elif formtype == 3:
-                    size = 4
-                    values = [_struct.unpack(
-                        '>l', r[i:i+size])[0] for i in range(0, len(r), size)]
-                elif formtype == 4:
-                    size = 4
-                    values = [_struct.unpack(
-                        '>f', r[i:i+size])[0] for i in range(0, len(r), size)]
-                elif formtype == 5:
-                    size = 8
-                    values = [_struct.unpack(
-                        '>d', r[i:i+size])[0] for i in range(0, len(r), size)]
-                else:
-                    values = []
-                return values
+            r = self.read_raw_from_device()
+            if formtype == 1:
+                values = float(r.replace('\r\n', ''))
+            elif formtype == 2:
+                size = 2
+                values = [_struct.unpack(
+                    '>h', r[i:i+size])[0] for i in range(0, len(r), size)]
+            elif formtype == 3:
+                size = 4
+                values = [_struct.unpack(
+                    '>l', r[i:i+size])[0] for i in range(0, len(r), size)]
+            elif formtype == 4:
+                size = 4
+                values = [_struct.unpack(
+                    '>f', r[i:i+size])[0] for i in range(0, len(r), size)]
+            elif formtype == 5:
+                size = 8
+                values = [_struct.unpack(
+                    '>d', r[i:i+size])[0] for i in range(0, len(r), size)]
             else:
-                return []
+                values = []
+            return values
 
         def get_readings_from_memory(self, formtype):
             """Get readings from device memory.

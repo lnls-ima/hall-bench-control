@@ -50,6 +50,7 @@ class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
         self.send_command(self.commands.disp_off)
         self.send_command(self.commands.scratch)
         self.send_command(self.commands.end_gpib_always)
+        self.send_command(self.commands.mem_fifo)
 
     def configure_reading_format(self, formtype):
         """Configure multimeter reading format.
@@ -126,7 +127,8 @@ class UDC(_UDCLib.UDCModBus):
         """
         super().__init__(logfile)
         self.slave_address = 14
-        self.output_register_address = 70
+        self.output1_register_address = 70
+        self.output2_register_address = 382
         self.pv1_register_address = 72
         self.pv2_register_address = 74
 

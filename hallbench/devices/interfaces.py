@@ -319,7 +319,7 @@ class ModBusInterface(object):
     def connect(
             self, port, baudrate, slaveaddress=14, bytesize=_serial.EIGHTBITS,
             stopbits=_serial.STOPBITS_ONE, parity=_serial.PARITY_NONE,
-            timeout=1000):
+            timeout=1):
         """Connect to a serial port.
 
         Args:

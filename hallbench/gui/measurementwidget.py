@@ -303,7 +303,7 @@ class MeasurementWidget(_QWidget):
         try:
             channels = []
             if self.ui.save_temperature_chb.isChecked():
-                channels = channels + self.devices.multich.probe_channels
+                channels = channels + self.devices.multich.voltage_channels
                 channels = channels + self.devices.multich.temperature_channels
 
             if len(channels) == 0:
@@ -1028,8 +1028,7 @@ class MeasurementWidget(_QWidget):
                 self.voltage_scan.dcct_current_avg = dcct_current
 
             # Read multichannel
-            r = self.devices.multich.get_converted_readings(
-                dcct_head=dcct_head)
+            r = self.devices.multich.get_converted_readings()
             channels = self.devices.multich.config_channels
             for i, ch in enumerate(channels):
                 temperature_dict[ch] = [[ts, r[i]]]
@@ -1939,8 +1938,9 @@ class VoltageWorker(_QObject):
             oformtype = self.multimeter.get_output_format()
             mformtype = self.multimeter.get_memory_format()
             while (self.end_measurement is False):
-                voltage = self.multimeter.get_readings(oformtype)
-                self.voltage = _np.append(self.voltage, voltage)
+                if self.multimeter.status():
+                    voltage = self.multimeter.get_readings(oformtype)
+                    self.voltage = _np.append(self.voltage, voltage)
             else:
                 voltage = self.multimeter.get_readings_from_memory(mformtype)
                 self.voltage = _np.append(self.voltage, voltage)

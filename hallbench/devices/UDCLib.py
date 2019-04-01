@@ -19,7 +19,8 @@ def UDC_factory(baseclass):
                 logfile (str): log file path.
             """
             self.slave_address = None
-            self.output_register_address = None
+            self.output1_register_address = None
+            self.output2_register_address = None
             self.pv1_register_address = None
             self.pv2_register_address = None
             super().__init__(logfile)
@@ -31,12 +32,19 @@ def UDC_factory(baseclass):
             sa = self.slave_address
             return super().connect(*args, slaveaddress=sa, **kwargs)
 
-        def read_co(self):
-            """Return controller output."""
-            if self.output_register_address is None:
+        def read_output1(self):
+            """Return controller output 1."""
+            if self.output1_register_address is None:
                 return None
             else:
-                return self.read_from_device(self.output_register_address)
+                return self.read_from_device(self.output1_register_address)
+
+        def read_output2(self):
+            """Return controller output 2."""
+            if self.output2_register_address is None:
+                return None
+            else:
+                return self.read_from_device(self.output2_register_address)
 
         def read_pv1(self):
             """Return process variable."""

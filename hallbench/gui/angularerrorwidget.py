@@ -19,8 +19,10 @@ from qtpy.QtCore import (
     Signal as _Signal,
     )
 
-from hallbench.gui.moveaxiswidget import MoveAxisWidget as _MoveAxisWidget
-from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
+from hallbench.gui.auxiliarywidgets import (
+    MoveAxisWidget as _MoveAxisWidget,
+    TablePlotWidget as _TablePlotWidget,
+    )
 
 
 class AngularErrorWidget(_TablePlotWidget):

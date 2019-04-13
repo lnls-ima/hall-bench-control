@@ -5,29 +5,21 @@
 import sys as _sys
 import traceback as _traceback
 from qtpy.QtWidgets import (
-    QDialog as _QDialog,    
-    QCheckBox as _QCheckBox,
-    QGroupBox as _QGroupBox,
-    QPushButton as _QPushButton,
     QFileDialog as _QFileDialog,
     QMainWindow as _QMainWindow,
-    QVBoxLayout as _QVBoxLayout,
     QApplication as _QApplication,
     QDesktopWidget as _QDesktopWidget,
     )
-from qtpy.QtGui import (
-    QFont as _QFont,
-    )
 from qtpy.QtCore import (
-    QSize as _QSize,
     QTimer as _QTimer,
-    Signal as _Signal,
     QRunnable as _QRunnable,
     QThreadPool as _QThreadPool,
     )
 import qtpy.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui.auxiliarywidgets import PreferencesDialog \
+    as _PreferencesDialog
 from hallbench.gui.connectionwidget import ConnectionWidget \
     as _ConnectionWidget
 from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
@@ -97,7 +89,7 @@ class HallBenchWindow(_QMainWindow):
             ]
 
         # add preferences dialog
-        self.preferences_dialog = PreferencesDialog(self.tab_names)
+        self.preferences_dialog = _PreferencesDialog(self.tab_names)
         self.preferences_dialog.preferences_changed.connect(self.changeTabs)
 
         # show database name
@@ -249,65 +241,6 @@ class HallBenchWindow(_QMainWindow):
             self.threadpool.start(worker)
         except Exception:
             pass
-
-
-class PreferencesDialog(_QDialog):
-    """Preferences dialog class for Hall Bench Control application."""
-
-    preferences_changed = _Signal([dict])
-
-    def __init__(self, chb_names, parent=None):
-        """Set up the ui and create connections."""
-        super().__init__(parent)
-        self.setWindowTitle("Preferences")
-        self.resize(250, 400)
-
-        font = _QFont()
-        font.setPointSize(11)
-        font.setBold(False)
-        self.setFont(font)
-
-        font_bold = _QFont()
-        font_bold.setPointSize(11)
-        font_bold.setBold(True)
-    
-        main_layout = _QVBoxLayout()
-        vertical_layout = _QVBoxLayout()        
-        group_box = _QGroupBox("Select Tabs to Show")
-        group_box.setLayout(vertical_layout)
-        group_box.setFont(font_bold)
-        main_layout.addWidget(group_box)
-        self.setLayout(main_layout)
-        
-        self.chb_names = chb_names
-        for name in self.chb_names:
-            label = name.replace('_', ' ').capitalize()
-            chb = _QCheckBox(label)
-            setattr(self, name + '_chb', chb)
-            vertical_layout.addWidget(chb)
-            chb.setFont(font)
-        
-        self.apply_btn = _QPushButton("Apply Changes")
-        self.apply_btn.setMinimumSize(_QSize(0, 40))
-        self.apply_btn.setFont(font_bold)
-        vertical_layout.addWidget(self.apply_btn)         
-
-        self.apply_btn.clicked.connect(self.tabsPreferencesChanged)
-        self.connection_chb.setChecked(True)
-        self.motors_chb.setChecked(True)
-        self.measurement_chb.setChecked(True)
-
-    def tabsPreferencesChanged(self):
-        """Get tabs checkbox status and emit signal to change tabs."""
-        try:
-            chb_status = {}
-            for chb_name in self.chb_names:
-                chb = getattr(self, chb_name + '_chb')
-                chb_status[chb_name] = chb.isChecked()
-
-            self.preferences_changed.emit(chb_status)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
 
 
 class PositionsWorker(_QRunnable):

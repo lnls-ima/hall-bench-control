@@ -21,6 +21,7 @@ from qtpy.QtCore import (
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui import utils as _utils
+from hallbench.gui.auxiliarywidgets import PlotDialog as _PlotDialog
 
 
 class SupplyWidget(_QWidget):
@@ -46,7 +47,7 @@ class SupplyWidget(_QWidget):
         self.config = self.power_supply_config
         self.drs = self.devices.ps
         self.timer = _QTimer()
-        self.plot_dialog = _utils.PlotDialog()
+        self.plot_dialog = _PlotDialog()
 
         # fill combobox
         self.list_powersupply()

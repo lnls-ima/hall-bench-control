@@ -12,6 +12,14 @@ import pyqtgraph as _pyqtgraph
 _basepath = _path.dirname(_path.abspath(__file__))
 
 
+def getIconPath(icon_name):
+    """Get the icon file path."""
+    img_path = _path.join(
+        _path.join(_path.dirname(_basepath), 'resources'), 'img')  
+    icon_path = _path.join(img_path, '{0:s}.png'.format(icon_name))
+    return icon_path
+
+
 def getUiFile(widget):
     """Get the ui file path.
 

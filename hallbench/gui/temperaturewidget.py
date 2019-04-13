@@ -33,7 +33,10 @@ from qtpy.QtCore import (
 import qtpy.uic as _uic
 
 import hallbench.gui.utils as _utils
-from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
+from hallbench.gui.auxiliarywidgets import (
+    TablePlotWidget as _TablePlotWidget,
+    TemperatureChannelsWidget as _TemperatureChannelsWidget,
+    )
 
 
 class TemperatureWidget(_TablePlotWidget):
@@ -59,7 +62,7 @@ class TemperatureWidget(_TablePlotWidget):
         # add channels widget
         self.channels = [
             ch.replace('CH', '') for ch in self._left_axis_1_data_labels]
-        self.channels_widget = TemperatureChannelsWidget(self.channels)
+        self.channels_widget = _TemperatureChannelsWidget(self.channels)
         self.addWidgetsNextToPlot(self.channels_widget)
 
         # add configuration button
@@ -179,123 +182,6 @@ class TemperatureWidget(_TablePlotWidget):
         
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-
-
-class TemperatureChannelsWidget(_QWidget):
-    """Temperature channels widget class."""
-
-    channelChanged = _Signal()
-
-    def __init__(self, channels, parent=None):
-        """Set up the ui and signal/slot connections."""
-        super().__init__(parent)
-        self.resize(275, 525)
-        self.setWindowTitle("Temperature Channels")
-        
-        font = _QFont()
-        font.setPointSize(11)
-        font.setBold(False)
-        self.setFont(font)
-        
-        font_bold = _QFont()
-        font_bold.setPointSize(11)
-        font_bold.setBold(True)
-        
-        main_layout = _QHBoxLayout()
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        grid_layout = _QGridLayout()
-        
-        group_box = _QGroupBox("Temperature [°C]")
-        size_policy = _QSizePolicy(
-            _QSizePolicy.Maximum, _QSizePolicy.Preferred)
-        size_policy.setHorizontalStretch(0)
-        size_policy.setVerticalStretch(0)
-
-        group_box.setSizePolicy(size_policy)
-        group_box.setFont(font_bold)
-        group_box.setLayout(grid_layout)
-
-        size_policy = _QSizePolicy(
-            _QSizePolicy.Minimum, _QSizePolicy.Fixed)
-        size_policy.setHorizontalStretch(0)
-        size_policy.setVerticalStretch(0)
-        max_size = _QSize(155, 16777215)
-
-        self.channels = channels
-        for idx, ch in enumerate(self.channels):
-            chb_label = "CH " + ch
-            if ch == '101':
-                chb_label = chb_label + ' (X)'
-            elif ch == '102':
-                chb_label = chb_label + ' (Y)'
-            elif ch == '103':
-                chb_label = chb_label + ' (Z)'
-            chb = _QCheckBox(chb_label)
-            chb.setFont(font)
-            chb.setChecked(False)
-            chb.stateChanged.connect(self.clearChannelText)
-            setattr(self, 'channel' + ch + '_chb', chb)
-            
-            le = _QLineEdit()
-            le.setSizePolicy(size_policy)
-            le.setMaximumSize(max_size)
-            le.setFont(font)
-            le.setReadOnly(True)
-            setattr(self, 'channel' + ch + '_le', le)
-
-            grid_layout.addWidget(chb, idx, 0, 1, 1)
-            grid_layout.addWidget(le, idx, 1, 1, 2)
-
-        delay_label = _QLabel("Reading delay [s]:")
-        size_policy = _QSizePolicy(
-            _QSizePolicy.Preferred, _QSizePolicy.Preferred)
-        size_policy.setHorizontalStretch(0)
-        size_policy.setVerticalStretch(0)
-        delay_label.setSizePolicy(size_policy)
-        delay_label.setFont(font)
-        delay_label.setAlignment(
-            _Qt.AlignRight|_Qt.AlignTrailing|_Qt.AlignVCenter)
-        grid_layout.addWidget(delay_label, len(self.channels)+1, 0, 1, 2)
-
-        self.delay_sb = _QDoubleSpinBox()
-        size_policy = _QSizePolicy(_QSizePolicy.Maximum, _QSizePolicy.Fixed)
-        size_policy.setHorizontalStretch(0)
-        size_policy.setVerticalStretch(0)
-        self.delay_sb.setSizePolicy(size_policy)
-        self.delay_sb.setFont(font)
-        self.delay_sb.setValue(1.0)
-        grid_layout.addWidget(self.delay_sb, len(self.channels)+1, 2, 1, 1)
-        
-        main_layout.addWidget(group_box)
-        self.setLayout(main_layout)           
-
-    @property
-    def selected_channels(self):
-        """Return the selected channels."""
-        selected_channels = []
-        for channel in self.channels:
-            chb = getattr(self, 'channel' + channel + '_chb')
-            if chb.isChecked():
-                selected_channels.append(channel)
-        return selected_channels
-
-    @property
-    def delay(self):
-        """Return the reading delay."""
-        return self.delay_sb.value()
-
-    def clearChannelText(self):
-        """Clear channel text if channel is not selected."""
-        for channel in self.channels:
-            if channel not in self.selected_channels:
-                le = getattr(self, 'channel' + channel + '_le')
-                le.setText('')
-        self.channelChanged.emit()
-
-    def updateChannelText(self, channel, text):
-        """Update channel text."""
-        le = getattr(self, 'channel' + channel + '_le')
-        le.setText(text)
 
 
 class ReadValueWorker(_QObject):

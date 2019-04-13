@@ -14,9 +14,9 @@ from qtpy.QtWidgets import (
 import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
 
+from hallbench.gui import utils as _utils
 from hallbench.gui.auxiliarywidgets import (
     TemperatureDialog as _TemperatureDialog)
-from hallbench.gui import utils as _utils
 
 
 class ViewFieldmapDialog(_QDialog):

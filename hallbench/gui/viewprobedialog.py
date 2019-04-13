@@ -7,16 +7,18 @@ import numpy as _np
 import json as _json
 import warnings as _warnings
 import traceback as _traceback
+import pyqtgraph as _pyqtgraph
 from qtpy.QtWidgets import (
     QDialog as _QDialog,
     QApplication as _QApplication,
-    QTableWidgetItem as _QTableWidgetItem,
-    QMessageBox as _QMessageBox,
     )
 import qtpy.uic as _uic
-import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui.auxiliarywidgets import (
+    PolynomialTableDialog as _PolynomialTableDialog,
+    InterpolationTableDialog as _InterpolationTableDialog,
+    )
 
 
 class ViewProbeDialog(_QDialog):
@@ -35,8 +37,8 @@ class ViewProbeDialog(_QDialog):
 
         self.local_hall_probe = None
 
-        self.interpolation_dialog = InterpolationTableDialog()
-        self.polynomial_dialog = PolynomialTableDialog()
+        self.polynomial_dialog = _PolynomialTableDialog()
+        self.interpolation_dialog = _InterpolationTableDialog()
 
         self.graphx = []
         self.graphy = []
@@ -364,230 +366,3 @@ class ViewProbeDialog(_QDialog):
             msg = 'Failed to update plot.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
-
-
-class InterpolationTableDialog(_QDialog):
-    """Interpolation table class for the Hall Bench Control application."""
-
-    def __init__(self, parent=None):
-        """Set up the ui and create connections."""
-        super().__init__(parent)
-
-        # setup the ui
-        uifile = _getUiFile(self)
-        self.ui = _uic.loadUi(uifile, self)
-
-        self.local_hall_probe = None
-        self.clip = _QApplication.clipboard()
-
-        # create connections
-        self.ui.copysensorx_btn.clicked.connect(
-            lambda: self.copyToClipboard('x'))
-        self.ui.copysensory_btn.clicked.connect(
-            lambda: self.copyToClipboard('y'))
-        self.ui.copysensorz_btn.clicked.connect(
-            lambda: self.copyToClipboard('z'))
-
-        self.ui.sensorxprec_sb.valueChanged.connect(self.updateTablesensorX)
-        self.ui.sensoryprec_sb.valueChanged.connect(self.updateTablesensorY)
-        self.ui.sensorzprec_sb.valueChanged.connect(self.updateTablesensorZ)
-
-    def _updateTable(self, table, data, precision):
-        table.setRowCount(0)
-        formatstr = '{0:0.%if}' % precision
-        for i in range(len(data)):
-            table.setRowCount(i+1)
-            row = data[i]
-            for j in range(len(row)):
-                table.setItem(i, j, _QTableWidgetItem(
-                    formatstr.format(row[j])))
-
-    def clear(self):
-        """Clear tables."""
-        self.local_hall_probe = None
-        self.ui.sensorx_ta.clearContents()
-        self.ui.sensorx_ta.setRowCount(0)
-        self.ui.sensory_ta.clearContents()
-        self.ui.sensory_ta.setRowCount(0)
-        self.ui.sensorz_ta.clearContents()
-        self.ui.sensorz_ta.setRowCount(0)
-
-    def copyToClipboard(self, sensor):
-        """Copy table data to clipboard."""
-        table = getattr(self.ui, 'sensor' + sensor + '_ta')
-        text = ""
-        for r in range(table.rowCount()):
-            for c in range(table.columnCount()):
-                text += str(table.item(r, c).text()) + "\t"
-            text = text[:-1] + "\n"
-        self.clip.setText(text)
-
-    def show(self, hall_probe):
-        """Update hall probe object and show dialog."""
-        self.local_hall_probe = hall_probe
-        self.updateTables()
-        super(InterpolationTableDialog, self).show()
-
-    def updateTables(self):
-        """Update table values."""
-        if self.local_hall_probe is None:
-            return
-        self.updateTablesensorX()
-        self.updateTablesensorY()
-        self.updateTablesensorZ()
-
-    def updateTablesensorX(self):
-        """Update sensor x table values."""
-        precision = self.sensorxprec_sb.value()
-        table = self.ui.sensorx_ta
-
-        if self.local_hall_probe.sensorx is None:
-            table.setRowCount(0)
-            return
-
-        data = self.local_hall_probe.sensorx.data
-        self._updateTable(table, data, precision)
-
-    def updateTablesensorY(self):
-        """Update sensor y table values."""
-        precision = self.sensoryprec_sb.value()
-        table = self.ui.sensory_ta
-
-        if self.local_hall_probe.sensory is None:
-            table.setRowCount(0)
-            return
-
-        data = self.local_hall_probe.sensory.data
-        self._updateTable(table, data, precision)
-
-    def updateTablesensorZ(self):
-        """Update sensor z table values."""
-        precision = self.sensorzprec_sb.value()
-        table = self.ui.sensorz_ta
-
-        if self.local_hall_probe.sensorz is None:
-            table.setRowCount(0)
-            return
-
-        data = self.local_hall_probe.sensorz.data
-        self._updateTable(table, data, precision)
-
-
-class PolynomialTableDialog(_QDialog):
-    """Polynomial table class for the Hall Bench Control application."""
-
-    def __init__(self, parent=None):
-        """Set up the ui and create connections."""
-        super().__init__(parent)
-
-        # setup the ui
-        uifile = _getUiFile(self)
-        self.ui = _uic.loadUi(uifile, self)
-
-        self.clip = _QApplication.clipboard()
-        self.local_hall_probe = None
-
-        # create connections
-        self.ui.copysensorx_btn.clicked.connect(
-            lambda: self.copyToClipboard('x'))
-        self.ui.copysensory_btn.clicked.connect(
-            lambda: self.copyToClipboard('y'))
-        self.ui.copysensorz_btn.clicked.connect(
-            lambda: self.copyToClipboard('z'))
-
-        self.ui.sensorxprec_sb.valueChanged.connect(self.updateTableSensorX)
-        self.ui.sensoryprec_sb.valueChanged.connect(self.updateTableSensorY)
-        self.ui.sensorzprec_sb.valueChanged.connect(self.updateTableSensorZ)
-
-    def _updateTable(self, table, data, precision):
-        table.setRowCount(0)
-
-        if len(data) == 0:
-            return
-
-        nc = len(data[0])
-        table.setColumnCount(nc)
-        labels = ['Initial Voltage [V]', 'Final Voltage [V]']
-        for j in range(nc-2):
-            labels.append('C' + str(j))
-        table.setHorizontalHeaderLabels(labels)
-
-        vformatstr = '{0:0.%if}' % precision
-        cformatstr = '{0:0.%ie}' % precision
-        for i in range(len(data)):
-            table.setRowCount(i+1)
-            row = data[i]
-            for j in range(len(row)):
-                if j < 2:
-                    table.setItem(i, j, _QTableWidgetItem(
-                        vformatstr.format(row[j])))
-                else:
-                    table.setItem(i, j, _QTableWidgetItem(
-                        cformatstr.format(row[j])))
-
-    def clear(self):
-        """Clear tables."""
-        self.local_hall_probe = None
-        self.ui.sensorx_ta.clearContents()
-        self.ui.sensorx_ta.setRowCount(0)
-        self.ui.sensory_ta.clearContents()
-        self.ui.sensory_ta.setRowCount(0)
-        self.ui.sensorz_ta.clearContents()
-        self.ui.sensorz_ta.setRowCount(0)
-
-    def copyToClipboard(self, sensor):
-        """Copy table data to clipboard."""
-        table = getattr(self.ui, 'sensor' + sensor + '_ta')
-        text = ""
-        for r in range(table.rowCount()):
-            for c in range(table.columnCount()):
-                text += str(table.item(r, c).text()) + "\t"
-            text = text[:-1] + "\n"
-        self.clip.setText(text)
-
-    def show(self, hall_probe=None):
-        """Update hall probe object and show dialog."""
-        self.local_hall_probe = hall_probe
-        self.updateTables()
-        super().show()
-
-    def updateTables(self):
-        """Update table values."""
-        if self.local_hall_probe is None:
-            return
-        self.updateTableSensorX()
-        self.updateTableSensorY()
-        self.updateTableSensorZ()
-
-    def updateTableSensorX(self):
-        """Update sensor x table values."""
-        precision = self.sensorxprec_sb.value()
-        table = self.ui.sensorx_ta
-        if self.local_hall_probe.sensorx is None:
-            table.setRowCount(0)
-            return
-
-        data = self.local_hall_probe.sensorx.data
-        self._updateTable(table, data, precision)
-
-    def updateTableSensorY(self):
-        """Update sensor y table values."""
-        precision = self.sensoryprec_sb.value()
-        table = self.ui.sensory_ta
-        if self.local_hall_probe.sensory is None:
-            table.setRowCount(0)
-            return
-
-        data = self.local_hall_probe.sensory.data
-        self._updateTable(table, data, precision)
-
-    def updateTableSensorZ(self):
-        """Update sensor z table values."""
-        precision = self.sensorzprec_sb.value()
-        table = self.ui.sensorz_ta
-        if self.local_hall_probe.sensorz is None:
-            table.setRowCount(0)
-            return
-
-        data = self.local_hall_probe.sensorz.data
-        self._updateTable(table, data, precision)

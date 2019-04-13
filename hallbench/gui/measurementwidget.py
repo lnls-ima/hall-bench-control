@@ -24,7 +24,7 @@ from qtpy.QtCore import (
 import qtpy.uic as _uic
 
 from hallbench.gui import utils as _utils
-from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
+from hallbench.gui.auxiliarywidgets import CurrentPositionWidget \
     as _CurrentPositionWidget
 from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
@@ -38,9 +38,9 @@ class MeasurementWidget(_QWidget):
     change_current_setpoint = _Signal([bool])
     turn_off_power_supply_current = _Signal([bool])
 
-    _update_graph_time_interval = 0.05  # [s]
     _measurement_axes = [1, 2, 3, 5]
     _voltage_offset_avg_interval = 10  # [mm]
+    _update_graph_time_interval = 0.1  # [s]
 
     def __init__(self, parent=None):
         """Set up the ui, add widgets and create connections."""
@@ -941,7 +941,7 @@ class MeasurementWidget(_QWidget):
                     first_axis)
                 self.moveAxis(first_axis, first_axis_start)
 
-                self.plotField()
+                #self.plotField()
                 self.quitVoltageThreads()
 
             if nr_measurements > 1:
@@ -1432,15 +1432,22 @@ class MeasurementWidget(_QWidget):
             self.field_scan.current_setpoint = mc
             self.field_scan.comments = self.local_measurement_config.comments
             self.field_scan.configuration_id = self.local_measurement_config_id
+            
             idn = self.field_scan.save_to_database(self.database)
             self.field_scan_id_list.append(idn)
             return True
 
         except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to save FieldScan to database'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
+            try:
+                idn = self.field_scan.save_to_database(self.database)
+                self.field_scan_id_list.append(idn)
+                return True
+            
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+                msg = 'Failed to save FieldScan to database'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return False
 
     def saveFieldScanFiles(self):
         """Save scan files."""
@@ -1470,6 +1477,7 @@ class MeasurementWidget(_QWidget):
                         '.dat', '_ID={0:d}.dat'.format(idn))
                 default_filename = _os.path.join(directory, default_filename)
                 scan.save_file(default_filename)
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to save files.'
@@ -1487,18 +1495,26 @@ class MeasurementWidget(_QWidget):
             mc = self.local_measurement_config.current_setpoint
             self.voltage_scan.magnet_name = mn
             self.voltage_scan.current_setpoint = mc
-            self.voltage_scan.comments = self.local_measurement_config.comments
+            self.voltage_scan.comments = (
+                self.local_measurement_config.comments)
             self.voltage_scan.configuration_id = (
                 self.local_measurement_config_id)
+            
             idn = self.voltage_scan.save_to_database(self.database)
             self.voltage_scan_id_list.append(idn)
             return True
 
         except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to save VoltageScan to database'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
+            try:
+                idn = self.voltage_scan.save_to_database(self.database)
+                self.voltage_scan_id_list.append(idn)
+                return True
+            
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+                msg = 'Failed to save VoltageScan to database'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return False
 
     def setFloatLineEditText(
             self, line_edit, precision=4, expression=True,
@@ -1515,24 +1531,12 @@ class MeasurementWidget(_QWidget):
     def showFieldmapDialog(self):
         """Open fieldmap dialog."""
         if len(self.measurements_id_list) > 1:
-            field_scan_list = []
-            for lt in self.measurements_id_list:
-                fsl = []
-                for idn in lt:
-                    fs = _FieldScan(database=self.database, idn=idn)
-                    fsl.append(fs)
-                field_scan_list.append(fsl)
             field_scan_id_list = self.measurements_id_list
-
         else:
             field_scan_id_list = self.field_scan_id_list
-            field_scan_list = []
-            for idn in self.field_scan_id_list:
-                fs = _FieldScan(database=self.database, idn=idn)
-                field_scan_list.append(fs)
 
         self.save_fieldmap_dialog.show(
-            field_scan_list, self.local_hall_probe, field_scan_id_list)
+            field_scan_id_list, self.local_hall_probe)
 
     def showViewProbeDialog(self):
         """Open view probe dialog."""
@@ -1761,7 +1765,7 @@ class MeasurementWidget(_QWidget):
                 first_axis = self.measurement_config.first_axis
                 step = self.measurement_config.get_step(first_axis)
                 vel = self.measurement_config.get_velocity(first_axis)
-                max_int_time = _np.abs(step/vel)*1000 - 5
+                max_int_time = 100*(_np.abs(step/vel)*1000 - 5)
 
                 if self.measurement_config.integration_time > max_int_time:
                     self.local_measurement_config = None
@@ -1840,7 +1844,7 @@ class MeasurementWidget(_QWidget):
             self.local_hall_probe = None
             msg = 'Invalid hall probe. Measure only voltage data?'
             reply = _QMessageBox.question(
-                self, 'Message', msg, _QMessageBox.Yes, _QMessageBox.No)
+                self, 'Message', msg, _QMessageBox.No, _QMessageBox.Yes)
             if reply == _QMessageBox.Yes:
                 self.ui.save_voltage_chb.setChecked(True)
                 return True

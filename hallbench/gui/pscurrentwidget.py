@@ -20,51 +20,35 @@ from qtpy.QtCore import (
     Signal as _Signal,
     )
 
-from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
+from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
 
 
 class PSCurrentWidget(_TablePlotWidget):
-    """Temperature Widget class for the Hall Bench Control application."""
+    """Power supply current class for the Hall Bench Control application."""
 
-    _data_format = '{0:.4f}'
-    _data_labels = ['DCCT [A]', 'PS [A]']
-    _colors = [(230, 25, 75), (60, 180, 75)]
+    _left_axis_1_label = 'Current [A]'       
+    _left_axis_1_format = '{0:.4f}'
+    _left_axis_1_data_labels = ['DCCT [A]', 'PS [A]']
+    _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
         super().__init__(parent)
 
-        # add check box
-        _layout = _QHBoxLayout()
+        # add check box and configure button
         self.dcct_chb = _QCheckBox(' DCCT ')
         self.ps_chb = _QCheckBox(' Power Supply ')
-        _layout.addWidget(self.dcct_chb)
-        _layout.addWidget(self.ps_chb)
-        self.ui.layout_lt.addLayout(_layout)
-        self.ui.layout_lt.addSpacing(5)
-
-        # add configure button
-        self._configured = False
         self.configure_btn = _QPushButton('Configure Devices')
-        self.configure_btn.setMinimumHeight(45)
-        font = self.configure_btn.font()
-        font.setBold(True)
-        self.configure_btn.setFont(font)
-        self.ui.layout_lt.addWidget(self.configure_btn)
         self.configure_btn.clicked.connect(self.configureDevices)
-
-        # Change default appearance
-        self.ui.widget_wg.hide()
-        self.ui.table_ta.horizontalHeader().setDefaultSectionSize(200)
-        self.ui.read_btn.setText('Read Current')
-        self.ui.monitor_btn.setText('Monitor Current')
+        self.addWidgetsNextToTable(
+            [[self.dcct_chb, self.ps_chb], [self.configure_btn]])
 
         # Create reading thread
-        self.thread = _QThread()
+        self.wthread = _QThread()
         self.worker = ReadValueWorker()
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
+        self.worker.moveToThread(self.wthread)
+        self.wthread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.wthread.quit)
         self.worker.finished.connect(self.getReading)
 
     @property
@@ -89,10 +73,8 @@ class PSCurrentWidget(_TablePlotWidget):
     def closeEvent(self, event):
         """Close widget."""
         try:
-            self.timer.stop()
-            self.thread.quit()
-            del self.thread
-            event.accept()
+            self.wthread.quit()
+            super().closeEvent(event)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
@@ -132,17 +114,23 @@ class PSCurrentWidget(_TablePlotWidget):
     def getReading(self):
         """Get reading from worker thread."""
         try:
+            ts = self.worker.timestamp
             r = self.worker.reading
-            if len(r) == 0 or all([_np.isnan(ri) for ri in r[1:]]):
+
+            if ts is None:
                 return
 
-            self._timestamp.append(r[0])
-            self._readings[self._data_labels[0]].append(r[1])
-            self._readings[self._data_labels[1]].append(r[2])
+            if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
+                return
+
+            self._timestamp.append(ts)
+            for i, label in enumerate(self._data_labels):
+                self._readings[label].append(r[i])
             self.addLastValueToTable()
             self.updatePlot()
+        
         except Exception:
-            pass
+            _traceback.print_exc(file=_sys.stdout)
 
     def readValue(self, monitor=False):
         """Read value."""
@@ -155,9 +143,10 @@ class PSCurrentWidget(_TablePlotWidget):
         try:
             self.worker.dcct_enabled = self.dcct_chb.isChecked()
             self.worker.ps_enabled = self.ps_chb.isChecked()
-            self.thread.start()
+            self.wthread.start()
+        
         except Exception:
-            pass
+            _traceback.print_exc(file=_sys.stdout)
 
 
 class ReadValueWorker(_QObject):
@@ -169,6 +158,7 @@ class ReadValueWorker(_QObject):
         """Initialize object."""
         self.dcct_enabled = False
         self.ps_enabled = False
+        self.timestamp = None
         self.reading = []
         super().__init__()
 
@@ -185,6 +175,7 @@ class ReadValueWorker(_QObject):
     def run(self):
         """Read values from devices."""
         try:
+            self.timestamp = None
             self.reading = []
 
             ts = _time.time()
@@ -203,11 +194,12 @@ class ReadValueWorker(_QObject):
             else:
                 ps_current = _np.nan
 
-            self.reading.append(ts)
+            self.timestamp = ts
             self.reading.append(dcct_current)
             self.reading.append(ps_current)
             self.finished.emit(True)
 
         except Exception:
+            self.timestamp = None
             self.reading = []
             self.finished.emit(True)

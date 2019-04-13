@@ -5,7 +5,7 @@
 from hallbench.gui import hallbenchapp
 
 
-_thread = True
+_thread = False
 
 
 if _thread:

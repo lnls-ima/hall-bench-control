@@ -14,7 +14,8 @@ from qtpy.QtWidgets import (
 import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
 
-from hallbench.gui.tableplotdialog import TablePlotDialog as _TablePlotDialog
+from hallbench.gui.auxiliarywidgets import (
+    TemperatureDialog as _TemperatureDialog)
 from hallbench.gui import utils as _utils
 
 
@@ -39,10 +40,7 @@ class ViewFieldmapDialog(_QDialog):
         self.xlabel = ''
 
         # Create temperature dialog
-        self.temperature_dialog = _TablePlotDialog()
-        self.temperature_dialog.setWindowTitle('Temperature Readings')
-        self.temperature_dialog.setPlotLabel('Temperature [deg C]')
-        self.temperature_dialog.setTableColumnSize(100)
+        self.temperature_dialog = _TemperatureDialog()
 
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.graph_pw.graphicsItem())
@@ -182,6 +180,7 @@ class ViewFieldmapDialog(_QDialog):
             for col in df.columns:
                 readings[col] = df[col].values.tolist()
             self.temperature_dialog.show(timestamp, readings)
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to open dialog.'

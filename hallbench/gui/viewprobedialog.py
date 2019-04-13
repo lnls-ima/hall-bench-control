@@ -41,15 +41,13 @@ class ViewProbeDialog(_QDialog):
         self.graphx = []
         self.graphy = []
         self.graphz = []
+
         self.configureGraph()
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.plot_pw.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
-        # create connections
-        self.ui.showtable_btn.clicked.connect(self.showTable)
-        self.ui.updategraph_btn.clicked.connect(self.updateGraph)
-        self.ui.voltage_sb.valueChanged.connect(self.updateField)
+        self.connectSignalSlots()
 
     @property
     def database(self):
@@ -153,6 +151,12 @@ class ViewProbeDialog(_QDialog):
         self.ui.plot_pw.setLabel('bottom', 'Voltage [V]')
         self.ui.plot_pw.setLabel('left', 'Magnetic Field [T]')
         self.ui.plot_pw.showGrid(x=True, y=True)
+
+    def connectSignalSlots(self):
+        """Create signal/slot connections."""
+        self.ui.showtable_btn.clicked.connect(self.showTable)
+        self.ui.updategraph_btn.clicked.connect(self.updateGraph)
+        self.ui.voltage_sb.valueChanged.connect(self.updateField)
 
     def load(self):
         """Load hall probe parameters."""

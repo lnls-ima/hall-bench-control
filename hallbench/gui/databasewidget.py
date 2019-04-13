@@ -26,8 +26,8 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 import hallbench.data as _data
 
 
-_max_number_rows = 200
-_max_str_size = 200
+_max_number_rows = 100
+_max_str_size = 100
 
 _ConnectionConfig = _data.configuration.ConnectionConfig
 _MeasurementConfig = _data.configuration.MeasurementConfig
@@ -112,6 +112,7 @@ class DatabaseWidget(_QWidget):
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.refresh_btn.clicked.connect(self.updateDatabaseTables)
+        self.ui.clear_btn.clicked.connect(self.clear)
         self.ui.database_tab.currentChanged.connect(self.disableInvalidButtons)
 
         self.ui.save_connection_btn.clicked.connect(
@@ -303,11 +304,10 @@ class DatabaseWidget(_QWidget):
             return
 
         probe_name_list = []
-        field_scan_list = []
         try:
             for idn in idns:
-                fd = _FieldScan(database=self.database, idn=idn)
-                configuration_id = fd.configuration_id
+                configuration_id = _FieldScan.get_database_param(
+                    self.database, idn, 'configuration_id')
                 if configuration_id is None:
                     msg = 'Invalid configuration ID found in scan list.'
                     _QMessageBox.critical(
@@ -317,7 +317,6 @@ class DatabaseWidget(_QWidget):
                 probe_name = _MeasurementConfig.get_probe_name_from_database(
                     self.database, configuration_id)
                 probe_name_list.append(probe_name)
-                field_scan_list.append(fd)
 
             if not all([pn == probe_name_list[0] for pn in probe_name_list]):
                 msg = 'Inconsistent probe name found in scan list'
@@ -337,7 +336,7 @@ class DatabaseWidget(_QWidget):
                 return
 
             hall_probe = _HallProbe(database=self.database, idn=idn)
-            self.save_fieldmap_dialog.show(field_scan_list, hall_probe, idns)
+            self.save_fieldmap_dialog.show(idns, hall_probe)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -469,7 +468,7 @@ class DatabaseWidget(_QWidget):
                    table_name not in self.short_version_tables):
                     continue
 
-                table = DatabaseTable(self.ui.database_tab)
+                table = DatabaseTable()
                 tab = _QWidget()
                 vlayout = _QVBoxLayout()
                 hlayout = _QHBoxLayout()

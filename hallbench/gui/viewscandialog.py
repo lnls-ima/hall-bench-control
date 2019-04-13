@@ -20,7 +20,11 @@ from qtpy.QtCore import Qt as _Qt
 import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
 
-from hallbench.gui.tableplotdialog import TablePlotDialog as _TablePlotDialog
+from hallbench.gui.auxiliarywidgets import (
+    TableDialog as _TableDialog,
+    CheckableComboBox as _CheckableComboBox,
+    TemperatureDialog as _TemperatureDialog,
+    )
 from hallbench.gui import utils as _utils
 from hallbench.data import measurement as _measurement
 
@@ -47,14 +51,12 @@ class ViewScanDialog(_QDialog):
         self.temperature = {}
 
         # Create current dialog
-        self.current_dialog = _utils.TableDialog()
+        self.current_dialog = _TableDialog()
         self.current_dialog.setWindowTitle('Current Readings')
 
         # Create temperature dialog
-        self.temperature_dialog = _TablePlotDialog()
+        self.temperature_dialog = _TemperatureDialog()
         self.temperature_dialog.setWindowTitle('Temperature Readings')
-        self.temperature_dialog.setPlotLabel('Temperature [deg C]')
-        self.temperature_dialog.setTableColumnSize(100)
 
         # Create legend
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
@@ -62,13 +64,13 @@ class ViewScanDialog(_QDialog):
         self.legend.setAutoFillBackground(1)
 
         # Add combo boxes
-        self.select_scan_cmb = _utils.CheckableComboBox()
+        self.select_scan_cmb = _CheckableComboBox()
         _layout = _QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(self.select_scan_cmb)
         self.ui.select_scan_wg.setLayout(_layout)
 
-        self.select_component_cmb = _utils.CheckableComboBox()
+        self.select_component_cmb = _CheckableComboBox()
         _layout = _QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.addWidget(self.select_component_cmb)
@@ -663,6 +665,7 @@ class ViewScanDialog(_QDialog):
             for col in df.columns:
                 readings[col] = df[col].values.tolist()
             self.temperature_dialog.show(timestamp, readings)
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to open dialog.'

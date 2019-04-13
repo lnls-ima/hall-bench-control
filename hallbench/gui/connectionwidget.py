@@ -31,7 +31,6 @@ class ConnectionWidget(_QWidget):
 
         self.connectSignalSlots()
         self.updateSerialPorts()
-
         self.updateConnectionIDs()
 
     @property

@@ -20,22 +20,11 @@ import hallbench.data as _data
 import hallbench.devices as _devices
 
 
-# Style: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]
+# Styles: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]
 _style = 'windows'
 _width = 1200
 _height = 700
 _database_filename = 'hall_bench_measurements.db'
-
-
-_ConnectionConfig = _data.configuration.ConnectionConfig
-_MeasurementConfig = _data.configuration.MeasurementConfig
-_PowerSupplyConfig = _data.configuration.PowerSupplyConfig
-_HallSensor = _data.calibration.HallSensor
-_HallProbe = _data.calibration.HallProbe
-_VoltageScan = _data.measurement.VoltageScan
-_FieldScan = _data.measurement.FieldScan
-_Fieldmap = _data.measurement.Fieldmap
-_HallBenchDevices = _devices.devices.HallBenchDevices
 
 
 class HallBenchApp(_QApplication):
@@ -52,12 +41,17 @@ class HallBenchApp(_QApplication):
         self.create_database()
 
         # configurations
+        _ConnectionConfig = _data.configuration.ConnectionConfig
+        _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
+        _MeasurementConfig = _data.configuration.MeasurementConfig
+        _HallProbe = _data.calibration.HallProbe
+        _HallBenchDevices = _devices.devices.HallBenchDevices
+        
         self.connection_config = _ConnectionConfig()
         self.measurement_config = _MeasurementConfig()
         self.power_supply_config = _PowerSupplyConfig()
         self.hall_probe = _HallProbe()
         self.devices = _HallBenchDevices()
-        self.dev = _devices
 
         # positions dict
         self.positions = {}
@@ -70,6 +64,15 @@ class HallBenchApp(_QApplication):
 
     def create_database(self):
         """Create database and tables."""
+        _ConnectionConfig = _data.configuration.ConnectionConfig
+        _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
+        _HallSensor = _data.calibration.HallSensor
+        _HallProbe = _data.calibration.HallProbe
+        _MeasurementConfig = _data.configuration.MeasurementConfig
+        _VoltageScan = _data.measurement.VoltageScan
+        _FieldScan = _data.measurement.FieldScan
+        _Fieldmap = _data.measurement.Fieldmap        
+        
         status = []
         status.append(_ConnectionConfig.create_database_table(self.database))
         status.append(_PowerSupplyConfig.create_database_table(self.database))

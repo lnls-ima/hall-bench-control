@@ -18,6 +18,7 @@ import qtpy.uic as _uic
 
 from hallbench.gui.utils import getUiFile as _getUiFile
 import hallbench.data.magnets_info as _magnets_info
+from hallbench.data.measurement import FieldScan as _FieldScan
 from hallbench.data.measurement import Fieldmap as _Fieldmap
 
 
@@ -36,8 +37,6 @@ class SaveFieldmapDialog(_QDialog):
 
         # variables initialisation
         self.fieldmap_id_list = None
-        self.fieldmap_list = None
-        self.field_scan_list = None
         self.field_scan_id_list = None
         self.local_hall_probe = None
 
@@ -47,8 +46,72 @@ class SaveFieldmapDialog(_QDialog):
             self.ui.predefined_cmb.addItem(name)
 
         self.disableInvalidAxes()
+        self.connectSignalSlots()
 
-        # create connections
+    @property
+    def database(self):
+        """Database filename."""
+        return _QApplication.instance().database
+
+    @property
+    def directory(self):
+        """Return the default directory."""
+        return _QApplication.instance().directory
+
+    def accept(self):
+        """Close dialog."""
+        self.clear()
+        super().accept()
+
+    def clear(self):
+        """Clear data."""
+        self.fieldmap_id_list = None
+        self.field_scan_id_list = None
+        self.local_hall_probe = None
+        self.disableSaveToFile()
+
+    def clearInfo(self):
+        """Clear inputs."""
+        self.clearMagnetInfo()
+        self.clearAxesInfo()
+
+    def clearAxesInfo(self):
+        """Clear axes inputs."""
+        self.ui.centerpos3_sb.setValue(0)
+        self.ui.centerpos2_sb.setValue(0)
+        self.ui.centerpos1_sb.setValue(0)
+        self.ui.magnet_x_axis_cmb.setCurrentIndex(1)
+        self.ui.magnet_y_axis_cmb.setCurrentIndex(2)
+        self.disableSaveToFile()
+
+    def clearMagnetInfo(self):
+        """Clear magnet inputs."""
+        self.ui.predefined_cmb.setCurrentIndex(0)
+        self.ui.predefined_la.setText('')
+        self.ui.magnet_name_le.setText('')
+        self.ui.gap_le.setText('')
+        self.ui.control_gap_le.setText('')
+        self.ui.magnet_length_le.setText('')
+        self.ui.comments_te.setPlainText('')
+        self.ui.main_chb.setChecked(False)
+        self.ui.trim_chb.setChecked(False)
+        self.ui.ch_chb.setChecked(False)
+        self.ui.cv_chb.setChecked(False)
+        self.ui.qs_chb.setChecked(False)
+        self.ui.correct_displacements_chb.setChecked(True)
+        self.disableSaveToFile()
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
+    def connectSignalSlots(self):
+        """Create signal/slot connections."""
         self.ui.main_chb.stateChanged.connect(lambda: self.setCoilFrameEnabled(
             self.ui.main_chb, self.ui.main_fm))
 
@@ -94,70 +157,6 @@ class SaveFieldmapDialog(_QDialog):
         self.ui.savedb_btn.clicked.connect(self.saveToDB)
         self.ui.savefile_btn.clicked.connect(self.saveToFile)
 
-    @property
-    def database(self):
-        """Database filename."""
-        return _QApplication.instance().database
-
-    @property
-    def directory(self):
-        """Return the default directory."""
-        return _QApplication.instance().directory
-
-    def accept(self):
-        """Close dialog."""
-        self.clear()
-        super().accept()
-
-    def clear(self):
-        """Clear data."""
-        self.fieldmap_id_list = None
-        self.fieldmap_list = None
-        self.field_scan_list = None
-        self.field_scan_id_list = None
-        self.local_hall_probe = None
-        self.disableSaveToFile()
-
-    def clearInfo(self):
-        """Clear inputs."""
-        self.clearMagnetInfo()
-        self.clearAxesInfo()
-
-    def clearAxesInfo(self):
-        """Clear axes inputs."""
-        self.ui.centerpos3_sb.setValue(0)
-        self.ui.centerpos2_sb.setValue(0)
-        self.ui.centerpos1_sb.setValue(0)
-        self.ui.magnet_x_axis_cmb.setCurrentIndex(0)
-        self.ui.magnet_y_axis_cmb.setCurrentIndex(2)
-        self.disableSaveToFile()
-
-    def clearMagnetInfo(self):
-        """Clear magnet inputs."""
-        self.ui.predefined_cmb.setCurrentIndex(0)
-        self.ui.predefined_la.setText('')
-        self.ui.magnet_name_le.setText('')
-        self.ui.gap_le.setText('')
-        self.ui.control_gap_le.setText('')
-        self.ui.magnet_length_le.setText('')
-        self.ui.comments_te.setPlainText('')
-        self.ui.main_chb.setChecked(False)
-        self.ui.trim_chb.setChecked(False)
-        self.ui.ch_chb.setChecked(False)
-        self.ui.cv_chb.setChecked(False)
-        self.ui.qs_chb.setChecked(False)
-        self.ui.correct_displacements_chb.setChecked(True)
-        self.disableSaveToFile()
-
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.clear()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
     def disableInvalidAxes(self):
         """Disable invalid magnet axes."""
         for i in range(6):
@@ -187,7 +186,7 @@ class SaveFieldmapDialog(_QDialog):
 
     def getFieldMap(self, idx):
         """Get fieldmap data."""
-        if self.field_scan_list is None or self.local_hall_probe is None:
+        if self.field_scan_id_list is None or self.local_hall_probe is None:
             return None
 
         magnet_name = self.ui.magnet_name_le.text()
@@ -225,8 +224,13 @@ class SaveFieldmapDialog(_QDialog):
                 setattr(fieldmap, 'nr_turns_' + coil, turns)
 
         try:
+            field_scan_list = []
+            for idn in self.field_scan_id_list[idx]:
+                fs = _FieldScan(database=self.database, idn=idn)
+                field_scan_list.append(fs)
+            
             fieldmap.set_fieldmap_data(
-                self.field_scan_list[idx], self.local_hall_probe,
+                field_scan_list, self.local_hall_probe,
                 correct_displacements, magnet_center,
                 magnet_x_axis, magnet_y_axis)
             return fieldmap
@@ -303,9 +307,8 @@ class SaveFieldmapDialog(_QDialog):
         _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
         try:
-            self.fieldmap_list = []
             self.fieldmap_id_list = []
-            for idx in range(len(self.field_scan_list)):
+            for idx in range(len(self.field_scan_id_list)):
                 fieldmap = self.getFieldMap(idx)
                 if fieldmap is None:
                     self.blockSignals(False)
@@ -323,14 +326,13 @@ class SaveFieldmapDialog(_QDialog):
                 fieldmap.initial_scan = initial_scan
                 fieldmap.final_scan = final_scan
                 idn = fieldmap.save_to_database(self.database)
-                self.fieldmap_list.append(fieldmap)
                 self.fieldmap_id_list.append(idn)
-                self.ui.savefile_btn.setEnabled(True)
             
+            self.ui.savefile_btn.setEnabled(True)
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
             
-            if len(self.fieldmap_list) == 1:
+            if len(self.fieldmap_id_list) == 1:
                 msg = 'Fieldmap saved to database table.\nID: ' + str(
                     self.fieldmap_id_list[0])                
             else:               
@@ -347,26 +349,20 @@ class SaveFieldmapDialog(_QDialog):
 
     def saveToFile(self):
         """Save fieldmap to database."""
-        if self.fieldmap_list is None:
+        if self.fieldmap_id_list is None:
             return
 
         try:
-            fns = []
-            for idx, fieldmap in enumerate(self.fieldmap_list):
-                idn = self.fieldmap_id_list[idx]
-                default_filename = fieldmap.default_filename
-                if '.txt' in default_filename:
-                    default_filename = default_filename.replace(
-                        '.txt', '_ID={0:d}.txt'.format(idn))
-                elif '.dat' in default_filename:
-                    default_filename = default_filename.replace(
-                        '.dat', '_ID={0:d}.dat'.format(idn))
-                fns.append(default_filename)
-    
-            if len(self.fieldmap_list) == 1:
+            if len(self.fieldmap_id_list) == 1:
+                idn = self.fieldmap_id_list[0]
+                fieldmap = _Fieldmap(database=self.database, idn=idn)
+                
+                default_filename = fieldmap.default_filename.replace(
+                    '.dat', '_ID={0:d}.dat'.format(idn))
+                
                 filename = _QFileDialog.getSaveFileName(
                     self, caption='Save fieldmap file',
-                    directory=_os.path.join(self.directory, fns[0]),
+                    directory=_os.path.join(self.directory, default_filename),
                     filter="Text files (*.txt *.dat)")
     
                 if isinstance(filename, tuple):
@@ -374,32 +370,34 @@ class SaveFieldmapDialog(_QDialog):
     
                 if len(filename) == 0:
                     return
-    
-                fns[0] = filename
-      
+
+                if (not filename.endswith('.txt') and
+                    not filename.endswith('.dat')):
+                    filename = filename + '.dat'
+  
+                fieldmap.save_file(filename)
+                msg = 'Fieldmap data saved to file.'
+            
             else:
                 directory = _QFileDialog.getExistingDirectory(
                     self, caption='Save fieldmap files',
-                    directory=self.directory)
-    
+                    directory=self.directory)                
+  
                 if isinstance(directory, tuple):
                     directory = directory[0]
     
                 if len(directory) == 0:
                     return
-    
-                for i in range(len(fns)):
-                    fns[i] = _os.path.join(directory, fns[i])
-
-            for idx, fn in enumerate(fns):
-                if not fn.endswith('.txt') and not fn.endswith('.dat'):
-                    fn = fn + '.dat'
-                self.fieldmap_list[idx].save_file(fn)
-            
-            if len(self.fieldmap_list) == 1:
-                msg = 'Fieldmap data saved to file.'
-            else:
+                
+                for idn in self.fieldmap_id_list:
+                    fieldmap = _Fieldmap(database=self.database, idn=idn)
+                    default_filename = fieldmap.default_filename.replace(
+                        '.dat', '_ID={0:d}.dat'.format(idn)) 
+                    filename = _os.path.join(directory, default_filename)
+                    fieldmap.save_file(filename)
+                
                 msg = 'Fieldmaps saved to files.'
+                                           
             _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
 
         except Exception:
@@ -418,10 +416,10 @@ class SaveFieldmapDialog(_QDialog):
             for le in lineedits:
                 le.clear()
 
-    def show(self, field_scan_list, hall_probe, field_scan_id_list):
-        """Update fieldmap variable and show dialog."""
-        if field_scan_list is None or len(field_scan_list) == 0:
-            msg = 'Invalid field scan list.'
+    def show(self, field_scan_id_list, hall_probe):
+        """Show dialog."""
+        if field_scan_id_list is None or len(field_scan_id_list) == 0:
+            msg = 'Invalid field scan ID list.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
@@ -431,35 +429,33 @@ class SaveFieldmapDialog(_QDialog):
             return
 
         try:
-            if not isinstance(field_scan_list[0], list):
-                field_scan_list = [field_scan_list]
+            if not isinstance(field_scan_id_list[0], list):
                 field_scan_id_list = [field_scan_id_list]
+       
+            mn = _FieldScan.get_database_param(
+                self.database, field_scan_id_list[0][0], 'magnet_name')
     
-            magnets_name = []
-            for lt in field_scan_list:
-                for fs in lt:
-                    magnets_name.append(fs.magnet_name) 
-    
-            mn = field_scan_list[0][0].magnet_name
-            if all([magnet_name == mn for magnet_name in magnets_name]):
-                if mn is not None:
-                    mag = mn.split('-')[0]
-                    if mag == 'B120':
-                        mag = 'B2'
-                        mn = mn.replace('B120', 'B2')
-                    if mag == 'B80':
-                        mag = 'B1'
-                        mn = mn.replace('B80', 'B1')
-                    idx = self.ui.predefined_cmb.findText(mag)
-                    self.ui.predefined_cmb.setCurrentIndex(idx)
-                    self.loadMagnetInfo()
-                    self.ui.magnet_name_le.setText(mn)
+            if mn is not None and self.ui.magnet_name_le.text() != mn:
+                mag = mn.split('-')[0]
+                if mag == 'B120':
+                    mag = 'B2'
+                    mn = mn.replace('B120', 'B2')
+                if mag == 'B80':
+                    mag = 'B1'
+                    mn = mn.replace('B80', 'B1')
+                idx = self.ui.predefined_cmb.findText(mag)
+                self.ui.predefined_cmb.setCurrentIndex(idx)
+                self.loadMagnetInfo()
+                self.ui.magnet_name_le.setText(mn)
             
             current_list = []
-            for lt in field_scan_list:
-                cs = lt[0].current_setpoint
-                if all([fs.current_setpoint == cs for fs in lt]):
-                    current_list.append(cs)
+            for lt in field_scan_id_list:
+                ltc = []
+                for idn in lt:
+                    ltc.append(_FieldScan.get_database_param(
+                        self.database, idn, 'current_setpoint'))  
+                if all([current == ltc[0] for current in ltc]):
+                    current_list.append(ltc[0])
                 else:
                     current_list.append(None)
         
@@ -474,7 +470,6 @@ class SaveFieldmapDialog(_QDialog):
 
         self.ui.savefile_btn.setEnabled(False)
         self.current_list = current_list
-        self.field_scan_list = field_scan_list
-        self.local_hall_probe = hall_probe
         self.field_scan_id_list = field_scan_id_list
+        self.local_hall_probe = hall_probe
         super().show()

@@ -11,7 +11,7 @@ from qtpy.QtWidgets import (
     QComboBox as _QComboBox,
     QLabel as _QLabel,
     QMessageBox as _QMessageBox,
-    QVBoxLayout as _QVBoxLayout,
+    QHBoxLayout as _QHBoxLayout,
     )
 from qtpy.QtCore import (
     QThread as _QThread,
@@ -20,16 +20,21 @@ from qtpy.QtCore import (
     )
 
 from hallbench.gui.moveaxiswidget import MoveAxisWidget as _MoveAxisWidget
-from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
+from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
 
 
 class AngularErrorWidget(_TablePlotWidget):
     """Angular error widget class for the Hall Bench Control application."""
 
-    _plot_label = 'Angular error [arcsec]'
-    _data_format = '{0:.4f}'
-    _data_labels = ['X-axis [arcsec]', 'Y-axis [arcsec]']
-    _colors = [(255, 0, 0), (0, 255, 0)]
+    _left_axis_1_label = 'Angular error [arcsec]'       
+    _left_axis_1_format = '{0:.4f}'
+    _left_axis_1_data_labels = ['X-axis [arcsec]', 'Y-axis [arcsec]']
+    _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
+
+    _right_axis_1_label = ''
+    _right_axis_1_format = '{0:.4f}'
+    _right_axis_1_data_labels = ['Position']
+    _right_axis_1_data_colors = [(0, 0, 255)]
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
@@ -37,33 +42,26 @@ class AngularErrorWidget(_TablePlotWidget):
 
         # add move axis widget
         self.move_axis_widget = _MoveAxisWidget(self)
-        _layout = _QVBoxLayout()
-        _layout.setContentsMargins(0, 0, 0, 0)
-        _layout.addWidget(self.move_axis_widget)
-        self.ui.widget_wg.setLayout(_layout)
+        self.addWidgetsNextToPlot(self.move_axis_widget)
 
         # add measurement type combo box
-        _label = _QLabel("Measurement Type:")
+        self.meastype_la = _QLabel("Measurement Type:")
         self.meastype_cmb = _QComboBox()
         self.meastype_cmb.addItems(["Absolute", "Relative"])
-        self.ui.layout_lt.addWidget(_label)
-        self.ui.layout_lt.addWidget(self.meastype_cmb)
-
-        # variables initialisation
-        self._position = []
-        self.configureTable()
+        self.addWidgetsNextToTable([self.meastype_la, self.meastype_cmb])
 
         # Change default appearance
-        self.table_ta.horizontalHeader().setDefaultSectionSize(170)
-        self.ui.read_btn.setText('Read Angular Error')
-        self.ui.monitor_btn.setText('Monitor Angular Error')
+        self.setTableColumnSize(150)
+
+        # Hide right axis
+        self.hideRightAxes()
 
         # Create reading thread
-        self.thread = _QThread()
+        self.wthread = _QThread()
         self.worker = ReadValueWorker()
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
+        self.worker.moveToThread(self.wthread)
+        self.wthread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.wthread.quit)
         self.worker.finished.connect(self.getReading)
 
     @property
@@ -85,11 +83,8 @@ class AngularErrorWidget(_TablePlotWidget):
         """Close widget."""
         try:
             self.move_axis_widget.close()
-            self.timer.stop()
-            self.thread.quit()
-            del self.thread
-            self.closeDialogs()
-            event.accept()
+            self.wthread.quit()
+            super().closeEvent(event)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
@@ -97,18 +92,23 @@ class AngularErrorWidget(_TablePlotWidget):
     def getReading(self):
         """Get reading from worker thread."""
         try:
+            ts = self.worker.timestamp
             r = self.worker.reading
-            if len(r) == 0 or all([_np.isnan(ri) for ri in r[1:]]):
+            
+            if ts is None:
+                return
+            
+            if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
                 return
 
-            self._timestamp.append(r[0])
-            self._position.append(r[1])
-            self._readings[self._data_labels[0]].append(r[2])
-            self._readings[self._data_labels[1]].append(r[3])
+            self._timestamp.append(ts)
+            for i, label in enumerate(self._data_labels):
+                self._readings[label].append(r[i])
             self.addLastValueToTable()
             self.updatePlot()
+        
         except Exception:
-            pass
+            _traceback.print_exc(file=_sys.stdout)
 
     def readValue(self, monitor=False):
         """Read value."""
@@ -122,9 +122,10 @@ class AngularErrorWidget(_TablePlotWidget):
             self.worker.pmac_axis = self.move_axis_widget.selectedAxis()
             mt = self.meastype_cmb.currentText().lower()
             self.worker.measurement_type = mt
-            self.thread.start()
+            self.wthread.start()
+        
         except Exception:
-            pass
+            _traceback.print_exc(file=_sys.stdout)
 
 
 class ReadValueWorker(_QObject):
@@ -136,6 +137,7 @@ class ReadValueWorker(_QObject):
         """Initialize object."""
         self.pmac_axis = None
         self.measurement_type = None
+        self.timestamp = None
         self.reading = []
         super().__init__()
 
@@ -147,16 +149,10 @@ class ReadValueWorker(_QObject):
     def run(self):
         """Read values from devices."""
         try:
+            self.timestamp = None
             self.reading = []
 
             ts = _time.time()
-
-            if self.pmac_axis is None:
-                pos = _np.nan
-            else:
-                pos = self.devices.pmac.get_position(self.pmac_axis)
-                if pos is None:
-                    pos = _np.nan
 
             if self.measurement_type == 'relative':
                 rl = self.devices.elcomat.get_relative_measurement()
@@ -166,16 +162,24 @@ class ReadValueWorker(_QObject):
                 rl = []
             rl = [r if r is not None else _np.nan for r in rl]
 
-            self.reading.append(ts)
-            self.reading.append(pos)
+            if self.pmac_axis is None:
+                pos = _np.nan
+            else:
+                pos = self.devices.pmac.get_position(self.pmac_axis)
+                if pos is None:
+                    pos = _np.nan
+
+            self.timestamp = ts
             if len(rl) == 2:
                 self.reading.append(rl[0])
                 self.reading.append(rl[1])
             else:
                 self.reading.append(_np.nan)
                 self.reading.append(_np.nan)
+            self.reading.append(pos)
             self.finished.emit(True)
 
         except Exception:
+            self.timestamp = None
             self.reading = []
             self.finished.emit(True)

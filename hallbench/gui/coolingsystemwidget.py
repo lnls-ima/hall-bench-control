@@ -19,58 +19,43 @@ from qtpy.QtCore import (
     Signal as _Signal,
     )
 
-from hallbench.gui.utils import plotItemAddRightAxis as _plotItemAddRightAxis
-from hallbench.gui.tableplotwidget import TablePlotWidget as _TablePlotWidget
+from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
 
 
 class CoolingSystemWidget(_TablePlotWidget):
     """Cooling System Widget class for the Hall Bench Control application."""
 
-    _plot_label = 'Water Temperature [deg C]'
-    _data_format = '{0:.4f}'
-    _data_labels = ['PV1', 'PV2', 'Output1', 'Output2']
-    _colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (0, 255, 255)]
+    _left_axis_1_label = 'Water Temperature [deg C]'       
+    _left_axis_1_format = '{0:.4f}'
+    _left_axis_1_data_labels = ['PV1', 'PV2']
+    _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
+    
+    _right_axis_1_label = 'Controller Output [%]'
+    _right_axis_1_format = '{0:.4f}'
+    _right_axis_1_data_labels = ['Output1', 'Output2']
+    _right_axis_1_data_colors = [(0, 0, 255), (0, 255, 255)]
 
     def __init__(self, parent=None):
         """Set up the ui and signal/slot connections."""
         super().__init__(parent)
 
         # add check box
-        _layout = _QHBoxLayout()
         self.pv1_chb = _QCheckBox(' PV1 ')
         self.pv2_chb = _QCheckBox(' PV2 ')
         self.output1_chb = _QCheckBox(' Output1')
         self.output2_chb = _QCheckBox(' Output2')
-        _layout.addWidget(self.pv1_chb)
-        _layout.addWidget(self.pv2_chb)
-        _layout.addWidget(self.output1_chb)
-        _layout.addWidget(self.output2_chb)
-        self.ui.layout_lt.addLayout(_layout)
-
+        self.addWidgetsNextToTable(
+            [self.pv1_chb, self.pv2_chb, self.output1_chb, self.output2_chb])
+        
         # Change default appearance
-        self.ui.widget_wg.hide()
-        self.ui.table_ta.horizontalHeader().setDefaultSectionSize(200)
-        self.ui.read_btn.setText('Read PVs')
-        self.ui.monitor_btn.setText('Monitor PVs')
-
-        self.right_axis = _plotItemAddRightAxis(self.ui.plot_pw.plotItem)
-        self.right_axis.setLabel('Controller Output', color="#0000FF")
-        self.right_axis.setStyle(showValues=True)
-        self.right_axis_curve1 = _pyqtgraph.PlotCurveItem(
-            [], [], pen=(0, 0, 255))
-        self.right_axis_curve2 = _pyqtgraph.PlotCurveItem(
-            [], [], pen=(0, 255, 255))
-        self.right_axis.linkedView().addItem(self.right_axis_curve1)
-        self.right_axis.linkedView().addItem(self.right_axis_curve2)
-        self._graphs[self._data_labels[2]] = self.right_axis_curve1
-        self._graphs[self._data_labels[3]] = self.right_axis_curve2
-
+        self.setTableColumnSize(120)
+        
         # Create reading thread
-        self.thread = _QThread()
+        self.wthread = _QThread()
         self.worker = ReadValueWorker()
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
+        self.worker.moveToThread(self.wthread)
+        self.wthread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.wthread.quit)
         self.worker.finished.connect(self.getReading)
 
     @property
@@ -90,10 +75,8 @@ class CoolingSystemWidget(_TablePlotWidget):
     def closeEvent(self, event):
         """Close widget."""
         try:
-            self.timer.stop()
-            self.thread.quit()
-            del self.thread
-            event.accept()
+            self.wthread.quit()
+            super().closeEvent(event)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
@@ -101,20 +84,23 @@ class CoolingSystemWidget(_TablePlotWidget):
     def getReading(self):
         """Get reading from worker thread."""
         try:
+            ts = self.worker.timestamp
             r = self.worker.reading
-            if len(r) == 0 or all([_np.isnan(ri) for ri in r[1:]]):
+
+            if ts is None:
                 return
 
-            self._timestamp.append(r[0])
-            self._readings[self._data_labels[0]].append(r[1])
-            self._readings[self._data_labels[1]].append(r[2])
-            self._readings[self._data_labels[2]].append(r[3])
-            self._readings[self._data_labels[3]].append(r[4])
+            if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
+                return
+
+            self._timestamp.append(ts)
+            for i, label in enumerate(self._data_labels):
+                self._readings[label].append(r[i])
             self.addLastValueToTable()
             self.updatePlot()
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            pass
 
     def readValue(self, monitor=False):
         """Read value."""
@@ -129,9 +115,10 @@ class CoolingSystemWidget(_TablePlotWidget):
             self.worker.pv2_enabled = self.pv2_chb.isChecked()
             self.worker.output1_enabled = self.output1_chb.isChecked()
             self.worker.output2_enabled = self.output2_chb.isChecked()
-            self.thread.start()
+            self.wthread.start()
+        
         except Exception:
-            pass
+            _traceback.print_exc(file=_sys.stdout)
 
 
 class ReadValueWorker(_QObject):
@@ -145,6 +132,7 @@ class ReadValueWorker(_QObject):
         self.pv2_enabled = False
         self.output1_enabled = False
         self.output2_enabled = False
+        self.timestamp = None
         self.reading = []
         super().__init__()
 
@@ -156,9 +144,11 @@ class ReadValueWorker(_QObject):
     def run(self):
         """Read values from devices."""
         try:
+            self.timestamp = None
             self.reading = []
 
             ts = _time.time()
+            
             if self.pv1_enabled:
                 pv1 = self.devices.udc.read_pv1()
             else:
@@ -179,7 +169,7 @@ class ReadValueWorker(_QObject):
             else:
                 output2 = _np.nan
 
-            self.reading.append(ts)
+            self.timestamp = ts
             self.reading.append(pv1)
             self.reading.append(pv2)
             self.reading.append(output1)
@@ -187,5 +177,6 @@ class ReadValueWorker(_QObject):
             self.finished.emit(True)
 
         except Exception:
+            self.timestamp = None
             self.reading = []
             self.finished.emit(True)

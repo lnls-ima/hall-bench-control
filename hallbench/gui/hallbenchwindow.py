@@ -5,13 +5,21 @@
 import sys as _sys
 import traceback as _traceback
 from qtpy.QtWidgets import (
+    QDialog as _QDialog,    
+    QCheckBox as _QCheckBox,
+    QGroupBox as _QGroupBox,
+    QPushButton as _QPushButton,
+    QFileDialog as _QFileDialog,
+    QMainWindow as _QMainWindow,
+    QVBoxLayout as _QVBoxLayout,
     QApplication as _QApplication,
     QDesktopWidget as _QDesktopWidget,
-    QMainWindow as _QMainWindow,
-    QDialog as _QDialog,
-    QFileDialog as _QFileDialog,
+    )
+from qtpy.QtGui import (
+    QFont as _QFont,
     )
 from qtpy.QtCore import (
+    QSize as _QSize,
     QTimer as _QTimer,
     Signal as _Signal,
     QRunnable as _QRunnable,
@@ -26,24 +34,26 @@ from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
 from hallbench.gui.supplywidget import SupplyWidget as _SupplyWidget
 from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
-from hallbench.gui.databasewidget import DatabaseWidget \
-    as _DatabaseWidget
 from hallbench.gui.voltagewidget import VoltageWidget \
     as _VoltageWidget
 from hallbench.gui.pscurrentwidget import PSCurrentWidget \
     as _PSCurrentWidget
 from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
-from hallbench.gui.angularerrorwidget import AngularErrorWidget \
-    as _AngularErrorWidget
 from hallbench.gui.coolingsystemwidget import CoolingSystemWidget \
     as _CoolingSystemWidget
+from hallbench.gui.angularerrorwidget import AngularErrorWidget \
+    as _AngularErrorWidget
+from hallbench.gui.voltagetemperaturewidget import VoltageTempWidget \
+    as _VoltageTempWidget
+from hallbench.gui.databasewidget import DatabaseWidget \
+    as _DatabaseWidget
 
 
 class HallBenchWindow(_QMainWindow):
     """Main Window class for the Hall Bench Control application."""
 
-    _update_positions_timer_interval = 250  # [ms]
+    _update_positions_timer_interval = 500  # [ms]
 
     def __init__(self, parent=None, width=1200, height=700):
         """Set up the ui and add main tabs."""
@@ -56,72 +66,52 @@ class HallBenchWindow(_QMainWindow):
 
         # clear the current tabs
         self.ui.main_tab.clear()
-        self.changing_tabs = False
+
+        # define tab names and corresponding widgets
+        self.tab_names = [
+            'connection',
+            'motors',
+            'power_supply',
+            'measurement',
+            'voltage',
+            'current',
+            'temperature',
+            'cooling_system',
+            'angular_error',
+            'voltage_temperature',
+            'database',
+            ]
+        
+        self.tab_widgets = [
+            _ConnectionWidget,
+            _MotorsWidget,
+            _SupplyWidget,
+            _MeasurementWidget,
+            _VoltageWidget,
+            _PSCurrentWidget,
+            _TemperatureWidget,
+            _CoolingSystemWidget,
+            _AngularErrorWidget,
+            _VoltageTempWidget,
+            _DatabaseWidget,
+            ]
 
         # add preferences dialog
-        self.preferences_dialog = PreferencesDialog()
+        self.preferences_dialog = PreferencesDialog(self.tab_names)
         self.preferences_dialog.preferences_changed.connect(self.changeTabs)
 
-        # add tabs
-        self.connection_tab = _ConnectionWidget(self)
-        self.ui.main_tab.addTab(self.connection_tab, 'Connection')
-
-        self.motors_tab = _MotorsWidget(self)
-        self.ui.main_tab.addTab(self.motors_tab, 'Motors')
-
-        self.power_supply_tab = _SupplyWidget(self)
-        self.ui.main_tab.addTab(self.power_supply_tab, 'Power Supply')
-
-        self.measurement_tab = _MeasurementWidget(self)
-        self.ui.main_tab.addTab(self.measurement_tab, 'Measurement')
-
-        self.voltage_tab = _VoltageWidget(self)
-        self.ui.main_tab.addTab(self.voltage_tab, 'Voltage')
-
-        self.current_tab = _PSCurrentWidget(self)
-        self.ui.main_tab.addTab(self.current_tab, 'Current')
-
-        self.temperature_tab = _TemperatureWidget(self)
-        self.ui.main_tab.addTab(self.temperature_tab, 'Temperature')
-
-        self.cooling_system_tab = _CoolingSystemWidget(self)
-        self.ui.main_tab.addTab(self.cooling_system_tab, 'Cooling System')
-
-        self.angular_error_tab = _AngularErrorWidget(self)
-        self.ui.main_tab.addTab(self.angular_error_tab, 'Angular Error')
-
-        self.database_tab = _DatabaseWidget(self)
-        self.ui.main_tab.addTab(self.database_tab, 'Database')
+        # show database name
         self.ui.database_le.setText(self.database)
-
+        
+        # start positions update
         self.stop_positions_update = False
         self.threadpool = _QThreadPool.globalInstance()
         self.timer = _QTimer()
         self.timer.timeout.connect(self.updatePositions)
         self.timer.start(self._update_positions_timer_interval)
 
-        # Connect automatic current ramp signals
-        self.measurement_tab.change_current_setpoint.connect(
-            self.power_supply_tab.change_setpoint_and_emit_signal)
-
-        self.measurement_tab.turn_off_power_supply_current.connect(
-            self.power_supply_tab.set_current_to_zero)
-
-        self.power_supply_tab.current_setpoint_changed.connect(
-            self.measurement_tab.updateCurrentSetpoint)
-
-        self.power_supply_tab.start_measurement.connect(
-            self.measurement_tab.measureAndEmitSignal)
-
-        self.power_supply_tab.current_ramp_end.connect(
-            self.measurement_tab.endAutomaticMeasurements)
-
-        self.ui.preferences_btn.clicked.connect(self.preferences_dialog.show)
-        self.preferences_dialog.tabsPreferencesChanged()
-
-        self.ui.database_btn.clicked.connect(self.changeDatabase)
-
-        self.ui.main_tab.currentChanged.connect(self.updateDatabaseTab)
+        # connect signals and slots 
+        self.connectSignalSlots()
 
     @property
     def database(self):
@@ -191,6 +181,34 @@ class HallBenchWindow(_QMainWindow):
         self.database = fn
         self.ui.database_le.setText(self.database)
 
+    def changeTabs(self, tab_status):
+        """Hide or show tabs."""
+        try:
+            if self.ui.main_tab.count() != 0:
+                current_tab = self.ui.main_tab.currentWidget()
+            else:
+                current_tab = None
+            
+            self.ui.main_tab.clear()
+            for idx, tab_name in enumerate(self.tab_names):
+                tab_attr = tab_name + '_tab'
+                tab_label = tab_name.replace('_', ' ').capitalize()
+                status = tab_status[tab_name]
+                if status:
+                    if hasattr(self, tab_attr):
+                        tab = getattr(self, tab_attr)
+                    else:
+                        tab = self.tab_widgets[idx]()
+                        setattr(self, tab_attr, tab)
+                    self.ui.main_tab.addTab(tab, tab_label)
+
+            if current_tab is not None:
+                idx = self.ui.main_tab.indexOf(current_tab)
+                self.ui.main_tab.setCurrentIndex(idx)
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
     def centralizeWindow(self):
         """Centralize window."""
         window_center = _QDesktopWidget().availableGeometry().center()
@@ -198,43 +216,34 @@ class HallBenchWindow(_QMainWindow):
             window_center.x() - self.geometry().width()/2,
             window_center.y() - self.geometry().height()/2)
 
-    def changeTabs(self, tab_status):
-        """Hide or show tabs."""
-        try:
-            self.changing_tabs = True
-            current_tab = self.ui.main_tab.currentWidget()
-            self.ui.main_tab.clear()
-            sorted_ts = sorted(tab_status.items(), key=lambda x: x[1][1])
-            for i in range(len(sorted_ts)):
-                tab_name = sorted_ts[i][0]
-                status = sorted_ts[i][1][0]
-                if status and hasattr(self, tab_name + '_tab'):
-                    tab = getattr(self, tab_name + '_tab')
-                    tab_label = tab_name.replace('_', ' ').capitalize()
-                    self.ui.main_tab.addTab(tab, tab_label)
-
-            idx = self.ui.main_tab.indexOf(current_tab)
-            self.ui.main_tab.setCurrentIndex(idx)
-            self.changing_tabs = False
-
-        except Exception:
-            self.changing_tabs = False
-            _traceback.print_exc(file=_sys.stdout)
-
-    def updateDatabaseTab(self):
-        """Update database tab."""
-        if self.changing_tabs:
-            return
-
-        database_tab_idx = self.ui.main_tab.indexOf(self.database_tab)
-        if self.ui.main_tab.currentIndex() == database_tab_idx:
-            self.database_tab.updateDatabaseTables()
+    def connectSignalSlots(self):
+        """Create signal/slot connections."""
+        if (hasattr(self, 'measurement_tab') and 
+            hasattr(self, 'power_supply_tab')):
+            self.measurement_tab.change_current_setpoint.connect(
+                self.power_supply_tab.change_setpoint_and_emit_signal)
+            
+            self.measurement_tab.turn_off_power_supply_current.connect(
+                self.power_supply_tab.set_current_to_zero)
+            
+            self.power_supply_tab.current_setpoint_changed.connect(
+                self.measurement_tab.updateCurrentSetpoint)
+            
+            self.power_supply_tab.start_measurement.connect(
+                self.measurement_tab.measureAndEmitSignal)
+            
+            self.power_supply_tab.current_ramp_end.connect(
+                self.measurement_tab.endAutomaticMeasurements)
+        
+        self.preferences_dialog.tabsPreferencesChanged()
+        self.ui.preferences_btn.clicked.connect(self.preferences_dialog.show)
+        self.ui.database_btn.clicked.connect(self.changeDatabase)
 
     def updatePositions(self):
         """Update pmac positions."""
         if self.stop_positions_update:
             return
-
+ 
         try:
             worker = PositionsWorker()
             self.threadpool.start(worker)
@@ -247,80 +256,87 @@ class PreferencesDialog(_QDialog):
 
     preferences_changed = _Signal([dict])
 
-    def __init__(self, parent=None):
+    def __init__(self, chb_names, parent=None):
         """Set up the ui and create connections."""
         super().__init__(parent)
+        self.setWindowTitle("Preferences")
+        self.resize(250, 400)
 
-        # setup the ui
-        uifile = _getUiFile(self)
-        self.ui = _uic.loadUi(uifile, self)
-        self.ui.apply_btn.clicked.connect(self.tabsPreferencesChanged)
-        self.ui.connection_chb.setChecked(True)
-        self.ui.motors_chb.setChecked(True)
-        self.ui.power_supply_chb.setChecked(False)
-        self.ui.measurement_chb.setChecked(True)
-        self.ui.voltage_chb.setChecked(False)
-        self.ui.current_chb.setChecked(False)
-        self.ui.temperature_chb.setChecked(False)
-        self.ui.cooling_system_chb.setChecked(False)
-        self.ui.angular_error_chb.setChecked(False)
-        self.ui.database_chb.setChecked(True)
+        font = _QFont()
+        font.setPointSize(11)
+        font.setBold(False)
+        self.setFont(font)
+
+        font_bold = _QFont()
+        font_bold.setPointSize(11)
+        font_bold.setBold(True)
+    
+        main_layout = _QVBoxLayout()
+        vertical_layout = _QVBoxLayout()        
+        group_box = _QGroupBox("Select Tabs to Show")
+        group_box.setLayout(vertical_layout)
+        group_box.setFont(font_bold)
+        main_layout.addWidget(group_box)
+        self.setLayout(main_layout)
+        
+        self.chb_names = chb_names
+        for name in self.chb_names:
+            label = name.replace('_', ' ').capitalize()
+            chb = _QCheckBox(label)
+            setattr(self, name + '_chb', chb)
+            vertical_layout.addWidget(chb)
+            chb.setFont(font)
+        
+        self.apply_btn = _QPushButton("Apply Changes")
+        self.apply_btn.setMinimumSize(_QSize(0, 40))
+        self.apply_btn.setFont(font_bold)
+        vertical_layout.addWidget(self.apply_btn)         
+
+        self.apply_btn.clicked.connect(self.tabsPreferencesChanged)
+        self.connection_chb.setChecked(True)
+        self.motors_chb.setChecked(True)
+        self.measurement_chb.setChecked(True)
 
     def tabsPreferencesChanged(self):
         """Get tabs checkbox status and emit signal to change tabs."""
         try:
-            tab_status = {}
-            tab_names = [
-                'connection',
-                'motors',
-                'power_supply',
-                'measurement',
-                'voltage',
-                'current',
-                'temperature',
-                'cooling_system',
-                'angular_error',
-                'database',
-                ]
-            idx = 0
-            for tab_name in tab_names:
-                chb = getattr(self.ui, tab_name + '_chb')
-                if chb.isChecked():
-                    tab_status[tab_name] = (True, idx)
-                else:
-                    tab_status[tab_name] = (False, idx)
-                idx = idx + 1
-            self.preferences_changed.emit(tab_status)
+            chb_status = {}
+            for chb_name in self.chb_names:
+                chb = getattr(self, chb_name + '_chb')
+                chb_status[chb_name] = chb.isChecked()
+
+            self.preferences_changed.emit(chb_status)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
 
 class PositionsWorker(_QRunnable):
-    """QRunnable to read position values from pmac."""
+    """Read position values from pmac."""
 
     @property
     def pmac(self):
         """Pmac communication class."""
         return _QApplication.instance().devices.pmac
-
+ 
     @property
     def positions(self):
         """Get current posiitons dict."""
         return _QApplication.instance().positions
-
+ 
     @positions.setter
     def positions(self, value):
         _QApplication.instance().positions = value
-
+ 
     def run(self):
         """Update axes positions."""
         if not self.pmac.connected:
             self.positions = {}
             return
-
+ 
         try:
             for axis in self.pmac.commands.list_of_axis:
                 pos = self.pmac.get_position(axis)
                 self.positions[axis] = pos
+         
         except Exception:
             pass

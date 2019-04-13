@@ -14,7 +14,7 @@ from qtpy.QtWidgets import (
 import qtpy.uic as _uic
 
 from hallbench.gui import utils as _utils
-from hallbench.gui.currentpositionwidget import CurrentPositionWidget \
+from hallbench.gui.auxiliarywidgets import CurrentPositionWidget \
     as _CurrentPositionWidget
 
 

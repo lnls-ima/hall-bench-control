@@ -23,7 +23,7 @@ import pyqtgraph as _pyqtgraph
 from hallbench.gui.auxiliarywidgets import (
     TableDialog as _TableDialog,
     CheckableComboBox as _CheckableComboBox,
-    TemperatureDialog as _TemperatureDialog,
+    TemperatureTablePlotDialog as _TemperatureTablePlotDialog,
     )
 from hallbench.gui import utils as _utils
 from hallbench.data import measurement as _measurement
@@ -55,7 +55,7 @@ class ViewScanDialog(_QDialog):
         self.current_dialog.setWindowTitle('Current Readings')
 
         # Create temperature dialog
-        self.temperature_dialog = _TemperatureDialog()
+        self.temperature_dialog = _TemperatureTablePlotDialog()
         self.temperature_dialog.setWindowTitle('Temperature Readings')
 
         # Create legend

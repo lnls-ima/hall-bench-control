@@ -74,10 +74,6 @@ def Agilent34401A_factory(baseclass):
             else:
                 return False
 
-        def reset(self):
-            """Reset device."""
-            self.send_command(self.commands.reset)
-
         def config(self):
             """Configure device for voltage measurements."""
             self.reset()
@@ -94,6 +90,10 @@ def Agilent34401A_factory(baseclass):
                 return val
             except Exception:
                 return None
+
+        def reset(self):
+            """Reset device."""
+            self.send_command(self.commands.reset)
 
     return Agilent34401A
 

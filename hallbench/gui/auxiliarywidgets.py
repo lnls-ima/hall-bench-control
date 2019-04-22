@@ -1666,8 +1666,8 @@ class TablePlotWidget(_QWidget):
         vbar.setValue(vbar.maximum())
 
 
-class TemperatureDialog(_QDialog, TablePlotWidget):
-    """Temperature dialog."""
+class TemperatureTablePlotDialog(_QDialog, TablePlotWidget):
+    """Temperature table and plot dialog."""
 
     _left_axis_1_label = 'Temperature [deg C]'       
     _left_axis_1_format = '{0:.4f}'
@@ -1713,6 +1713,45 @@ class TemperatureDialog(_QDialog, TablePlotWidget):
             _traceback.print_exc(file=_sys.stdout)    
             
             
+class TemperatureTablePlotWidget(TablePlotWidget):
+    """Temperature table and plot widget."""
+
+    _left_axis_1_label = 'Temperature [deg C]'       
+    _left_axis_1_format = '{0:.4f}'
+    _left_axis_1_data_colors = [
+        (230, 25, 75), (60, 180, 75), (0, 130, 200),
+        (245, 130, 48), (145, 30, 180), (255, 225, 25), 
+        (70, 240, 240), (240, 50, 230), (170, 110, 40), 
+        (128, 0, 0), (0, 0, 0), (128, 128, 128), (0, 255, 0),
+    ]
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Temperature Readings')
+        self.resize(1000, 800)
+        self.setTableColumnSize(80)
+        self.group_box.hide()
+        self.autorange_btn.hide()
+        self.remove_btn.hide()
+        self.clear_btn.hide()
+
+    def updateTemperatures(self, timestamp, readings):
+        """Update temperature readings."""
+        try:
+            self._timestamp = timestamp
+            self._readings = readings
+            self._data_labels = list(self._readings.keys())
+            self._data_formats = [
+                self._left_axis_1_format]*len(self._data_labels)
+            self._left_axis_1_data_labels = self._data_labels
+            self.configurePlot()
+            self.configureTable()
+            self.updatePlot()
+            self.updateTableValues()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)        
+            
+
 class TemperatureChannelsWidget(_QWidget):
     """Temperature channels widget class."""
 

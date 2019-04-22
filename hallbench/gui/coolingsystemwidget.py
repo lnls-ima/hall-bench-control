@@ -25,7 +25,7 @@ from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
 class CoolingSystemWidget(_TablePlotWidget):
     """Cooling System Widget class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Water Temperature [deg C]'       
+    _left_axis_1_label = 'Temperature [deg C]'       
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['PV1', 'PV2']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]

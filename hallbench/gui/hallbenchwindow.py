@@ -65,12 +65,12 @@ class HallBenchWindow(_QMainWindow):
             'motors',
             'power_supply',
             'measurement',
-            'voltage',
             'current',
+            'voltage',
             'temperature',
+            'voltage_temperature',
             'cooling_system',
             'angular_error',
-            'voltage_temperature',
             'database',
             ]
         
@@ -79,12 +79,12 @@ class HallBenchWindow(_QMainWindow):
             _MotorsWidget,
             _SupplyWidget,
             _MeasurementWidget,
-            _VoltageWidget,
             _PSCurrentWidget,
+            _VoltageWidget,
             _TemperatureWidget,
+            _VoltageTempWidget,
             _CoolingSystemWidget,
             _AngularErrorWidget,
-            _VoltageTempWidget,
             _DatabaseWidget,
             ]
 

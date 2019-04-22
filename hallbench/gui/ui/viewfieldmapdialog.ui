@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1284</width>
-    <height>887</height>
+    <height>896</height>
    </rect>
   </property>
   <property name="font">
@@ -20,7 +20,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0" rowspan="9">
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QTabWidget" name="main_tab">
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -53,12 +53,22 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="temperature_tab">
+      <attribute name="title">
+       <string>Temperature</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QVBoxLayout" name="temperature_lt"/>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="text_tab">
       <attribute name="title">
        <string>Text</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_9">
-       <item row="0" column="0">
+       <item row="0" column="0" colspan="2">
         <widget class="QTextEdit" name="text_te">
          <property name="readOnly">
           <bool>true</bool>
@@ -693,28 +703,6 @@
      </layout>
     </widget>
    </item>
-   <item row="8" column="1">
-    <widget class="QPushButton" name="view_temperature_btn">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>40</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>View Temperature Readings</string>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -725,7 +713,7 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
+  <tabstop>main_tab</tabstop>
   <tabstop>idn_le</tabstop>
   <tabstop>plot_cmb</tabstop>
   <tabstop>update_plot_btn</tabstop>
@@ -742,7 +730,6 @@
   <tabstop>magnet_y_axis_le</tabstop>
   <tabstop>corrected_positions_le</tabstop>
   <tabstop>comments_te</tabstop>
-  <tabstop>view_temperature_btn</tabstop>
   <tabstop>graph_pw</tabstop>
   <tabstop>text_te</tabstop>
  </tabstops>

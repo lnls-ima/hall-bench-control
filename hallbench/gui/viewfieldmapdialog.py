@@ -7,16 +7,18 @@ import numpy as _np
 import pandas as _pd
 import warnings as _warnings
 import traceback as _traceback
+from qtpy.QtCore import Qt as _Qt
 from qtpy.QtWidgets import (
     QDialog as _QDialog,
     QMessageBox as _QMessageBox,
+    QApplication as _QApplication,
     )
 import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui import utils as _utils
 from hallbench.gui.auxiliarywidgets import (
-    TemperatureDialog as _TemperatureDialog)
+    TemperatureTablePlotWidget as _TemperatureTablePlotWidget)
 
 
 class ViewFieldmapDialog(_QDialog):
@@ -29,6 +31,8 @@ class ViewFieldmapDialog(_QDialog):
         uifile = _utils.getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
+        self.text_updated = False
+        self.temperature_updated = False
         self.fieldmap = None
         self.pos = None
         self.bx_lines = None
@@ -39,8 +43,9 @@ class ViewFieldmapDialog(_QDialog):
         self.graphz = None
         self.xlabel = ''
 
-        # Create temperature dialog
-        self.temperature_dialog = _TemperatureDialog()
+        # Create temperature widget
+        self.temperature_widget = _TemperatureTablePlotWidget()
+        self.ui.temperature_lt.addWidget(self.temperature_widget)
 
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.graph_pw.graphicsItem())
@@ -51,11 +56,12 @@ class ViewFieldmapDialog(_QDialog):
     def accept(self):
         """Close dialog."""
         self.clear()
-        self.closeDialogs()
         super().accept()
 
     def clear(self):
         """Clear data."""
+        self.text_updated = False
+        self.temperature_updated = False
         self.fieldmap = None
         self.pos = None
         self.bx_lines = None
@@ -67,25 +73,17 @@ class ViewFieldmapDialog(_QDialog):
         self.xlabel = ''
         self.clearGraph()
         self.ui.text_te.setText('')
+        self.ui.main_tab.setCurrentIndex(0)
 
     def clearGraph(self):
         """Clear plots."""
         self.ui.graph_pw.plotItem.curves.clear()
         self.ui.graph_pw.clear()
 
-    def closeDialogs(self):
-        """Close dialogs."""
-        try:
-            self.clear()
-            self.temperature_dialog.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            pass
-
     def closeEvent(self, event):
         """Close widget."""
         try:
-            self.closeDialogs()
+            self.clear()
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -137,53 +135,26 @@ class ViewFieldmapDialog(_QDialog):
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         self.ui.update_plot_btn.clicked.connect(self.updatePlot)
-        self.ui.view_temperature_btn.clicked.connect(
-            self.showTemperatureDialog)
+        self.ui.main_tab.currentChanged.connect(self.updateTab)
 
     def show(self, fieldmap, idn):
         """Update fieldmap and show dialog."""
-        self.clearGraph()
+        self.clear()
         self.fieldmap = fieldmap
 
         try:
             self.updateLineEdits(idn)
             self.updatePlotOptions()
             self.updatePlot()
-            self.updateText()
             if len(self.fieldmap.temperature) != 0:
-                self.ui.view_temperature_btn.setEnabled(True)
+                self.ui.main_tab.setTabEnabled(1, True)
             else:
-                self.ui.view_temperature_btn.setEnabled(False)
+                self.ui.main_tab.setTabEnabled(1, False)
             super().show()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to show dialog.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
-
-    def showTemperatureDialog(self):
-        """Show dialog with temperature readings."""
-        if len(self.fieldmap.temperature) == 0:
-            return
-
-        try:
-            dfs = []
-            for key, value in self.fieldmap.temperature.items():
-                v = _np.array(value)
-                dfs.append(
-                    _pd.DataFrame(v[:, 1], index=v[:, 0], columns=[key]))
-            df = _pd.concat(dfs, axis=1)
-
-            timestamp = df.index.values.tolist()
-            readings = {}
-            for col in df.columns:
-                readings[col] = df[col].values.tolist()
-            self.temperature_dialog.show(timestamp, readings)
-        
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to open dialog.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
@@ -422,14 +393,63 @@ class ViewFieldmapDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
             return
 
+    def updateTab(self, idx):
+        """Update current tab."""
+        if idx ==  1:
+            self.updateTemperatures()
+        elif idx == 2:
+            self.updateText()
+
+    def updateTemperatures(self):
+        """Show dialog with temperature readings."""
+        if self.temperature_updated:
+            return
+        
+        if len(self.fieldmap.temperature) == 0:
+            return
+
+        try:
+            dfs = []
+            for key, value in self.fieldmap.temperature.items():
+                v = _np.array(value)
+                dfs.append(
+                    _pd.DataFrame(v[:, 1], index=v[:, 0], columns=[key]))
+            df = _pd.concat(dfs, axis=1)
+
+            timestamp = df.index.values.tolist()
+            readings = {}
+            for col in df.columns:
+                readings[col] = df[col].values.tolist()
+            self.temperature_widget.updateTemperatures(timestamp, readings)
+            self.temperature_updated = True
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to open dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
     def updateText(self):
         """Update text."""
-        if self.fieldmap is not None:
+        if self.text_updated:
+            return
+
+        if self.fieldmap is not None:           
             try:
+                self.blockSignals(True)
+                _QApplication.setOverrideCursor(_Qt.WaitCursor)
+                
                 text = self.fieldmap.get_fieldmap_text()
                 self.ui.text_te.setText(text)
+                self.text_updated = True
+                
+                self.blockSignals(False)
+                _QApplication.restoreOverrideCursor()
+                
             except Exception:
+                self.blockSignals(False)
+                _QApplication.restoreOverrideCursor()
                 _traceback.print_exc(file=_sys.stdout)
-                return
+
         else:
             self.ui.text_te.setText('')

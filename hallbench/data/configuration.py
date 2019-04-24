@@ -168,9 +168,16 @@ class ConnectionConfig(Configuration):
         ('dcct_address', ['dcct_address', 'INTEGER NOT NULL']),
         ('ps_enable', ['ps_enable', 'INTEGER NOT NULL']),
         ('ps_port', ['ps_port', 'TEXT NOT NULL']),
-        ('udc_enable', ['udc_enable', 'INTEGER NOT NULL']),
-        ('udc_port', ['udc_port', 'TEXT NOT NULL']),
-        ('udc_baudrate', ['udc_baudrate', 'INTEGER NOT NULL']),
+        ('water_udc_enable', ['water_udc_enable', 'INTEGER NOT NULL']),
+        ('water_udc_port', ['water_udc_port', 'TEXT NOT NULL']),
+        ('water_udc_baudrate', ['water_udc_baudrate', 'INTEGER NOT NULL']),
+        ('water_udc_slave_address', 
+         ['water_udc_slave_address', 'INTEGER NOT NULL']),
+        ('air_udc_enable', ['air_udc_enable', 'INTEGER NOT NULL']),
+        ('air_udc_port', ['air_udc_port', 'TEXT NOT NULL']),
+        ('air_udc_baudrate', ['air_udc_baudrate', 'INTEGER NOT NULL']),
+        ('air_udc_slave_address', 
+         ['air_udc_slave_address', 'INTEGER NOT NULL']),
     ])
 
     def __init__(self, filename=None, database=None, idn=None):
@@ -200,9 +207,14 @@ class ConnectionConfig(Configuration):
         self.dcct_address = None
         self.ps_enable = None
         self.ps_port = None
-        self.udc_enable = None
-        self.udc_port = None
-        self.udc_baudrate = None
+        self.water_udc_enable = None
+        self.water_udc_port = None
+        self.water_udc_baudrate = None
+        self.water_udc_slave_address = None
+        self.air_udc_enable = None
+        self.air_udc_port = None
+        self.air_udc_baudrate = None
+        self.air_udc_slave_address = None
         super().__init__(filename=filename, database=database, idn=idn)
 
     def get_attribute_type(self, name):
@@ -228,28 +240,60 @@ class ConnectionConfig(Configuration):
         try:
             data = [
                 '# Configuration File\n\n',
-                'pmac_enable      \t{0:d}\n\n'.format(self.pmac_enable),
-                'voltx_enable     \t{0:d}\n'.format(self.voltx_enable),
-                'voltx_address    \t{0:d}\n'.format(self.voltx_address),
-                'volty_enable     \t{0:d}\n'.format(self.volty_enable),
-                'volty_address    \t{0:d}\n'.format(self.volty_address),
-                'voltz_enable     \t{0:d}\n'.format(self.voltz_enable),
-                'voltz_address    \t{0:d}\n\n'.format(self.voltz_address),
-                'multich_enable   \t{0:d}\n'.format(self.multich_enable),
-                'multich_address  \t{0:d}\n\n'.format(self.multich_address),
-                'nmr_enable       \t{0:d}\n'.format(self.nmr_enable),
-                'nmr_port         \t{0:s}\n'.format(self.nmr_port),
-                'nmr_baudrate     \t{0:d}\n\n'.format(self.nmr_baudrate),
-                'elcomat_enable   \t{0:d}\n'.format(self.elcomat_enable),
-                'elcomat_port     \t{0:s}\n'.format(self.elcomat_port),
-                'elcomat_baudrate \t{0:d}\n\n'.format(self.elcomat_baudrate),
-                'dcct_enable      \t{0:d}\n'.format(self.dcct_enable),
-                'dcct_address     \t{0:d}\n'.format(self.dcct_address),
-                'ps_enable        \t{0:d}\n'.format(self.ps_enable),
-                'ps_port          \t{0:s}\n'.format(self.ps_port),
-                'udc_enable       \t{0:d}\n'.format(self.udc_enable),
-                'udc_port         \t{0:s}\n'.format(self.udc_port),
-                'udc_baudrate     \t{0:d}\n\n'.format(self.udc_baudrate),
+                'pmac_enable            \t{0:d}\n\n'.format(
+                    self.pmac_enable),
+                'voltx_enable           \t{0:d}\n'.format(
+                    self.voltx_enable),
+                'voltx_address          \t{0:d}\n'.format(
+                    self.voltx_address),
+                'volty_enable           \t{0:d}\n'.format(
+                    self.volty_enable),
+                'volty_address          \t{0:d}\n'.format(
+                    self.volty_address),
+                'voltz_enable           \t{0:d}\n'.format(
+                    self.voltz_enable),
+                'voltz_address          \t{0:d}\n\n'.format(
+                    self.voltz_address),
+                'multich_enable         \t{0:d}\n'.format(
+                    self.multich_enable),
+                'multich_address        \t{0:d}\n\n'.format(
+                    self.multich_address),
+                'nmr_enable             \t{0:d}\n'.format(
+                    self.nmr_enable),
+                'nmr_port               \t{0:s}\n'.format(
+                    self.nmr_port),
+                'nmr_baudrate           \t{0:d}\n\n'.format(
+                    self.nmr_baudrate),
+                'elcomat_enable         \t{0:d}\n'.format(
+                    self.elcomat_enable),
+                'elcomat_port           \t{0:s}\n'.format(
+                    self.elcomat_port),
+                'elcomat_baudrate       \t{0:d}\n\n'.format(
+                    self.elcomat_baudrate),
+                'dcct_enable            \t{0:d}\n'.format(
+                    self.dcct_enable),
+                'dcct_address           \t{0:d}\n'.format(
+                    self.dcct_address),
+                'ps_enable              \t{0:d}\n'.format(
+                    self.ps_enable),
+                'ps_port                \t{0:s}\n'.format(
+                    self.ps_port),
+                'water_udc_enable       \t{0:d}\n'.format(
+                    self.water_udc_enable),
+                'water_udc_port         \t{0:s}\n'.format(
+                    self.water_udc_port),
+                'water_udc_baudrate     \t{0:d}\n\n'.format(
+                    self.water_udc_baudrate),
+                'water_udc_slave_address\t{0:d}\n\n'.format(
+                    self.water_udc_slave_address),
+                'air_udc_enable         \t{0:d}\n'.format(
+                    self.air_udc_enable),
+                'air_udc_port           \t{0:s}\n'.format(
+                    self.air_udc_port),
+                'air_udc_baudrate       \t{0:d}\n\n'.format(
+                    self.air_udc_baudrate),
+                'air_udc_slave_address\t{0:d}\n\n'.format(
+                    self.air_udc_slave_address),
                 ]
 
             with open(filename, mode='w') as f:

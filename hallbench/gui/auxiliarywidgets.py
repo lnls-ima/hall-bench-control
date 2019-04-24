@@ -845,7 +845,8 @@ class PreferencesDialog(_QDialog):
         
         self.chb_names = chb_names
         for name in self.chb_names:
-            label = name.replace('_', ' ').capitalize()
+            name_split = name.split('_')
+            label =' '.join([s.capitalize() for s in name_split])
             chb = _QCheckBox(label)
             setattr(self, name + '_chb', chb)
             vertical_layout.addWidget(chb)
@@ -1259,7 +1260,7 @@ class TablePlotWidget(_QWidget):
         # Tool buttons
         icon = _QIcon()
         icon.addPixmap(
-            _QPixmap(_utils.getIconPath('aletter')), _QIcon.Normal, _QIcon.Off)
+            _QPixmap(_utils.getIconPath('font')), _QIcon.Normal, _QIcon.Off)
         self.autorange_btn = _QToolButton()
         self.autorange_btn.setIcon(icon)
         self.autorange_btn.setIconSize(icon_size)

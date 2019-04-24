@@ -18,19 +18,11 @@ def UDC_factory(baseclass):
             Args:
                 logfile (str): log file path.
             """
-            self.slave_address = None
-            self.output1_register_address = None
-            self.output2_register_address = None
-            self.pv1_register_address = None
-            self.pv2_register_address = None
+            self.output1_register_address = 70
+            self.output2_register_address = 382
+            self.pv1_register_address = 72
+            self.pv2_register_address = 74
             super().__init__(logfile)
-
-        def connect(self, *args, **kwargs):
-            """Connect with the device."""
-            if self.slave_address is None:
-                return False
-            sa = self.slave_address
-            return super().connect(*args, slaveaddress=sa, **kwargs)
 
         def read_output1(self):
             """Return controller output 1."""

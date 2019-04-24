@@ -93,6 +93,12 @@
             <property name="enabled">
              <bool>false</bool>
             </property>
+            <property name="minimumSize">
+             <size>
+              <width>21</width>
+              <height>21</height>
+             </size>
+            </property>
             <property name="maximumSize">
              <size>
               <width>21</width>
@@ -110,7 +116,7 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../resources/img/LEDvermelho.png</normaloff>../../resources/img/LEDvermelho.png</iconset>
+              <normaloff>../../resources/img/red_light.png</normaloff>../../resources/img/red_light.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -1021,7 +1027,7 @@ p, li { white-space: pre-wrap; }
                    </property>
                    <property name="icon">
                     <iconset>
-                     <normaloff>../../resources/img/configure.png</normaloff>../../resources/img/configure.png</iconset>
+                     <normaloff>../../resources/img/settings.png</normaloff>../../resources/img/settings.png</iconset>
                    </property>
                   </widget>
                  </item>
@@ -2703,7 +2709,7 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>../../resources/img/onda.jpg</normaloff>../../resources/img/onda.jpg</iconset>
+                <normaloff>../../resources/img/wave.png</normaloff>../../resources/img/wave.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -3418,8 +3424,8 @@ Status:</string>
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../resources/img/Power_On.png</normaloff>
-            <normalon>../../resources/img/Power_Off.png</normalon>../../resources/img/Power_On.png</iconset>
+            <normaloff>../../resources/img/power_on.png</normaloff>
+            <normalon>../../resources/img/power_off.png</normalon>../../resources/img/power_on.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -3647,7 +3653,7 @@ Status:</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../resources/img/emergency_icon_01.png</normaloff>../../resources/img/emergency_icon_01.png</iconset>
+         <normaloff>../../resources/img/emergency.png</normaloff>../../resources/img/emergency.png</iconset>
        </property>
        <property name="iconSize">
         <size>

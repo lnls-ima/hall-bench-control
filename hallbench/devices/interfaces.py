@@ -317,7 +317,7 @@ class ModBusInterface(object):
             self.logger.setLevel(_logging.ERROR)
 
     def connect(
-            self, port, baudrate, slaveaddress=14, bytesize=_serial.EIGHTBITS,
+            self, port, baudrate, slave_address, bytesize=_serial.EIGHTBITS,
             stopbits=_serial.STOPBITS_ONE, parity=_serial.PARITY_NONE,
             timeout=1):
         """Connect to a serial port.
@@ -325,7 +325,7 @@ class ModBusInterface(object):
         Args:
             port (str): device port,
             baudrate (int): device baudrate,
-            slaveaddress (int): slave address in the range 1 to 247,
+            slave_address (int): slave address in the range 1 to 247,
             bytesize (int): bytesize (default 8),
             stopbits (int): stopbits (default 1),
             parity (str): parity (default 'N'),
@@ -335,7 +335,7 @@ class ModBusInterface(object):
             True if successful.
         """
         try:
-            self.inst = _minimalmodbus.Instrument(port, slaveaddress)
+            self.inst = _minimalmodbus.Instrument(port, slave_address)
             self.inst.serial.baudrate = baudrate
             self.inst.serial.bytesize = bytesize
             self.inst.serial.stopbits = stopbits

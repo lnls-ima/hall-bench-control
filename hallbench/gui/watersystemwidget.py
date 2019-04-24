@@ -22,8 +22,8 @@ from qtpy.QtCore import (
 from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
 
 
-class CoolingSystemWidget(_TablePlotWidget):
-    """Cooling System Widget class for the Hall Bench Control application."""
+class WaterSystemWidget(_TablePlotWidget):
+    """Water System Widget class for the Hall Bench Control application."""
 
     _left_axis_1_label = 'Temperature [deg C]'       
     _left_axis_1_format = '{0:.4f}'
@@ -65,7 +65,7 @@ class CoolingSystemWidget(_TablePlotWidget):
 
     def checkConnection(self, monitor=False):
         """Check devices connection."""
-        if not self.devices.udc.connected:
+        if not self.devices.water_udc.connected:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure', 'UDC not connected.', _QMessageBox.Ok)
@@ -150,22 +150,22 @@ class ReadValueWorker(_QObject):
             ts = _time.time()
             
             if self.pv1_enabled:
-                pv1 = self.devices.udc.read_pv1()
+                pv1 = self.devices.water_udc.read_pv1()
             else:
                 pv1 = _np.nan
 
             if self.pv2_enabled:
-                pv2 = self.devices.udc.read_pv2()
+                pv2 = self.devices.water_udc.read_pv2()
             else:
                 pv2 = _np.nan
 
             if self.output1_enabled:
-                output1 = self.devices.udc.read_output1()
+                output1 = self.devices.water_udc.read_output1()
             else:
                 output1 = _np.nan
 
             if self.output2_enabled:
-                output2 = self.devices.udc.read_output2()
+                output2 = self.devices.water_udc.read_output2()
             else:
                 output2 = _np.nan
 

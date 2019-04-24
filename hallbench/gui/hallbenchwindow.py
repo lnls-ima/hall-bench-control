@@ -32,8 +32,10 @@ from hallbench.gui.pscurrentwidget import PSCurrentWidget \
     as _PSCurrentWidget
 from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
-from hallbench.gui.coolingsystemwidget import CoolingSystemWidget \
-    as _CoolingSystemWidget
+from hallbench.gui.watersystemwidget import WaterSystemWidget \
+    as _WaterSystemWidget
+from hallbench.gui.airconditioningwidget import AirConditioningWidget \
+    as _AirConditioningWidget
 from hallbench.gui.angularerrorwidget import AngularErrorWidget \
     as _AngularErrorWidget
 from hallbench.gui.voltagetemperaturewidget import VoltageTempWidget \
@@ -69,7 +71,8 @@ class HallBenchWindow(_QMainWindow):
             'voltage',
             'temperature',
             'voltage_temperature',
-            'cooling_system',
+            'water_system',
+            'air_conditioning',
             'angular_error',
             'database',
             ]
@@ -83,7 +86,8 @@ class HallBenchWindow(_QMainWindow):
             _VoltageWidget,
             _TemperatureWidget,
             _VoltageTempWidget,
-            _CoolingSystemWidget,
+            _WaterSystemWidget,
+            _AirConditioningWidget,
             _AngularErrorWidget,
             _DatabaseWidget,
             ]
@@ -184,7 +188,8 @@ class HallBenchWindow(_QMainWindow):
             self.ui.main_tab.clear()
             for idx, tab_name in enumerate(self.tab_names):
                 tab_attr = tab_name + '_tab'
-                tab_label = tab_name.replace('_', ' ').capitalize()
+                tab_name_split = tab_name.split('_')
+                tab_label = ' '.join([s.capitalize() for s in tab_name_split])
                 status = tab_status[tab_name]
                 if status:
                     if hasattr(self, tab_attr):

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1183</width>
-    <height>887</height>
+    <height>924</height>
    </rect>
   </property>
   <property name="font">
@@ -78,6 +78,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <weight>50</weight>
@@ -88,7 +100,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/green_light.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -116,6 +128,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <weight>50</weight>
@@ -126,7 +150,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/green_light.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -141,6 +165,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <weight>50</weight>
@@ -151,7 +187,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/green_light.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -166,6 +202,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <weight>50</weight>
@@ -176,7 +224,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/green_light.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -266,6 +314,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <weight>50</weight>
@@ -276,7 +336,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/green_light.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -304,6 +364,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <weight>50</weight>
@@ -314,7 +386,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/green_light.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -342,6 +414,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <weight>50</weight>
@@ -352,7 +436,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/green_light.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -380,6 +464,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <weight>50</weight>
@@ -390,7 +486,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>../../resources/img/led.png</pixmap>
+           <pixmap>../../resources/img/green_light.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>

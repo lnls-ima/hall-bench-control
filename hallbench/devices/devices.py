@@ -21,6 +21,7 @@ Pmac = _PmacLib.Pmac
 NMR = _NMRLib.NMRSerial
 Elcomat = _ElcomatLib.ElcomatSerial
 PowerSupply = _DRSLib.SerialDRS_FBP
+UDC = _UDCLib.UDCModBus
 
 
 class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
@@ -116,23 +117,6 @@ class Multichannel(_Agilent34970ALib.Agilent34970AGPIB):
             return []
 
 
-class UDC(_UDCLib.UDCModBus):
-    """Honeywell UDC-3500 class."""
-
-    def __init__(self, logfile=None):
-        """Honeywell UDC-3500 control class.
-
-        Args:
-            logfile (str): log file path.
-        """
-        super().__init__(logfile)
-        self.slave_address = 14
-        self.output1_register_address = 70
-        self.output2_register_address = 382
-        self.pv1_register_address = 72
-        self.pv2_register_address = 74
-
-
 class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
     """DCCT Multimeter."""
 
@@ -167,7 +151,8 @@ class HallBenchDevices(object):
         log_nmr = _os.path.join(_logs_path, 'nmr.log')
         log_elcomat = _os.path.join(_logs_path, 'elcomat.log')
         log_dcct = _os.path.join(_logs_path, 'dcct.log')
-        log_udc = _os.path.join(_logs_path, 'udc.log')
+        log_water_udc = _os.path.join(_logs_path, 'water_udc.log')
+        log_air_udc = _os.path.join(_logs_path, 'air_udc.log')
 
         # Devices
         self.pmac = Pmac(log_pmac)
@@ -178,7 +163,8 @@ class HallBenchDevices(object):
         self.nmr = NMR(log_nmr)
         self.elcomat = Elcomat(log_elcomat)
         self.dcct = DCCT(log_dcct)
-        self.udc = UDC(log_udc)
+        self.water_udc = UDC(log_water_udc)
+        self.air_udc = UDC(log_air_udc)
         self.ps = PowerSupply()
 
     def connect(self, config):
@@ -211,8 +197,17 @@ class HallBenchDevices(object):
         if config.dcct_enable:
             self.dcct.connect(config.dcct_address)
 
-        if config.udc_enable:
-            self.udc.connect(config.udc_port, config.udc_baudrate)
+        if config.water_udc_enable:
+            self.water_udc.connect(
+                config.water_udc_port, 
+                config.water_udc_baudrate, 
+                config.water_udc_slave_address)
+
+        if config.air_udc_enable:
+            self.air_udc.connect(
+                config.air_udc_port, 
+                config.air_udc_baudrate, 
+                config.air_udc_slave_address)
 
         if config.ps_enable:
             self.ps.Connect(config.ps_port)
@@ -227,5 +222,6 @@ class HallBenchDevices(object):
         self.nmr.disconnect()
         self.elcomat.disconnect()
         self.dcct.disconnect()
-        self.udc.disconnect()
+        self.water_udc.disconnect()
+        self.air_udc.disconnect()
         self.ps.Disconnect()

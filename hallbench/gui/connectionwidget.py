@@ -8,7 +8,6 @@ import traceback as _traceback
 import serial.tools.list_ports as _list_ports
 from qtpy.QtWidgets import (
     QWidget as _QWidget,
-    QFileDialog as _QFileDialog,
     QMessageBox as _QMessageBox,
     QApplication as _QApplication,
     )
@@ -55,7 +54,6 @@ class ConnectionWidget(_QWidget):
 
     def clearLoadOptions(self):
         """Clear load options."""
-        self.ui.filename_le.setText("")
         self.ui.idn_cmb.setCurrentIndex(-1)
 
     def closeEvent(self, event):
@@ -135,8 +133,12 @@ class ConnectionWidget(_QWidget):
                not self.devices.ps.ser.is_open):
                 return False
 
-            if (self.connection_config.udc_enable and
-               not self.devices.udc.connected):
+            if (self.connection_config.water_udc_enable and
+               not self.devices.water_udc.connected):
+                return False
+
+            if (self.connection_config.air_udc_enable and
+               not self.devices.air_udc.connected):
                 return False
 
             return True
@@ -147,40 +149,50 @@ class ConnectionWidget(_QWidget):
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
-        self.ui.pmac_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.voltx_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.voltx_address_sb.valueChanged.connect(self.clearLoadOptions)
-        self.ui.volty_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.volty_address_sb.valueChanged.connect(self.clearLoadOptions)
-        self.ui.voltz_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.voltz_address_sb.valueChanged.connect(self.clearLoadOptions)
-        self.ui.multich_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.multich_address_sb.valueChanged.connect(self.clearLoadOptions)
-        self.ui.nmr_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.nmr_port_cmb.currentIndexChanged.connect(
-            self.clearLoadOptions)
-        self.ui.nmr_baudrate_cmb.currentIndexChanged.connect(
-            self.clearLoadOptions)
-        self.ui.elcomat_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.elcomat_port_cmb.currentIndexChanged.connect(
-            self.clearLoadOptions)
-        self.ui.elcomat_baudrate_cmb.currentIndexChanged.connect(
-            self.clearLoadOptions)
-        self.ui.dcct_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.dcct_address_sb.valueChanged.connect(self.clearLoadOptions)
-        self.ui.ps_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.ps_port_cmb.currentIndexChanged.connect(self.clearLoadOptions)
-        self.ui.udc_enable_chb.stateChanged.connect(self.clearLoadOptions)
-        self.ui.udc_port_cmb.currentIndexChanged.connect(
-            self.clearLoadOptions)
-        self.ui.udc_baudrate_cmb.currentIndexChanged.connect(
-            self.clearLoadOptions)
+        chbs = [
+            self.ui.voltx_enable_chb,
+            self.ui.volty_enable_chb,
+            self.ui.voltz_enable_chb,
+            self.ui.pmac_enable_chb,
+            self.ui.multich_enable_chb,
+            self.ui.ps_enable_chb,
+            self.ui.nmr_enable_chb, 
+            self.ui.elcomat_enable_chb,
+            self.ui.dcct_enable_chb,
+            self.ui.water_udc_enable_chb,
+            self.ui.air_udc_enable_chb,           
+            ]
+        for chb in chbs:
+            chb.stateChanged.connect(self.clearLoadOptions)
+        
+        sbs = [
+            self.ui.voltx_address_sb,
+            self.ui.volty_address_sb,
+            self.ui.voltz_address_sb,
+            self.ui.multich_address_sb,
+            self.ui.dcct_address_sb,
+            self.ui.water_udc_slave_address_sb,
+            self.ui.air_udc_slave_address_sb,
+            ]
+        for sb in sbs:
+            sb.valueChanged.connect(self.clearLoadOptions)
 
+        cmbs = [
+            self.ui.ps_port_cmb,
+            self.ui.nmr_port_cmb,
+            self.ui.nmr_baudrate_cmb,
+            self.ui.elcomat_port_cmb,
+            self.ui.elcomat_baudrate_cmb,
+            self.ui.water_udc_port_cmb,
+            self.ui.water_udc_baudrate_cmb,
+            self.ui.air_udc_port_cmb,
+            self.ui.air_udc_baudrate_cmb,
+            ]
+        for cmb in cmbs:
+              cmb.currentIndexChanged.connect(self.clearLoadOptions)
+        
         self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
         self.ui.update_idn_btn.clicked.connect(self.updateConnectionIDs)
-
-        self.ui.loadfile_btn.clicked.connect(self.loadFile)
-        self.ui.savefile_btn.clicked.connect(self.saveFile)
         self.ui.loaddb_btn.clicked.connect(self.loadDB)
         self.ui.savedb_btn.clicked.connect(self.saveDB)
         self.ui.connect_btn.clicked.connect(self.connectDevices)
@@ -206,8 +218,6 @@ class ConnectionWidget(_QWidget):
 
     def loadDB(self):
         """Load configuration from database to set parameters."""
-        self.ui.filename_le.setText("")
-
         try:
             idn = int(self.ui.idn_cmb.currentText())
         except Exception:
@@ -236,40 +246,8 @@ class ConnectionWidget(_QWidget):
         self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.findText(str(idn)))
         self.ui.loaddb_btn.setEnabled(False)
 
-    def loadFile(self):
-        """Load configuration file to set parameters."""
-        self.ui.idn_cmb.setCurrentIndex(-1)
-
-        default_filename = self.ui.filename_le.text()
-        if len(default_filename) == 0:
-            default_filename = self.directory
-        elif len(_os.path.split(default_filename)[0]) == 0:
-            default_filename = _os.path.join(self.directory, default_filename)
-
-        filename = _QFileDialog.getOpenFileName(
-            self, caption='Open connection configuration file',
-            directory=default_filename, filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            self.connection_config.clear()
-            self.connection_config.read_file(filename)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to read connection from file.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
-
-        self.load()
-        self.ui.filename_le.setText(filename)
-
     def load(self):
-        """Load configuration file to set connection parameters."""
+        """Load configuration to set connection parameters."""
         try:
             self.ui.pmac_enable_chb.setChecked(
                 self.connection_config.pmac_enable)
@@ -323,14 +301,27 @@ class ConnectionWidget(_QWidget):
                 self.ui.ps_port_cmb.findText(
                     self.connection_config.ps_port))
 
-            self.ui.udc_enable_chb.setChecked(
-                self.connection_config.udc_enable)
-            self.ui.udc_port_cmb.setCurrentIndex(
-                self.ui.udc_port_cmb.findText(
-                    self.connection_config.udc_port))
-            self.ui.udc_baudrate_cmb.setCurrentIndex(
-                self.ui.udc_baudrate_cmb.findText(
-                    str(self.connection_config.udc_baudrate)))
+            self.ui.water_udc_enable_chb.setChecked(
+                self.connection_config.water_udc_enable)
+            self.ui.water_udc_port_cmb.setCurrentIndex(
+                self.ui.water_udc_port_cmb.findText(
+                    self.connection_config.water_udc_port))
+            self.ui.water_udc_baudrate_cmb.setCurrentIndex(
+                self.ui.water_udc_baudrate_cmb.findText(
+                    str(self.connection_config.water_udc_baudrate)))
+            self.ui.water_udc_slave_address_sb.setValue(
+                self.connection_config.water_udc_slave_address)
+
+            self.ui.air_udc_enable_chb.setChecked(
+                self.connection_config.air_udc_enable)
+            self.ui.air_udc_port_cmb.setCurrentIndex(
+                self.ui.air_udc_port_cmb.findText(
+                    self.connection_config.air_udc_port))
+            self.ui.air_udc_baudrate_cmb.setCurrentIndex(
+                self.ui.air_udc_baudrate_cmb.findText(
+                    str(self.connection_config.air_udc_baudrate)))
+            self.ui.air_udc_slave_address_sb.setValue(
+                self.connection_config.air_udc_slave_address)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -350,41 +341,12 @@ class ConnectionWidget(_QWidget):
                     self.ui.loaddb_btn.setEnabled(False)
             except Exception:
                 _traceback.print_exc(file=_sys.stdout)
-                msg = 'Failed to save connection to file.'
+                msg = 'Failed to save connection to database.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
         else:
             msg = 'Invalid database filename.'
             _QMessageBox.critical(
                 self, 'Failure', msg, _QMessageBox.Ok)
-
-    def saveFile(self):
-        """Save connection parameters to file."""
-        default_filename = self.ui.filename_le.text()
-        if len(default_filename) == 0:
-            default_filename = self.directory
-        elif len(_os.path.split(default_filename)[0]) == 0:
-            default_filename = _os.path.join(self.directory, default_filename)
-
-        filename = _QFileDialog.getSaveFileName(
-            self, caption='Save connection configuration file',
-            directory=default_filename, filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            if self.updateConfiguration():
-                if (not filename.endswith('.txt')
-                   and not filename.endswith('.dat')):
-                    filename = filename + '.txt'
-                self.connection_config.save_file(filename)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to save connection to file.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def updateConnectionIDs(self):
         """Update connection IDs in combo box."""
@@ -456,12 +418,23 @@ class ConnectionWidget(_QWidget):
             self.connection_config.ps_port = (
                 self.ui.ps_port_cmb.currentText())
 
-            self.connection_config.udc_enable = (
-                self.ui.udc_enable_chb.isChecked())
-            self.connection_config.udc_port = (
-                self.ui.udc_port_cmb.currentText())
-            self.connection_config.udc_baudrate = int(
-                self.ui.udc_baudrate_cmb.currentText())
+            self.connection_config.water_udc_enable = (
+                self.ui.water_udc_enable_chb.isChecked())
+            self.connection_config.water_udc_port = (
+                self.ui.water_udc_port_cmb.currentText())
+            self.connection_config.water_udc_baudrate = int(
+                self.ui.water_udc_baudrate_cmb.currentText())
+            self.connection_config.water_udc_slave_address = (
+                self.ui.water_udc_slave_address_sb.value())
+
+            self.connection_config.air_udc_enable = (
+                self.ui.air_udc_enable_chb.isChecked())
+            self.connection_config.air_udc_port = (
+                self.ui.air_udc_port_cmb.currentText())
+            self.connection_config.air_udc_baudrate = int(
+                self.ui.air_udc_baudrate_cmb.currentText())
+            self.connection_config.air_udc_slave_address = (
+                self.ui.air_udc_slave_address_sb.value())
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -491,7 +464,10 @@ class ConnectionWidget(_QWidget):
             self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
             self.ui.dcct_led_la.setEnabled(self.devices.dcct.connected)
             self.ui.ps_led_la.setEnabled(self.devices.ps.ser.is_open)
-            self.ui.udc_led_la.setEnabled(self.devices.udc.connected)
+            self.ui.water_udc_led_la.setEnabled(
+                self.devices.water_udc.connected)
+            self.ui.air_udc_led_la.setEnabled(
+                self.devices.air_udc.connected)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -525,5 +501,8 @@ class ConnectionWidget(_QWidget):
         self.ui.elcomat_port_cmb.clear()
         self.ui.elcomat_port_cmb.addItems(_ports)
 
-        self.ui.udc_port_cmb.clear()
-        self.ui.udc_port_cmb.addItems(_ports)
+        self.ui.water_udc_port_cmb.clear()
+        self.ui.water_udc_port_cmb.addItems(_ports)
+
+        self.ui.air_udc_port_cmb.clear()
+        self.ui.air_udc_port_cmb.addItems(_ports)

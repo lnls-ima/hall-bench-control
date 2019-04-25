@@ -13,6 +13,12 @@ from hallbench.data import database
 db = "C:\\Arq\\Work_At_LNLS\\Softwares\\workspace\\hall-bench-control\\hall_bench_measurements.db"
 idn_list = [
     1483,
+    1484,
+    1485,
+    1486,
+    1487,
+    1488,
+    1489,
     ]
 
 water_temp_list = []

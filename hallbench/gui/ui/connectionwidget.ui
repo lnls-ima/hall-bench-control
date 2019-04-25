@@ -136,7 +136,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/database.png</normaloff>../../resources/img/database.png</iconset>
+          <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
         </property>
         <property name="iconSize">
          <size>

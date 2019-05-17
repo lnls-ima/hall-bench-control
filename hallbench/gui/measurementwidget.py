@@ -1098,13 +1098,14 @@ class MeasurementWidget(_QWidget):
                 else:
                     pos = self.positions[axis]
                     setattr(self.voltage_scan, 'pos' + str(axis), pos)
-                    
+
+            _QApplication.processEvents()
+
             for axis in self.voltage_scan.axis_list:
                 if axis not in [first_axis, second_axis]:
                     pos = getattr(self.voltage_scan, 'pos' + str(axis))
                     if len(pos) == 0:
-                        _time.sleep(0.5)
-                        pos = self.positions[axis]
+                        pos = self.devices.pmac.get_position(axis)
                         setattr(self.voltage_scan, 'pos' + str(axis), pos) 
                     
             _QApplication.processEvents()
@@ -1112,6 +1113,15 @@ class MeasurementWidget(_QWidget):
             if not self.measureVoltageScan(
                     idx, to_pos, first_axis, start, end, step, extra, npts):
                 return False
+
+            for axis in self.voltage_scan.axis_list:
+                if axis not in [first_axis, second_axis]:
+                    pos = getattr(self.voltage_scan, 'pos' + str(axis))
+                    if len(pos) == 0:
+                        pos = self.devices.pmac.get_position(axis)
+                        setattr(self.voltage_scan, 'pos' + str(axis), pos) 
+                    
+            _QApplication.processEvents()
 
             if self.stop is True:
                 return
@@ -1131,6 +1141,17 @@ class MeasurementWidget(_QWidget):
                     raise Exception(
                         'Invalid number of points in voltage scan.')
                     return False
+
+            _QApplication.processEvents()
+
+            for axis in self.voltage_scan.axis_list:
+                if axis not in [first_axis, second_axis]:
+                    pos = getattr(self.voltage_scan, 'pos' + str(axis))
+                    if len(pos) == 0:
+                        pos = self.devices.pmac.get_position(axis)
+                        setattr(self.voltage_scan, 'pos' + str(axis), pos) 
+                    
+            _QApplication.processEvents()
 
             if self.ui.save_voltage_chb.isChecked():
                 if not self.saveVoltageScan():

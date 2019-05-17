@@ -1607,6 +1607,8 @@ def _get_avg_voltage(voltage_scan_list):
     for vs in voltage_scan_list:
         vs = _correct_voltage_offset(vs)
 
+    voltage = voltage_scan_list[0].copy()
+
     fixed_axes = [a for a in voltage_scan_list[0].axis_list
                   if a != voltage_scan_list[0].scan_axis]
     for axis in fixed_axes:
@@ -1617,9 +1619,14 @@ def _get_avg_voltage(voltage_scan_list):
                 pos_value = _np.around(
                     pos_attr[0], decimals=_check_position_precision)
                 pos_set.add(pos_value)
+            elif len(pos_attr) == 0:
+                pass
             else:
                 raise MeasurementDataError('Invalid voltage scan list.')
-        if len(pos_set) != 1:
+        
+        if len(pos_set) == 1:
+            setattr(voltage, 'pos' + str(axis), pos_set.pop())
+        else:
             raise MeasurementDataError('Invalid voltage scan list.')
 
     npts = voltage_scan_list[0].npts
@@ -1652,7 +1659,6 @@ def _get_avg_voltage(voltage_scan_list):
         volty_list.append(volty)
         voltz_list.append(voltz)
 
-    voltage = voltage_scan_list[0].copy()
     setattr(voltage, 'pos' + str(scan_axis), interp_pos)
     voltage.avgx = _np.mean(voltx_list, axis=0)
     voltage.avgy = _np.mean(volty_list, axis=0)
@@ -1918,7 +1924,7 @@ def _get_transformation_matrix(axis_x, axis_y):
 
 
 def _group_voltage_scan_list(voltage_scan_list):
-    """Group voltage scan list."""
+    """Group voltage scan list."""  
     if isinstance(voltage_scan_list, VoltageScan):
         voltage_scan_list = [voltage_scan_list]
 
@@ -1937,6 +1943,8 @@ def _group_voltage_scan_list(voltage_scan_list):
                 pos_value = _np.around(
                     pos_attr[0], decimals=_check_position_precision)
                 pos_set.add(pos_value)
+            elif len(pos_attr) == 0:
+                pass
             else:
                 raise MeasurementDataError('Invalid voltage scan list.')
         if len(pos_set) != 1:

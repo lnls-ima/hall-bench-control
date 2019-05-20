@@ -1096,7 +1096,7 @@ class MeasurementWidget(_QWidget):
                     setattr(self.voltage_scan, 'pos' + str(second_axis),
                             second_axis_pos)
                 else:
-                    pos = self.positions[axis]
+                    pos = self.devices.pmac.get_position(axis)
                     setattr(self.voltage_scan, 'pos' + str(axis), pos)
 
             _QApplication.processEvents()

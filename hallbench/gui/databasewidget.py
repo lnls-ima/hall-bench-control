@@ -26,14 +26,15 @@ from hallbench.gui.utils import getUiFile as _getUiFile
 import hallbench.data as _data
 
 
+_limit_number_rows = 1000
 _max_number_rows = 100
 _max_str_size = 100
 
 _ConnectionConfig = _data.configuration.ConnectionConfig
-_MeasurementConfig = _data.configuration.MeasurementConfig
 _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
 _HallSensor = _data.calibration.HallSensor
 _HallProbe = _data.calibration.HallProbe
+_MeasurementConfig = _data.configuration.MeasurementConfig
 _VoltageScan = _data.measurement.VoltageScan
 _FieldScan = _data.measurement.FieldScan
 _Fieldmap = _data.measurement.Fieldmap
@@ -51,6 +52,7 @@ class DatabaseWidget(_QWidget):
     _field_scan_table_name = _FieldScan.database_table_name()
     _fieldmap_table_name = _Fieldmap.database_table_name()
 
+
     def __init__(self, parent=None):
         """Set up the ui."""
         super().__init__(parent)
@@ -59,6 +61,28 @@ class DatabaseWidget(_QWidget):
         uifile = _getUiFile(self)
         self.ui = _uic.loadUi(uifile, self)
 
+        self._table_object_dict = {
+            self._connection_table_name: _ConnectionConfig,
+            self._power_supply_table_name: _PowerSupplyConfig,
+            self._hall_sensor_table_name: _HallSensor,
+            self._hall_probe_table_name: _HallProbe,
+            self._configuration_table_name: _MeasurementConfig,
+            self._voltage_scan_table_name: _VoltageScan,
+            self._field_scan_table_name: _FieldScan,
+            self._fieldmap_table_name: _Fieldmap,        
+            }
+
+        self._table_page_dict = {
+            self._connection_table_name: None,
+            self._power_supply_table_name: None,
+            self._hall_sensor_table_name: None,
+            self._hall_probe_table_name: self.ui.hall_probe_pg,
+            self._configuration_table_name: self.ui.configuration_pg,
+            self._voltage_scan_table_name: self.ui.voltage_scan_pg,
+            self._field_scan_table_name: self.ui.field_scan_pg,
+            self._fieldmap_table_name: self.ui.fieldmap_pg,           
+            }
+
         self.short_version_tables = [
             self._configuration_table_name,
             self._voltage_scan_table_name,
@@ -66,7 +90,15 @@ class DatabaseWidget(_QWidget):
             self._fieldmap_table_name,
             ]
 
-        self.tables = []
+        self.ui.view_hall_probe_btn.setEnabled(True)
+        self.ui.remove_unused_configurations_btn.setEnabled(True)
+        self.ui.view_voltage_scan_btn.setEnabled(True)
+        self.ui.convert_to_field_scan_btn.setEnabled(True)
+        self.ui.view_field_scan_btn.setEnabled(True)
+        self.ui.create_fieldmap_btn.setEnabled(True)
+        self.ui.view_fieldmap_btn.setEnabled(True)
+
+        self._tables = []
         self.ui.database_tab.clear()
         self.connectSignalSlots()
 
@@ -102,88 +134,39 @@ class DatabaseWidget(_QWidget):
 
     def clear(self):
         """Clear."""
-        ntabs = self.ui.database_tab.count()
-        for idx in range(ntabs):
-            self.ui.database_tab.removeTab(idx)
-            self.tables[idx].deleteLater()
-        self.tables = []
-        self.ui.database_tab.clear()
+        try:
+            ntabs = self.ui.database_tab.count()
+            for idx in range(ntabs):
+                self.ui.database_tab.removeTab(idx)
+                self._tables[idx].deleteLater()
+            self._tables = []
+            self.ui.database_tab.clear()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
+        self.ui.save_btn.clicked.connect(self.saveFiles)
+        self.ui.read_btn.clicked.connect(self.readFiles)
+        self.ui.delete_btn.clicked.connect(self.deleteDatabaseRecords)
+        
         self.ui.refresh_btn.clicked.connect(self.updateDatabaseTables)
         self.ui.clear_btn.clicked.connect(self.clear)
         self.ui.database_tab.currentChanged.connect(self.disableInvalidButtons)
 
-        self.ui.save_connection_btn.clicked.connect(
-            lambda: self.saveFiles(
-                self._connection_table_name, _ConnectionConfig))
-        self.ui.read_connection_btn.clicked.connect(
-            lambda: self.readFiles(_ConnectionConfig))
-        self.ui.delete_connection_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._connection_table_name))
-
-        self.ui.save_power_supply_btn.clicked.connect(
-            lambda: self.saveFiles(
-                self._power_supply_table_name, _PowerSupplyConfig))
-        self.ui.read_power_supply_btn.clicked.connect(
-            lambda: self.readFiles(_PowerSupplyConfig))
-        self.ui.delete_power_supply_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._power_supply_table_name))
-
-        self.ui.save_hall_sensor_btn.clicked.connect(
-            lambda: self.saveFiles(self._hall_sensor_table_name, _HallSensor))
-        self.ui.read_hall_sensor_btn.clicked.connect(
-            lambda: self.readFiles(_HallSensor))
-        self.ui.delete_hall_sensor_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._hall_sensor_table_name))
-
         self.ui.view_hall_probe_btn.clicked.connect(self.viewHallProbe)
-        self.ui.save_hall_probe_btn.clicked.connect(
-            lambda: self.saveFiles(self._hall_probe_table_name, _HallProbe))
-        self.ui.read_hall_probe_btn.clicked.connect(
-            lambda: self.readFiles(_HallProbe))
-        self.ui.delete_hall_probe_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._hall_probe_table_name))
 
-        self.ui.save_configuration_btn.clicked.connect(
-            lambda: self.saveFiles(
-                self._configuration_table_name, _MeasurementConfig))
-        self.ui.read_configuration_btn.clicked.connect(
-            lambda: self.readFiles(_MeasurementConfig))
-        self.ui.delete_configuration_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._configuration_table_name))
         self.ui.remove_unused_configurations_btn.clicked.connect(
             self.removeUnusedConfigurations)
 
         self.ui.view_voltage_scan_btn.clicked.connect(self.viewVoltageScan)
-        self.ui.save_voltage_scan_btn.clicked.connect(
-            lambda: self.saveFiles(
-                self._voltage_scan_table_name, _VoltageScan))
-        self.ui.read_voltage_scan_btn.clicked.connect(
-            lambda: self.readFiles(_VoltageScan))
-        self.ui.delete_voltage_scan_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._voltage_scan_table_name))
         self.ui.convert_to_field_scan_btn.clicked.connect(
             self.convertToFieldScan)
 
         self.ui.view_field_scan_btn.clicked.connect(self.viewFieldScan)
-        self.ui.save_field_scan_btn.clicked.connect(
-            lambda: self.saveFiles(
-                self._field_scan_table_name, _FieldScan))
-        self.ui.read_field_scan_btn.clicked.connect(
-            lambda: self.readFiles(_FieldScan))
-        self.ui.delete_field_scan_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._field_scan_table_name))
         self.ui.create_fieldmap_btn.clicked.connect(self.createFieldmap)
 
         self.ui.view_fieldmap_btn.clicked.connect(self.viewFieldmap)
-        self.ui.save_fieldmap_btn.clicked.connect(
-            lambda: self.saveFiles(self._fieldmap_table_name, _Fieldmap))
-        self.ui.read_fieldmap_btn.clicked.connect(
-            lambda: self.readFiles(_Fieldmap))
-        self.ui.delete_fieldmap_btn.clicked.connect(
-            lambda: self.deleteDatabaseRecords(self._fieldmap_table_name))
 
     def convertToFieldScan(self):
         """Convert voltage scans to field scans."""
@@ -343,9 +326,13 @@ class DatabaseWidget(_QWidget):
             msg = 'Failed to create Fieldmap.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def deleteDatabaseRecords(self, table_name):
+    def deleteDatabaseRecords(self):
         """Delete record from database table."""
         try:
+            table_name = self.getCurrentTableName()
+            if table_name is None:
+                return
+    
             idns = self.getTableSelectedIDs(table_name)
             if len(idns) == 0:
                 return
@@ -375,50 +362,54 @@ class DatabaseWidget(_QWidget):
 
     def disableInvalidButtons(self):
         """Disable invalid buttons."""
-        tables = [
-            self._connection_table_name,
-            self._power_supply_table_name,
-            self._hall_sensor_table_name,
-            self._hall_probe_table_name,
-            self._configuration_table_name,
-            self._voltage_scan_table_name,
-            self._field_scan_table_name,
-            self._fieldmap_table_name,
-        ]
+        try:
+            current_table_name = self.getCurrentTableName()
+            if current_table_name is not None:
+                self.ui.buttons_tbx.setEnabled(True)
+    
+                for table_name, page in self._table_page_dict.items():
+                    if page is not None:
+                        page.setEnabled(False)
+                        _idx = self.ui.buttons_tbx.indexOf(page)
+                        self.ui.buttons_tbx.setItemEnabled(_idx, False)
+    
+                current_page = self._table_page_dict[current_table_name]
+                if current_page is not None:                   
+                    _idx = self.ui.buttons_tbx.indexOf(current_page)
+                    self.ui.buttons_tbx.setItemEnabled(_idx, True)
+                    current_page.setEnabled(True)
+                    self.ui.buttons_tbx.setCurrentWidget(current_page)
+            else:
+                self.ui.buttons_tbx.setCurrentWidget(self.ui.empty_pg)
+                self.ui.buttons_tbx.setEnabled(False)
 
-        pages = [
-            self.ui.connection_pg,
-            self.ui.power_supply_pg,
-            self.ui.hall_sensor_pg,
-            self.ui.hall_probe_pg,
-            self.ui.configuration_pg,
-            self.ui.voltage_scan_pg,
-            self.ui.field_scan_pg,
-            self.ui.fieldmap_pg,
-        ]
-
-        current_table = self.getCurrentTable()
-        if current_table is not None and current_table.table_name in tables:
-            current_table_name = current_table.table_name
-            self.ui.buttons_tbx.setEnabled(True)
-            for i in range(len(tables)):
-                _idx = self.ui.buttons_tbx.indexOf(pages[i])
-                _enable = current_table_name == tables[i]
-                pages[i].setEnabled(_enable)
-                self.ui.buttons_tbx.setItemEnabled(_idx, _enable)
-                if _enable:
-                    self.ui.buttons_tbx.setCurrentWidget(pages[i])
-        else:
-            self.ui.buttons_tbx.setCurrentWidget(self.ui.empty_pg)
-            self.ui.buttons_tbx.setEnabled(False)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def getCurrentTable(self):
         """Get current table."""
-        idx = self.ui.database_tab.currentIndex()
-        if len(self.tables) > idx and idx != -1:
-            current_table = self.tables[idx]
-            return current_table
-        else:
+        try:
+            idx = self.ui.database_tab.currentIndex()
+            if len(self._tables) > idx and idx != -1:
+                current_table = self._tables[idx]
+                return current_table
+            else:
+                return None
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return None
+
+    def getCurrentTableName(self):
+        """Get current table name."""
+        try:
+            current_table = self.getCurrentTable()
+            if current_table is not None:
+                current_table_name = current_table.table_name
+            else:
+                current_table_name = None
+            return current_table_name
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             return None
 
     def getTableSelectedID(self, table_name):
@@ -457,6 +448,7 @@ class DatabaseWidget(_QWidget):
     def loadDatabase(self):
         """Load database."""
         try:
+            self._tables = []
             con = _sqlite3.connect(self.database)
             cur = con.cursor()
             res = cur.execute(
@@ -482,22 +474,21 @@ class DatabaseWidget(_QWidget):
                 hlayout.addWidget(initial_id_sb)
                 hlayout.addSpacing(30)
 
-                number_rows_la = _QLabel("Number of rows:")
+                max_number_rows_la = _QLabel("Maximum number of rows:")
+                max_number_rows_sb = _QSpinBox()
+                max_number_rows_sb.setMinimumWidth(100)
+                max_number_rows_sb.setButtonSymbols(2)
+                hlayout.addWidget(max_number_rows_la)
+                hlayout.addWidget(max_number_rows_sb)
+                hlayout.addSpacing(30)
+                
+                number_rows_la = _QLabel("Current number of rows:")
                 number_rows_sb = _QSpinBox()
                 number_rows_sb.setMinimumWidth(100)
                 number_rows_sb.setButtonSymbols(2)
                 number_rows_sb.setReadOnly(True)
                 hlayout.addWidget(number_rows_la)
                 hlayout.addWidget(number_rows_sb)
-                hlayout.addSpacing(30)
-
-                max_number_rows_la = _QLabel("Maximum number of rows:")
-                max_number_rows_sb = _QSpinBox()
-                max_number_rows_sb.setMinimumWidth(100)
-                max_number_rows_sb.setButtonSymbols(2)
-                max_number_rows_sb.setReadOnly(True)
-                hlayout.addWidget(max_number_rows_la)
-                hlayout.addWidget(max_number_rows_sb)
 
                 table.loadDatabaseTable(
                     self.database,
@@ -510,7 +501,7 @@ class DatabaseWidget(_QWidget):
                 vlayout.addLayout(hlayout)
                 tab.setLayout(vlayout)
 
-                self.tables.append(table)
+                self._tables.append(table)
                 self.ui.database_tab.addTab(tab, table_name)
 
         except Exception:
@@ -519,8 +510,14 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def readFiles(self, object_class):
+    def readFiles(self):
         """Read file and save in database."""
+        table_name = self.getCurrentTableName()
+        if table_name is None:
+            return
+        
+        object_class = self._table_object_dict[table_name]
+        
         fns = _QFileDialog.getOpenFileNames(
             self, caption='Read files', directory=self.directory,
             filter="Text files (*.txt *.dat)")
@@ -595,8 +592,14 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def saveFiles(self, table_name, object_class):
+    def saveFiles(self):
         """Save database record to file."""
+        table_name = self.getCurrentTableName()
+        if table_name is None:
+            return
+        
+        object_class = self._table_object_dict[table_name]
+
         idns = self.getTableSelectedIDs(table_name)
         nr_idns = len(idns)
         if nr_idns == 0:
@@ -665,9 +668,9 @@ class DatabaseWidget(_QWidget):
 
     def scrollDownTables(self):
         """Scroll down all tables."""
-        for idx in range(len(self.tables)):
+        for idx in range(len(self._tables)):
             self.ui.database_tab.setCurrentIndex(idx)
-            self.tables[idx].scrollDown()
+            self._tables[idx].scrollDown()
 
     def updateDatabaseTables(self):
         """Update database tables."""
@@ -834,7 +837,11 @@ class DatabaseTable(_QTableWidget):
     def changeInitialID(self):
         """Change initial ID."""
         initial_id = self.initial_id_sb.value()
-        self.filterColumn(initial_id=initial_id)
+        self.filterData(initial_id=initial_id)
+
+    def changeMaxRows(self):
+        """Change maximum number of rows."""
+        self.filterData()
 
     def loadDatabaseTable(
             self, database, table_name,
@@ -846,11 +853,14 @@ class DatabaseTable(_QTableWidget):
         self.initial_id_sb = initial_id_sb
         self.initial_id_sb.editingFinished.connect(self.changeInitialID)
 
-        self.number_rows_sb = number_rows_sb
-        self.number_rows_sb.setMaximum(_max_number_rows)
-
         self.max_number_rows_sb = max_number_rows_sb
-        self.max_number_rows_sb.setMaximum(_max_number_rows)
+        self.max_number_rows_sb.setMaximum(_limit_number_rows)
+        self.max_number_rows_sb.setValue(_max_number_rows)
+        self.max_number_rows_sb.editingFinished.connect(self.changeMaxRows)
+        
+        self.number_rows_sb = number_rows_sb
+        self.number_rows_sb.setMaximum(_limit_number_rows)
+        self.number_rows_sb.setValue(_max_number_rows)
 
         self.updateTable()
 
@@ -891,8 +901,9 @@ class DatabaseTable(_QTableWidget):
             column_names_str = column_names_str + '"{0:s}", '.format(col_name)
         column_names_str = column_names_str[:-2]
 
+        max_rows = self.max_number_rows_sb.value()
         sel = '(SELECT {0:s} FROM {1:s} ORDER BY id DESC LIMIT {2:d})'.format(
-            column_names_str, self.table_name, _max_number_rows)
+            column_names_str, self.table_name, max_rows)
         cmd = 'SELECT * FROM ' + sel + ' ORDER BY id ASC'
         data = cur.execute(cmd).fetchall()
 
@@ -913,6 +924,7 @@ class DatabaseTable(_QTableWidget):
             self.initial_id_sb.setMaximum(0)
             self.max_number_rows_sb.setValue(0)
 
+        con.close()
         self.setSelectionBehavior(_QAbstractItemView.SelectRows)
         self.blockSignals(False)
         self.itemChanged.connect(self.filterChanged)
@@ -970,18 +982,21 @@ class DatabaseTable(_QTableWidget):
     def filterChanged(self, item):
         """Apply column filter to data."""
         if item.row() == 0:
-            self.filterColumn()
+            self.filterData()
 
-    def filterColumn(self, initial_id=None):
+    def filterData(self, initial_id=None):
         """Apply column filter to data."""
         if (self.rowCount() == 0
            or self.columnCount() == 0
            or len(self.column_names) == 0 or len(self.data_types) == 0):
             return
 
-        try:
+        try:           
             con = _sqlite3.connect(self.database)
             cur = con.cursor()
+            
+            max_rows = self.max_number_rows_sb.value()
+            
             column_names_str = ''
             for col_name in self.column_names:
                 column_names_str = column_names_str + '"{0:s}", '.format(
@@ -1032,25 +1047,27 @@ class DatabaseTable(_QTableWidget):
                     cmd = (
                         'SELECT * FROM (' + cmd +
                         ' AND id >= {0:d} LIMIT {1:d})'.format(
-                            initial_id, _max_number_rows))
+                            initial_id, max_rows))
                 else:
                     cmd = (
                         'SELECT * FROM (' + cmd +
                         ' WHERE id >= {0:d} LIMIT {1:d})'.format(
-                            initial_id, _max_number_rows))
+                            initial_id, max_rows))
 
             else:
                 cmd = (
                     'SELECT * FROM (' + cmd +
                     ' ORDER BY id DESC LIMIT {0:d}) ORDER BY id ASC'.format(
-                        _max_number_rows))
+                        max_rows))
 
             cur.execute(cmd)
         except Exception:
+            con.close()
             _traceback.print_exc(file=_sys.stdout)
             pass
 
         data = cur.fetchall()
+        con.close()
         self.data = data[:]
         self.addRowsToTable(data)
 

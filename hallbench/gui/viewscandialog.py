@@ -14,6 +14,7 @@ from qtpy.QtWidgets import (
     QDialog as _QDialog,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
+    QApplication as _QApplication,
     QTableWidgetItem as _QTableWidgetItem,
     )
 from qtpy.QtCore import Qt as _Qt
@@ -298,7 +299,27 @@ class ViewScanDialog(_QDialog):
             self.showCurrentDialog)
         self.ui.view_temperature_btn.clicked.connect(
             self.showTemperatureDialog)
-        self.ui.integrals_btn.clicked.connect(self.calcIntegrals)
+        self.ui.calc_integrals_btn.clicked.connect(self.calcIntegrals)
+        self.ui.copy_integrals_btn.clicked.connect(self.copyIntegrals)
+
+    def copyIntegrals(self):
+        """Copy integrals data to clipboard."""
+        try:
+            field_integrals = [
+                self.ui.first_integral_x_le.text(),
+                self.ui.first_integral_y_le.text(),
+                self.ui.first_integral_z_le.text(),
+                self.ui.second_integral_x_le.text(),
+                self.ui.second_integral_y_le.text(),
+                self.ui.second_integral_z_le.text(),
+                ]
+    
+            text = "\n".join(field_integrals)
+            _QApplication.clipboard().setText(text)
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
 
     def fitFunctionChanged(self):
         """Hide or show polynomial fitting order and update dict value."""

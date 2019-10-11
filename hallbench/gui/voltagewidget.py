@@ -30,7 +30,7 @@ from hallbench.gui.auxiliarywidgets import (
 class VoltageWidget(_TablePlotWidget):
     """Voltage Widget class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Voltage [mV]'       
+    _left_axis_1_label = 'Voltage [mV]'
     _left_axis_1_format = '{0:.6f}'
     _left_axis_1_data_labels = ['X [mV]', 'Y [mV]', 'Z [mV]']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
@@ -50,15 +50,15 @@ class VoltageWidget(_TablePlotWidget):
         self.addWidgetsNextToPlot(self.move_axis_widget)
 
         # add check box add reset multimeters button
-        self.voltx_chb = _QCheckBox(' X ')
-        self.volty_chb = _QCheckBox(' Y ')
-        self.voltz_chb = _QCheckBox(' Z ')
-        self.reset_btn = _QPushButton('Reset Multimeters')
-        self.reset_btn.clicked.connect(self.resetMultimeters)
+        self.chb_voltx = _QCheckBox(' X ')
+        self.chb_volty = _QCheckBox(' Y ')
+        self.chb_voltz = _QCheckBox(' Z ')
+        self.pbt_reset = _QPushButton('Reset Multimeters')
+        self.pbt_reset.clicked.connect(self.resetMultimeters)
         self.addWidgetsNextToTable([
-            [self.voltx_chb, self.volty_chb, self.voltz_chb],
-            [self.reset_btn]])
-        
+            [self.chb_voltx, self.chb_volty, self.chb_voltz],
+            [self.pbt_reset]])
+
         # Change default appearance
         self.setTableColumnSize(140)
 
@@ -80,19 +80,19 @@ class VoltageWidget(_TablePlotWidget):
 
     def checkConnection(self, monitor=False):
         """Check devices connection."""
-        if self.voltx_chb.isChecked() and not self.devices.voltx.connected:
+        if self.chb_voltx.isChecked() and not self.devices.voltx.connected:
             if not monitor:
                 msg = 'Multimeter X not connected.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-        if self.volty_chb.isChecked() and not self.devices.volty.connected:
+        if self.chb_volty.isChecked() and not self.devices.volty.connected:
             if not monitor:
                 msg = 'Multimeter Y not connected.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-        if self.voltz_chb.isChecked() and not self.devices.voltz.connected:
+        if self.chb_voltz.isChecked() and not self.devices.voltz.connected:
             if not monitor:
                 msg = 'Multimeter Z not connected.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
@@ -118,10 +118,10 @@ class VoltageWidget(_TablePlotWidget):
         try:
             ts = self.worker.timestamp
             r = self.worker.reading
-            
+
             if ts is None:
                 return
-            
+
             if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
                 return
 
@@ -130,7 +130,7 @@ class VoltageWidget(_TablePlotWidget):
                 self._readings[label].append(r[i])
             self.addLastValueToTable()
             self.updatePlot()
-            
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -144,11 +144,11 @@ class VoltageWidget(_TablePlotWidget):
 
         try:
             self.worker.pmac_axis = self.move_axis_widget.selectedAxis()
-            self.worker.voltx_enabled = self.voltx_chb.isChecked()
-            self.worker.volty_enabled = self.volty_chb.isChecked()
-            self.worker.voltz_enabled = self.voltz_chb.isChecked()
+            self.worker.voltx_enabled = self.chb_voltx.isChecked()
+            self.worker.volty_enabled = self.chb_volty.isChecked()
+            self.worker.voltz_enabled = self.chb_voltz.isChecked()
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -161,13 +161,13 @@ class VoltageWidget(_TablePlotWidget):
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
-            if self.voltx_chb.isChecked():
+            if self.chb_voltx.isChecked():
                 self.devices.voltx.reset()
 
-            if self.volty_chb.isChecked():
+            if self.chb_volty.isChecked():
                 self.devices.volty.reset()
 
-            if self.voltz_chb.isChecked():
+            if self.chb_voltz.isChecked():
                 self.devices.voltz.reset()
 
             self.blockSignals(False)

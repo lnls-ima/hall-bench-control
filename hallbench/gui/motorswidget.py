@@ -45,14 +45,14 @@ class MotorsWidget(_QWidget):
         self.stop_trigger = False
 
         # disable combo box itens
-        for item in range(self.ui.selectaxis_cmb.count()):
-            self.ui.selectaxis_cmb.model().item(item).setEnabled(False)
-        for item in range(self.ui.selecttrigaxis_cmb.count()):
-            self.ui.selecttrigaxis_cmb.model().item(item).setEnabled(False)
+        for item in range(self.ui.cmb_selectaxis.count()):
+            self.ui.cmb_selectaxis.model().item(item).setEnabled(False)
+        for item in range(self.ui.cmb_selecttrigaxis.count()):
+            self.ui.cmb_selecttrigaxis.model().item(item).setEnabled(False)
 
         # disable trigger delay
-        self.ui.trigpause_chb.setChecked(False)
-        self.ui.trigdelay_sb.setEnabled(False)
+        self.ui.chb_trigpause.setChecked(False)
+        self.ui.sbd_trigdelay.setEnabled(False)
 
         self.connectSignalSlots()
 
@@ -67,7 +67,7 @@ class MotorsWidget(_QWidget):
             if self.pmac.activate_bench():
                 self.setHomingEnabled(True)
                 self.setAxisLimitsEnabled(True)
-                self.ui.setlimits_btn.setEnabled(False)
+                self.ui.pbt_setlimits.setEnabled(False)
                 self.releaseAccessToMovement()
 
             else:
@@ -94,109 +94,109 @@ class MotorsWidget(_QWidget):
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
-        self.ui.minax1_le.editingFinished.connect(
+        self.ui.le_minax1.editingFinished.connect(
             lambda: _utils.setFloatLineEditText(
-                self.ui.minax1_le, precision=3))
-        self.ui.minax2_le.editingFinished.connect(
+                self.ui.le_minax1, precision=3))
+        self.ui.le_minax2.editingFinished.connect(
             lambda: _utils.setFloatLineEditText(
-                self.ui.minax2_le, precision=3))
-        self.ui.minax3_le.editingFinished.connect(
+                self.ui.le_minax2, precision=3))
+        self.ui.le_minax3.editingFinished.connect(
             lambda: _utils.setFloatLineEditText(
-                self.ui.minax3_le, precision=3))
-        self.ui.maxax1_le.editingFinished.connect(
+                self.ui.le_minax3, precision=3))
+        self.ui.le_maxax1.editingFinished.connect(
             lambda: _utils.setFloatLineEditText(
-                self.ui.maxax1_le, precision=3))
-        self.ui.maxax2_le.editingFinished.connect(
+                self.ui.le_maxax1, precision=3))
+        self.ui.le_maxax2.editingFinished.connect(
             lambda: _utils.setFloatLineEditText(
-                self.ui.maxax2_le, precision=3))
-        self.ui.maxax3_le.editingFinished.connect(
+                self.ui.le_maxax2, precision=3))
+        self.ui.le_maxax3.editingFinished.connect(
             lambda: _utils.setFloatLineEditText(
-                self.ui.maxax3_le, precision=3))
+                self.ui.le_maxax3, precision=3))
 
-        self.ui.targetvel_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.ui.targetvel_le))
-        self.ui.reldisp_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.ui.reldisp_le))
-        self.ui.targetpos_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.ui.targetpos_le))
+        self.ui.le_targetvel.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.le_targetvel))
+        self.ui.le_reldisp.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.le_reldisp))
+        self.ui.le_targetpos.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.le_targetpos))
 
-        self.ui.trigvel_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.ui.trigvel_le))
-        self.ui.trigstart_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.ui.trigstart_le))
-        self.ui.trigstep_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.ui.trigstep_le))
-        self.ui.trigend_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.ui.trigend_le))
+        self.ui.le_trigvel.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.le_trigvel))
+        self.ui.le_trigstart.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.le_trigstart))
+        self.ui.le_trigstep.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.le_trigstep))
+        self.ui.le_trigend.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.ui.le_trigend))
 
-        self.ui.trigstart_le.editingFinished.connect(self.fixPositionValues)
-        self.ui.trigstep_le.editingFinished.connect(self.fixPositionValues)
-        self.ui.trigend_le.editingFinished.connect(self.fixPositionValues)
+        self.ui.le_trigstart.editingFinished.connect(self.fixPositionValues)
+        self.ui.le_trigstep.editingFinished.connect(self.fixPositionValues)
+        self.ui.le_trigend.editingFinished.connect(self.fixPositionValues)
 
-        self.ui.reldisp_le.editingFinished.connect(self.updateTargetPos)
-        self.ui.targetpos_le.editingFinished.connect(self.updateRelDisp)
+        self.ui.le_reldisp.editingFinished.connect(self.updateTargetPos)
+        self.ui.le_targetpos.editingFinished.connect(self.updateRelDisp)
 
-        self.ui.selectaxis_cmb.currentIndexChanged.connect(
+        self.ui.cmb_selectaxis.currentIndexChanged.connect(
             self.updateVelocityAndPosition)
 
-        self.ui.selecttrigaxis_cmb.currentIndexChanged.connect(
+        self.ui.cmb_selecttrigaxis.currentIndexChanged.connect(
             self.updateTrigAxisVelocity)
-        self.ui.trigpause_chb.stateChanged.connect(self.enableTriggerDelay)
+        self.ui.chb_trigpause.stateChanged.connect(self.enableTriggerDelay)
 
-        self.ui.minax1_le.editingFinished.connect(self.enableSetLimitsButton)
-        self.ui.maxax1_le.editingFinished.connect(self.enableSetLimitsButton)
-        self.ui.minax2_le.editingFinished.connect(self.enableSetLimitsButton)
-        self.ui.maxax2_le.editingFinished.connect(self.enableSetLimitsButton)
-        self.ui.minax3_le.editingFinished.connect(self.enableSetLimitsButton)
-        self.ui.maxax3_le.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.le_minax1.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.le_maxax1.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.le_minax2.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.le_maxax2.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.le_minax3.editingFinished.connect(self.enableSetLimitsButton)
+        self.ui.le_maxax3.editingFinished.connect(self.enableSetLimitsButton)
 
-        self.ui.activate_btn.clicked.connect(self.activateBench)
-        self.ui.stopall_btn.clicked.connect(self.stopAllAxis)
-        self.ui.killall_btn.clicked.connect(self.killAllAxis)
-        self.ui.homing_btn.clicked.connect(self.startHoming)
-        self.ui.setlimits_btn.clicked.connect(self.setAxisLimits)
-        self.ui.resetlimits_btn.clicked.connect(self.resetAxisLimits)
-        self.ui.move_btn.clicked.connect(self.moveToTarget)
-        self.ui.stop_btn.clicked.connect(self.stopAxis)
-        self.ui.trigandmove_btn.clicked.connect(self.setTriggerandMove)
-        self.ui.trigstop_btn.clicked.connect(self.stopTriggerAxis)
+        self.ui.pbt_activate.clicked.connect(self.activateBench)
+        self.ui.pbt_stopall.clicked.connect(self.stopAllAxis)
+        self.ui.pbt_killall.clicked.connect(self.killAllAxis)
+        self.ui.pbt_homing.clicked.connect(self.startHoming)
+        self.ui.pbt_setlimits.clicked.connect(self.setAxisLimits)
+        self.ui.pbt_resetlimits.clicked.connect(self.resetAxisLimits)
+        self.ui.pbt_move.clicked.connect(self.moveToTarget)
+        self.ui.pbt_stop.clicked.connect(self.stopAxis)
+        self.ui.pbt_trigandmove.clicked.connect(self.setTriggerandMove)
+        self.ui.pbt_trigstop.clicked.connect(self.stopTriggerAxis)
 
     def enableSetLimitsButton(self):
         """Enable set limits button."""
-        self.ui.setlimits_btn.setEnabled(True)
+        self.ui.pbt_setlimits.setEnabled(True)
 
     def enableTriggerDelay(self):
         """Enable or disable trigger delay."""
-        if self.ui.trigpause_chb.isChecked():
-            self.ui.trigdelay_sb.setEnabled(True)
+        if self.ui.chb_trigpause.isChecked():
+            self.ui.sbd_trigdelay.setEnabled(True)
         else:
-            self.ui.trigdelay_sb.setEnabled(False)
+            self.ui.sbd_trigdelay.setEnabled(False)
 
     def fixPositionValues(self):
         """Fix step and end position value."""
         start = _utils.getValueFromStringExpresssion(
-            self.ui.trigstart_le.text())
+            self.ui.le_trigstart.text())
         if start is None:
             return
 
-        step = _utils.getValueFromStringExpresssion(self.ui.trigstep_le.text())
+        step = _utils.getValueFromStringExpresssion(self.ui.le_trigstep.text())
         if step is None:
             return
 
-        end = _utils.getValueFromStringExpresssion(self.ui.trigend_le.text())
+        end = _utils.getValueFromStringExpresssion(self.ui.le_trigend.text())
         if end is None:
             return
 
         if step == 0:
-            self.ui.trigend_le.setText('{0:0.4f}'.format(start))
+            self.ui.le_trigend.setText('{0:0.4f}'.format(start))
             return
 
         npts = _np.abs(_np.round(round((end - start) / step, 4) + 1))
         if start <= end and step < 0:
-            self.ui.trigstep_le.setText('')
+            self.ui.le_trigstep.setText('')
             return
         elif start > end and step > 0:
-            self.ui.trigstep_le.setText('')
+            self.ui.le_trigstep.setText('')
             return
         elif start <= end:
             corrected_step = _np.abs(step)
@@ -205,8 +205,8 @@ class MotorsWidget(_QWidget):
             corrected_step = _np.abs(step)*(-1)
             corrected_end = start + (npts-1)*corrected_step
 
-        self.ui.trigstep_le.setText('{0:0.4f}'.format(corrected_step))
-        self.ui.trigend_le.setText('{0:0.4f}'.format(corrected_end))
+        self.ui.le_trigstep.setText('{0:0.4f}'.format(corrected_step))
+        self.ui.le_trigend.setText('{0:0.4f}'.format(corrected_end))
 
     def killAllAxis(self):
         """Kill all axis."""
@@ -226,9 +226,9 @@ class MotorsWidget(_QWidget):
         """Move Hall probe to target position."""
         try:
             targetpos = _utils.getValueFromStringExpresssion(
-                self.ui.targetpos_le.text())
+                self.ui.le_targetpos.text())
             targetvel = _utils.getValueFromStringExpresssion(
-                self.ui.targetvel_le.text())
+                self.ui.le_targetvel.text())
             if targetpos is None or targetvel is None:
                 return
 
@@ -242,7 +242,7 @@ class MotorsWidget(_QWidget):
                 self.pmac.set_axis_speed(axis, targetvel)
 
             self.pmac.move_axis(axis, targetpos)
-            self.ui.reldisp_le.setText('')
+            self.ui.le_reldisp.setText('')
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -259,25 +259,25 @@ class MotorsWidget(_QWidget):
 
             if not self.pmac.connected:
                 for axis in list_of_axis:
-                    axis_led = getattr(self.ui, 'ledax' + str(axis) + '_la')
+                    axis_led = getattr(self.ui, 'la_ledax' + str(axis))
                     axis_led.setEnabled(False)
                 return
 
             item = 0
             homing_status = []
             for axis in list_of_axis:
-                axis_led = getattr(self.ui, 'ledax' + str(axis) + '_la')
+                axis_led = getattr(self.ui, 'la_ledax' + str(axis))
                 if self.pmac.axis_homing_status(axis):
-                    self.ui.selectaxis_cmb.model().item(
+                    self.ui.cmb_selectaxis.model().item(
                         item+1).setEnabled(True)
-                    self.ui.selecttrigaxis_cmb.model().item(
+                    self.ui.cmb_selecttrigaxis.model().item(
                         item+1).setEnabled(True)
                     axis_led.setEnabled(True)
                     homing_status.append(True)
                 else:
-                    self.ui.selectaxis_cmb.model().item(
+                    self.ui.cmb_selectaxis.model().item(
                         item+1).setEnabled(False)
-                    self.ui.selecttrigaxis_cmb.model().item(
+                    self.ui.cmb_selecttrigaxis.model().item(
                         item+1).setEnabled(False)
                     axis_led.setEnabled(False)
                     homing_status.append(False)
@@ -307,22 +307,22 @@ class MotorsWidget(_QWidget):
             pos_list = self.pmac.commands.i_softlimit_pos_list
 
             if self.pmac.get_response(self.pmac.set_par(neg_list[0], 0)):
-                self.ui.minax1_le.setText('')
+                self.ui.le_minax1.setText('')
 
             if self.pmac.get_response(self.pmac.set_par(pos_list[0], 0)):
-                self.ui.maxax1_le.setText('')
+                self.ui.le_maxax1.setText('')
 
             if self.pmac.get_response(self.pmac.set_par(neg_list[1], 0)):
-                self.ui.minax2_le.setText('')
+                self.ui.le_minax2.setText('')
 
             if self.pmac.get_response(self.pmac.set_par(pos_list[1], 0)):
-                self.ui.maxax2_le.setText('')
+                self.ui.le_maxax2.setText('')
 
             if self.pmac.get_response(self.pmac.set_par(neg_list[2], 0)):
-                self.ui.minax3_le.setText('')
+                self.ui.le_minax3.setText('')
 
             if self.pmac.get_response(self.pmac.set_par(pos_list[2], 0)):
-                self.ui.maxax3_le.setText('')
+                self.ui.le_maxax3.setText('')
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -331,7 +331,7 @@ class MotorsWidget(_QWidget):
 
     def selectedAxis(self):
         """Return the selected axis."""
-        axis_str = self.ui.selectaxis_cmb.currentText()
+        axis_str = self.ui.cmb_selectaxis.currentText()
         if axis_str == '':
             return None
 
@@ -343,7 +343,7 @@ class MotorsWidget(_QWidget):
 
     def selectedTriggerAxis(self):
         """Return the selected trigger axis."""
-        axis_str = self.ui.selecttrigaxis_cmb.currentText()
+        axis_str = self.ui.cmb_selecttrigaxis.currentText()
         if axis_str == '':
             return None
 
@@ -361,19 +361,19 @@ class MotorsWidget(_QWidget):
             cts_mm_axis = self.pmac.commands.CTS_MM_AXIS
 
             minax1 = _utils.getValueFromStringExpresssion(
-                self.ui.minax1_le.text())
+                self.ui.le_minax1.text())
             maxax1 = _utils.getValueFromStringExpresssion(
-                self.ui.maxax1_le.text())
+                self.ui.le_maxax1.text())
 
             minax2 = _utils.getValueFromStringExpresssion(
-                self.ui.minax2_le.text())
+                self.ui.le_minax2.text())
             maxax2 = _utils.getValueFromStringExpresssion(
-                self.ui.maxax2_le.text())
+                self.ui.le_maxax2.text())
 
             minax3 = _utils.getValueFromStringExpresssion(
-                self.ui.minax3_le.text())
+                self.ui.le_minax3.text())
             maxax3 = _utils.getValueFromStringExpresssion(
-                self.ui.maxax3_le.text())
+                self.ui.le_maxax3.text())
 
             if minax1 is not None and maxax1 is not None:
                 minax1 = minax1*cts_mm_axis[0]
@@ -393,7 +393,7 @@ class MotorsWidget(_QWidget):
                 self.pmac.get_response(self.pmac.set_par(neg_list[2], minax3))
                 self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
 
-            self.ui.setlimits_btn.setEnabled(False)
+            self.ui.pbt_setlimits.setEnabled(False)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -402,26 +402,26 @@ class MotorsWidget(_QWidget):
 
     def setAxisLimitsEnabled(self, enabled):
         """Enable/Disable axis limits controls."""
-        self.ui.limits_gb.setEnabled(enabled)
-        self.ui.setlimits_btn.setEnabled(enabled)
-        self.ui.resetlimits_btn.setEnabled(enabled)
+        self.ui.gb_limits.setEnabled(enabled)
+        self.ui.pbt_setlimits.setEnabled(enabled)
+        self.ui.pbt_resetlimits.setEnabled(enabled)
 
     def setHomingEnabled(self, enabled):
         """Enable/Disable homing controls."""
-        self.ui.homing_gb.setEnabled(enabled)
-        self.ui.homing_btn.setEnabled(enabled)
+        self.ui.gb_homing.setEnabled(enabled)
+        self.ui.pbt_homing.setEnabled(enabled)
 
     def setMovementEnabled(self, enabled):
         """Enable/Disable movement controls."""
-        self.ui.moveaxis_gb.setEnabled(enabled)
-        self.ui.move_btn.setEnabled(enabled)
-        self.ui.stop_btn.setEnabled(enabled)
+        self.ui.gb_moveaxis.setEnabled(enabled)
+        self.ui.pbt_move.setEnabled(enabled)
+        self.ui.pbt_stop.setEnabled(enabled)
 
     def setTriggerEnabled(self, enabled):
         """Enable/Disable trigger controls."""
-        self.ui.trigger_gb.setEnabled(enabled)
-        self.ui.trigandmove_btn.setEnabled(enabled)
-        self.ui.trigstop_btn.setEnabled(enabled)
+        self.ui.gb_trigger.setEnabled(enabled)
+        self.ui.pbt_trigandmove.setEnabled(enabled)
+        self.ui.pbt_trigstop.setEnabled(enabled)
 
     def setVelocityPositionStrFormat(self, line_edit):
         """Set the velocity and position string format."""
@@ -440,22 +440,22 @@ class MotorsWidget(_QWidget):
 
         try:
             start = _utils.getValueFromStringExpresssion(
-                self.ui.trigstart_le.text())
+                self.ui.le_trigstart.text())
             if start is None:
                 return
 
             step = _utils.getValueFromStringExpresssion(
-                self.ui.trigstep_le.text())
+                self.ui.le_trigstep.text())
             if step is None:
                 return
 
             end = _utils.getValueFromStringExpresssion(
-                self.ui.trigend_le.text())
+                self.ui.le_trigend.text())
             if end is None:
                 return
 
             targetvel = _utils.getValueFromStringExpresssion(
-                self.ui.trigvel_le.text())
+                self.ui.le_trigvel.text())
             if targetvel is None:
                 return
 
@@ -478,11 +478,11 @@ class MotorsWidget(_QWidget):
             if self.stop_trigger:
                 return
 
-            if not self.ui.trigpause_chb.isChecked():
+            if not self.ui.chb_trigpause.isChecked():
                 self.pmac.move_axis(axis, end)
             else:
                 pos_list = _np.linspace(start, end, npts)
-                delay = self.ui.trigdelay_sb.value()
+                delay = self.ui.sbd_trigdelay.value()
                 for pos in pos_list:
                     if self.stop_trigger:
                         return
@@ -507,7 +507,7 @@ class MotorsWidget(_QWidget):
             list_of_axis = self.pmac.commands.list_of_axis
 
             for axis in list_of_axis:
-                obj = getattr(self.ui, 'homingax' + str(axis) + '_chb')
+                obj = getattr(self.ui, 'chb_homingax' + str(axis))
                 val = int(obj.isChecked())
                 axis_homing_mask += (val << (axis-1))
 
@@ -520,7 +520,7 @@ class MotorsWidget(_QWidget):
             else:
                 self.releaseAccessToMovement()
                 for axis in list_of_axis:
-                    obj = getattr(self.ui, 'homingax' + str(axis) + '_chb')
+                    obj = getattr(self.ui, 'chb_homingax' + str(axis))
                     obj.setChecked(False)
                 _QApplication.processEvents()
                 msg = 'Finished homing of the selected axes.'
@@ -577,9 +577,9 @@ class MotorsWidget(_QWidget):
 
             position = self.pmac.get_position(axis)
             targetpos = _utils.getValueFromStringExpresssion(
-                self.ui.targetpos_le.text())
+                self.ui.le_targetpos.text())
             reldisp = targetpos - position
-            self.ui.reldisp_le.setText(self._position_format.format(reldisp))
+            self.ui.le_reldisp.setText(self._position_format.format(reldisp))
 
         except Exception:
             pass
@@ -593,9 +593,9 @@ class MotorsWidget(_QWidget):
 
             position = self.pmac.get_position(axis)
             reldisp = _utils.getValueFromStringExpresssion(
-                self.ui.reldisp_le.text())
+                self.ui.le_reldisp.text())
             targetpos = position + reldisp
-            self.ui.targetpos_le.setText(self._position_format.format(
+            self.ui.le_targetpos.setText(self._position_format.format(
                 targetpos))
 
         except Exception:
@@ -609,7 +609,7 @@ class MotorsWidget(_QWidget):
                 return
 
             velocity = self.pmac.get_velocity(axis)
-            self.ui.trigvel_le.setText(self._position_format.format(velocity))
+            self.ui.le_trigvel.setText(self._position_format.format(velocity))
         except Exception:
             pass
 
@@ -622,14 +622,14 @@ class MotorsWidget(_QWidget):
 
             velocity = self.pmac.get_velocity(axis)
             position = self.pmac.get_position(axis)
-            self.ui.targetvel_le.setText(self._position_format.format(
+            self.ui.le_targetvel.setText(self._position_format.format(
                 velocity))
-            self.ui.reldisp_le.setText(self._position_format.format(0))
-            self.ui.targetpos_le.setText(self._position_format.format(
+            self.ui.le_reldisp.setText(self._position_format.format(0))
+            self.ui.le_targetpos.setText(self._position_format.format(
                 position))
 
-            self.ui.targetvelunit_la.setText(self._axis_unit[axis] + '/s')
-            self.ui.reldispunit_la.setText(self._axis_unit[axis])
-            self.ui.targetposunit_la.setText(self._axis_unit[axis])
+            self.ui.la_targetvelunit.setText(self._axis_unit[axis] + '/s')
+            self.ui.la_reldispunit.setText(self._axis_unit[axis])
+            self.ui.la_targetposunit.setText(self._axis_unit[axis])
         except Exception:
             pass

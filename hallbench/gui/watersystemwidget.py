@@ -25,11 +25,11 @@ from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
 class WaterSystemWidget(_TablePlotWidget):
     """Water System Widget class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Temperature [deg C]'       
+    _left_axis_1_label = 'Temperature [deg C]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['PV1', 'PV2']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
-    
+
     _right_axis_1_label = 'Controller Output [%]'
     _right_axis_1_format = '{0:.4f}'
     _right_axis_1_data_labels = ['Output1', 'Output2']
@@ -40,16 +40,16 @@ class WaterSystemWidget(_TablePlotWidget):
         super().__init__(parent)
 
         # add check box
-        self.pv1_chb = _QCheckBox(' PV1 ')
-        self.pv2_chb = _QCheckBox(' PV2 ')
-        self.output1_chb = _QCheckBox(' Output1')
-        self.output2_chb = _QCheckBox(' Output2')
+        self.chb_pv1 = _QCheckBox(' PV1 ')
+        self.chb_pv2 = _QCheckBox(' PV2 ')
+        self.chb_output1 = _QCheckBox(' Output1')
+        self.chb_output2 = _QCheckBox(' Output2')
         self.addWidgetsNextToTable(
-            [self.pv1_chb, self.pv2_chb, self.output1_chb, self.output2_chb])
-        
+            [self.chb_pv1, self.chb_pv2, self.chb_output1, self.chb_output2])
+
         # Change default appearance
         self.setTableColumnSize(120)
-        
+
         # Create reading thread
         self.wthread = _QThread()
         self.worker = ReadValueWorker()
@@ -98,7 +98,7 @@ class WaterSystemWidget(_TablePlotWidget):
                 self._readings[label].append(r[i])
             self.addLastValueToTable()
             self.updatePlot()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -111,12 +111,12 @@ class WaterSystemWidget(_TablePlotWidget):
             return
 
         try:
-            self.worker.pv1_enabled = self.pv1_chb.isChecked()
-            self.worker.pv2_enabled = self.pv2_chb.isChecked()
-            self.worker.output1_enabled = self.output1_chb.isChecked()
-            self.worker.output2_enabled = self.output2_chb.isChecked()
+            self.worker.pv1_enabled = self.chb_pv1.isChecked()
+            self.worker.pv2_enabled = self.chb_pv2.isChecked()
+            self.worker.output1_enabled = self.chb_output1.isChecked()
+            self.worker.output2_enabled = self.chb_output2.isChecked()
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -148,7 +148,7 @@ class ReadValueWorker(_QObject):
             self.reading = []
 
             ts = _time.time()
-            
+
             if self.pv1_enabled:
                 pv1 = self.devices.water_udc.read_pv1()
             else:

@@ -18,7 +18,6 @@ from qtpy.QtWidgets import (
     QGridLayout as _QGridLayout,
     QSizePolicy as _QSizePolicy,
     QApplication as _QApplication,
-    QDoubleSpinBox as _QDoubleSpinBox,
     )
 from qtpy.QtGui import (
     QFont as _QFont,
@@ -66,9 +65,9 @@ class TemperatureWidget(_TablePlotWidget):
         self.addWidgetsNextToPlot(self.channels_widget)
 
         # add configuration button
-        self.configure_btn = _QPushButton('Configure Channels')
-        self.configure_btn.clicked.connect(self.configureChannels)
-        self.addWidgetsNextToTable(self.configure_btn)
+        self.pbt_configure = _QPushButton('Configure Channels')
+        self.pbt_configure.clicked.connect(self.configureChannels)
+        self.addWidgetsNextToTable(self.pbt_configure)
 
         # Change default appearance
         self.setTableColumnSize(80)
@@ -137,10 +136,10 @@ class TemperatureWidget(_TablePlotWidget):
         try:
             ts = self.worker.timestamp
             r = self.worker.reading
-            
+
             if ts is None:
                 return
-            
+
             if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
                 return
 
@@ -158,7 +157,7 @@ class TemperatureWidget(_TablePlotWidget):
 
             self.addLastValueToTable()
             self.updatePlot()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -179,7 +178,7 @@ class TemperatureWidget(_TablePlotWidget):
             self.worker.delay = self.channels_widget.delay
             self.worker.selected_channels = selected_channels
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 

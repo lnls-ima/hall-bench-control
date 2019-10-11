@@ -26,7 +26,7 @@ from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
 class PSCurrentWidget(_TablePlotWidget):
     """Power supply current class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Current [A]'       
+    _left_axis_1_label = 'Current [A]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['DCCT [A]', 'PS [A]']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
@@ -36,12 +36,12 @@ class PSCurrentWidget(_TablePlotWidget):
         super().__init__(parent)
 
         # add check box and configure button
-        self.dcct_chb = _QCheckBox(' DCCT ')
-        self.ps_chb = _QCheckBox(' Power Supply ')
-        self.configure_btn = _QPushButton('Configure Devices')
-        self.configure_btn.clicked.connect(self.configureDevices)
+        self.chb_dcct = _QCheckBox(' DCCT ')
+        self.chb_ps = _QCheckBox(' Power Supply ')
+        self.pbt_configure = _QPushButton('Configure Devices')
+        self.pbt_configure.clicked.connect(self.configureDevices)
         self.addWidgetsNextToTable(
-            [[self.dcct_chb, self.ps_chb], [self.configure_btn]])
+            [[self.chb_dcct, self.chb_ps], [self.pbt_configure]])
 
         # Create reading thread
         self.wthread = _QThread()
@@ -63,7 +63,7 @@ class PSCurrentWidget(_TablePlotWidget):
 
     def checkConnection(self, monitor=False):
         """Check devices connection."""
-        if self.dcct_chb.isChecked() and not self.devices.dcct.connected:
+        if self.chb_dcct.isChecked() and not self.devices.dcct.connected:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure', 'DCCT not connected.', _QMessageBox.Ok)
@@ -89,7 +89,7 @@ class PSCurrentWidget(_TablePlotWidget):
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
             ps_type = self.power_supply_config.ps_type
-            if self.ps_chb.isChecked():
+            if self.chb_ps.isChecked():
                 if ps_type is not None:
                     self.devices.ps.SetSlaveAdd(ps_type)
                 else:
@@ -100,7 +100,7 @@ class PSCurrentWidget(_TablePlotWidget):
                         'Invalid power supply configuration.', _QMessageBox.Ok)
                     return
 
-            if self.dcct_chb.isChecked():
+            if self.chb_dcct.isChecked():
                 self.devices.dcct.config()
 
             self.blockSignals(False)
@@ -128,7 +128,7 @@ class PSCurrentWidget(_TablePlotWidget):
                 self._readings[label].append(r[i])
             self.addLastValueToTable()
             self.updatePlot()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -141,10 +141,10 @@ class PSCurrentWidget(_TablePlotWidget):
             return
 
         try:
-            self.worker.dcct_enabled = self.dcct_chb.isChecked()
-            self.worker.ps_enabled = self.ps_chb.isChecked()
+            self.worker.dcct_enabled = self.chb_dcct.isChecked()
+            self.worker.ps_enabled = self.chb_ps.isChecked()
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 

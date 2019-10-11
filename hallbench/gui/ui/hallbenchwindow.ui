@@ -21,7 +21,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QTabWidget" name="main_tab">
+     <widget class="QTabWidget" name="twg_main">
       <property name="currentIndex">
        <number>1</number>
       </property>
@@ -65,14 +65,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="database_le">
+          <widget class="QLineEdit" name="le_database">
            <property name="readOnly">
             <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="database_btn">
+          <widget class="QToolButton" name="tbt_database">
            <property name="toolTip">
             <string>Change database file.</string>
            </property>
@@ -95,7 +95,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="preferences_btn">
+       <widget class="QToolButton" name="tbt_preferences">
         <property name="toolTip">
          <string>Preferences</string>
         </property>

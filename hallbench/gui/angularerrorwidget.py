@@ -28,7 +28,7 @@ from hallbench.gui.auxiliarywidgets import (
 class AngularErrorWidget(_TablePlotWidget):
     """Angular error widget class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Angular error [arcsec]'       
+    _left_axis_1_label = 'Angular error [arcsec]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['X-axis [arcsec]', 'Y-axis [arcsec]']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
@@ -47,10 +47,10 @@ class AngularErrorWidget(_TablePlotWidget):
         self.addWidgetsNextToPlot(self.move_axis_widget)
 
         # add measurement type combo box
-        self.meastype_la = _QLabel("Measurement Type:")
-        self.meastype_cmb = _QComboBox()
-        self.meastype_cmb.addItems(["Absolute", "Relative"])
-        self.addWidgetsNextToTable([self.meastype_la, self.meastype_cmb])
+        self.la_meastype = _QLabel("Measurement Type:")
+        self.cmb_meastype = _QComboBox()
+        self.cmb_meastype.addItems(["Absolute", "Relative"])
+        self.addWidgetsNextToTable([self.la_meastype, self.cmb_meastype])
 
         # Change default appearance
         self.setTableColumnSize(150)
@@ -96,10 +96,10 @@ class AngularErrorWidget(_TablePlotWidget):
         try:
             ts = self.worker.timestamp
             r = self.worker.reading
-            
+
             if ts is None:
                 return
-            
+
             if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
                 return
 
@@ -108,7 +108,7 @@ class AngularErrorWidget(_TablePlotWidget):
                 self._readings[label].append(r[i])
             self.addLastValueToTable()
             self.updatePlot()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -122,10 +122,10 @@ class AngularErrorWidget(_TablePlotWidget):
 
         try:
             self.worker.pmac_axis = self.move_axis_widget.selectedAxis()
-            mt = self.meastype_cmb.currentText().lower()
+            mt = self.cmb_meastype.currentText().lower()
             self.worker.measurement_type = mt
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 

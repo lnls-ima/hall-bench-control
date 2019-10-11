@@ -940,7 +940,7 @@ p, li { white-space: pre-wrap; }
                     </widget>
                    </item>
                    <item row="0" column="1">
-                    <widget class="QDoubleSpinBox" name="sb_kp">
+                    <widget class="QDoubleSpinBox" name="sbd_kp">
                      <property name="maximumSize">
                       <size>
                        <width>80</width>
@@ -977,7 +977,7 @@ p, li { white-space: pre-wrap; }
                     </widget>
                    </item>
                    <item row="1" column="1">
-                    <widget class="QDoubleSpinBox" name="sb_ki">
+                    <widget class="QDoubleSpinBox" name="sbd_ki">
                      <property name="maximumSize">
                       <size>
                        <width>80</width>
@@ -1098,7 +1098,7 @@ p, li { white-space: pre-wrap; }
                  <item>
                   <layout class="QVBoxLayout" name="verticalLayout_6">
                    <item>
-                    <widget class="QTableWidget" name="tw_currents">
+                    <widget class="QTableWidget" name="tbl_currents">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                        <horstretch>0</horstretch>
@@ -2418,7 +2418,7 @@ p, li { white-space: pre-wrap; }
               <property name="title">
                <string>Settings</string>
               </property>
-              <widget class="QTableWidget" name="tw_trapezoidal">
+              <widget class="QTableWidget" name="tbl_trapezoidal">
                <property name="geometry">
                 <rect>
                  <x>42</x>
@@ -2808,7 +2808,7 @@ p, li { white-space: pre-wrap; }
              <item row="0" column="0" colspan="2">
               <layout class="QHBoxLayout" name="horizontalLayout_10">
                <item>
-                <widget class="QRadioButton" name="pc_sensorx_rb">
+                <widget class="QRadioButton" name="rbt_pc_sensorx">
                  <property name="font">
                   <font>
                    <weight>50</weight>
@@ -2824,7 +2824,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="pc_sensory_rb">
+                <widget class="QRadioButton" name="rbt_pc_sensory">
                  <property name="font">
                   <font>
                    <weight>50</weight>
@@ -2840,7 +2840,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="pc_sensorz_rb">
+                <widget class="QRadioButton" name="rbt_pc_sensorz">
                  <property name="font">
                   <font>
                    <weight>50</weight>
@@ -2868,7 +2868,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="4" column="1">
-              <widget class="QDoubleSpinBox" name="pc_current_sb">
+              <widget class="QDoubleSpinBox" name="sbd_pc_current">
                <property name="font">
                 <font>
                  <weight>50</weight>
@@ -2900,7 +2900,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="5" column="1">
-              <widget class="QSpinBox" name="pc_time_sb">
+              <widget class="QSpinBox" name="sb_pc_time">
                <property name="font">
                 <font>
                  <weight>50</weight>
@@ -2929,7 +2929,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="6" column="1">
-              <widget class="QSpinBox" name="pc_delay_sb">
+              <widget class="QSpinBox" name="sb_pc_delay">
                <property name="font">
                 <font>
                  <weight>50</weight>
@@ -2955,7 +2955,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="7" column="1">
-              <widget class="QSpinBox" name="pc_readingtime_sb">
+              <widget class="QSpinBox" name="sb_pc_readingtime">
                <property name="font">
                 <font>
                  <weight>50</weight>
@@ -2971,7 +2971,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="13" column="0" colspan="2">
-              <widget class="QPushButton" name="pc_updatefreq_btn">
+              <widget class="QPushButton" name="pbt_pc_updatefreq">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -2984,7 +2984,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="14" column="0" colspan="2">
-              <widget class="QPushButton" name="pc_measure_btn">
+              <widget class="QPushButton" name="pbt_pc_measure">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -3029,7 +3029,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="11" column="1">
-              <widget class="QSpinBox" name="pc_nmrfreq_sb">
+              <widget class="QSpinBox" name="sb_pc_nmrfreq">
                <property name="font">
                 <font>
                  <weight>50</weight>
@@ -3042,7 +3042,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="9" column="1">
-              <widget class="QComboBox" name="pc_nmrchannel_cmb">
+              <widget class="QComboBox" name="cmb_pc_nmrchannel">
                <property name="font">
                 <font>
                  <weight>50</weight>
@@ -3105,7 +3105,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="10" column="1">
-              <widget class="QComboBox" name="pc_nmrsense_cmb">
+              <widget class="QComboBox" name="cmb_pc_nmrsense">
                <property name="font">
                 <font>
                  <weight>50</weight>
@@ -3131,7 +3131,7 @@ p, li { white-space: pre-wrap; }
            </widget>
           </item>
           <item row="0" column="1" rowspan="2">
-           <widget class="PlotWidget" name="pc_plot_pw">
+           <widget class="PlotWidget" name="pw_pc_plot">
             <property name="backgroundBrush">
              <brush brushstyle="NoBrush">
               <color alpha="255">
@@ -3178,7 +3178,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QLineEdit" name="pc_field_le">
+              <widget class="QLineEdit" name="le_pc_field">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -3210,7 +3210,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="pc_fieldstd_le">
+              <widget class="QLineEdit" name="le_pc_fieldstd">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -3239,7 +3239,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QLineEdit" name="pc_volt_le">
+              <widget class="QLineEdit" name="le_pc_volt">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -3268,7 +3268,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="3" column="1">
-              <widget class="QLineEdit" name="pc_voltstd_le">
+              <widget class="QLineEdit" name="le_pc_voltstd">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -3287,7 +3287,7 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="4" column="0" colspan="2">
-              <widget class="QPushButton" name="pc_copy_btn">
+              <widget class="QPushButton" name="pbt_pc_copy">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -3533,7 +3533,7 @@ Status:</string>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sb_current_setpoint">
+           <widget class="QDoubleSpinBox" name="sbd_current_setpoint">
             <property name="font">
              <font>
               <weight>50</weight>
@@ -3694,7 +3694,7 @@ Status:</string>
   <tabstop>pb_ps_button</tabstop>
   <tabstop>le_status_loop</tabstop>
   <tabstop>le_status_con</tabstop>
-  <tabstop>sb_current_setpoint</tabstop>
+  <tabstop>sbd_current_setpoint</tabstop>
   <tabstop>pb_send</tabstop>
   <tabstop>pb_emergency</tabstop>
   <tabstop>cb_ps_name</tabstop>
@@ -3707,11 +3707,11 @@ Status:</string>
   <tabstop>le_minimum_current</tabstop>
   <tabstop>chb_dcct</tabstop>
   <tabstop>cb_dcct_select</tabstop>
-  <tabstop>sb_kp</tabstop>
-  <tabstop>sb_ki</tabstop>
+  <tabstop>sbd_kp</tabstop>
+  <tabstop>sbd_ki</tabstop>
   <tabstop>pb_config_pid</tabstop>
   <tabstop>pb_config_ps</tabstop>
-  <tabstop>tw_currents</tabstop>
+  <tabstop>tbl_currents</tabstop>
   <tabstop>pb_add_row</tabstop>
   <tabstop>pb_remove_row</tabstop>
   <tabstop>pb_clear_table</tabstop>
@@ -3741,22 +3741,22 @@ Status:</string>
   <tabstop>le_damp_sin2_phasef</tabstop>
   <tabstop>le_damp_sin2_damping</tabstop>
   <tabstop>le_trapezoidal_offset</tabstop>
-  <tabstop>tw_trapezoidal</tabstop>
+  <tabstop>tbl_trapezoidal</tabstop>
   <tabstop>pb_add_row_2</tabstop>
   <tabstop>pb_remove_row_2</tabstop>
   <tabstop>pb_clear_table_2</tabstop>
-  <tabstop>pc_sensorx_rb</tabstop>
-  <tabstop>pc_sensorz_rb</tabstop>
-  <tabstop>pc_current_sb</tabstop>
-  <tabstop>pc_time_sb</tabstop>
-  <tabstop>pc_delay_sb</tabstop>
-  <tabstop>pc_readingtime_sb</tabstop>
-  <tabstop>pc_measure_btn</tabstop>
-  <tabstop>pc_field_le</tabstop>
-  <tabstop>pc_fieldstd_le</tabstop>
-  <tabstop>pc_volt_le</tabstop>
-  <tabstop>pc_voltstd_le</tabstop>
-  <tabstop>pc_plot_pw</tabstop>
+  <tabstop>rbt_pc_sensorx</tabstop>
+  <tabstop>rbt_pc_sensorz</tabstop>
+  <tabstop>sbd_pc_current</tabstop>
+  <tabstop>sb_pc_time</tabstop>
+  <tabstop>sb_pc_delay</tabstop>
+  <tabstop>sb_pc_readingtime</tabstop>
+  <tabstop>pbt_pc_measure</tabstop>
+  <tabstop>le_pc_field</tabstop>
+  <tabstop>le_pc_fieldstd</tabstop>
+  <tabstop>le_pc_volt</tabstop>
+  <tabstop>le_pc_voltstd</tabstop>
+  <tabstop>pw_pc_plot</tabstop>
  </tabstops>
  <resources/>
  <connections>

@@ -26,7 +26,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="6" column="0" rowspan="2">
-    <widget class="QGroupBox" name="magnetcenter_gb">
+    <widget class="QGroupBox" name="gb_magnetcenter">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -60,7 +60,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="centerpos1_sb">
+       <widget class="QDoubleSpinBox" name="sbd_centerpos1">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -95,7 +95,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="centerpos2_sb">
+       <widget class="QDoubleSpinBox" name="sbd_centerpos2">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -130,7 +130,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="centerpos3_sb">
+       <widget class="QDoubleSpinBox" name="sbd_centerpos3">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -158,10 +158,10 @@
     </widget>
    </item>
    <item row="4" column="0" colspan="3">
-    <widget class="QTextEdit" name="comments_te"/>
+    <widget class="QTextEdit" name="te_comments"/>
    </item>
    <item row="5" column="0">
-    <widget class="QCheckBox" name="correct_displacements_chb">
+    <widget class="QCheckBox" name="chb_correct_displacements">
      <property name="text">
       <string>Correct probe displacements</string>
      </property>
@@ -201,7 +201,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QComboBox" name="predefined_cmb">
+      <widget class="QComboBox" name="cmb_predefined">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -225,7 +225,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLabel" name="predefined_la">
+      <widget class="QLabel" name="la_predefined">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -255,7 +255,7 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QToolButton" name="clear_btn">
+      <widget class="QToolButton" name="tbt_clear">
        <property name="text">
         <string>...</string>
        </property>
@@ -284,7 +284,7 @@
     </widget>
    </item>
    <item row="2" column="0" colspan="3">
-    <widget class="QGroupBox" name="coils_gb">
+    <widget class="QGroupBox" name="gb_coils">
      <property name="font">
       <font>
        <weight>75</weight>
@@ -329,7 +329,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="main_chb">
+          <widget class="QCheckBox" name="chb_main">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -381,7 +381,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="current_main_le">
+               <widget class="QLineEdit" name="le_current_main">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -432,7 +432,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="nr_turns_main_le">
+               <widget class="QLineEdit" name="le_nr_turns_main">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -483,7 +483,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="trim_chb">
+          <widget class="QCheckBox" name="chb_trim">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -535,7 +535,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="current_trim_le">
+               <widget class="QLineEdit" name="le_current_trim">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -586,7 +586,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="nr_turns_trim_le">
+               <widget class="QLineEdit" name="le_nr_turns_trim">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -637,7 +637,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="ch_chb">
+          <widget class="QCheckBox" name="chb_ch">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -689,7 +689,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="current_ch_le">
+               <widget class="QLineEdit" name="le_current_ch">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -740,7 +740,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="nr_turns_ch_le">
+               <widget class="QLineEdit" name="le_nr_turns_ch">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -791,7 +791,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="cv_chb">
+          <widget class="QCheckBox" name="chb_cv">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -831,7 +831,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="current_cv_le">
+               <widget class="QLineEdit" name="le_current_cv">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -870,7 +870,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="nr_turns_cv_le">
+               <widget class="QLineEdit" name="le_nr_turns_cv">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -915,7 +915,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="qs_chb">
+          <widget class="QCheckBox" name="chb_qs">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -955,7 +955,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="current_qs_le">
+               <widget class="QLineEdit" name="le_current_qs">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -994,7 +994,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="nr_turns_qs_le">
+               <widget class="QLineEdit" name="le_nr_turns_qs">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -1027,7 +1027,7 @@
     </widget>
    </item>
    <item row="8" column="0" rowspan="2">
-    <widget class="QGroupBox" name="magnetaxes_gb">
+    <widget class="QGroupBox" name="gb_magnetaxes">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -1066,7 +1066,7 @@
        <number>2</number>
       </property>
       <item row="0" column="1">
-       <widget class="QComboBox" name="magnet_x_axis_cmb">
+       <widget class="QComboBox" name="cmb_magnet_x_axis">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -1122,7 +1122,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QComboBox" name="magnet_y_axis_cmb">
+       <widget class="QComboBox" name="cmb_magnet_y_axis">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -1181,7 +1181,7 @@
     </widget>
    </item>
    <item row="1" column="0" colspan="3">
-    <widget class="QGroupBox" name="magnet_gb">
+    <widget class="QGroupBox" name="gb_magnet">
      <property name="font">
       <font>
        <weight>75</weight>
@@ -1233,7 +1233,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="magnet_name_le">
+       <widget class="QLineEdit" name="le_magnet_name">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -1268,7 +1268,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="gap_le">
+       <widget class="QLineEdit" name="le_gap">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -1303,7 +1303,7 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QLineEdit" name="control_gap_le">
+       <widget class="QLineEdit" name="le_control_gap">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -1338,7 +1338,7 @@
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QLineEdit" name="magnet_length_le">
+       <widget class="QLineEdit" name="le_magnet_length">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -1357,7 +1357,7 @@
     </widget>
    </item>
    <item row="9" column="1" colspan="2">
-    <widget class="QPushButton" name="savefile_btn">
+    <widget class="QPushButton" name="pbt_savefile">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -1387,7 +1387,7 @@ File</string>
     </widget>
    </item>
    <item row="6" column="1" colspan="2">
-    <widget class="QPushButton" name="savedb_btn">
+    <widget class="QPushButton" name="pbt_savedb">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -1419,36 +1419,36 @@ Database</string>
   </layout>
  </widget>
  <tabstops>
-  <tabstop>predefined_cmb</tabstop>
-  <tabstop>clear_btn</tabstop>
-  <tabstop>magnet_name_le</tabstop>
-  <tabstop>gap_le</tabstop>
-  <tabstop>control_gap_le</tabstop>
-  <tabstop>magnet_length_le</tabstop>
-  <tabstop>main_chb</tabstop>
-  <tabstop>current_main_le</tabstop>
-  <tabstop>nr_turns_main_le</tabstop>
-  <tabstop>trim_chb</tabstop>
-  <tabstop>current_trim_le</tabstop>
-  <tabstop>nr_turns_trim_le</tabstop>
-  <tabstop>ch_chb</tabstop>
-  <tabstop>current_ch_le</tabstop>
-  <tabstop>nr_turns_ch_le</tabstop>
-  <tabstop>cv_chb</tabstop>
-  <tabstop>current_cv_le</tabstop>
-  <tabstop>nr_turns_cv_le</tabstop>
-  <tabstop>qs_chb</tabstop>
-  <tabstop>current_qs_le</tabstop>
-  <tabstop>nr_turns_qs_le</tabstop>
-  <tabstop>comments_te</tabstop>
-  <tabstop>correct_displacements_chb</tabstop>
-  <tabstop>centerpos1_sb</tabstop>
-  <tabstop>centerpos2_sb</tabstop>
-  <tabstop>centerpos3_sb</tabstop>
-  <tabstop>magnet_x_axis_cmb</tabstop>
-  <tabstop>magnet_y_axis_cmb</tabstop>
-  <tabstop>savedb_btn</tabstop>
-  <tabstop>savefile_btn</tabstop>
+  <tabstop>cmb_predefined</tabstop>
+  <tabstop>tbt_clear</tabstop>
+  <tabstop>le_magnet_name</tabstop>
+  <tabstop>le_gap</tabstop>
+  <tabstop>le_control_gap</tabstop>
+  <tabstop>le_magnet_length</tabstop>
+  <tabstop>chb_main</tabstop>
+  <tabstop>le_current_main</tabstop>
+  <tabstop>le_nr_turns_main</tabstop>
+  <tabstop>chb_trim</tabstop>
+  <tabstop>le_current_trim</tabstop>
+  <tabstop>le_nr_turns_trim</tabstop>
+  <tabstop>chb_ch</tabstop>
+  <tabstop>le_current_ch</tabstop>
+  <tabstop>le_nr_turns_ch</tabstop>
+  <tabstop>chb_cv</tabstop>
+  <tabstop>le_current_cv</tabstop>
+  <tabstop>le_nr_turns_cv</tabstop>
+  <tabstop>chb_qs</tabstop>
+  <tabstop>le_current_qs</tabstop>
+  <tabstop>le_nr_turns_qs</tabstop>
+  <tabstop>te_comments</tabstop>
+  <tabstop>chb_correct_displacements</tabstop>
+  <tabstop>sbd_centerpos1</tabstop>
+  <tabstop>sbd_centerpos2</tabstop>
+  <tabstop>sbd_centerpos3</tabstop>
+  <tabstop>cmb_magnet_x_axis</tabstop>
+  <tabstop>cmb_magnet_y_axis</tabstop>
+  <tabstop>pbt_savedb</tabstop>
+  <tabstop>pbt_savefile</tabstop>
  </tabstops>
  <resources/>
  <connections/>

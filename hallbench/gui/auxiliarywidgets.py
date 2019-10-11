@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (
     QDoubleSpinBox as _QDoubleSpinBox,
     QTableWidgetItem as _QTableWidgetItem,
     QAbstractItemView as _QAbstractItemView,
-    ) 
+    )
 from qtpy.QtGui import (
     QFont as _QFont,
     QIcon as _QIcon,
@@ -40,7 +40,7 @@ from qtpy.QtGui import (
     QBrush as _QBrush,
     QPixmap as _QPixmap,
     QStandardItemModel as _QStandardItemModel,
-    ) 
+    )
 from qtpy.QtCore import (
     Qt as _Qt,
     QSize as _QSize,
@@ -63,7 +63,7 @@ _font.setBold(False)
 _font_bold = _QFont()
 _font_bold.setPointSize(11)
 _font_bold.setBold(True)
-        
+
 
 class CheckableComboBox(_QComboBox):
     """Combo box with checkable items."""
@@ -126,40 +126,40 @@ class CurrentPositionWidget(_QWidget):
         self.setWindowTitle("Position")
         self.resize(222, 282)
         self.setFont(_font)
-        
+
         main_layout = _QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
         grid_layout =_QGridLayout()
         grid_layout.setContentsMargins(6, 6, 6, 6)
-        
+
         group_box = _QGroupBox("Current Position")
         group_box.setFont(_font_bold)
         group_box.setLayout(grid_layout)
-        
+
         for idx, axis in enumerate(self._list_of_axis):
             ax_name = self._list_of_axis_names[idx]
             ax_unit = self._list_of_axis_units[idx]
-            
-            ax_name_la = _QLabel("#{0:d} (+{1:s}):".format(axis, ax_name))
-            ax_name_la.setFont(_font)
-        
-            ax_le = _QLineEdit()
-            ax_le.setMinimumSize(_QSize(110, 0))
-            ax_le.setFont(_font)
-            ax_le.setText("")
-            ax_le.setAlignment(
+
+            la_ax_name = _QLabel("#{0:d} (+{1:s}):".format(axis, ax_name))
+            la_ax_name.setFont(_font)
+
+            le_ax = _QLineEdit()
+            le_ax.setMinimumSize(_QSize(110, 0))
+            le_ax.setFont(_font)
+            le_ax.setText("")
+            le_ax.setAlignment(
                 _Qt.AlignRight|_Qt.AlignTrailing|_Qt.AlignVCenter)
-            ax_le.setReadOnly(True)
-            setattr(self, 'posax' + str(axis) + '_le', ax_le)
-            
-            ax_unit_la = _QLabel(ax_unit)
-            ax_unit_la.setFont(_font)
-            
-            grid_layout.addWidget(ax_name_la, idx, 0, 1, 1)
-            grid_layout.addWidget(ax_le, idx, 1, 1, 1)
-            grid_layout.addWidget(ax_unit_la, idx, 2, 1, 1)
+            le_ax.setReadOnly(True)
+            setattr(self, 'le_posax' + str(axis), le_ax)
+
+            la_ax_unit = _QLabel(ax_unit)
+            la_ax_unit.setFont(_font)
+
+            grid_layout.addWidget(la_ax_name, idx, 0, 1, 1)
+            grid_layout.addWidget(le_ax, idx, 1, 1, 1)
+            grid_layout.addWidget(la_ax_unit, idx, 2, 1, 1)
 
         main_layout.addWidget(group_box)
         self.setLayout(main_layout)
@@ -189,7 +189,7 @@ class CurrentPositionWidget(_QWidget):
                 return
 
             for axis in self._list_of_axis:
-                le = getattr(self, 'posax' + str(axis) + '_le')
+                le = getattr(self, 'le_posax' + str(axis))
                 if axis in self.positions:
                     pos = self.positions[axis]
                     le.setText('{0:0.4f}'.format(pos))
@@ -208,19 +208,19 @@ class InterpolationTableDialog(_QDialog):
         self.setWindowTitle("Calibration Data Table")
         self.resize(1000, 460)
         self.setFont(_font)
-        
+
         main_layout = _QHBoxLayout()
         main_layout.setSpacing(20)
-      
+
         icon = _QIcon()
         icon.addPixmap(
             _QPixmap(_utils.getIconPath('copy')), _QIcon.Normal, _QIcon.Off)
-              
+
         sensors = ["X", "Y", "Z"]
         for idx, sensor in enumerate(sensors):
             vertical_layout = _QVBoxLayout()
             horizontal_layout = _QHBoxLayout()
-            
+
             group_box = _QGroupBox("Sensor {0:s}".format(sensor.upper()))
             group_box.setFont(_font_bold)
             group_box.setAlignment(
@@ -245,44 +245,44 @@ class InterpolationTableDialog(_QDialog):
 
             label = _QLabel("Display Precision:")
             label.setFont(_font)
-        
+
             spin_box = _QSpinBox()
             spin_box.setFont(_font)
             spin_box.setValue(4)
-            setattr(self, 'sensor' + sensor.lower() + '_prec_sb', spin_box)
+            setattr(self, 'sb_sensor' + sensor.lower() + '_prec', spin_box)
 
-            copy_btn = _QToolButton()
-            copy_btn.setIcon(icon)
-            copy_btn.setIconSize(_QSize(24, 24))
-            setattr(self, 'sensor' + sensor.lower() + '_copy_btn', copy_btn)
+            tbt_copy = _QToolButton()
+            tbt_copy.setIcon(icon)
+            tbt_copy.setIconSize(_QSize(24, 24))
+            setattr(self, 'pbt_sensor' + sensor.lower() + '_copy', tbt_copy)
 
             spacer_item = _QSpacerItem(
                 40, 20, _QSizePolicy.Expanding, _QSizePolicy.Minimum)
 
             vertical_layout.addWidget(table)
             horizontal_layout.addWidget(label)
-            horizontal_layout.addWidget(spin_box)           
-            horizontal_layout.addWidget(copy_btn)
+            horizontal_layout.addWidget(spin_box)
+            horizontal_layout.addWidget(tbt_copy)
             horizontal_layout.addItem(spacer_item)
             vertical_layout.addLayout(horizontal_layout)
             main_layout.addWidget(group_box)
-        
+
         self.setLayout(main_layout)
 
         self.local_hall_probe = None
         self.clip = _QApplication.clipboard()
 
         # create connections
-        self.sensorx_copy_btn.clicked.connect(
+        self.pbt_sensorx_copy.clicked.connect(
             lambda: self.copyToClipboard('x'))
-        self.sensory_copy_btn.clicked.connect(
+        self.pbt_sensory_copy.clicked.connect(
             lambda: self.copyToClipboard('y'))
-        self.sensorz_copy_btn.clicked.connect(
+        self.pbt_sensorz_copy.clicked.connect(
             lambda: self.copyToClipboard('z'))
 
-        self.sensorx_prec_sb.valueChanged.connect(self.updateTablesensorX)
-        self.sensory_prec_sb.valueChanged.connect(self.updateTablesensorY)
-        self.sensorz_prec_sb.valueChanged.connect(self.updateTablesensorZ)
+        self.sb_sensorx_prec.valueChanged.connect(self.updateTablesensorX)
+        self.sb_sensory_prec.valueChanged.connect(self.updateTablesensorY)
+        self.sb_sensorz_prec.valueChanged.connect(self.updateTablesensorZ)
 
     def _updateTable(self, table, data, precision):
         table.setRowCount(0)
@@ -330,7 +330,7 @@ class InterpolationTableDialog(_QDialog):
 
     def updateTablesensorX(self):
         """Update sensor x table values."""
-        precision = self.sensorx_prec_sb.value()
+        precision = self.sb_sensorx_prec.value()
         table = self.sensorx_ta
 
         if self.local_hall_probe.sensorx is None:
@@ -342,7 +342,7 @@ class InterpolationTableDialog(_QDialog):
 
     def updateTablesensorY(self):
         """Update sensor y table values."""
-        precision = self.sensory_prec_sb.value()
+        precision = self.sb_sensory_prec.value()
         table = self.sensory_ta
 
         if self.local_hall_probe.sensory is None:
@@ -354,7 +354,7 @@ class InterpolationTableDialog(_QDialog):
 
     def updateTablesensorZ(self):
         """Update sensor z table values."""
-        precision = self.sensorz_prec_sb.value()
+        precision = self.sb_sensorz_prec.value()
         table = self.sensorz_ta
 
         if self.local_hall_probe.sensorz is None:
@@ -393,81 +393,81 @@ class MoveAxisWidget(_QWidget):
         grid_layout = _QGridLayout()
         grid_layout.setContentsMargins(9, 9, 9, 9)
         grid_layout.setSpacing(6)
-        
+
         self.current_position_widget = CurrentPositionWidget(self)
         self.current_position_widget.setSizePolicy(size_policy)
         self.current_position_widget.setMinimumSize(_QSize(270, 300))
         main_layout.addWidget(self.current_position_widget)
 
-        self.moveaxis_gb = _QGroupBox("Move Axis")
-        self.moveaxis_gb.setFont(_font_bold)
-        self.moveaxis_gb.setLayout(grid_layout)
-        
+        self.gb_moveaxis = _QGroupBox("Move Axis")
+        self.gb_moveaxis.setFont(_font_bold)
+        self.gb_moveaxis.setLayout(grid_layout)
+
         label = _QLabel("Axis:")
         label.setFont(_font)
         grid_layout.addWidget(label, 0, 0, 1, 1)
 
-        self.selectaxis_cmb = _QComboBox()
-        self.selectaxis_cmb.setFont(_font)
-        self.selectaxis_cmb.addItem("")
-        self.selectaxis_cmb.addItem("#1 (+Z)")
-        self.selectaxis_cmb.addItem("#2 (+Y)")
-        self.selectaxis_cmb.addItem("#3 (+X)")
-        self.selectaxis_cmb.addItem("#5 (+A)")
-        self.selectaxis_cmb.addItem("#6 (+W)")
-        self.selectaxis_cmb.addItem("#7 (+V)")
-        self.selectaxis_cmb.addItem("#8 (+B)")
-        self.selectaxis_cmb.addItem("#9 (+C)")
-        grid_layout.addWidget(self.selectaxis_cmb, 0, 1, 1, 1)
-        
+        self.cmb_selectaxis = _QComboBox()
+        self.cmb_selectaxis.setFont(_font)
+        self.cmb_selectaxis.addItem("")
+        self.cmb_selectaxis.addItem("#1 (+Z)")
+        self.cmb_selectaxis.addItem("#2 (+Y)")
+        self.cmb_selectaxis.addItem("#3 (+X)")
+        self.cmb_selectaxis.addItem("#5 (+A)")
+        self.cmb_selectaxis.addItem("#6 (+W)")
+        self.cmb_selectaxis.addItem("#7 (+V)")
+        self.cmb_selectaxis.addItem("#8 (+B)")
+        self.cmb_selectaxis.addItem("#9 (+C)")
+        grid_layout.addWidget(self.cmb_selectaxis, 0, 1, 1, 1)
+
         label = _QLabel("Velocity:")
         label.setFont(_font)
         grid_layout.addWidget(label, 1, 0, 1, 1)
 
-        self.targetvel_le = _QLineEdit()
-        self.targetvel_le.setSizePolicy(size_policy)
-        self.targetvel_le.setFont(_font)
-        grid_layout.addWidget(self.targetvel_le, 1, 1, 1, 1)
+        self.le_targetvel = _QLineEdit()
+        self.le_targetvel.setSizePolicy(size_policy)
+        self.le_targetvel.setFont(_font)
+        grid_layout.addWidget(self.le_targetvel, 1, 1, 1, 1)
 
-        self.targetvelunit_la = _QLabel("")
-        self.targetvelunit_la.setFont(_font)
-        grid_layout.addWidget(self.targetvelunit_la, 1, 2, 1, 1)
-        
+        self.la_targetvelunit = _QLabel("")
+        self.la_targetvelunit.setFont(_font)
+        grid_layout.addWidget(self.la_targetvelunit, 1, 2, 1, 1)
+
         label = _QLabel("Position:")
         label.setFont(_font)
         grid_layout.addWidget(label, 2, 0, 1, 1)
 
-        self.targetpos_le = _QLineEdit()
-        self.targetpos_le.setSizePolicy(size_policy)
-        self.targetpos_le.setFont(_font)
-        grid_layout.addWidget(self.targetpos_le, 2, 1, 1, 1)
+        self.le_targetpos = _QLineEdit()
+        self.le_targetpos.setSizePolicy(size_policy)
+        self.le_targetpos.setFont(_font)
+        grid_layout.addWidget(self.le_targetpos, 2, 1, 1, 1)
 
-        self.targetposunit_la = _QLabel("")
-        self.targetposunit_la.setFont(_font)
-        grid_layout.addWidget(self.targetposunit_la, 2, 2, 1, 1)
-        
+        self.la_targetposunit = _QLabel("")
+        self.la_targetposunit.setFont(_font)
+        grid_layout.addWidget(self.la_targetposunit, 2, 2, 1, 1)
+
         vertical_layout = _QVBoxLayout()
         vertical_layout.setSpacing(15)
 
         icon = _QIcon()
         icon.addPixmap(
-            _QPixmap(_utils.getIconPath('move')), _QIcon.Normal, _QIcon.Off)   
-        self.move_btn = _QPushButton("Move to Target")
-        self.move_btn.setIcon(icon)
-        self.move_btn.setMinimumSize(_QSize(200, 60))
-        vertical_layout.addWidget(self.move_btn)
+            _QPixmap(_utils.getIconPath('move')), _QIcon.Normal, _QIcon.Off)
+        self.pbt_move = _QPushButton("Move to Target")
+        self.pbt_move.setIcon(icon)
+        self.pbt_move.setMinimumSize(_QSize(200, 60))
+        vertical_layout.addWidget(self.pbt_move)
 
         icon = _QIcon()
         icon.addPixmap(
-            _QPixmap(_utils.getIconPath('stop')), _QIcon.Normal, _QIcon.Off)  
-        self.stop_btn = _QPushButton("Stop Motor")
-        self.stop_btn.setIcon(icon)
-        self.stop_btn.setMinimumSize(_QSize(200, 60))
-        self.stop_btn.setObjectName("stop_btn")
-        vertical_layout.addWidget(self.stop_btn)
-        
+            _QPixmap(_utils.getIconPath('stop')), _QIcon.Normal, _QIcon.Off)
+        self.pbt_stop = _QPushButton("Stop Motor")
+        self.pbt_stop.setIcon(icon)
+        self.pbt_stop.setMinimumSize(_QSize(200, 60))
+        self.pbt_stop.setObjectName("pbt_stop")
+        vertical_layout.addWidget(self.pbt_stop)
+
         grid_layout.addLayout(vertical_layout, 3, 0, 1, 3)
-        main_layout.addWidget(self.moveaxis_gb)
+        main_layout.addWidget(self.gb_moveaxis)
         self.setLayout(main_layout)
 
         self.connectSignalSlots()
@@ -488,30 +488,30 @@ class MoveAxisWidget(_QWidget):
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
-        self.targetvel_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.targetvel_le))
-        self.targetpos_le.editingFinished.connect(
-            lambda: self.setVelocityPositionStrFormat(self.targetpos_le))
+        self.le_targetvel.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.le_targetvel))
+        self.le_targetpos.editingFinished.connect(
+            lambda: self.setVelocityPositionStrFormat(self.le_targetpos))
 
-        self.selectaxis_cmb.currentIndexChanged.connect(
+        self.cmb_selectaxis.currentIndexChanged.connect(
             self.updateVelocityAndPosition)
 
-        self.move_btn.clicked.connect(self.moveToTarget)
-        self.stop_btn.clicked.connect(self.stopAxis)
+        self.pbt_move.clicked.connect(self.moveToTarget)
+        self.pbt_stop.clicked.connect(self.stopAxis)
 
     def moveToTarget(self, axis):
         """Move axis to target position."""
         try:
-            targetpos_str = self.targetpos_le.text()
-            targetvel_str = self.targetvel_le.text()
+            targetpos_str = self.le_targetpos.text()
+            targetvel_str = self.le_targetvel.text()
 
             if len(targetpos_str) == 0 or len(targetvel_str) == 0:
                 return
 
             targetpos = _utils.getValueFromStringExpresssion(
-                self.targetpos_le.text())
+                self.le_targetpos.text())
             targetvel = _utils.getValueFromStringExpresssion(
-                self.targetvel_le.text())
+                self.le_targetvel.text())
 
             axis = self.selectedAxis()
             if axis is None:
@@ -531,7 +531,7 @@ class MoveAxisWidget(_QWidget):
 
     def selectedAxis(self):
         """Return the selected axis."""
-        axis_str = self.selectaxis_cmb.currentText()
+        axis_str = self.cmb_selectaxis.currentText()
         if axis_str == '':
             return None
 
@@ -567,21 +567,21 @@ class MoveAxisWidget(_QWidget):
         try:
             axis = self.selectedAxis()
             if axis is None:
-                self.targetvel_le.setText('')
-                self.targetpos_le.setText('')
-                self.targetvelunit_la.setText('')
-                self.targetposunit_la.setText('')
+                self.le_targetvel.setText('')
+                self.le_targetpos.setText('')
+                self.la_targetvelunit.setText('')
+                self.la_targetposunit.setText('')
                 return
 
             velocity = self.pmac.get_velocity(axis)
             position = self.pmac.get_position(axis)
-            self.targetvel_le.setText(self._position_format.format(
+            self.le_targetvel.setText(self._position_format.format(
                 velocity))
-            self.targetpos_le.setText(self._position_format.format(
+            self.le_targetpos.setText(self._position_format.format(
                 position))
 
-            self.targetvelunit_la.setText(self._axis_unit[axis] + '/s')
-            self.targetposunit_la.setText(self._axis_unit[axis])
+            self.la_targetvelunit.setText(self._axis_unit[axis] + '/s')
+            self.la_targetposunit.setText(self._axis_unit[axis])
         except Exception:
             pass
 
@@ -622,30 +622,30 @@ class PolynomialTableDialog(_QDialog):
         self.setWindowTitle("Calibration Data Table")
         self.resize(1000, 650)
         self.setFont(_font)
-        
+
         main_layout = _QVBoxLayout()
         main_layout.setSpacing(20)
-        
+
         label = _QLabel(
             ("Magnetic Field [T] = C0 + C1*Voltage[V]" +
              " + C2*Voltage[V]² + C3*Voltage[V]³ + ... "))
         label.setAlignment(_Qt.AlignCenter)
         main_layout.addWidget(label)
-        
+
         icon = _QIcon()
         icon.addPixmap(
             _QPixmap(_utils.getIconPath('copy')), _QIcon.Normal, _QIcon.Off)
-               
+
         sensors = ["X", "Y", "Z"]
-        for idx, sensor in enumerate(sensors):       
+        for idx, sensor in enumerate(sensors):
             vertical_layout = _QVBoxLayout()
             form_layout = _QFormLayout()
             horizontal_layout = _QHBoxLayout()
-            
+
             group_box = _QGroupBox("Sensor {0:s}".format(sensor.upper()))
             group_box.setFont(_font_bold)
             group_box.setLayout(vertical_layout)
-            
+
             label_volt = _QLabel("Voltage Interval")
             size_policy = _QSizePolicy(
                 _QSizePolicy.Fixed, _QSizePolicy.Preferred)
@@ -655,10 +655,10 @@ class PolynomialTableDialog(_QDialog):
             label_volt.setMinimumSize(_QSize(260, 0))
             label_volt.setMaximumSize(_QSize(260, 16777215))
             label_volt.setAlignment(_Qt.AlignCenter)
-            
+
             label_poly = _QLabel("Polynomial Coefficients")
             label_poly.setAlignment(_Qt.AlignCenter)
-            
+
             table = _QTableWidget()
             table.setFont(_font)
             table.setEditTriggers(_QAbstractItemView.NoEditTriggers)
@@ -681,19 +681,19 @@ class PolynomialTableDialog(_QDialog):
             table.horizontalHeader().setStretchLastSection(True)
             table.verticalHeader().setVisible(False)
             setattr(self, 'sensor' + sensor.lower() + '_ta', table)
-            
+
             label = _QLabel("Display Precision:")
             label.setFont(_font)
-            
+
             spin_box = _QSpinBox()
             spin_box.setFont(_font)
             spin_box.setValue(4)
-            setattr(self, 'sensor' + sensor.lower() + '_prec_sb', spin_box)
-            
-            copy_btn = _QToolButton()
-            copy_btn.setIcon(icon)
-            copy_btn.setIconSize(_QSize(24, 24))
-            setattr(self, 'sensor' + sensor.lower() + '_copy_btn', copy_btn)
+            setattr(self, 'sb_sensor' + sensor.lower() + '_prec', spin_box)
+
+            tbt_copy = _QToolButton()
+            tbt_copy.setIcon(icon)
+            tbt_copy.setIconSize(_QSize(24, 24))
+            setattr(self, 'pbt_sensor' + sensor.lower() + '_copy', tbt_copy)
 
             spacer_item = _QSpacerItem(
                 40, 20, _QSizePolicy.Expanding, _QSizePolicy.Minimum)
@@ -703,31 +703,31 @@ class PolynomialTableDialog(_QDialog):
 
             horizontal_layout.addWidget(label)
             horizontal_layout.addWidget(spin_box)
-            horizontal_layout.addWidget(copy_btn)            
+            horizontal_layout.addWidget(tbt_copy)
             horizontal_layout.addItem(spacer_item)
-            
+
             vertical_layout.addLayout(form_layout)
             vertical_layout.addWidget(table)
             vertical_layout.addLayout(horizontal_layout)
-            
+
             main_layout.addWidget(group_box)
-        
+
         self.setLayout(main_layout)
 
         self.clip = _QApplication.clipboard()
         self.local_hall_probe = None
 
         # create connections
-        self.sensorx_copy_btn.clicked.connect(
+        self.pbt_sensorx_copy.clicked.connect(
             lambda: self.copyToClipboard('x'))
-        self.sensory_copy_btn.clicked.connect(
+        self.pbt_sensory_copy.clicked.connect(
             lambda: self.copyToClipboard('y'))
-        self.sensorz_copy_btn.clicked.connect(
+        self.pbt_sensorz_copy.clicked.connect(
             lambda: self.copyToClipboard('z'))
 
-        self.sensorx_prec_sb.valueChanged.connect(self.updateTableSensorX)
-        self.sensory_prec_sb.valueChanged.connect(self.updateTableSensorY)
-        self.sensorz_prec_sb.valueChanged.connect(self.updateTableSensorZ)
+        self.sb_sensorx_prec.valueChanged.connect(self.updateTableSensorX)
+        self.sb_sensory_prec.valueChanged.connect(self.updateTableSensorY)
+        self.sb_sensorz_prec.valueChanged.connect(self.updateTableSensorZ)
 
     def _updateTable(self, table, data, precision):
         table.setRowCount(0)
@@ -791,7 +791,7 @@ class PolynomialTableDialog(_QDialog):
 
     def updateTableSensorX(self):
         """Update sensor x table values."""
-        precision = self.sensorx_prec_sb.value()
+        precision = self.sb_sensorx_prec.value()
         table = self.sensorx_ta
         if self.local_hall_probe.sensorx is None:
             table.setRowCount(0)
@@ -802,7 +802,7 @@ class PolynomialTableDialog(_QDialog):
 
     def updateTableSensorY(self):
         """Update sensor y table values."""
-        precision = self.sensory_prec_sb.value()
+        precision = self.sb_sensory_prec.value()
         table = self.sensory_ta
         if self.local_hall_probe.sensory is None:
             table.setRowCount(0)
@@ -813,7 +813,7 @@ class PolynomialTableDialog(_QDialog):
 
     def updateTableSensorZ(self):
         """Update sensor z table values."""
-        precision = self.sensorz_prec_sb.value()
+        precision = self.sb_sensorz_prec.value()
         table = self.sensorz_ta
         if self.local_hall_probe.sensorz is None:
             table.setRowCount(0)
@@ -834,40 +834,40 @@ class PreferencesDialog(_QDialog):
         self.setWindowTitle("Preferences")
         self.resize(250, 400)
         self.setFont(_font)
-    
+
         main_layout = _QVBoxLayout()
-        vertical_layout = _QVBoxLayout()        
+        vertical_layout = _QVBoxLayout()
         group_box = _QGroupBox("Select Tabs to Show")
         group_box.setLayout(vertical_layout)
         group_box.setFont(_font_bold)
         main_layout.addWidget(group_box)
         self.setLayout(main_layout)
-        
+
         self.chb_names = chb_names
         for name in self.chb_names:
             name_split = name.split('_')
-            label =' '.join([s.capitalize() for s in name_split])
+            label = ' '.join([s.capitalize() for s in name_split])
             chb = _QCheckBox(label)
-            setattr(self, name + '_chb', chb)
+            setattr(self, 'chb_' + name, chb)
             vertical_layout.addWidget(chb)
             chb.setFont(_font)
-        
-        self.apply_btn = _QPushButton("Apply Changes")
-        self.apply_btn.setMinimumSize(_QSize(0, 40))
-        self.apply_btn.setFont(_font_bold)
-        vertical_layout.addWidget(self.apply_btn)         
 
-        self.apply_btn.clicked.connect(self.tabsPreferencesChanged)
-        self.connection_chb.setChecked(True)
-        self.motors_chb.setChecked(True)
-        self.measurement_chb.setChecked(True)
+        self.pbt_apply = _QPushButton("Apply Changes")
+        self.pbt_apply.setMinimumSize(_QSize(0, 40))
+        self.pbt_apply.setFont(_font_bold)
+        vertical_layout.addWidget(self.pbt_apply)
+
+        self.pbt_apply.clicked.connect(self.tabsPreferencesChanged)
+        self.chb_connection.setChecked(True)
+        self.chb_motors.setChecked(True)
+        self.chb_measurement.setChecked(True)
 
     def tabsPreferencesChanged(self):
         """Get tabs checkbox status and emit signal to change tabs."""
         try:
             chb_status = {}
             for chb_name in self.chb_names:
-                chb = getattr(self, chb_name + '_chb')
+                chb = getattr(self, 'chb_' + chb_name)
                 chb_status[chb_name] = chb.isChecked()
 
             self.preferences_changed.emit(chb_status)
@@ -889,13 +889,13 @@ class TableAnalysisDialog(_QDialog):
         self.results_ta.horizontalHeader().setStretchLastSection(True)
         self.results_ta.horizontalHeader().setDefaultSectionSize(120)
 
-        self.copy_btn = _QPushButton("Copy to clipboard")
-        self.copy_btn.clicked.connect(self.copyToClipboard)
-        self.copy_btn.setFont(_font_bold)
+        self.pbt_copy = _QPushButton("Copy to clipboard")
+        self.pbt_copy.clicked.connect(self.copyToClipboard)
+        self.pbt_copy.setFont(_font_bold)
 
         _layout = _QVBoxLayout()
         _layout.addWidget(self.results_ta)
-        _layout.addWidget(self.copy_btn)
+        _layout.addWidget(self.pbt_copy)
         self.setLayout(_layout)
         self.table_df = None
 
@@ -1003,13 +1003,13 @@ class TableDialog(_QDialog):
         self.data_ta.horizontalHeader().setStretchLastSection(True)
         self.data_ta.horizontalHeader().setDefaultSectionSize(120)
 
-        self.copy_btn = _QPushButton("Copy to clipboard")
-        self.copy_btn.clicked.connect(self.copyToClipboard)
-        self.copy_btn.setFont(_font_bold)
+        self.pbt_copy = _QPushButton("Copy to clipboard")
+        self.pbt_copy.clicked.connect(self.copyToClipboard)
+        self.pbt_copy.setFont(_font_bold)
 
         _layout = _QVBoxLayout()
         _layout.addWidget(self.data_ta)
-        _layout.addWidget(self.copy_btn)
+        _layout.addWidget(self.pbt_copy)
         self.setLayout(_layout)
         self.table_df = None
 
@@ -1090,15 +1090,15 @@ class TablePlotWidget(_QWidget):
     _left_axis_1_label = ''
     _right_axis_1_label = ''
     _right_axis_2_label = ''
-        
+
     _left_axis_1_format = '{0:.4f}'
     _right_axis_1_format = '{0:.4f}'
     _right_axis_2_format = '{0:.4f}'
-    
+
     _left_axis_1_data_labels = []
     _right_axis_1_data_labels = []
     _right_axis_2_data_labels = []
-    
+
     _left_axis_1_data_colors = []
     _right_axis_1_data_colors = []
     _right_axis_2_data_colors = []
@@ -1109,7 +1109,7 @@ class TablePlotWidget(_QWidget):
         self.resize(1230, 900)
         self.addWidgets()
         self.setFont(_font)
-     
+
         # variables initialisation
         self._timestamp = []
         self._legend_items = []
@@ -1133,10 +1133,10 @@ class TablePlotWidget(_QWidget):
 
         # create table analysis dialog
         self.table_analysis_dialog = TableAnalysisDialog()
-        
+
         # add legend to plot
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
-        self.legend.setParentItem(self.plot_pw.graphicsItem())
+        self.legend.setParentItem(self.pw_plot.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
         self.right_axis_1 = None
@@ -1176,7 +1176,7 @@ class TablePlotWidget(_QWidget):
     def addWidgets(self):
         """Add widgets and layouts."""
         icon_size = _QSize(24, 24)
-        
+
         # Layouts
         self.vertical_layout_1 = _QVBoxLayout()
         self.vertical_layout_2 = _QVBoxLayout()
@@ -1187,46 +1187,46 @@ class TablePlotWidget(_QWidget):
         self.horizontal_layout_3 = _QHBoxLayout()
         self.horizontal_layout_4 = _QHBoxLayout()
 
-        # Plot Widget            
-        self.plot_pw = _pyqtgraph.PlotWidget()
+        # Plot Widget
+        self.pw_plot = _pyqtgraph.PlotWidget()
         brush = _QBrush(_QColor(255, 255, 255))
         brush.setStyle(_Qt.NoBrush)
-        self.plot_pw.setBackgroundBrush(brush)
-        self.plot_pw.setForegroundBrush(brush)
-        self.horizontal_layout_1.addWidget(self.plot_pw)
-    
+        self.pw_plot.setBackgroundBrush(brush)
+        self.pw_plot.setForegroundBrush(brush)
+        self.horizontal_layout_1.addWidget(self.pw_plot)
+
         # Read button
-        self.read_btn = _QPushButton("Read")
-        self.read_btn.setMinimumSize(_QSize(0, 45))           
-        self.read_btn.setFont(_font_bold)
-        self.vertical_layout_2.addWidget(self.read_btn)
+        self.pbt_read = _QPushButton("Read")
+        self.pbt_read.setMinimumSize(_QSize(0, 45))
+        self.pbt_read.setFont(_font_bold)
+        self.vertical_layout_2.addWidget(self.pbt_read)
 
         # Monitor button
-        self.monitor_btn = _QPushButton("Monitor")
-        self.monitor_btn.setMinimumSize(_QSize(0, 45))
-        self.monitor_btn.setFont(_font_bold)
-        self.monitor_btn.setCheckable(True)
-        self.monitor_btn.setChecked(False)
-        self.vertical_layout_2.addWidget(self.monitor_btn)
-           
+        self.pbt_monitor = _QPushButton("Monitor")
+        self.pbt_monitor.setMinimumSize(_QSize(0, 45))
+        self.pbt_monitor.setFont(_font_bold)
+        self.pbt_monitor.setCheckable(True)
+        self.pbt_monitor.setChecked(False)
+        self.vertical_layout_2.addWidget(self.pbt_monitor)
+
         # Monitor step
         label = _QLabel("Step")
         label.setAlignment(_Qt.AlignRight|_Qt.AlignTrailing|_Qt.AlignVCenter)
         self.horizontal_layout_3.addWidget(label)
 
-        self.monitorstep_sb = _QDoubleSpinBox()
-        self.monitorstep_sb.setDecimals(1)
-        self.monitorstep_sb.setMinimum(0.1)
-        self.monitorstep_sb.setMaximum(60.0)
-        self.monitorstep_sb.setProperty("value", 10.0)
-        self.horizontal_layout_3.addWidget(self.monitorstep_sb)
+        self.sbd_monitorstep = _QDoubleSpinBox()
+        self.sbd_monitorstep.setDecimals(1)
+        self.sbd_monitorstep.setMinimum(0.1)
+        self.sbd_monitorstep.setMaximum(60.0)
+        self.sbd_monitorstep.setProperty("value", 10.0)
+        self.horizontal_layout_3.addWidget(self.sbd_monitorstep)
 
-        self.monitorunit_cmb = _QComboBox()
-        self.monitorunit_cmb.addItem("sec")
-        self.monitorunit_cmb.addItem("min")
-        self.monitorunit_cmb.addItem("hour")
-        self.horizontal_layout_3.addWidget(self.monitorunit_cmb)
-        self.vertical_layout_2.addLayout(self.horizontal_layout_3)      
+        self.cmb_monitorunit = _QComboBox()
+        self.cmb_monitorunit.addItem("sec")
+        self.cmb_monitorunit.addItem("min")
+        self.cmb_monitorunit.addItem("hour")
+        self.horizontal_layout_3.addWidget(self.cmb_monitorunit)
+        self.vertical_layout_2.addLayout(self.horizontal_layout_3)
 
         # Group box with read and monitor buttons
         self.group_box = _QGroupBox()
@@ -1256,68 +1256,68 @@ class TablePlotWidget(_QWidget):
         self.table_ta.horizontalHeader().setStretchLastSection(True)
         self.table_ta.verticalHeader().setVisible(False)
         self.horizontal_layout_4.addWidget(self.table_ta)
-        
+
         # Tool buttons
         icon = _QIcon()
         icon.addPixmap(
             _QPixmap(_utils.getIconPath('font')), _QIcon.Normal, _QIcon.Off)
-        self.autorange_btn = _QToolButton()
-        self.autorange_btn.setIcon(icon)
-        self.autorange_btn.setIconSize(icon_size)
-        self.autorange_btn.setCheckable(True)
-        self.autorange_btn.setToolTip('Turn on plot autorange.')
-        self.vertical_layout_3.addWidget(self.autorange_btn)
-        
+        self.tbt_autorange = _QToolButton()
+        self.tbt_autorange.setIcon(icon)
+        self.tbt_autorange.setIconSize(icon_size)
+        self.tbt_autorange.setCheckable(True)
+        self.tbt_autorange.setToolTip('Turn on plot autorange.')
+        self.vertical_layout_3.addWidget(self.tbt_autorange)
+
         icon = _QIcon()
         icon.addPixmap(
             _QPixmap(_utils.getIconPath('save')), _QIcon.Normal, _QIcon.Off)
-        self.save_btn = _QToolButton()
-        self.save_btn.setIcon(icon)
-        self.save_btn.setIconSize(icon_size)
-        self.save_btn.setToolTip('Save table data to file.')
-        self.vertical_layout_3.addWidget(self.save_btn)
-        
+        self.tbt_save = _QToolButton()
+        self.tbt_save.setIcon(icon)
+        self.tbt_save.setIconSize(icon_size)
+        self.tbt_save.setToolTip('Save table data to file.')
+        self.vertical_layout_3.addWidget(self.tbt_save)
+
         icon = _QIcon()
         icon.addPixmap(
             _QPixmap(_utils.getIconPath('copy')), _QIcon.Normal, _QIcon.Off)
-        self.copy_btn = _QToolButton()
-        self.copy_btn.setIcon(icon)
-        self.copy_btn.setIconSize(icon_size)
-        self.copy_btn.setToolTip('Copy table data.')
-        self.vertical_layout_3.addWidget(self.copy_btn)
+        self.tbt_copy = _QToolButton()
+        self.tbt_copy.setIcon(icon)
+        self.tbt_copy.setIconSize(icon_size)
+        self.tbt_copy.setToolTip('Copy table data.')
+        self.vertical_layout_3.addWidget(self.tbt_copy)
 
         icon = _QIcon()
         icon.addPixmap(
             _QPixmap(_utils.getIconPath('stats')), _QIcon.Normal, _QIcon.Off)
-        self.stats_btn = _QToolButton()
-        self.stats_btn.setIcon(icon)
-        self.stats_btn.setIconSize(icon_size)
-        self.stats_btn.setToolTip('Show data statistics.')
-        self.vertical_layout_3.addWidget(self.stats_btn)
-        
+        self.pbt_stats = _QToolButton()
+        self.pbt_stats.setIcon(icon)
+        self.pbt_stats.setIconSize(icon_size)
+        self.pbt_stats.setToolTip('Show data statistics.')
+        self.vertical_layout_3.addWidget(self.pbt_stats)
+
         icon = _QIcon()
         icon.addPixmap(
             _QPixmap(_utils.getIconPath('delete')), _QIcon.Normal, _QIcon.Off)
-        self.remove_btn = _QToolButton()
-        self.remove_btn.setIcon(icon)
-        self.remove_btn.setIconSize(icon_size)
-        self.remove_btn.setToolTip('Remove selected lines from table.')
-        self.vertical_layout_3.addWidget(self.remove_btn)
-        
+        self.pbt_remove = _QToolButton()
+        self.pbt_remove.setIcon(icon)
+        self.pbt_remove.setIconSize(icon_size)
+        self.pbt_remove.setToolTip('Remove selected lines from table.')
+        self.vertical_layout_3.addWidget(self.pbt_remove)
+
         icon = _QIcon()
         icon.addPixmap(
             _QPixmap(_utils.getIconPath('clear')), _QIcon.Normal, _QIcon.Off)
-        self.clear_btn = _QToolButton()
-        self.clear_btn.setIcon(icon)
-        self.clear_btn.setIconSize(icon_size)
-        self.clear_btn.setToolTip('Clear table data.')
-        self.vertical_layout_3.addWidget(self.clear_btn)
-        
+        self.tbt_clear = _QToolButton()
+        self.tbt_clear.setIcon(icon)
+        self.tbt_clear.setIconSize(icon_size)
+        self.tbt_clear.setToolTip('Clear table data.')
+        self.vertical_layout_3.addWidget(self.tbt_clear)
+
         spacer_item = _QSpacerItem(
             20, 100, _QSizePolicy.Minimum, _QSizePolicy.Fixed)
         self.vertical_layout_3.addItem(spacer_item)
         self.horizontal_layout_4.addLayout(self.vertical_layout_3)
-        
+
         self.horizontal_layout_2.addWidget(self.group_box)
         self.horizontal_layout_2.addLayout(self.horizontal_layout_4)
         self.vertical_layout_1.addLayout(self.horizontal_layout_1)
@@ -1328,7 +1328,7 @@ class TablePlotWidget(_QWidget):
         """Add widgets on the side of plot widget."""
         if not isinstance(widget_list, (list, tuple)):
             widget_list = [[widget_list]]
-        
+
         if not isinstance(widget_list[0], (list, tuple)):
             widget_list = [widget_list]
 
@@ -1338,15 +1338,15 @@ class TablePlotWidget(_QWidget):
             for wg in lt:
                 if isinstance(wg, _QPushButton):
                     wg.setMinimumHeight(45)
-                    wg.setFont(_font_bold)  
+                    wg.setFont(_font_bold)
                 _layout.addWidget(wg)
-            self.horizontal_layout_1.insertLayout(idx, _layout)       
+            self.horizontal_layout_1.insertLayout(idx, _layout)
 
     def addWidgetsNextToTable(self, widget_list):
         """Add widgets on the side of table widget."""
         if not isinstance(widget_list, (list, tuple)):
             widget_list = [[widget_list]]
-        
+
         if not isinstance(widget_list[0], (list, tuple)):
             widget_list = [widget_list]
 
@@ -1355,7 +1355,7 @@ class TablePlotWidget(_QWidget):
             for wg in lt:
                 if isinstance(wg, _QPushButton):
                     wg.setMinimumHeight(45)
-                    wg.setFont(_font_bold)    
+                    wg.setFont(_font_bold)
                 _layout.addWidget(wg)
             self.vertical_layout_2.insertLayout(idx, _layout)
 
@@ -1368,12 +1368,12 @@ class TablePlotWidget(_QWidget):
         """Clear all values."""
         if len(self._timestamp) == 0:
             return
-            
+
         msg = 'Clear table data?'
         reply = _QMessageBox.question(
             self, 'Message', msg, buttons=_QMessageBox.No|_QMessageBox.Yes,
             defaultButton=_QMessageBox.No)
-        
+
         if reply == _QMessageBox.Yes:
             self.clear()
 
@@ -1406,67 +1406,67 @@ class TablePlotWidget(_QWidget):
 
     def configurePlot(self):
         """Configure data plots."""
-        self.plot_pw.clear()
-        self.plot_pw.setLabel('bottom', 'Time interval [s]')
-        self.plot_pw.showGrid(x=True, y=True)
-        
+        self.pw_plot.clear()
+        self.pw_plot.setLabel('bottom', 'Time interval [s]')
+        self.pw_plot.showGrid(x=True, y=True)
+
         # Configure left axis 1
-        self.plot_pw.setLabel('left', self._left_axis_1_label)
-        
-        colors = self._left_axis_1_data_colors 
+        self.pw_plot.setLabel('left', self._left_axis_1_label)
+
+        colors = self._left_axis_1_data_colors
         data_labels = self._left_axis_1_data_labels
         if len(colors) != len(data_labels):
             colors = [(0, 0, 255)]*len(data_labels)
 
         for i, label in enumerate(data_labels):
             pen = colors[i]
-            graph = self.plot_pw.plotItem.plot(
-                _np.array([]), _np.array([]), pen=pen, symbol='o', 
+            graph = self.pw_plot.plotItem.plot(
+                _np.array([]), _np.array([]), pen=pen, symbol='o',
                 symbolPen=pen, symbolSize=3, symbolBrush=pen)
             self._graphs[label] = graph
 
         # Configure right axis 1
         data_labels = self._right_axis_1_data_labels
-        colors = self._right_axis_1_data_colors 
+        colors = self._right_axis_1_data_colors
         if len(colors) != len(data_labels):
             colors = [(0, 0, 255)]*len(data_labels)
 
         if len(data_labels) != 0:
             self.right_axis_1 = _utils.plotItemAddFirstRightAxis(
-                self.plot_pw.plotItem)
+                self.pw_plot.plotItem)
             self.right_axis_1.setLabel(self._right_axis_1_label)
             self.right_axis_1.setStyle(showValues=True)
-        
+
             for i, label in enumerate(data_labels):
                 pen = colors[i]
                 graph = _pyqtgraph.PlotDataItem(
-                    _np.array([]), _np.array([]), pen=pen, symbol='o', 
+                    _np.array([]), _np.array([]), pen=pen, symbol='o',
                     symbolPen=pen, symbolSize=3, symbolBrush=pen)
                 self.right_axis_1.linkedView().addItem(graph)
                 self._graphs[label] = graph
 
         # Configure right axis 2
         data_labels = self._right_axis_2_data_labels
-        colors = self._right_axis_2_data_colors 
+        colors = self._right_axis_2_data_colors
         if len(colors) != len(data_labels):
             colors = [(0, 0, 255)]*len(data_labels)
 
         if len(data_labels) != 0:
             self.right_axis_2 = _utils.plotItemAddSecondRightAxis(
-                self.plot_pw.plotItem)
+                self.pw_plot.plotItem)
             self.right_axis_2.setLabel(self._right_axis_2_label)
             self.right_axis_2.setStyle(showValues=True)
-        
+
             for i, label in enumerate(data_labels):
                 pen = colors[i]
                 graph = _pyqtgraph.PlotDataItem(
-                    _np.array([]), _np.array([]), pen=pen, symbol='o', 
+                    _np.array([]), _np.array([]), pen=pen, symbol='o',
                     symbolPen=pen, symbolSize=3, symbolBrush=pen)
                 self.right_axis_2.linkedView().addItem(graph)
                 self._graphs[label] = graph
-       
+
         # Update legend
-        self.updateLegendItems()        
+        self.updateLegendItems()
 
     def configureTable(self):
         """Configure table."""
@@ -1479,17 +1479,17 @@ class TablePlotWidget(_QWidget):
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
-        self.read_btn.clicked.connect(lambda: self.readValue(monitor=False))
-        self.monitor_btn.toggled.connect(self.monitorValue)
-        self.monitorstep_sb.valueChanged.connect(self.updateMonitorInterval)
-        self.monitorunit_cmb.currentIndexChanged.connect(
+        self.pbt_read.clicked.connect(lambda: self.readValue(monitor=False))
+        self.pbt_monitor.toggled.connect(self.monitorValue)
+        self.sbd_monitorstep.valueChanged.connect(self.updateMonitorInterval)
+        self.cmb_monitorunit.currentIndexChanged.connect(
             self.updateMonitorInterval)
-        self.autorange_btn.toggled.connect(self.enableAutorange)
-        self.save_btn.clicked.connect(self.saveToFile)
-        self.copy_btn.clicked.connect(self.copyToClipboard)
-        self.stats_btn.clicked.connect(self.showTableAnalysisDialog)
-        self.remove_btn.clicked.connect(self.removeValue)
-        self.clear_btn.clicked.connect(self.clearButtonClicked)
+        self.tbt_autorange.toggled.connect(self.enableAutorange)
+        self.tbt_save.clicked.connect(self.saveToFile)
+        self.tbt_copy.clicked.connect(self.copyToClipboard)
+        self.pbt_stats.clicked.connect(self.showTableAnalysisDialog)
+        self.pbt_remove.clicked.connect(self.removeValue)
+        self.tbt_clear.clicked.connect(self.clearButtonClicked)
 
     def copyToClipboard(self):
         """Copy table data to clipboard."""
@@ -1506,7 +1506,7 @@ class TablePlotWidget(_QWidget):
             if self.right_axis_1 is not None:
                 self.right_axis_1.linkedView().enableAutoRange(
                     axis=_pyqtgraph.ViewBox.YAxis)
-            self.plot_pw.plotItem.enableAutoRange(
+            self.pw_plot.plotItem.enableAutoRange(
                 axis=_pyqtgraph.ViewBox.YAxis)
         else:
             if self.right_axis_2 is not None:
@@ -1515,8 +1515,8 @@ class TablePlotWidget(_QWidget):
             if self.right_axis_1 is not None:
                 self.right_axis_1.linkedView().disableAutoRange(
                     axis=_pyqtgraph.ViewBox.YAxis)
-            self.plot_pw.plotItem.disableAutoRange(
-                axis=_pyqtgraph.ViewBox.YAxis)        
+            self.pw_plot.plotItem.disableAutoRange(
+                axis=_pyqtgraph.ViewBox.YAxis)
 
     def hideRightAxes(self):
         """Hide right axes."""
@@ -1530,11 +1530,11 @@ class TablePlotWidget(_QWidget):
     def monitorValue(self, checked):
         """Monitor values."""
         if checked:
-            self.read_btn.setEnabled(False)
+            self.pbt_read.setEnabled(False)
             self.timer.start()
         else:
             self.timer.stop()
-            self.read_btn.setEnabled(True)
+            self.pbt_read.setEnabled(True)
 
     def readValue(self, monitor=False):
         """Read value."""
@@ -1586,7 +1586,7 @@ class TablePlotWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to save data to file.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-       
+
     def setTableColumnSize(self, size):
         """Set table horizontal header default section size."""
         self.table_ta.horizontalHeader().setDefaultSectionSize(size)
@@ -1608,14 +1608,14 @@ class TablePlotWidget(_QWidget):
 
     def updateMonitorInterval(self):
         """Update monitor interval value."""
-        index = self.monitorunit_cmb.currentIndex()
+        index = self.cmb_monitorunit.currentIndex()
         if index == 0:
             mf = 1000
         elif index == 1:
             mf = 1000*60
         else:
             mf = 1000*3600
-        self.timer.setInterval(self.monitorstep_sb.value()*mf)
+        self.timer.setInterval(self.sbd_monitorstep.value()*mf)
 
     def updatePlot(self):
         """Update plot values."""
@@ -1633,11 +1633,11 @@ class TablePlotWidget(_QWidget):
                 dt = timeinterval[_np.isfinite(readings)]
                 rd = readings[_np.isfinite(readings)]
                 self._graphs[label].setData(dt, rd)
-        
-        if len(self._timestamp) > 2 and self.autorange_btn.isChecked():    
+
+        if len(self._timestamp) > 2 and self.tbt_autorange.isChecked():
             xmin = timeinterval[0]
             xmax = timeinterval[-1]
-            self.plot_pw.plotItem.getViewBox().setRange(xRange=(xmin, xmax))
+            self.pw_plot.plotItem.getViewBox().setRange(xRange=(xmin, xmax))
 
     def updateTableAnalysisDialog(self):
         """Update table analysis dialog."""
@@ -1670,15 +1670,15 @@ class TablePlotWidget(_QWidget):
 class TemperatureTablePlotDialog(_QDialog, TablePlotWidget):
     """Temperature table and plot dialog."""
 
-    _left_axis_1_label = 'Temperature [deg C]'       
+    _left_axis_1_label = 'Temperature [deg C]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_colors = [
         (230, 25, 75), (60, 180, 75), (0, 130, 200),
-        (245, 130, 48), (145, 30, 180), (255, 225, 25), 
-        (70, 240, 240), (240, 50, 230), (170, 110, 40), 
+        (245, 130, 48), (145, 30, 180), (255, 225, 25),
+        (70, 240, 240), (240, 50, 230), (170, 110, 40),
         (128, 0, 0), (0, 0, 0), (128, 128, 128), (0, 255, 0),
     ]
-    
+
     def __init__(self, parent=None):
         _QDialog.__init__(self, parent)
         TablePlotWidget.__init__(self, parent)
@@ -1686,9 +1686,9 @@ class TemperatureTablePlotDialog(_QDialog, TablePlotWidget):
         self.resize(1000, 800)
         self.setTableColumnSize(80)
         self.group_box.hide()
-        self.autorange_btn.hide()
-        self.remove_btn.hide()
-        self.clear_btn.hide()
+        self.tbt_autorange.hide()
+        self.pbt_remove.hide()
+        self.tbt_clear.hide()
 
     def accept(self):
         """Close dialog."""
@@ -1711,30 +1711,30 @@ class TemperatureTablePlotDialog(_QDialog, TablePlotWidget):
             self.updateTableValues()
             _QDialog.show(self)
         except Exception:
-            _traceback.print_exc(file=_sys.stdout)    
-            
-            
+            _traceback.print_exc(file=_sys.stdout)
+
+
 class TemperatureTablePlotWidget(TablePlotWidget):
     """Temperature table and plot widget."""
 
-    _left_axis_1_label = 'Temperature [deg C]'       
+    _left_axis_1_label = 'Temperature [deg C]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_colors = [
         (230, 25, 75), (60, 180, 75), (0, 130, 200),
-        (245, 130, 48), (145, 30, 180), (255, 225, 25), 
-        (70, 240, 240), (240, 50, 230), (170, 110, 40), 
+        (245, 130, 48), (145, 30, 180), (255, 225, 25),
+        (70, 240, 240), (240, 50, 230), (170, 110, 40),
         (128, 0, 0), (0, 0, 0), (128, 128, 128), (0, 255, 0),
     ]
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Temperature Readings')
         self.resize(1000, 800)
         self.setTableColumnSize(80)
         self.group_box.hide()
-        self.autorange_btn.hide()
-        self.remove_btn.hide()
-        self.clear_btn.hide()
+        self.tbt_autorange.hide()
+        self.pbt_remove.hide()
+        self.tbt_clear.hide()
 
     def updateTemperatures(self, timestamp, readings):
         """Update temperature readings."""
@@ -1750,8 +1750,8 @@ class TemperatureTablePlotWidget(TablePlotWidget):
             self.updatePlot()
             self.updateTableValues()
         except Exception:
-            _traceback.print_exc(file=_sys.stdout)        
-            
+            _traceback.print_exc(file=_sys.stdout)
+
 
 class TemperatureChannelsWidget(_QWidget):
     """Temperature channels widget class."""
@@ -1764,11 +1764,11 @@ class TemperatureChannelsWidget(_QWidget):
         self.setWindowTitle("Temperature Channels")
         self.resize(275, 525)
         self.setFont(_font)
-               
+
         main_layout = _QHBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         grid_layout = _QGridLayout()
-        
+
         group_box = _QGroupBox("Temperature [°C]")
         size_policy = _QSizePolicy(
             _QSizePolicy.Maximum, _QSizePolicy.Preferred)
@@ -1798,14 +1798,14 @@ class TemperatureChannelsWidget(_QWidget):
             chb.setFont(_font)
             chb.setChecked(False)
             chb.stateChanged.connect(self.clearChannelText)
-            setattr(self, 'channel' + ch + '_chb', chb)
-            
+            setattr(self, 'chb_channel' + ch, chb)
+
             le = _QLineEdit()
             le.setSizePolicy(size_policy)
             le.setMaximumSize(max_size)
             le.setFont(_font)
             le.setReadOnly(True)
-            setattr(self, 'channel' + ch + '_le', le)
+            setattr(self, 'le_channel' + ch, le)
 
             grid_layout.addWidget(chb, idx, 0, 1, 1)
             grid_layout.addWidget(le, idx, 1, 1, 2)
@@ -1821,24 +1821,24 @@ class TemperatureChannelsWidget(_QWidget):
             _Qt.AlignRight|_Qt.AlignTrailing|_Qt.AlignVCenter)
         grid_layout.addWidget(delay_label, len(self.channels)+1, 0, 1, 2)
 
-        self.delay_sb = _QDoubleSpinBox()
+        self.sbd_delay = _QDoubleSpinBox()
         size_policy = _QSizePolicy(_QSizePolicy.Maximum, _QSizePolicy.Fixed)
         size_policy.setHorizontalStretch(0)
         size_policy.setVerticalStretch(0)
-        self.delay_sb.setSizePolicy(size_policy)
-        self.delay_sb.setFont(_font)
-        self.delay_sb.setValue(1.0)
-        grid_layout.addWidget(self.delay_sb, len(self.channels)+1, 2, 1, 1)
-        
+        self.sbd_delay.setSizePolicy(size_policy)
+        self.sbd_delay.setFont(_font)
+        self.sbd_delay.setValue(1.0)
+        grid_layout.addWidget(self.sbd_delay, len(self.channels)+1, 2, 1, 1)
+
         main_layout.addWidget(group_box)
-        self.setLayout(main_layout)           
+        self.setLayout(main_layout)
 
     @property
     def selected_channels(self):
         """Return the selected channels."""
         selected_channels = []
         for channel in self.channels:
-            chb = getattr(self, 'channel' + channel + '_chb')
+            chb = getattr(self, 'chb_channel' + channel)
             if chb.isChecked():
                 selected_channels.append(channel)
         return selected_channels
@@ -1846,17 +1846,17 @@ class TemperatureChannelsWidget(_QWidget):
     @property
     def delay(self):
         """Return the reading delay."""
-        return self.delay_sb.value()
+        return self.sbd_delay.value()
 
     def clearChannelText(self):
         """Clear channel text if channel is not selected."""
         for channel in self.channels:
             if channel not in self.selected_channels:
-                le = getattr(self, 'channel' + channel + '_le')
+                le = getattr(self, 'le_channel' + channel)
                 le.setText('')
         self.channelChanged.emit()
 
     def updateChannelText(self, channel, text):
         """Update channel text."""
-        le = getattr(self, 'channel' + channel + '_le')
-        le.setText(text) 
+        le = getattr(self, 'le_channel' + channel)
+        le.setText(text)

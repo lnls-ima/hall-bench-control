@@ -54,7 +54,7 @@ class ConnectionWidget(_QWidget):
 
     def clearLoadOptions(self):
         """Clear load options."""
-        self.ui.idn_cmb.setCurrentIndex(-1)
+        self.ui.cmb_idn.setCurrentIndex(-1)
 
     def closeEvent(self, event):
         """Close widget."""
@@ -150,53 +150,53 @@ class ConnectionWidget(_QWidget):
     def connectSignalSlots(self):
         """Create signal/slot connections."""
         chbs = [
-            self.ui.voltx_enable_chb,
-            self.ui.volty_enable_chb,
-            self.ui.voltz_enable_chb,
-            self.ui.pmac_enable_chb,
-            self.ui.multich_enable_chb,
-            self.ui.ps_enable_chb,
-            self.ui.nmr_enable_chb, 
-            self.ui.elcomat_enable_chb,
-            self.ui.dcct_enable_chb,
-            self.ui.water_udc_enable_chb,
-            self.ui.air_udc_enable_chb,           
+            self.ui.chb_voltx_enable,
+            self.ui.chb_volty_enable,
+            self.ui.chb_voltz_enable,
+            self.ui.chb_pmac_enable,
+            self.ui.chb_multich_enable,
+            self.ui.chb_ps_enable,
+            self.ui.chb_nmr_enable,
+            self.ui.chb_elcomat_enable,
+            self.ui.chb_dcct_enable,
+            self.ui.chb_water_udc_enable,
+            self.ui.chb_air_udc_enable,
             ]
         for chb in chbs:
             chb.stateChanged.connect(self.clearLoadOptions)
-        
+
         sbs = [
-            self.ui.voltx_address_sb,
-            self.ui.volty_address_sb,
-            self.ui.voltz_address_sb,
-            self.ui.multich_address_sb,
-            self.ui.dcct_address_sb,
-            self.ui.water_udc_slave_address_sb,
-            self.ui.air_udc_slave_address_sb,
+            self.ui.sb_voltx_address,
+            self.ui.sb_volty_address,
+            self.ui.sb_voltz_address,
+            self.ui.sb_multich_address,
+            self.ui.sb_dcct_address,
+            self.ui.sb_water_udc_slave_address,
+            self.ui.sb_air_udc_slave_address,
             ]
         for sb in sbs:
             sb.valueChanged.connect(self.clearLoadOptions)
 
         cmbs = [
-            self.ui.ps_port_cmb,
-            self.ui.nmr_port_cmb,
-            self.ui.nmr_baudrate_cmb,
-            self.ui.elcomat_port_cmb,
-            self.ui.elcomat_baudrate_cmb,
-            self.ui.water_udc_port_cmb,
-            self.ui.water_udc_baudrate_cmb,
-            self.ui.air_udc_port_cmb,
-            self.ui.air_udc_baudrate_cmb,
+            self.ui.cmb_ps_port,
+            self.ui.cmb_nmr_port,
+            self.ui.cmb_nmr_baudrate,
+            self.ui.cmb_elcomat_port,
+            self.ui.cmb_elcomat_baudrate,
+            self.ui.cmb_water_udc_port,
+            self.ui.cmb_water_udc_baudrate,
+            self.ui.cmb_air_udc_port,
+            self.ui.cmb_air_udc_baudrate,
             ]
         for cmb in cmbs:
               cmb.currentIndexChanged.connect(self.clearLoadOptions)
-        
-        self.ui.idn_cmb.currentIndexChanged.connect(self.enableLoadDB)
-        self.ui.update_idn_btn.clicked.connect(self.updateConnectionIDs)
-        self.ui.loaddb_btn.clicked.connect(self.loadDB)
-        self.ui.savedb_btn.clicked.connect(self.saveDB)
-        self.ui.connect_btn.clicked.connect(self.connectDevices)
-        self.ui.disconnect_btn.clicked.connect(self.disconnectDevices)
+
+        self.ui.cmb_idn.currentIndexChanged.connect(self.enableLoadDB)
+        self.ui.tbt_update_idn.clicked.connect(self.updateConnectionIDs)
+        self.ui.pbt_loaddb.clicked.connect(self.loadDB)
+        self.ui.tbt_savedb.clicked.connect(self.saveDB)
+        self.ui.pbt_connect.clicked.connect(self.connectDevices)
+        self.ui.pbt_disconnect.clicked.connect(self.disconnectDevices)
 
     def disconnectDevices(self):
         """Disconnect bench devices."""
@@ -211,24 +211,24 @@ class ConnectionWidget(_QWidget):
 
     def enableLoadDB(self):
         """Enable button to load configuration from database."""
-        if self.ui.idn_cmb.currentIndex() != -1:
-            self.ui.loaddb_btn.setEnabled(True)
+        if self.ui.cmb_idn.currentIndex() != -1:
+            self.ui.pbt_loaddb.setEnabled(True)
         else:
-            self.ui.loaddb_btn.setEnabled(False)
+            self.ui.pbt_loaddb.setEnabled(False)
 
     def loadDB(self):
         """Load configuration from database to set parameters."""
         try:
-            idn = int(self.ui.idn_cmb.currentText())
+            idn = int(self.ui.cmb_idn.currentText())
         except Exception:
             _QMessageBox.critical(
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
 
         self.updateConnectionIDs()
-        idx = self.ui.idn_cmb.findText(str(idn))
+        idx = self.ui.cmb_idn.findText(str(idn))
         if idx == -1:
-            self.ui.idn_cmb.setCurrentIndex(-1)
+            self.ui.cmb_idn.setCurrentIndex(-1)
             _QMessageBox.critical(
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
@@ -243,84 +243,84 @@ class ConnectionWidget(_QWidget):
             return
 
         self.load()
-        self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.findText(str(idn)))
-        self.ui.loaddb_btn.setEnabled(False)
+        self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.findText(str(idn)))
+        self.ui.pbt_loaddb.setEnabled(False)
 
     def load(self):
         """Load configuration to set connection parameters."""
         try:
-            self.ui.pmac_enable_chb.setChecked(
+            self.ui.chb_pmac_enable.setChecked(
                 self.connection_config.pmac_enable)
 
-            self.ui.voltx_enable_chb.setChecked(
+            self.ui.chb_voltx_enable.setChecked(
                 self.connection_config.voltx_enable)
-            self.ui.voltx_address_sb.setValue(
+            self.ui.sb_voltx_address.setValue(
                 self.connection_config.voltx_address)
 
-            self.ui.volty_enable_chb.setChecked(
+            self.ui.chb_volty_enable.setChecked(
                 self.connection_config.volty_enable)
-            self.ui.volty_address_sb.setValue(
+            self.ui.sb_volty_address.setValue(
                 self.connection_config.volty_address)
 
-            self.ui.voltz_enable_chb.setChecked(
+            self.ui.chb_voltz_enable.setChecked(
                 self.connection_config.voltz_enable)
-            self.ui.voltz_address_sb.setValue(
+            self.ui.sb_voltz_address.setValue(
                 self.connection_config.voltz_address)
 
-            self.ui.multich_enable_chb.setChecked(
+            self.ui.chb_multich_enable.setChecked(
                 self.connection_config.multich_enable)
-            self.ui.multich_address_sb.setValue(
+            self.ui.sb_multich_address.setValue(
                 self.connection_config.multich_address)
 
-            self.ui.nmr_enable_chb.setChecked(
+            self.ui.chb_nmr_enable.setChecked(
                 self.connection_config.nmr_enable)
-            self.ui.nmr_port_cmb.setCurrentIndex(
-                self.ui.nmr_port_cmb.findText(
+            self.ui.cmb_nmr_port.setCurrentIndex(
+                self.ui.cmb_nmr_port.findText(
                     self.connection_config.nmr_port))
-            self.ui.nmr_baudrate_cmb.setCurrentIndex(
-                self.ui.nmr_baudrate_cmb.findText(
+            self.ui.cmb_nmr_baudrate.setCurrentIndex(
+                self.ui.cmb_nmr_baudrate.findText(
                     str(self.connection_config.nmr_baudrate)))
 
-            self.ui.elcomat_enable_chb.setChecked(
+            self.ui.chb_elcomat_enable.setChecked(
                 self.connection_config.elcomat_enable)
-            self.ui.elcomat_port_cmb.setCurrentIndex(
-                self.ui.elcomat_port_cmb.findText(
+            self.ui.cmb_elcomat_port.setCurrentIndex(
+                self.ui.cmb_elcomat_port.findText(
                     self.connection_config.elcomat_port))
-            self.ui.elcomat_baudrate_cmb.setCurrentIndex(
-                self.ui.elcomat_baudrate_cmb.findText(
+            self.ui.cmb_elcomat_baudrate.setCurrentIndex(
+                self.ui.cmb_elcomat_baudrate.findText(
                     str(self.connection_config.elcomat_baudrate)))
 
-            self.ui.dcct_enable_chb.setChecked(
+            self.ui.chb_dcct_enable.setChecked(
                 self.connection_config.dcct_enable)
-            self.ui.dcct_address_sb.setValue(
+            self.ui.sb_dcct_address.setValue(
                 self.connection_config.dcct_address)
 
-            self.ui.ps_enable_chb.setChecked(
+            self.ui.chb_ps_enable.setChecked(
                 self.connection_config.ps_enable)
-            self.ui.ps_port_cmb.setCurrentIndex(
-                self.ui.ps_port_cmb.findText(
+            self.ui.cmb_ps_port.setCurrentIndex(
+                self.ui.cmb_ps_port.findText(
                     self.connection_config.ps_port))
 
-            self.ui.water_udc_enable_chb.setChecked(
+            self.ui.chb_water_udc_enable.setChecked(
                 self.connection_config.water_udc_enable)
-            self.ui.water_udc_port_cmb.setCurrentIndex(
-                self.ui.water_udc_port_cmb.findText(
+            self.ui.cmb_water_udc_port.setCurrentIndex(
+                self.ui.cmb_water_udc_port.findText(
                     self.connection_config.water_udc_port))
-            self.ui.water_udc_baudrate_cmb.setCurrentIndex(
-                self.ui.water_udc_baudrate_cmb.findText(
+            self.ui.cmb_water_udc_baudrate.setCurrentIndex(
+                self.ui.cmb_water_udc_baudrate.findText(
                     str(self.connection_config.water_udc_baudrate)))
-            self.ui.water_udc_slave_address_sb.setValue(
+            self.ui.sb_water_udc_slave_address.setValue(
                 self.connection_config.water_udc_slave_address)
 
-            self.ui.air_udc_enable_chb.setChecked(
+            self.ui.chb_air_udc_enable.setChecked(
                 self.connection_config.air_udc_enable)
-            self.ui.air_udc_port_cmb.setCurrentIndex(
-                self.ui.air_udc_port_cmb.findText(
+            self.ui.cmb_air_udc_port.setCurrentIndex(
+                self.ui.cmb_air_udc_port.findText(
                     self.connection_config.air_udc_port))
-            self.ui.air_udc_baudrate_cmb.setCurrentIndex(
-                self.ui.air_udc_baudrate_cmb.findText(
+            self.ui.cmb_air_udc_baudrate.setCurrentIndex(
+                self.ui.cmb_air_udc_baudrate.findText(
                     str(self.connection_config.air_udc_baudrate)))
-            self.ui.air_udc_slave_address_sb.setValue(
+            self.ui.sb_air_udc_slave_address.setValue(
                 self.connection_config.air_udc_slave_address)
 
         except Exception:
@@ -330,15 +330,15 @@ class ConnectionWidget(_QWidget):
 
     def saveDB(self):
         """Save connection parameters to database."""
-        self.ui.idn_cmb.setCurrentIndex(-1)
+        self.ui.cmb_idn.setCurrentIndex(-1)
         if self.database is not None and _os.path.isfile(self.database):
             try:
                 if self.updateConfiguration():
                     idn = self.connection_config.save_to_database(
                         self.database)
-                    self.ui.idn_cmb.addItem(str(idn))
-                    self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
-                    self.ui.loaddb_btn.setEnabled(False)
+                    self.ui.cmb_idn.addItem(str(idn))
+                    self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.count()-1)
+                    self.ui.pbt_loaddb.setEnabled(False)
             except Exception:
                 _traceback.print_exc(file=_sys.stdout)
                 msg = 'Failed to save connection to database.'
@@ -350,19 +350,19 @@ class ConnectionWidget(_QWidget):
 
     def updateConnectionIDs(self):
         """Update connection IDs in combo box."""
-        current_text = self.ui.idn_cmb.currentText()
-        load_enabled = self.ui.loaddb_btn.isEnabled()
-        self.ui.idn_cmb.clear()
+        current_text = self.ui.cmb_idn.currentText()
+        load_enabled = self.ui.pbt_loaddb.isEnabled()
+        self.ui.cmb_idn.clear()
         try:
             idns = self.connection_config.get_table_column(
                 self.database, 'id')
-            self.ui.idn_cmb.addItems([str(idn) for idn in idns])
+            self.ui.cmb_idn.addItems([str(idn) for idn in idns])
             if len(current_text) == 0:
-                self.ui.idn_cmb.setCurrentIndex(self.ui.idn_cmb.count()-1)
-                self.ui.loaddb_btn.setEnabled(True)
+                self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.count()-1)
+                self.ui.pbt_loaddb.setEnabled(True)
             else:
-                self.ui.idn_cmb.setCurrentText(current_text)
-                self.ui.loaddb_btn.setEnabled(load_enabled)
+                self.ui.cmb_idn.setCurrentText(current_text)
+                self.ui.pbt_loaddb.setEnabled(load_enabled)
         except Exception:
             pass
 
@@ -372,69 +372,69 @@ class ConnectionWidget(_QWidget):
 
         try:
             self.connection_config.pmac_enable = (
-                self.ui.pmac_enable_chb.isChecked())
+                self.ui.chb_pmac_enable.isChecked())
 
             self.connection_config.voltx_enable = (
-                self.ui.voltx_enable_chb.isChecked())
+                self.ui.chb_voltx_enable.isChecked())
             self.connection_config.voltx_address = (
-                self.ui.voltx_address_sb.value())
+                self.ui.sb_voltx_address.value())
 
             self.connection_config.volty_enable = (
-                self.ui.volty_enable_chb.isChecked())
+                self.ui.chb_volty_enable.isChecked())
             self.connection_config.volty_address = (
-                self.ui.volty_address_sb.value())
+                self.ui.sb_volty_address.value())
 
             self.connection_config.voltz_enable = (
-                self.ui.voltz_enable_chb.isChecked())
+                self.ui.chb_voltz_enable.isChecked())
             self.connection_config.voltz_address = (
-                self.ui.voltz_address_sb.value())
+                self.ui.sb_voltz_address.value())
 
             self.connection_config.multich_enable = (
-                self.ui.multich_enable_chb.isChecked())
+                self.ui.chb_multich_enable.isChecked())
             self.connection_config.multich_address = (
-                self.ui.multich_address_sb.value())
+                self.ui.sb_multich_address.value())
 
             self.connection_config.nmr_enable = (
-                self.ui.nmr_enable_chb.isChecked())
+                self.ui.chb_nmr_enable.isChecked())
             self.connection_config.nmr_port = (
-                self.ui.nmr_port_cmb.currentText())
+                self.ui.cmb_nmr_port.currentText())
             self.connection_config.nmr_baudrate = int(
-                self.ui.nmr_baudrate_cmb.currentText())
+                self.ui.cmb_nmr_baudrate.currentText())
 
             self.connection_config.elcomat_enable = (
-                self.ui.elcomat_enable_chb.isChecked())
+                self.ui.chb_elcomat_enable.isChecked())
             self.connection_config.elcomat_port = (
-                self.ui.elcomat_port_cmb.currentText())
+                self.ui.cmb_elcomat_port.currentText())
             self.connection_config.elcomat_baudrate = int(
-                self.ui.elcomat_baudrate_cmb.currentText())
+                self.ui.cmb_elcomat_baudrate.currentText())
 
             self.connection_config.dcct_enable = (
-                self.ui.dcct_enable_chb.isChecked())
+                self.ui.chb_dcct_enable.isChecked())
             self.connection_config.dcct_address = (
-                self.ui.dcct_address_sb.value())
+                self.ui.sb_dcct_address.value())
 
             self.connection_config.ps_enable = (
-                self.ui.ps_enable_chb.isChecked())
+                self.ui.chb_ps_enable.isChecked())
             self.connection_config.ps_port = (
-                self.ui.ps_port_cmb.currentText())
+                self.ui.cmb_ps_port.currentText())
 
             self.connection_config.water_udc_enable = (
-                self.ui.water_udc_enable_chb.isChecked())
+                self.ui.chb_water_udc_enable.isChecked())
             self.connection_config.water_udc_port = (
-                self.ui.water_udc_port_cmb.currentText())
+                self.ui.cmb_water_udc_port.currentText())
             self.connection_config.water_udc_baudrate = int(
-                self.ui.water_udc_baudrate_cmb.currentText())
+                self.ui.cmb_water_udc_baudrate.currentText())
             self.connection_config.water_udc_slave_address = (
-                self.ui.water_udc_slave_address_sb.value())
+                self.ui.sb_water_udc_slave_address.value())
 
             self.connection_config.air_udc_enable = (
-                self.ui.air_udc_enable_chb.isChecked())
+                self.ui.chb_air_udc_enable.isChecked())
             self.connection_config.air_udc_port = (
-                self.ui.air_udc_port_cmb.currentText())
+                self.ui.cmb_air_udc_port.currentText())
             self.connection_config.air_udc_baudrate = int(
-                self.ui.air_udc_baudrate_cmb.currentText())
+                self.ui.cmb_air_udc_baudrate.currentText())
             self.connection_config.air_udc_slave_address = (
-                self.ui.air_udc_slave_address_sb.value())
+                self.ui.sb_air_udc_slave_address.value())
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -452,21 +452,21 @@ class ConnectionWidget(_QWidget):
         try:
             pmac_connected = self.devices.pmac.connected
             if pmac_connected is None:
-                self.ui.pmac_led_la.setEnabled(False)
+                self.ui.la_pmac_led.setEnabled(False)
             else:
-                self.ui.pmac_led_la.setEnabled(pmac_connected)
+                self.ui.la_pmac_led.setEnabled(pmac_connected)
 
-            self.ui.voltx_led_la.setEnabled(self.devices.voltx.connected)
-            self.ui.volty_led_la.setEnabled(self.devices.volty.connected)
-            self.ui.voltz_led_la.setEnabled(self.devices.voltz.connected)
-            self.ui.multich_led_la.setEnabled(self.devices.multich.connected)
-            self.ui.nmr_led_la.setEnabled(self.devices.nmr.connected)
-            self.ui.elcomat_led_la.setEnabled(self.devices.elcomat.connected)
-            self.ui.dcct_led_la.setEnabled(self.devices.dcct.connected)
-            self.ui.ps_led_la.setEnabled(self.devices.ps.ser.is_open)
-            self.ui.water_udc_led_la.setEnabled(
+            self.ui.la_voltx_led.setEnabled(self.devices.voltx.connected)
+            self.ui.la_volty_led.setEnabled(self.devices.volty.connected)
+            self.ui.la_voltz_led.setEnabled(self.devices.voltz.connected)
+            self.ui.la_multich_led.setEnabled(self.devices.multich.connected)
+            self.ui.la_nmr_led.setEnabled(self.devices.nmr.connected)
+            self.ui.la_elcomat_led.setEnabled(self.devices.elcomat.connected)
+            self.ui.la_dcct_led.setEnabled(self.devices.dcct.connected)
+            self.ui.la_ps_led.setEnabled(self.devices.ps.ser.is_open)
+            self.ui.la_water_udc_led.setEnabled(
                 self.devices.water_udc.connected)
-            self.ui.air_udc_led_la.setEnabled(
+            self.ui.la_air_udc_led.setEnabled(
                 self.devices.air_udc.connected)
 
         except Exception:
@@ -492,17 +492,17 @@ class ConnectionWidget(_QWidget):
         _ports.sort(key=_k)
         _ports = [_s + key for key in _ports]
 
-        self.ui.ps_port_cmb.clear()
-        self.ui.ps_port_cmb.addItems(_ports)
+        self.ui.cmb_ps_port.clear()
+        self.ui.cmb_ps_port.addItems(_ports)
 
-        self.ui.nmr_port_cmb.clear()
-        self.ui.nmr_port_cmb.addItems(_ports)
+        self.ui.cmb_nmr_port.clear()
+        self.ui.cmb_nmr_port.addItems(_ports)
 
-        self.ui.elcomat_port_cmb.clear()
-        self.ui.elcomat_port_cmb.addItems(_ports)
+        self.ui.cmb_elcomat_port.clear()
+        self.ui.cmb_elcomat_port.addItems(_ports)
 
-        self.ui.water_udc_port_cmb.clear()
-        self.ui.water_udc_port_cmb.addItems(_ports)
+        self.ui.cmb_water_udc_port.clear()
+        self.ui.cmb_water_udc_port.addItems(_ports)
 
-        self.ui.air_udc_port_cmb.clear()
-        self.ui.air_udc_port_cmb.addItems(_ports)
+        self.ui.cmb_air_udc_port.clear()
+        self.ui.cmb_air_udc_port.addItems(_ports)

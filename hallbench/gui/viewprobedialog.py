@@ -46,7 +46,7 @@ class ViewProbeDialog(_QDialog):
 
         self.configureGraph()
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
-        self.legend.setParentItem(self.ui.plot_pw.graphicsItem())
+        self.legend.setParentItem(self.ui.pw_plot.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
         self.connectSignalSlots()
@@ -68,7 +68,7 @@ class ViewProbeDialog(_QDialog):
         self.graphx = []
         self.graphy = []
         self.graphz = []
-        self.ui.plot_pw.clear()
+        self.ui.pw_plot.clear()
         self.interpolation_dialog.clear()
         self.polynomial_dialog.clear()
 
@@ -93,7 +93,7 @@ class ViewProbeDialog(_QDialog):
 
     def configureGraph(self, symbol=False):
         """Configure data plots."""
-        self.ui.plot_pw.clear()
+        self.ui.pw_plot.clear()
 
         self.graphx = []
         self.graphy = []
@@ -104,7 +104,7 @@ class ViewProbeDialog(_QDialog):
         penz = (0, 0, 255)
 
         if symbol:
-            plot_item_x = self.ui.plot_pw.plotItem.plot(
+            plot_item_x = self.ui.pw_plot.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=penx,
@@ -113,7 +113,7 @@ class ViewProbeDialog(_QDialog):
                 symbolSize=4,
                 symbolBrush=penx)
 
-            plot_item_y = self.ui.plot_pw.plotItem.plot(
+            plot_item_y = self.ui.pw_plot.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=peny,
@@ -122,7 +122,7 @@ class ViewProbeDialog(_QDialog):
                 symbolSize=4,
                 symbolBrush=peny)
 
-            plot_item_z = self.ui.plot_pw.plotItem.plot(
+            plot_item_z = self.ui.pw_plot.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=penz,
@@ -131,17 +131,17 @@ class ViewProbeDialog(_QDialog):
                 symbolSize=4,
                 symbolBrush=penz)
         else:
-            plot_item_x = self.ui.plot_pw.plotItem.plot(
+            plot_item_x = self.ui.pw_plot.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=penx)
 
-            plot_item_y = self.ui.plot_pw.plotItem.plot(
+            plot_item_y = self.ui.pw_plot.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=peny)
 
-            plot_item_z = self.ui.plot_pw.plotItem.plot(
+            plot_item_z = self.ui.pw_plot.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=penz)
@@ -150,21 +150,21 @@ class ViewProbeDialog(_QDialog):
         self.graphy.append(plot_item_y)
         self.graphz.append(plot_item_z)
 
-        self.ui.plot_pw.setLabel('bottom', 'Voltage [V]')
-        self.ui.plot_pw.setLabel('left', 'Magnetic Field [T]')
-        self.ui.plot_pw.showGrid(x=True, y=True)
+        self.ui.pw_plot.setLabel('bottom', 'Voltage [V]')
+        self.ui.pw_plot.setLabel('left', 'Magnetic Field [T]')
+        self.ui.pw_plot.showGrid(x=True, y=True)
 
     def connectSignalSlots(self):
         """Create signal/slot connections."""
-        self.ui.showtable_btn.clicked.connect(self.showTable)
-        self.ui.updategraph_btn.clicked.connect(self.updateGraph)
-        self.ui.voltage_sb.valueChanged.connect(self.updateField)
+        self.ui.pbt_showtable.clicked.connect(self.showTable)
+        self.ui.pbt_updategraph.clicked.connect(self.updateGraph)
+        self.ui.sbd_voltage.valueChanged.connect(self.updateField)
 
     def load(self):
         """Load hall probe parameters."""
         try:
-            self.ui.probe_name_le.setText(self.local_hall_probe.probe_name)
-            self.ui.rod_shape_le.setText(self.local_hall_probe.rod_shape)
+            self.ui.le_probe_name.setText(self.local_hall_probe.probe_name)
+            self.ui.le_rod_shape.setText(self.local_hall_probe.rod_shape)
 
             if self.local_hall_probe.sensorx_name is not None:
                 sensorx_name = self.local_hall_probe.sensorx_name
@@ -199,23 +199,23 @@ class ViewProbeDialog(_QDialog):
                 sensorz_position = ''
                 sensorz_direction = ''
 
-            self.ui.sensorx_name_le.setText(sensorx_name)
-            self.ui.sensorx_position_le.setText(sensorx_position)
-            self.ui.sensorx_direction_le.setText(sensorx_direction)
+            self.ui.le_sensorx_name.setText(sensorx_name)
+            self.ui.le_sensorx_position.setText(sensorx_position)
+            self.ui.le_sensorx_direction.setText(sensorx_direction)
 
-            self.ui.sensory_name_le.setText(sensory_name)
-            self.ui.sensory_position_le.setText(sensory_position)
-            self.ui.sensory_direction_le.setText(sensory_direction)
+            self.ui.le_sensory_name.setText(sensory_name)
+            self.ui.le_sensory_position.setText(sensory_position)
+            self.ui.le_sensory_direction.setText(sensory_direction)
 
-            self.ui.sensorz_name_le.setText(sensorz_name)
-            self.ui.sensorz_position_le.setText(sensorz_position)
-            self.ui.sensorz_direction_le.setText(sensorz_direction)
+            self.ui.le_sensorz_name.setText(sensorz_name)
+            self.ui.le_sensorz_position.setText(sensorz_position)
+            self.ui.le_sensorz_direction.setText(sensorz_direction)
 
             self.setDataEnabled(True)
             self.updateGraph()
-            self.ui.fieldx_le.setText('')
-            self.ui.fieldy_le.setText('')
-            self.ui.fieldz_le.setText('')
+            self.ui.le_fieldx.setText('')
+            self.ui.le_fieldy.setText('')
+            self.ui.le_fieldz.setText('')
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -227,11 +227,11 @@ class ViewProbeDialog(_QDialog):
 
     def setDataEnabled(self, enabled):
         """Enable or disable controls."""
-        self.ui.probedata_gb.setEnabled(enabled)
-        self.ui.showtable_btn.setEnabled(enabled)
-        self.ui.plotoptions_gb.setEnabled(enabled)
-        self.ui.updategraph_btn.setEnabled(enabled)
-        self.ui.getfield_gb.setEnabled(enabled)
+        self.ui.gb_probedata.setEnabled(enabled)
+        self.ui.pbt_showtable.setEnabled(enabled)
+        self.ui.gb_plotoptions.setEnabled(enabled)
+        self.ui.pbt_updategraph.setEnabled(enabled)
+        self.ui.gb_getfield.setEnabled(enabled)
 
     def show(self, hall_probe):
         """Show dialog."""
@@ -272,15 +272,15 @@ class ViewProbeDialog(_QDialog):
 
     def updateField(self):
         """Convert voltage to magnetic field."""
-        self.ui.fieldx_le.setText('')
-        self.ui.fieldy_le.setText('')
-        self.ui.fieldz_le.setText('')
+        self.ui.le_fieldx.setText('')
+        self.ui.le_fieldy.setText('')
+        self.ui.le_fieldz.setText('')
 
         if self.local_hall_probe is None:
             return
 
         try:
-            volt = [self.ui.voltage_sb.value()]
+            volt = [self.ui.sbd_voltage.value()]
 
             if self.local_hall_probe.sensorx is not None:
                 fieldx = self.local_hall_probe.sensorx.get_field(volt)[0]
@@ -298,13 +298,13 @@ class ViewProbeDialog(_QDialog):
                 fieldz = _np.nan
 
             if not _np.isnan(fieldx):
-                self.ui.fieldx_le.setText('{0:0.4f}'.format(fieldx))
+                self.ui.le_fieldx.setText('{0:0.4f}'.format(fieldx))
 
             if not _np.isnan(fieldy):
-                self.ui.fieldy_le.setText('{0:0.4f}'.format(fieldy))
+                self.ui.le_fieldy.setText('{0:0.4f}'.format(fieldy))
 
             if not _np.isnan(fieldz):
-                self.ui.fieldz_le.setText('{0:0.4f}'.format(fieldz))
+                self.ui.le_fieldz.setText('{0:0.4f}'.format(fieldz))
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to update magnetic field values.'
@@ -314,13 +314,13 @@ class ViewProbeDialog(_QDialog):
     def updateGraph(self):
         """Update data plots."""
         try:
-            vmin = self.ui.voltagemin_sb.value()
-            vmax = self.ui.voltagemax_sb.value()
-            npts = self.ui.voltagenpts_sb.value()
+            vmin = self.ui.sbd_voltagemin.value()
+            vmax = self.ui.sbd_voltagemax.value()
+            npts = self.ui.sbd_voltagenpts.value()
             voltage = _np.linspace(vmin, vmax, npts)
             empty_data = _np.ones(len(voltage))*_np.nan
 
-            self.ui.plot_pw.clear()
+            self.ui.pw_plot.clear()
             self.legend.removeItem('X')
             self.legend.removeItem('Y')
             self.legend.removeItem('Z')
@@ -343,7 +343,7 @@ class ViewProbeDialog(_QDialog):
             else:
                 fieldz = empty_data
 
-            symbol = self.ui.addmarkers_chb.isChecked()
+            symbol = self.ui.chb_addmarkers.isChecked()
             self.configureGraph(symbol=symbol)
 
             with _warnings.catch_warnings():

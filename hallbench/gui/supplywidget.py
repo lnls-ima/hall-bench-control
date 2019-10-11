@@ -65,27 +65,27 @@ class SupplyWidget(_QWidget):
         self.ui.pb_plot.clicked.connect(self.plot)
         self.ui.pb_config_ps.clicked.connect(self.config_ps)
         self.ui.pb_add_row.clicked.connect(lambda: self.add_row(
-            self.ui.tw_currents))
+            self.ui.tbl_currents))
         self.ui.pb_remove_row.clicked.connect(lambda: self.remove_row(
-            self.ui.tw_currents))
+            self.ui.tbl_currents))
         self.ui.pb_clear_table.clicked.connect(lambda: self.clear_table(
-            self.ui.tw_currents))
+            self.ui.tbl_currents))
         self.ui.pb_add_row_2.clicked.connect(lambda: self.add_row(
-            self.ui.tw_trapezoidal))
+            self.ui.tbl_trapezoidal))
         self.ui.pb_remove_row_2.clicked.connect(lambda: self.remove_row(
-            self.ui.tw_trapezoidal))
+            self.ui.tbl_trapezoidal))
         self.ui.pb_clear_table_2.clicked.connect(lambda: self.clear_table(
-            self.ui.tw_trapezoidal))
+            self.ui.tbl_trapezoidal))
         self.ui.cb_ps_name.currentIndexChanged.connect(self.change_ps)
         self.ui.cb_ps_name.editTextChanged.connect(self.change_ps)
-        self.ui.sb_current_setpoint.valueChanged.connect(self.check_setpoint)
+        self.ui.sbd_current_setpoint.valueChanged.connect(self.check_setpoint)
         self.timer.timeout.connect(self.status_powersupply)
 
         self.probe_calibration_config_plot()
-        self.ui.pc_measure_btn.clicked.connect(self.probe_calibration_measure)
-        self.ui.pc_updatefreq_btn.clicked.connect(
+        self.ui.pbt_pc_measure.clicked.connect(self.probe_calibration_measure)
+        self.ui.pbt_pc_updatefreq.clicked.connect(
             self.probe_calibration_update_nmr_freq)
-        self.ui.pc_copy_btn.clicked.connect(self.probe_calibration_copy)
+        self.ui.pbt_pc_copy.clicked.connect(self.probe_calibration_copy)
 
     @property
     def connection_config(self):
@@ -119,7 +119,7 @@ class SupplyWidget(_QWidget):
         """Close widget."""
         try:
             if self.config.status:
-               self.start_powersupply()             
+               self.start_powersupply()
             self.closeDialogs()
             event.accept()
         except Exception:
@@ -415,7 +415,7 @@ class SupplyWidget(_QWidget):
             self.config.ps_name = self.ui.cb_ps_name.currentText()
             self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
             self.config.dclink = self.ui.sb_dclink.value()
-            self.config.ps_setpoint = self.ui.sb_current_setpoint.value()
+            self.config.ps_setpoint = self.ui.sbd_current_setpoint.value()
             self.config.maximum_current = float(self.ui.le_maximum_current.text())
             self.config.minimum_current = float(self.ui.le_minimum_current.text())
             dcct_head_str = self.ui.cb_dcct_select.currentText().replace(' A', '')
@@ -423,11 +423,11 @@ class SupplyWidget(_QWidget):
                 self.config.dcct_head = int(dcct_head_str)
             except Exception:
                 self.config.dcct_head = None
-            self.config.Kp = self.ui.sb_kp.value()
-            self.config.Ki = self.ui.sb_ki.value()
-            self.config.current_array = self.table_to_array(self.ui.tw_currents)
+            self.config.Kp = self.ui.sbd_kp.value()
+            self.config.Ki = self.ui.sbd_ki.value()
+            self.config.current_array = self.table_to_array(self.ui.tbl_currents)
             self.config.trapezoidal_array = self.table_to_array(
-                self.ui.tw_trapezoidal)
+                self.ui.tbl_trapezoidal)
             self.config.trapezoidal_offset = float(
                 self.ui.le_trapezoidal_offset.text())
             self.config.sinusoidal_amplitude = float(
@@ -480,16 +480,16 @@ class SupplyWidget(_QWidget):
             self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
             self.ui.cb_ps_type.setCurrentIndex(self.config.ps_type - 2)
             self.ui.sb_dclink.setValue(self.config.dclink)
-            self.ui.sb_current_setpoint.setValue(self.config.ps_setpoint)
+            self.ui.sbd_current_setpoint.setValue(self.config.ps_setpoint)
             self.ui.le_maximum_current.setText(str(self.config.maximum_current))
             self.ui.le_minimum_current.setText(str(self.config.minimum_current))
             self.ui.cb_dcct_select.setCurrentText(str(self.config.dcct_head) +
                                                   ' A')
-            self.ui.sb_kp.setValue(self.config.Kp)
-            self.ui.sb_ki.setValue(self.config.Ki)
-            self.array_to_table(self.config.current_array, self.ui.tw_currents)
+            self.ui.sbd_kp.setValue(self.config.Kp)
+            self.ui.sbd_ki.setValue(self.config.Ki)
+            self.array_to_table(self.config.current_array, self.ui.tbl_currents)
             self.array_to_table(self.config.trapezoidal_array,
-                                self.ui.tw_trapezoidal)
+                                self.ui.tbl_trapezoidal)
             self.ui.le_trapezoidal_offset.setText(str(
                 self.config.trapezoidal_offset))
             self.ui.le_sinusoidal_amplitude.setText(str(
@@ -553,8 +553,8 @@ class SupplyWidget(_QWidget):
 
     def pid_setting(self):
         """Set power supply PID configurations."""
-        self.config.Kp = self.ui.sb_kp.value()
-        self.config.Ki = self.ui.sb_ki.value()
+        self.config.Kp = self.ui.sbd_kp.value()
+        self.config.Ki = self.ui.sbd_ki.value()
         _ps_type = self.config.ps_type
         if not self.set_address(_ps_type):
             return
@@ -696,7 +696,7 @@ class SupplyWidget(_QWidget):
     def send_setpoint(self):
         """Sends configured current setpoint to the power supply."""
         try:
-            _setpoint = self.ui.sb_current_setpoint.value()
+            _setpoint = self.ui.sbd_current_setpoint.value()
             _ans = self.current_setpoint(_setpoint)
             if _ans:
                 _QMessageBox.information(self, 'Information',
@@ -711,18 +711,18 @@ class SupplyWidget(_QWidget):
             return
 
     def check_setpoint(self):
-        _setpoint = self.ui.sb_current_setpoint.value()
+        _setpoint = self.ui.sbd_current_setpoint.value()
         _maximum_current = self.config.maximum_current
         _minimum_current = self.config.minimum_current
         if _maximum_current is None:
             return
         if _setpoint > self.config.maximum_current:
-            self.ui.sb_current_setpoint.setValue(_maximum_current)
+            self.ui.sbd_current_setpoint.setValue(_maximum_current)
             _QMessageBox.warning(self, 'Warning',
                                  'Current value is too high.',
                                  _QMessageBox.Ok)
         elif _setpoint < self.config.minimum_current:
-            self.ui.sb_current_setpoint.setValue(_minimum_current)
+            self.ui.sbd_current_setpoint.setValue(_minimum_current)
             _QMessageBox.warning(self, 'Warning',
                                  'Current value is too low.',
                                  _QMessageBox.Ok)
@@ -756,13 +756,13 @@ class SupplyWidget(_QWidget):
 
         if not chk_offset:
             if _current > _current_max:
-                self.ui.sb_current_setpoint.setValue(float(_current_max))
+                self.ui.sbd_current_setpoint.setValue(float(_current_max))
                 _current = _current_max
                 _QMessageBox.warning(self, 'Warning', 'Current value is too '
                                      'high', _QMessageBox.Ok)
                 return False
             if _current < _current_min:
-                self.ui.sb_current_setpoint.setValue(float(_current_min))
+                self.ui.sbd_current_setpoint.setValue(float(_current_min))
                 _current = _current_min
                 _QMessageBox.warning(self, 'Warning', 'Current value is too '
                                      'low.', _QMessageBox.Ok)
@@ -1076,7 +1076,7 @@ class SupplyWidget(_QWidget):
 
             _offset = self.config.dsinusoidal2_offset
             _array = self.config.trapezoidal_array
-    #         _array = self.table_to_array(self.ui.tw_trapezoidal)
+    #         _array = self.table_to_array(self.ui.tbl_trapezoidal)
 
             for i in range(len(_array)):
                 if not self.verify_current_limits(_array[i, 0] + _offset):
@@ -1104,19 +1104,19 @@ class SupplyWidget(_QWidget):
             return False
 
     def add_row(self, tw):
-        """Adds row into tw_currents tableWidget."""
+        """Adds row into tbl_currents tableWidget."""
         _tw = tw
         _idx = _tw.rowCount()
         _tw.insertRow(_idx)
 
     def remove_row(self, tw):
-        """Removes selected row from tw_currents tableWidget."""
+        """Removes selected row from tbl_currents tableWidget."""
         _tw = tw
         _idx = _tw.currentRow()
         _tw.removeRow(_idx)
 
     def clear_table(self, tw):
-        """Clears tw_currents tableWidget."""
+        """Clears tbl_currents tableWidget."""
         _tw = tw
         _tw.clearContents()
         _ncells = _tw.rowCount()
@@ -1129,12 +1129,12 @@ class SupplyWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
 
     def table_to_array(self, tw):
-        """Returns tw_currents tableWidget values in a numpy array."""
+        """Returns tbl_currents tableWidget values in a numpy array."""
         _tw = tw
         _ncells = _tw.rowCount()
         _current_array = []
         _time_flag = False
-        if _tw == self.ui.tw_trapezoidal:
+        if _tw == self.ui.tbl_trapezoidal:
             _time_flag = True
             _time_array = []
         try:
@@ -1161,12 +1161,12 @@ class SupplyWidget(_QWidget):
             return _np.array([])
 
     def array_to_table(self, array, tw):
-        """Inserts array values into tw_currents tableWidget."""
+        """Inserts array values into tbl_currents tableWidget."""
         _tw = tw
         _ncells = _tw.rowCount()
         _array = array
         _time_flag = False
-        if _tw == self.ui.tw_trapezoidal:
+        if _tw == self.ui.tbl_trapezoidal:
             _time_flag = True
         if _ncells > 0:
             self.clear_table(_tw)
@@ -1258,7 +1258,7 @@ class SupplyWidget(_QWidget):
                 else:
                     _slope = self.slope[2]
                 _offset = float(self.ui.le_trapezoidal_offset.text())
-                _array = self.table_to_array(self.ui.tw_trapezoidal)
+                _array = self.table_to_array(self.ui.tbl_trapezoidal)
                 _t0 = 0
                 for i in range(len(_array)):
                     _i0 = _offset
@@ -1391,49 +1391,49 @@ class SupplyWidget(_QWidget):
     def probe_calibration_config_plot(self):
         try:
             legend = _pyqtgraph.LegendItem(offset=(100, 30))
-            legend.setParentItem(self.ui.pc_plot_pw.graphicsItem())
-            legend.setAutoFillBackground(1)            
-            
-            self.ui.pc_plot_pw.clear()
-            p = self.ui.pc_plot_pw.plotItem  
+            legend.setParentItem(self.ui.pw_pc_plot.graphicsItem())
+            legend.setAutoFillBackground(1)
+
+            self.ui.pw_pc_plot.clear()
+            p = self.ui.pw_pc_plot.plotItem
             pr1 = _pyqtgraph.ViewBox()
             p.showAxis('right')
             ax_pr1 = p.getAxis('right')
             p.scene().addItem(pr1)
             ax_pr1.linkToView(pr1)
             pr1.setXLink(p)
-    
+
             def updateViews():
                 pr1.setGeometry(p.vb.sceneBoundingRect())
                 pr1.linkedViewChanged(p.vb, pr1.XAxis)
-    
+
             updateViews()
             p.vb.sigResized.connect(updateViews)
             ax_pr1.setStyle(showValues=True)
-          
+
             penv = (0, 0, 255)
-            graphv = self.ui.pc_plot_pw.plotItem.plot(
+            graphv = self.ui.pw_pc_plot.plotItem.plot(
                 _np.array([]), _np.array([]), pen=penv,
                 symbol='o', symbolPen=penv, symbolSize=3, symbolBrush=penv)
-  
+
             penf = (0, 255, 0)
             graphf = _pyqtgraph.PlotDataItem(
-                _np.array([]), _np.array([]), pen=penf, 
+                _np.array([]), _np.array([]), pen=penf,
                 symbol='o', symbolPen=penf, symbolSize=3, symbolBrush=penf)
             ax_pr1.linkedView().addItem(graphf)
-    
+
             legend.addItem(graphv, 'Voltage')
             legend.addItem(graphf, 'Field')
-            self.ui.pc_plot_pw.showGrid(x=True, y=True)
-            self.ui.pc_plot_pw.setLabel('bottom', 'Time interval [s]')
-            self.ui.pc_plot_pw.setLabel('left', 'Voltage [V]')
+            self.ui.pw_pc_plot.showGrid(x=True, y=True)
+            self.ui.pw_pc_plot.setLabel('bottom', 'Time interval [s]')
+            self.ui.pw_pc_plot.setLabel('left', 'Voltage [V]')
             ax_pr1.setLabel('Field [T]')
 
             self.graphv = graphv
             self.graphf = graphf
 
         except Exception:
-            _traceback.print_exc(file=_sys.stdout)        
+            _traceback.print_exc(file=_sys.stdout)
 
     def probe_calibration_update_nmr_freq(self):
         try:
@@ -1442,8 +1442,8 @@ class SupplyWidget(_QWidget):
                 msg = 'NMR not connected.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
                 return False
-            
-            nmr_freq = self.ui.pc_nmrfreq_sb.value()
+
+            nmr_freq = self.ui.sb_pc_nmrfreq.value()
             nmr.send_command(nmr.commands.frequency+str(nmr_freq))
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -1451,55 +1451,55 @@ class SupplyWidget(_QWidget):
 
     def probe_calibration_measure(self):
         try:
-            self.ui.pc_measure_btn.setEnabled(False)
-            
+            self.ui.pbt_pc_measure.setEnabled(False)
+
             self.graphv.setData([], [])
             self.graphf.setData([], [])
-            self.ui.pc_volt_le.setText('')
-            self.ui.pc_voltstd_le.setText('')          
-            self.ui.pc_field_le.setText('')
-            self.ui.pc_fieldstd_le.setText('')
+            self.ui.le_pc_volt.setText('')
+            self.ui.le_pc_voltstd.setText('')
+            self.ui.le_pc_field.setText('')
+            self.ui.le_pc_fieldstd.setText('')
 
             nmr = self.devices.nmr
             if not nmr.connected:
                 msg = 'NMR not connected.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pc_measure_btn.setEnabled(True)
+                self.ui.pbt_pc_measure.setEnabled(True)
                 return False
-            
-            if self.ui.pc_sensorx_rb.isChecked():
+
+            if self.ui.rbt_pc_sensorx.isChecked():
                 volt = self.ui.devices.voltx
-            elif self.ui.pc_sensory_rb.isChecked():
+            elif self.ui.rbt_pc_sensory.isChecked():
                 volt = self.ui.devices.volty
-            elif self.ui.pc_sensorz_rb.isChecked():
+            elif self.ui.rbt_pc_sensorz.isChecked():
                 volt = self.ui.devices.voltz
-            else:    
+            else:
                 msg = 'Invalid sensor selection.'
-                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)                
-                self.ui.pc_measure_btn.setEnabled(True)
+                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
+                self.ui.pbt_pc_measure.setEnabled(True)
                 return False
-            
+
             if not volt.connected:
                 msg = 'Multimeter not connected.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pc_measure_btn.setEnabled(True)                
-                return False                
-            
-            nmr_channel = self.ui.pc_nmrchannel_cmb.currentText()
-            nmr_freq = self.ui.pc_nmrfreq_sb.value()
-            nmr_sense = self.ui.pc_nmrsense_cmb.currentIndex()
-            
+                self.ui.pbt_pc_measure.setEnabled(True)
+                return False
+
+            nmr_channel = self.ui.cmb_pc_nmrchannel.currentText()
+            nmr_freq = self.ui.sb_pc_nmrfreq.value()
+            nmr_sense = self.ui.cmb_pc_nmrsense.currentIndex()
+
             if not nmr.configure(nmr_freq, 1, nmr_sense, 1, 0, 1, nmr_channel, 1):
                 msg = 'Failed to configure NMR.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pc_measure_btn.setEnabled(True)                
-                return False                 
-            
+                self.ui.pbt_pc_measure.setEnabled(True)
+                return False
+
             ps_type = self.config.ps_type
             if not self.set_address(ps_type):
-                self.ui.pc_measure_btn.setEnabled(True)
+                self.ui.pbt_pc_measure.setEnabled(True)
                 return False
- 
+
             if ps_type in [2, 3]:
                 slope = self.slope[ps_type - 2]
             else:
@@ -1511,28 +1511,28 @@ class SupplyWidget(_QWidget):
             fs = []
             vs = []
 
-            i = self.ui.pc_current_sb.value()
+            i = self.ui.sbd_pc_current.value()
             if not self.verify_current_limits(i):
-                self.ui.pc_measure_btn.setEnabled(True)
+                self.ui.pbt_pc_measure.setEnabled(True)
                 return False
 
-            current_time = self.ui.pc_time_sb.value()
-            reading_delay = self.ui.pc_delay_sb.value()
-            reading_time = self.ui.pc_readingtime_sb.value()
-            
+            current_time = self.ui.sb_pc_time.value()
+            reading_delay = self.ui.sb_pc_delay.value()
+            reading_time = self.ui.sb_pc_readingtime.value()
+
             if reading_time > current_time or reading_time == 0:
                 msg = 'Invalid reading time.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pc_measure_btn.setEnabled(True)                
-                return False                 
-            
+                self.ui.pbt_pc_measure.setEnabled(True)
+                return False
+
             t_border = abs(i) / slope
             t0 = _time.monotonic()
             deadline = t0 + t_border + current_time
             tr0 = t0
-            
+
             self.drs.SetISlowRef(i)
-            tr = 0            
+            tr = 0
             while _time.monotonic() < deadline:
                 _QApplication.processEvents()
                 t = _time.monotonic() - t0
@@ -1559,45 +1559,45 @@ class SupplyWidget(_QWidget):
                         self.graphf.setData(ts, fs)
                 else:
                     tr0 = _time.monotonic()
-                _time.sleep(0.01)      
-            
+                _time.sleep(0.01)
+
             self.drs.SetISlowRef(0)
-            
+
             vn = [v for v in vs if not _np.isnan(v)]
             fn = [f for f in fs if not _np.isnan(f)]
-            
+
             if len(vn) > 0:
-                self.ui.pc_volt_le.setText('{0:.8f}'.format(_np.mean(vn)))
-                self.ui.pc_voltstd_le.setText('{0:.8f}'.format(_np.std(vn)))
+                self.ui.le_pc_volt.setText('{0:.8f}'.format(_np.mean(vn)))
+                self.ui.le_pc_voltstd.setText('{0:.8f}'.format(_np.std(vn)))
             else:
-                self.ui.pc_volt_le.setText('')
-                self.ui.pc_voltstd_le.setText('')
+                self.ui.le_pc_volt.setText('')
+                self.ui.le_pc_voltstd.setText('')
 
             if len(fn) > 0:
-                self.ui.pc_field_le.setText('{0:.8f}'.format(_np.mean(fn)))
-                self.ui.pc_fieldstd_le.setText('{0:.8f}'.format(_np.std(fn)))
+                self.ui.le_pc_field.setText('{0:.8f}'.format(_np.mean(fn)))
+                self.ui.le_pc_fieldstd.setText('{0:.8f}'.format(_np.std(fn)))
             else:
-                self.ui.pc_field_le.setText('')
-                self.ui.pc_fieldstd_le.setText('')
-            
-            self.ui.pc_measure_btn.setEnabled(True)
+                self.ui.le_pc_field.setText('')
+                self.ui.le_pc_fieldstd.setText('')
+
+            self.ui.pbt_pc_measure.setEnabled(True)
             msg = 'Measurement finished.'
-            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)           
+            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
             return True
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            self.ui.pc_measure_btn.setEnabled(True)
+            self.ui.pbt_pc_measure.setEnabled(True)
             return False
 
     def probe_calibration_copy(self):
         try:
-            f = self.ui.pc_field_le.text()
-            fstd = self.ui.pc_fieldstd_le.text()
-            v = self.ui.pc_volt_le.text()
-            vstd = self.ui.pc_voltstd_le.text()
+            f = self.ui.le_pc_field.text()
+            fstd = self.ui.le_pc_fieldstd.text()
+            v = self.ui.le_pc_volt.text()
+            vstd = self.ui.le_pc_voltstd.text()
             df = _pd.DataFrame([[f, fstd, v, vstd]])
             df.to_clipboard(header=False, index=False)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            return False        
+            return False

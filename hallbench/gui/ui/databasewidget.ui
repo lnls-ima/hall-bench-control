@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>database_wg</class>
- <widget class="QWidget" name="database_wg">
+ <class>wg_database</class>
+ <widget class="QWidget" name="wg_database">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -41,7 +41,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="save_btn">
+      <widget class="QPushButton" name="pbt_save">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -58,7 +58,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="read_btn">
+      <widget class="QPushButton" name="pbt_read">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -75,7 +75,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="delete_btn">
+      <widget class="QPushButton" name="pbt_delete">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -117,7 +117,7 @@
        <property name="currentIndex">
         <number>5</number>
        </property>
-       <widget class="QWidget" name="hall_probe_pg">
+       <widget class="QWidget" name="pg_hall_probe">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -131,7 +131,7 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_10">
          <item row="0" column="0">
-          <widget class="QPushButton" name="view_hall_probe_btn">
+          <widget class="QPushButton" name="pbt_view_hall_probe">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -161,7 +161,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="configuration_pg">
+       <widget class="QWidget" name="pg_configuration">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -175,7 +175,7 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_4">
          <item row="0" column="0">
-          <widget class="QPushButton" name="remove_unused_configurations_btn">
+          <widget class="QPushButton" name="pbt_remove_unused_configurations">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -208,7 +208,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="voltage_scan_pg">
+       <widget class="QWidget" name="pg_voltage_scan">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -222,7 +222,7 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="0">
-          <widget class="QPushButton" name="view_voltage_scan_btn">
+          <widget class="QPushButton" name="pbt_view_voltage_scan">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -251,7 +251,7 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QPushButton" name="convert_to_field_scan_btn">
+          <widget class="QPushButton" name="pbt_convert_to_field_scan">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -281,7 +281,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="field_scan_pg">
+       <widget class="QWidget" name="pg_field_scan">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -295,7 +295,7 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_3">
          <item row="0" column="0">
-          <widget class="QPushButton" name="view_field_scan_btn">
+          <widget class="QPushButton" name="pbt_view_field_scan">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -324,7 +324,7 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QPushButton" name="create_fieldmap_btn">
+          <widget class="QPushButton" name="pbt_create_fieldmap">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -354,7 +354,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="fieldmap_pg">
+       <widget class="QWidget" name="pg_fieldmap">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -368,7 +368,7 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_6">
          <item row="0" column="0">
-          <widget class="QPushButton" name="view_fieldmap_btn">
+          <widget class="QPushButton" name="pbt_view_fieldmap">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -401,7 +401,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="empty_pg">
+       <widget class="QWidget" name="pg_empty">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -475,7 +475,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="short_version_chb">
+      <widget class="QCheckBox" name="chb_short_version">
        <property name="text">
         <string>Short Version</string>
        </property>
@@ -485,7 +485,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="refresh_btn">
+      <widget class="QToolButton" name="tbt_refresh">
        <property name="text">
         <string>...</string>
        </property>
@@ -502,7 +502,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="clear_btn">
+      <widget class="QToolButton" name="tbt_clear">
        <property name="text">
         <string>...</string>
        </property>
@@ -521,7 +521,7 @@
     </layout>
    </item>
    <item row="1" column="0">
-    <widget class="QTabWidget" name="database_tab">
+    <widget class="QTabWidget" name="twg_database">
      <property name="font">
       <font>
        <weight>50</weight>
@@ -547,15 +547,15 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>short_version_chb</tabstop>
-  <tabstop>database_tab</tabstop>
-  <tabstop>view_hall_probe_btn</tabstop>
-  <tabstop>remove_unused_configurations_btn</tabstop>
-  <tabstop>view_voltage_scan_btn</tabstop>
-  <tabstop>convert_to_field_scan_btn</tabstop>
-  <tabstop>view_field_scan_btn</tabstop>
-  <tabstop>create_fieldmap_btn</tabstop>
-  <tabstop>view_fieldmap_btn</tabstop>
+  <tabstop>chb_short_version</tabstop>
+  <tabstop>twg_database</tabstop>
+  <tabstop>pbt_view_hall_probe</tabstop>
+  <tabstop>pbt_remove_unused_configurations</tabstop>
+  <tabstop>pbt_view_voltage_scan</tabstop>
+  <tabstop>pbt_convert_to_field_scan</tabstop>
+  <tabstop>pbt_view_field_scan</tabstop>
+  <tabstop>pbt_create_fieldmap</tabstop>
+  <tabstop>pbt_view_fieldmap</tabstop>
  </tabstops>
  <resources/>
  <connections/>

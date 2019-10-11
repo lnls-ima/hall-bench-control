@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>motors_wg</class>
- <widget class="QWidget" name="motors_wg">
+ <class>wg_motors</class>
+ <widget class="QWidget" name="wg_motors">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -26,7 +26,7 @@
     <number>10</number>
    </property>
    <item row="1" column="0">
-    <widget class="QGroupBox" name="homing_gb">
+    <widget class="QGroupBox" name="gb_homing">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -71,7 +71,7 @@
          <number>10</number>
         </property>
         <item row="3" column="1">
-         <widget class="QLabel" name="ledax5_la">
+         <widget class="QLabel" name="la_ledax5">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -108,7 +108,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QCheckBox" name="homingax5_chb">
+         <widget class="QCheckBox" name="chb_homingax5">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -121,7 +121,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLabel" name="ledax3_la">
+         <widget class="QLabel" name="la_ledax3">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -158,7 +158,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLabel" name="ledax2_la">
+         <widget class="QLabel" name="la_ledax2">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -195,7 +195,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLabel" name="ledax1_la">
+         <widget class="QLabel" name="la_ledax1">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -232,7 +232,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QCheckBox" name="homingax3_chb">
+         <widget class="QCheckBox" name="chb_homingax3">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -245,7 +245,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QCheckBox" name="homingax2_chb">
+         <widget class="QCheckBox" name="chb_homingax2">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -258,7 +258,7 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="homingax1_chb">
+         <widget class="QCheckBox" name="chb_homingax1">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -294,7 +294,7 @@
          <number>10</number>
         </property>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="homingax6_chb">
+         <widget class="QCheckBox" name="chb_homingax6">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -307,7 +307,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLabel" name="ledax6_la">
+         <widget class="QLabel" name="la_ledax6">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -344,7 +344,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QCheckBox" name="homingax7_chb">
+         <widget class="QCheckBox" name="chb_homingax7">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -357,7 +357,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLabel" name="ledax7_la">
+         <widget class="QLabel" name="la_ledax7">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -394,7 +394,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QCheckBox" name="homingax8_chb">
+         <widget class="QCheckBox" name="chb_homingax8">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -407,7 +407,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLabel" name="ledax8_la">
+         <widget class="QLabel" name="la_ledax8">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -444,7 +444,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QCheckBox" name="homingax9_chb">
+         <widget class="QCheckBox" name="chb_homingax9">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -457,7 +457,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLabel" name="ledax9_la">
+         <widget class="QLabel" name="la_ledax9">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -496,7 +496,7 @@
        </layout>
       </item>
       <item row="2" column="0" colspan="3">
-       <widget class="QPushButton" name="homing_btn">
+       <widget class="QPushButton" name="pbt_homing">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -531,7 +531,7 @@
     <layout class="QVBoxLayout" name="position_lt"/>
    </item>
    <item row="2" column="0">
-    <widget class="QGroupBox" name="limits_gb">
+    <widget class="QGroupBox" name="gb_limits">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -692,7 +692,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="minax1_le">
+         <widget class="QLineEdit" name="le_minax1">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -711,7 +711,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLineEdit" name="minax2_le">
+         <widget class="QLineEdit" name="le_minax2">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -727,7 +727,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLineEdit" name="maxax1_le">
+         <widget class="QLineEdit" name="le_maxax1">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -743,7 +743,7 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QLineEdit" name="maxax2_le">
+         <widget class="QLineEdit" name="le_maxax2">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -759,7 +759,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLineEdit" name="minax3_le">
+         <widget class="QLineEdit" name="le_minax3">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -775,7 +775,7 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QLineEdit" name="maxax3_le">
+         <widget class="QLineEdit" name="le_maxax3">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -795,7 +795,7 @@
       <item row="2" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPushButton" name="setlimits_btn">
+         <widget class="QPushButton" name="pbt_setlimits">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -811,7 +811,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="resetlimits_btn">
+         <widget class="QPushButton" name="pbt_resetlimits">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -860,7 +860,7 @@
        <number>20</number>
       </property>
       <item>
-       <widget class="QPushButton" name="activate_btn">
+       <widget class="QPushButton" name="pbt_activate">
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -879,7 +879,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="stopall_btn">
+       <widget class="QPushButton" name="pbt_stopall">
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -898,7 +898,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="killall_btn">
+       <widget class="QPushButton" name="pbt_killall">
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -920,7 +920,7 @@
     </widget>
    </item>
    <item row="1" column="1" colspan="3">
-    <widget class="QGroupBox" name="moveaxis_gb">
+    <widget class="QGroupBox" name="gb_moveaxis">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -952,7 +952,7 @@
          <number>30</number>
         </property>
         <item row="2" column="2">
-         <widget class="QLabel" name="reldispunit_la">
+         <widget class="QLabel" name="la_reldispunit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -971,7 +971,7 @@
          </widget>
         </item>
         <item row="0" column="1" colspan="2">
-         <widget class="QComboBox" name="selectaxis_cmb">
+         <widget class="QComboBox" name="cmb_selectaxis">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -1026,7 +1026,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLabel" name="targetvelunit_la">
+         <widget class="QLabel" name="la_targetvelunit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1045,7 +1045,7 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QLabel" name="targetposunit_la">
+         <widget class="QLabel" name="la_targetposunit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1077,7 +1077,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="targetvel_le">
+         <widget class="QLineEdit" name="le_targetvel">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -1126,7 +1126,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLineEdit" name="reldisp_le">
+         <widget class="QLineEdit" name="le_reldisp">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -1136,7 +1136,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLineEdit" name="targetpos_le">
+         <widget class="QLineEdit" name="le_targetpos">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -1148,7 +1148,7 @@
        </layout>
       </item>
       <item row="0" column="1">
-       <widget class="QPushButton" name="move_btn">
+       <widget class="QPushButton" name="pbt_move">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -1168,7 +1168,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QPushButton" name="stop_btn">
+       <widget class="QPushButton" name="pbt_stop">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -1191,7 +1191,7 @@
     </widget>
    </item>
    <item row="2" column="1" colspan="3">
-    <widget class="QGroupBox" name="trigger_gb">
+    <widget class="QGroupBox" name="gb_trigger">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -1240,7 +1240,7 @@
          </widget>
         </item>
         <item row="1" column="1" colspan="2">
-         <widget class="QLineEdit" name="trigvel_le">
+         <widget class="QLineEdit" name="le_trigvel">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1313,7 +1313,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLineEdit" name="trigstart_le">
+         <widget class="QLineEdit" name="le_trigstart">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1329,7 +1329,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLineEdit" name="trigstep_le">
+         <widget class="QLineEdit" name="le_trigstep">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1345,7 +1345,7 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QLineEdit" name="trigend_le">
+         <widget class="QLineEdit" name="le_trigend">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1363,7 +1363,7 @@
         <item row="4" column="0" colspan="3">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QCheckBox" name="trigpause_chb">
+           <widget class="QCheckBox" name="chb_trigpause">
             <property name="font">
              <font>
               <weight>50</weight>
@@ -1392,7 +1392,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="trigdelay_sb">
+           <widget class="QDoubleSpinBox" name="sbd_trigdelay">
             <property name="font">
              <font>
               <weight>50</weight>
@@ -1404,7 +1404,7 @@
          </layout>
         </item>
         <item row="0" column="1" colspan="2">
-         <widget class="QComboBox" name="selecttrigaxis_cmb">
+         <widget class="QComboBox" name="cmb_selecttrigaxis">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1467,7 +1467,7 @@
        </layout>
       </item>
       <item row="0" column="1">
-       <widget class="QPushButton" name="trigandmove_btn">
+       <widget class="QPushButton" name="pbt_trigandmove">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -1487,7 +1487,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QPushButton" name="trigstop_btn">
+       <widget class="QPushButton" name="pbt_trigstop">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -1512,41 +1512,41 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>activate_btn</tabstop>
-  <tabstop>stopall_btn</tabstop>
-  <tabstop>killall_btn</tabstop>
-  <tabstop>homingax1_chb</tabstop>
-  <tabstop>homingax2_chb</tabstop>
-  <tabstop>homingax3_chb</tabstop>
-  <tabstop>homingax5_chb</tabstop>
-  <tabstop>homingax6_chb</tabstop>
-  <tabstop>homingax7_chb</tabstop>
-  <tabstop>homingax8_chb</tabstop>
-  <tabstop>homingax9_chb</tabstop>
-  <tabstop>homing_btn</tabstop>
-  <tabstop>minax1_le</tabstop>
-  <tabstop>maxax1_le</tabstop>
-  <tabstop>minax2_le</tabstop>
-  <tabstop>maxax2_le</tabstop>
-  <tabstop>minax3_le</tabstop>
-  <tabstop>maxax3_le</tabstop>
-  <tabstop>setlimits_btn</tabstop>
-  <tabstop>resetlimits_btn</tabstop>
-  <tabstop>selectaxis_cmb</tabstop>
-  <tabstop>targetvel_le</tabstop>
-  <tabstop>reldisp_le</tabstop>
-  <tabstop>targetpos_le</tabstop>
-  <tabstop>move_btn</tabstop>
-  <tabstop>stop_btn</tabstop>
-  <tabstop>selecttrigaxis_cmb</tabstop>
-  <tabstop>trigvel_le</tabstop>
-  <tabstop>trigstart_le</tabstop>
-  <tabstop>trigstep_le</tabstop>
-  <tabstop>trigend_le</tabstop>
-  <tabstop>trigpause_chb</tabstop>
-  <tabstop>trigdelay_sb</tabstop>
-  <tabstop>trigandmove_btn</tabstop>
-  <tabstop>trigstop_btn</tabstop>
+  <tabstop>pbt_activate</tabstop>
+  <tabstop>pbt_stopall</tabstop>
+  <tabstop>pbt_killall</tabstop>
+  <tabstop>chb_homingax1</tabstop>
+  <tabstop>chb_homingax2</tabstop>
+  <tabstop>chb_homingax3</tabstop>
+  <tabstop>chb_homingax5</tabstop>
+  <tabstop>chb_homingax6</tabstop>
+  <tabstop>chb_homingax7</tabstop>
+  <tabstop>chb_homingax8</tabstop>
+  <tabstop>chb_homingax9</tabstop>
+  <tabstop>pbt_homing</tabstop>
+  <tabstop>le_minax1</tabstop>
+  <tabstop>le_maxax1</tabstop>
+  <tabstop>le_minax2</tabstop>
+  <tabstop>le_maxax2</tabstop>
+  <tabstop>le_minax3</tabstop>
+  <tabstop>le_maxax3</tabstop>
+  <tabstop>pbt_setlimits</tabstop>
+  <tabstop>pbt_resetlimits</tabstop>
+  <tabstop>cmb_selectaxis</tabstop>
+  <tabstop>le_targetvel</tabstop>
+  <tabstop>le_reldisp</tabstop>
+  <tabstop>le_targetpos</tabstop>
+  <tabstop>pbt_move</tabstop>
+  <tabstop>pbt_stop</tabstop>
+  <tabstop>cmb_selecttrigaxis</tabstop>
+  <tabstop>le_trigvel</tabstop>
+  <tabstop>le_trigstart</tabstop>
+  <tabstop>le_trigstep</tabstop>
+  <tabstop>le_trigend</tabstop>
+  <tabstop>chb_trigpause</tabstop>
+  <tabstop>sbd_trigdelay</tabstop>
+  <tabstop>pbt_trigandmove</tabstop>
+  <tabstop>pbt_trigstop</tabstop>
  </tabstops>
  <resources/>
  <connections/>

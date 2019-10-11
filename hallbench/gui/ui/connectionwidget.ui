@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>connection_wg</class>
- <widget class="QWidget" name="connection_wg">
+ <class>wg_connection</class>
+ <widget class="QWidget" name="wg_connection">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -53,7 +53,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="idn_cmb">
+         <widget class="QComboBox" name="cmb_idn">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -63,7 +63,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="update_idn_btn">
+         <widget class="QToolButton" name="tbt_update_idn">
           <property name="text">
            <string>...</string>
           </property>
@@ -111,7 +111,7 @@
        </spacer>
       </item>
       <item row="0" column="7" rowspan="2">
-       <widget class="QPushButton" name="disconnect_btn">
+       <widget class="QPushButton" name="pbt_disconnect">
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -130,7 +130,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QToolButton" name="savedb_btn">
+       <widget class="QToolButton" name="tbt_savedb">
         <property name="text">
          <string>...</string>
         </property>
@@ -147,7 +147,7 @@
        </widget>
       </item>
       <item row="0" column="5" rowspan="2">
-       <widget class="QPushButton" name="connect_btn">
+       <widget class="QPushButton" name="pbt_connect">
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -166,7 +166,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QPushButton" name="loaddb_btn">
+       <widget class="QPushButton" name="pbt_loaddb">
         <property name="minimumSize">
          <size>
           <width>230</width>
@@ -204,7 +204,7 @@
         <item row="2" column="0">
          <layout class="QGridLayout" name="gridLayout_7">
           <item row="0" column="2">
-           <widget class="QLabel" name="nmr_led_la">
+           <widget class="QLabel" name="la_nmr_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -241,7 +241,7 @@
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="nmr_enable_chb">
+           <widget class="QCheckBox" name="chb_nmr_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -254,7 +254,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="nmr_port_cmb">
+           <widget class="QComboBox" name="cmb_nmr_port">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -277,7 +277,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QComboBox" name="nmr_baudrate_cmb">
+           <widget class="QComboBox" name="cmb_nmr_baudrate">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -451,7 +451,7 @@
         <item>
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="1" alignment="Qt::AlignVCenter">
-           <widget class="QLabel" name="pmac_led_la">
+           <widget class="QLabel" name="la_pmac_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -488,7 +488,7 @@
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="pmac_enable_chb">
+           <widget class="QCheckBox" name="chb_pmac_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -558,7 +558,7 @@
         <item>
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="1" column="1">
-           <widget class="QComboBox" name="elcomat_baudrate_cmb">
+           <widget class="QComboBox" name="cmb_elcomat_baudrate">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -606,7 +606,7 @@
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="elcomat_enable_chb">
+           <widget class="QCheckBox" name="chb_elcomat_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -632,7 +632,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="elcomat_port_cmb">
+           <widget class="QComboBox" name="cmb_elcomat_port">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -642,7 +642,7 @@
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QLabel" name="elcomat_led_la">
+           <widget class="QLabel" name="la_elcomat_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -719,7 +719,7 @@
            <number>15</number>
           </property>
           <item row="2" column="2" alignment="Qt::AlignVCenter">
-           <widget class="QLabel" name="voltz_led_la">
+           <widget class="QLabel" name="la_voltz_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -753,7 +753,7 @@
            </widget>
           </item>
           <item row="0" column="2" alignment="Qt::AlignVCenter">
-           <widget class="QLabel" name="voltx_led_la">
+           <widget class="QLabel" name="la_voltx_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -787,7 +787,7 @@
            </widget>
           </item>
           <item row="1" column="2" alignment="Qt::AlignVCenter">
-           <widget class="QLabel" name="volty_led_la">
+           <widget class="QLabel" name="la_volty_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -821,14 +821,14 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QCheckBox" name="voltz_enable_chb">
+           <widget class="QCheckBox" name="chb_voltz_enable">
             <property name="text">
              <string>Z-axis</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="voltx_enable_chb">
+           <widget class="QCheckBox" name="chb_voltx_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -841,7 +841,7 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="volty_enable_chb">
+           <widget class="QCheckBox" name="chb_volty_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -854,7 +854,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="voltx_address_sb">
+           <widget class="QSpinBox" name="sb_voltx_address">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -864,7 +864,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QSpinBox" name="volty_address_sb">
+           <widget class="QSpinBox" name="sb_volty_address">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -874,7 +874,7 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QSpinBox" name="voltz_address_sb">
+           <widget class="QSpinBox" name="sb_voltz_address">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -983,7 +983,7 @@ Power Supply</string>
         <item row="3" column="0">
          <layout class="QGridLayout" name="gridLayout_15">
           <item row="0" column="0">
-           <widget class="QCheckBox" name="ps_enable_chb">
+           <widget class="QCheckBox" name="chb_ps_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -996,7 +996,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="ps_port_cmb">
+           <widget class="QComboBox" name="cmb_ps_port">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1006,7 +1006,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QLabel" name="ps_led_la">
+           <widget class="QLabel" name="la_ps_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1084,7 +1084,7 @@ Power Supply</string>
         <item row="3" column="0">
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="2" alignment="Qt::AlignVCenter">
-           <widget class="QLabel" name="multich_led_la">
+           <widget class="QLabel" name="la_multich_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1121,7 +1121,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="multich_enable_chb">
+           <widget class="QCheckBox" name="chb_multich_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1134,7 +1134,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="multich_address_sb">
+           <widget class="QSpinBox" name="sb_multich_address">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -1269,7 +1269,7 @@ Power Supply</string>
         <item row="2" column="0">
          <layout class="QGridLayout" name="gridLayout_14">
           <item row="0" column="2">
-           <widget class="QLabel" name="dcct_led_la">
+           <widget class="QLabel" name="la_dcct_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1306,7 +1306,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="dcct_enable_chb">
+           <widget class="QCheckBox" name="chb_dcct_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1319,7 +1319,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="dcct_address_sb">
+           <widget class="QSpinBox" name="sb_dcct_address">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -1348,7 +1348,7 @@ Power Supply</string>
         <item row="2" column="0">
          <layout class="QGridLayout" name="gridLayout_18">
           <item row="1" column="1">
-           <widget class="QComboBox" name="water_udc_baudrate_cmb">
+           <widget class="QComboBox" name="cmb_water_udc_baudrate">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1396,7 +1396,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="water_udc_enable_chb">
+           <widget class="QCheckBox" name="chb_water_udc_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1409,7 +1409,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="water_udc_port_cmb">
+           <widget class="QComboBox" name="cmb_water_udc_port">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1432,7 +1432,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QLabel" name="water_udc_led_la">
+           <widget class="QLabel" name="la_water_udc_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1476,7 +1476,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QSpinBox" name="water_udc_slave_address_sb">
+           <widget class="QSpinBox" name="sb_water_udc_slave_address">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -1554,7 +1554,7 @@ Power Supply</string>
         <item row="2" column="0">
          <layout class="QGridLayout" name="gridLayout_20">
           <item row="1" column="1">
-           <widget class="QComboBox" name="air_udc_baudrate_cmb">
+           <widget class="QComboBox" name="cmb_air_udc_baudrate">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1602,7 +1602,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="air_udc_enable_chb">
+           <widget class="QCheckBox" name="chb_air_udc_enable">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1615,7 +1615,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="air_udc_port_cmb">
+           <widget class="QComboBox" name="cmb_air_udc_port">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1638,7 +1638,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QLabel" name="air_udc_led_la">
+           <widget class="QLabel" name="la_air_udc_led">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1682,7 +1682,7 @@ Power Supply</string>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QSpinBox" name="air_udc_slave_address_sb">
+           <widget class="QSpinBox" name="sb_air_udc_slave_address">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -1752,39 +1752,39 @@ Power Supply</string>
   <zorder></zorder>
  </widget>
  <tabstops>
-  <tabstop>idn_cmb</tabstop>
-  <tabstop>update_idn_btn</tabstop>
-  <tabstop>loaddb_btn</tabstop>
-  <tabstop>savedb_btn</tabstop>
-  <tabstop>connect_btn</tabstop>
-  <tabstop>disconnect_btn</tabstop>
-  <tabstop>voltx_enable_chb</tabstop>
-  <tabstop>voltx_address_sb</tabstop>
-  <tabstop>volty_enable_chb</tabstop>
-  <tabstop>volty_address_sb</tabstop>
-  <tabstop>voltz_enable_chb</tabstop>
-  <tabstop>voltz_address_sb</tabstop>
-  <tabstop>pmac_enable_chb</tabstop>
-  <tabstop>multich_enable_chb</tabstop>
-  <tabstop>multich_address_sb</tabstop>
-  <tabstop>ps_enable_chb</tabstop>
-  <tabstop>ps_port_cmb</tabstop>
-  <tabstop>nmr_enable_chb</tabstop>
-  <tabstop>nmr_port_cmb</tabstop>
-  <tabstop>nmr_baudrate_cmb</tabstop>
-  <tabstop>elcomat_enable_chb</tabstop>
-  <tabstop>elcomat_port_cmb</tabstop>
-  <tabstop>elcomat_baudrate_cmb</tabstop>
-  <tabstop>dcct_enable_chb</tabstop>
-  <tabstop>dcct_address_sb</tabstop>
-  <tabstop>water_udc_enable_chb</tabstop>
-  <tabstop>water_udc_port_cmb</tabstop>
-  <tabstop>water_udc_baudrate_cmb</tabstop>
-  <tabstop>water_udc_slave_address_sb</tabstop>
-  <tabstop>air_udc_enable_chb</tabstop>
-  <tabstop>air_udc_port_cmb</tabstop>
-  <tabstop>air_udc_baudrate_cmb</tabstop>
-  <tabstop>air_udc_slave_address_sb</tabstop>
+  <tabstop>cmb_idn</tabstop>
+  <tabstop>tbt_update_idn</tabstop>
+  <tabstop>pbt_loaddb</tabstop>
+  <tabstop>tbt_savedb</tabstop>
+  <tabstop>pbt_connect</tabstop>
+  <tabstop>pbt_disconnect</tabstop>
+  <tabstop>chb_voltx_enable</tabstop>
+  <tabstop>sb_voltx_address</tabstop>
+  <tabstop>chb_volty_enable</tabstop>
+  <tabstop>sb_volty_address</tabstop>
+  <tabstop>chb_voltz_enable</tabstop>
+  <tabstop>sb_voltz_address</tabstop>
+  <tabstop>chb_pmac_enable</tabstop>
+  <tabstop>chb_multich_enable</tabstop>
+  <tabstop>sb_multich_address</tabstop>
+  <tabstop>chb_ps_enable</tabstop>
+  <tabstop>cmb_ps_port</tabstop>
+  <tabstop>chb_nmr_enable</tabstop>
+  <tabstop>cmb_nmr_port</tabstop>
+  <tabstop>cmb_nmr_baudrate</tabstop>
+  <tabstop>chb_elcomat_enable</tabstop>
+  <tabstop>cmb_elcomat_port</tabstop>
+  <tabstop>cmb_elcomat_baudrate</tabstop>
+  <tabstop>chb_dcct_enable</tabstop>
+  <tabstop>sb_dcct_address</tabstop>
+  <tabstop>chb_water_udc_enable</tabstop>
+  <tabstop>cmb_water_udc_port</tabstop>
+  <tabstop>cmb_water_udc_baudrate</tabstop>
+  <tabstop>sb_water_udc_slave_address</tabstop>
+  <tabstop>chb_air_udc_enable</tabstop>
+  <tabstop>cmb_air_udc_port</tabstop>
+  <tabstop>cmb_air_udc_baudrate</tabstop>
+  <tabstop>sb_air_udc_slave_address</tabstop>
  </tabstops>
  <resources/>
  <connections/>

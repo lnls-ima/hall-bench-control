@@ -395,7 +395,7 @@ class ViewFieldmapDialog(_QDialog):
 
     def update_tab(self, idx):
         """Update current tab."""
-        if idx ==  1:
+        if idx == 1:
             self.update_temperatures()
         elif idx == 2:
             self.update_text()

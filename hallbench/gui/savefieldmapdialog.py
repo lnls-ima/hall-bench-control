@@ -112,20 +112,25 @@ class SaveFieldmapDialog(_QDialog):
 
     def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.chb_main.stateChanged.connect(lambda: self.set_coil_frame_enabled(
-            self.ui.chb_main, self.ui.main_fm))
+        self.ui.chb_main.stateChanged.connect(
+            lambda: self.set_coil_frame_enabled(
+                self.ui.chb_main, self.ui.main_fm))
 
-        self.ui.chb_trim.stateChanged.connect(lambda: self.set_coil_frame_enabled(
-            self.ui.chb_trim, self.ui.trim_fm))
+        self.ui.chb_trim.stateChanged.connect(
+            lambda: self.set_coil_frame_enabled(
+                self.ui.chb_trim, self.ui.trim_fm))
 
-        self.ui.chb_ch.stateChanged.connect(lambda: self.set_coil_frame_enabled(
-            self.ui.chb_ch, self.ui.ch_fm))
+        self.ui.chb_ch.stateChanged.connect(
+            lambda: self.set_coil_frame_enabled(
+                self.ui.chb_ch, self.ui.ch_fm))
 
-        self.ui.chb_cv.stateChanged.connect(lambda: self.set_coil_frame_enabled(
-            self.ui.chb_cv, self.ui.cv_fm))
+        self.ui.chb_cv.stateChanged.connect(
+            lambda: self.set_coil_frame_enabled(
+                self.ui.chb_cv, self.ui.cv_fm))
 
-        self.ui.chb_qs.stateChanged.connect(lambda: self.set_coil_frame_enabled(
-            self.ui.chb_qs, self.ui.qs_fm))
+        self.ui.chb_qs.stateChanged.connect(
+            lambda: self.set_coil_frame_enabled(
+                self.ui.chb_qs, self.ui.qs_fm))
 
         self.ui.sbd_centerpos3.valueChanged.connect(self.disable_save_to_file)
         self.ui.sbd_centerpos2.valueChanged.connect(self.disable_save_to_file)
@@ -136,9 +141,11 @@ class SaveFieldmapDialog(_QDialog):
             self.disable_save_to_file)
         self.ui.cmb_predefined.currentIndexChanged.connect(
             self.disable_save_to_file)
-        self.ui.le_magnet_name.editingFinished.connect(self.disable_save_to_file)
+        self.ui.le_magnet_name.editingFinished.connect(
+            self.disable_save_to_file)
         self.ui.le_gap.editingFinished.connect(self.disable_save_to_file)
-        self.ui.le_control_gap.editingFinished.connect(self.disable_save_to_file)
+        self.ui.le_control_gap.editingFinished.connect(
+            self.disable_save_to_file)
         self.ui.le_magnet_length.editingFinished.connect(
             self.disable_save_to_file)
         self.ui.te_comments.textChanged.connect(self.disable_save_to_file)
@@ -152,7 +159,8 @@ class SaveFieldmapDialog(_QDialog):
             le_current.editingFinished.connect(self.disable_save_to_file)
 
         self.ui.tbt_clear.clicked.connect(self.clear_info)
-        self.ui.cmb_predefined.currentIndexChanged.connect(self.load_magnet_info)
+        self.ui.cmb_predefined.currentIndexChanged.connect(
+            self.load_magnet_info)
         self.ui.cmb_magnet_x_axis.currentIndexChanged.connect(
             self.disable_invalid_axes)
         self.ui.pbt_savedb.clicked.connect(self.save_to_db)

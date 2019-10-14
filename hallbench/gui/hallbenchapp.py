@@ -18,6 +18,7 @@ from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
     as _SaveFieldmapDialog
 from hallbench.gui.viewfieldmapdialog import ViewFieldmapDialog \
     as _ViewFieldmapDialog
+import hallbench.data as _data
 
 from imadevices import Agilent3458ALib as _Agilent3458ALib
 from imadevices import F1000DRSLib as _DRSLib
@@ -27,8 +28,6 @@ from imadevices import Agilent34970ALib as _Agilent34970ALib
 from imadevices import ElcomatLib as _ElcomatLib
 from imadevices import NMRLib as _NMRLib
 from imadevices import UDCLib as _UDCLib
-
-import hallbench.data as _data
 
 
 # Styles: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]

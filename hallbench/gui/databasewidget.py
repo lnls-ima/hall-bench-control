@@ -52,7 +52,6 @@ class DatabaseWidget(_QWidget):
     _field_scan_table_name = _FieldScan.database_table_name()
     _fieldmap_table_name = _Fieldmap.database_table_name()
 
-
     def __init__(self, parent=None):
         """Set up the ui."""
         super().__init__(parent)
@@ -1065,7 +1064,6 @@ class DatabaseTable(_QTableWidget):
         except Exception:
             con.close()
             _traceback.print_exc(file=_sys.stdout)
-            pass
 
         data = cur.fetchall()
         con.close()

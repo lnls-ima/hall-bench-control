@@ -131,7 +131,7 @@ class CurrentPositionWidget(_QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        grid_layout =_QGridLayout()
+        grid_layout = _QGridLayout()
         grid_layout.setContentsMargins(6, 6, 6, 6)
 
         group_box = _QGroupBox("Current Position")
@@ -150,7 +150,7 @@ class CurrentPositionWidget(_QWidget):
             le_ax.setFont(_font)
             le_ax.setText("")
             le_ax.setAlignment(
-                _Qt.AlignRight|_Qt.AlignTrailing|_Qt.AlignVCenter)
+                _Qt.AlignRight | _Qt.AlignTrailing | _Qt.AlignVCenter)
             le_ax.setReadOnly(True)
             setattr(self, 'le_posax' + str(axis), le_ax)
 
@@ -224,7 +224,7 @@ class InterpolationTableDialog(_QDialog):
             group_box = _QGroupBox("Sensor {0:s}".format(sensor.upper()))
             group_box.setFont(_font_bold)
             group_box.setAlignment(
-                _Qt.AlignLeading|_Qt.AlignLeft|_Qt.AlignVCenter)
+                _Qt.AlignLeading | _Qt.AlignLeft | _Qt.AlignVCenter)
             group_box.setLayout(vertical_layout)
 
             table = _QTableWidget()
@@ -1221,7 +1221,8 @@ class TablePlotWidget(_QWidget):
 
         # Monitor step
         label = _QLabel("Step")
-        label.setAlignment(_Qt.AlignRight|_Qt.AlignTrailing|_Qt.AlignVCenter)
+        label.setAlignment(
+            _Qt.AlignRight | _Qt.AlignTrailing | _Qt.AlignVCenter)
         self.horizontal_layout_3.addWidget(label)
 
         self.sbd_monitor_step = _QDoubleSpinBox()
@@ -1307,7 +1308,8 @@ class TablePlotWidget(_QWidget):
 
         icon = _QIcon()
         icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('delete')), _QIcon.Normal, _QIcon.Off)
+            _QPixmap(
+                _utils.get_icon_path('delete')), _QIcon.Normal, _QIcon.Off)
         self.pbt_remove = _QToolButton()
         self.pbt_remove.setIcon(icon)
         self.pbt_remove.setIconSize(icon_size)
@@ -1381,7 +1383,7 @@ class TablePlotWidget(_QWidget):
 
         msg = 'Clear table data?'
         reply = _QMessageBox.question(
-            self, 'Message', msg, buttons=_QMessageBox.No|_QMessageBox.Yes,
+            self, 'Message', msg, buttons=_QMessageBox.No | _QMessageBox.Yes,
             defaultButton=_QMessageBox.No)
 
         if reply == _QMessageBox.Yes:
@@ -1481,7 +1483,8 @@ class TablePlotWidget(_QWidget):
         """Create signal/slot connections."""
         self.pbt_read.clicked.connect(lambda: self.read_value(monitor=False))
         self.pbt_monitor.toggled.connect(self.monitor_value)
-        self.sbd_monitor_step.valueChanged.connect(self.update_monitor_interval)
+        self.sbd_monitor_step.valueChanged.connect(
+            self.update_monitor_interval)
         self.cmb_monitor_unit.currentIndexChanged.connect(
             self.update_monitor_interval)
         self.tbt_autorange.toggled.connect(self.enable_autorange)
@@ -1818,7 +1821,7 @@ class TemperatureChannelsWidget(_QWidget):
         delay_label.setSizePolicy(size_policy)
         delay_label.setFont(_font)
         delay_label.setAlignment(
-            _Qt.AlignRight|_Qt.AlignTrailing|_Qt.AlignVCenter)
+            _Qt.AlignRight | _Qt.AlignTrailing | _Qt.AlignVCenter)
         grid_layout.addWidget(delay_label, len(self.channels)+1, 0, 1, 2)
 
         self.sbd_delay = _QDoubleSpinBox()

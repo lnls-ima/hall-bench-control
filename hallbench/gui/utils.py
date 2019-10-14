@@ -159,8 +159,9 @@ def scientific_notation(value, error):
     value_str = ('{:.'+str(nr_digits)+'f}').format(value/10**exponent)
     error_str = ('{:.'+str(nr_digits)+'f}').format(error/10**exponent)
 
-    sci_notation = ('(' + value_str + " " + chr(177) + " " +
-                           error_str + ')' + exponent_str)
+    sci_notation = (
+        '(' + value_str + " " + chr(177) + " " +
+        error_str + ')' + exponent_str)
 
     return sci_notation
 

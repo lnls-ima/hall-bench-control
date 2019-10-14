@@ -320,7 +320,6 @@ class ViewScanDialog(_QDialog):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-
     def fit_function_changed(self):
         """Hide or show polynomial fitting order and update dict value."""
         self.clear_fit()
@@ -341,7 +340,8 @@ class ViewScanDialog(_QDialog):
     def get_selected_scan_component(self):
         """Get selected scan and component."""
         try:
-            selected_index, selected_comps = self.get_selected_scans_components()
+            selected_index, selected_comps = (
+                self.get_selected_scans_components())
             if len(selected_index) == 1:
                 selected_idx = selected_index[0]
             else:

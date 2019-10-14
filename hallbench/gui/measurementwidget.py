@@ -402,7 +402,8 @@ class MeasurementWidget(_QWidget):
         self.ui.le_temperature.editingFinished.connect(self.clear_load_options)
         self.ui.le_operator.editingFinished.connect(self.clear_load_options)
         self.ui.le_comments.editingFinished.connect(self.clear_load_options)
-        self.ui.sb_nr_measurements.valueChanged.connect(self.clear_load_options)
+        self.ui.sb_nr_measurements.valueChanged.connect(
+            self.clear_load_options)
         self.ui.cmb_probe_name.currentIndexChanged.connect(
             self.clear_load_options)
         self.ui.cmb_voltage_precision.currentIndexChanged.connect(
@@ -556,7 +557,8 @@ class MeasurementWidget(_QWidget):
         self.ui.pbt_savefile.clicked.connect(self.save_config_file)
         self.ui.pbt_load_db.clicked.connect(self.load_config_db)
         self.ui.tbt_save_db.clicked.connect(self.save_config_db)
-        self.ui.cmb_probe_name.currentIndexChanged.connect(self.load_hall_probe)
+        self.ui.cmb_probe_name.currentIndexChanged.connect(
+            self.load_hall_probe)
         self.ui.tbt_update_probe_name.clicked.connect(self.update_probe_names)
         self.ui.tbt_clear_probe.clicked.connect(self.clear_hall_probe)
         self.ui.pbt_view_probe.clicked.connect(self.show_view_probe_dialog)
@@ -941,7 +943,7 @@ class MeasurementWidget(_QWidget):
                     first_axis)
                 self.move_axis(first_axis, first_axis_start)
 
-                #self.plot_field()
+                # self.plot_field()
                 self.quit_voltage_threads()
 
             if nr_measurements > 1:

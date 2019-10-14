@@ -11,7 +11,6 @@ from qtpy.QtWidgets import (
     QComboBox as _QComboBox,
     QLabel as _QLabel,
     QMessageBox as _QMessageBox,
-    QHBoxLayout as _QHBoxLayout,
     )
 from qtpy.QtCore import (
     QThread as _QThread,

@@ -114,16 +114,20 @@ class MotorsWidget(_QWidget):
                 self.ui.le_maxax3, precision=3))
 
         self.ui.le_target_vel.editingFinished.connect(
-            lambda: self.set_velocity_position_str_format(self.ui.le_target_vel))
+            lambda: self.set_velocity_position_str_format(
+                self.ui.le_target_vel))
         self.ui.le_reldisp.editingFinished.connect(
-            lambda: self.set_velocity_position_str_format(self.ui.le_reldisp))
+            lambda: self.set_velocity_position_str_format(
+                self.ui.le_reldisp))
         self.ui.le_target_pos.editingFinished.connect(
-            lambda: self.set_velocity_position_str_format(self.ui.le_target_pos))
+            lambda: self.set_velocity_position_str_format(
+                self.ui.le_target_pos))
 
         self.ui.le_trigvel.editingFinished.connect(
             lambda: self.set_velocity_position_str_format(self.ui.le_trigvel))
         self.ui.le_trigstart.editingFinished.connect(
-            lambda: self.set_velocity_position_str_format(self.ui.le_trigstart))
+            lambda: self.set_velocity_position_str_format(
+                self.ui.le_trigstart))
         self.ui.le_trigstep.editingFinished.connect(
             lambda: self.set_velocity_position_str_format(self.ui.le_trigstep))
         self.ui.le_trigend.editingFinished.connect(
@@ -143,12 +147,18 @@ class MotorsWidget(_QWidget):
             self.update_trig_axis_velocity)
         self.ui.chb_trigpause.stateChanged.connect(self.enable_trigger_delay)
 
-        self.ui.le_minax1.editingFinished.connect(self.enable_set_limits_button)
-        self.ui.le_maxax1.editingFinished.connect(self.enable_set_limits_button)
-        self.ui.le_minax2.editingFinished.connect(self.enable_set_limits_button)
-        self.ui.le_maxax2.editingFinished.connect(self.enable_set_limits_button)
-        self.ui.le_minax3.editingFinished.connect(self.enable_set_limits_button)
-        self.ui.le_maxax3.editingFinished.connect(self.enable_set_limits_button)
+        self.ui.le_minax1.editingFinished.connect(
+            self.enable_set_limits_button)
+        self.ui.le_maxax1.editingFinished.connect(
+            self.enable_set_limits_button)
+        self.ui.le_minax2.editingFinished.connect(
+            self.enable_set_limits_button)
+        self.ui.le_maxax2.editingFinished.connect(
+            self.enable_set_limits_button)
+        self.ui.le_minax3.editingFinished.connect(
+            self.enable_set_limits_button)
+        self.ui.le_maxax3.editingFinished.connect(
+            self.enable_set_limits_button)
 
         self.ui.pbt_activate.clicked.connect(self.activate_bench)
         self.ui.pbt_stopall.clicked.connect(self.stop_all_axis)

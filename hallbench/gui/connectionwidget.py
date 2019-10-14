@@ -102,7 +102,7 @@ class ConnectionWidget(_QWidget):
                     return False
 
             if (self.connection_config.voltx_enable and
-               not self.devices.voltx.connected):
+                not self.devices.voltx.connected):
                 return False
 
             if (self.connection_config.volty_enable and
@@ -189,7 +189,7 @@ class ConnectionWidget(_QWidget):
             self.ui.cmb_air_udc_baudrate,
             ]
         for cmb in cmbs:
-              cmb.currentIndexChanged.connect(self.clear_load_options)
+            cmb.currentIndexChanged.connect(self.clear_load_options)
 
         self.ui.cmb_idn.currentIndexChanged.connect(self.enable_load_db)
         self.ui.tbt_update_idn.clicked.connect(self.update_connection_ids)
@@ -471,7 +471,6 @@ class ConnectionWidget(_QWidget):
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            pass
 
     def update_serial_ports(self):
         """Update avaliable serial ports."""

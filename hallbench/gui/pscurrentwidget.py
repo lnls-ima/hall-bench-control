@@ -10,7 +10,6 @@ from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
-    QHBoxLayout as _QHBoxLayout,
     QCheckBox as _QCheckBox,
     )
 from qtpy.QtCore import (

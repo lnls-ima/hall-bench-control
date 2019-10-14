@@ -5,12 +5,10 @@
 import sys as _sys
 import time as _time
 import numpy as _np
-import pyqtgraph as _pyqtgraph
 import traceback as _traceback
 from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
-    QHBoxLayout as _QHBoxLayout,
     QCheckBox as _QCheckBox,
     )
 from qtpy.QtCore import (

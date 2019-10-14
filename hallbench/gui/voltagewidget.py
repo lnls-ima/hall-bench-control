@@ -47,23 +47,23 @@ class VoltageWidget(_TablePlotWidget):
 
         # add move axis widget
         self.move_axis_widget = _MoveAxisWidget(self)
-        self.addWidgetsNextToPlot(self.move_axis_widget)
+        self.add_widgets_next_to_plot(self.move_axis_widget)
 
         # add check box add reset multimeters button
         self.chb_voltx = _QCheckBox(' X ')
         self.chb_volty = _QCheckBox(' Y ')
         self.chb_voltz = _QCheckBox(' Z ')
         self.pbt_reset = _QPushButton('Reset Multimeters')
-        self.pbt_reset.clicked.connect(self.resetMultimeters)
-        self.addWidgetsNextToTable([
+        self.pbt_reset.clicked.connect(self.reset_multimeters)
+        self.add_widgets_next_to_table([
             [self.chb_voltx, self.chb_volty, self.chb_voltz],
             [self.pbt_reset]])
 
         # Change default appearance
-        self.setTableColumnSize(140)
+        self.set_table_column_size(140)
 
         # Hide right axis
-        self.hideRightAxes()
+        self.hide_right_axes()
 
         # Create reading thread
         self.wthread = _QThread()
@@ -71,14 +71,27 @@ class VoltageWidget(_TablePlotWidget):
         self.worker.moveToThread(self.wthread)
         self.wthread.started.connect(self.worker.run)
         self.worker.finished.connect(self.wthread.quit)
-        self.worker.finished.connect(self.getReading)
+        self.worker.finished.connect(self.get_reading)
 
     @property
     def devices(self):
         """Hall Bench Devices."""
         return _QApplication.instance().devices
 
-    def checkConnection(self, monitor=False):
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.move_axis_widget.close()
+            self.timer.stop()
+            self.wthread.quit()
+            del self.wthread
+            self.close_dialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
+    def check_connection(self, monitor=False):
         """Check devices connection."""
         if self.chb_voltx.isChecked() and not self.devices.voltx.connected:
             if not monitor:
@@ -100,20 +113,7 @@ class VoltageWidget(_TablePlotWidget):
 
         return True
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.move_axis_widget.close()
-            self.timer.stop()
-            self.wthread.quit()
-            del self.wthread
-            self.closeDialogs()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def getReading(self):
+    def get_reading(self):
         """Get reading from worker thread."""
         try:
             ts = self.worker.timestamp
@@ -128,22 +128,22 @@ class VoltageWidget(_TablePlotWidget):
             self._timestamp.append(ts)
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
-            self.addLastValueToTable()
-            self.updatePlot()
+            self.add_last_value_to_table()
+            self.update_plot()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def readValue(self, monitor=False):
+    def read_value(self, monitor=False):
         """Read value."""
         if len(self._data_labels) == 0:
             return
 
-        if not self.checkConnection(monitor=monitor):
+        if not self.check_connection(monitor=monitor):
             return
 
         try:
-            self.worker.pmac_axis = self.move_axis_widget.selectedAxis()
+            self.worker.pmac_axis = self.move_axis_widget.selected_axis()
             self.worker.voltx_enabled = self.chb_voltx.isChecked()
             self.worker.volty_enabled = self.chb_volty.isChecked()
             self.worker.voltz_enabled = self.chb_voltz.isChecked()
@@ -152,9 +152,9 @@ class VoltageWidget(_TablePlotWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def resetMultimeters(self):
+    def reset_multimeters(self):
         """Reset multimeters."""
-        if not self.checkConnection():
+        if not self.check_connection():
             return
 
         try:

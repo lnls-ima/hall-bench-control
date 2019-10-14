@@ -221,14 +221,14 @@ class HallBenchDevices(object):
 
         if config.water_udc_enable:
             self.water_udc.connect(
-                config.water_udc_port, 
-                config.water_udc_baudrate, 
+                config.water_udc_port,
+                config.water_udc_baudrate,
                 config.water_udc_slave_address)
 
         if config.air_udc_enable:
             self.air_udc.connect(
-                config.air_udc_port, 
-                config.air_udc_baudrate, 
+                config.air_udc_port,
+                config.air_udc_baudrate,
                 config.air_udc_slave_address)
 
         if config.ps_enable:
@@ -267,7 +267,7 @@ class HallBenchApp(_QApplication):
         _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
         _MeasurementConfig = _data.configuration.MeasurementConfig
         _HallProbe = _data.calibration.HallProbe
-        
+
         self.connection_config = _ConnectionConfig()
         self.measurement_config = _MeasurementConfig()
         self.power_supply_config = _PowerSupplyConfig()
@@ -292,8 +292,8 @@ class HallBenchApp(_QApplication):
         _MeasurementConfig = _data.configuration.MeasurementConfig
         _VoltageScan = _data.measurement.VoltageScan
         _FieldScan = _data.measurement.FieldScan
-        _Fieldmap = _data.measurement.Fieldmap        
-        
+        _Fieldmap = _data.measurement.Fieldmap
+
         status = []
         status.append(_ConnectionConfig.create_database_table(self.database))
         status.append(_PowerSupplyConfig.create_database_table(self.database))
@@ -324,7 +324,7 @@ class GUIThread(_threading.Thread):
             self.app = HallBenchApp([])
             self.window = _HallBenchWindow(width=_width, height=_height)
             self.window.show()
-            self.window.centralizeWindow()
+            self.window.centralize_window()
             _sys.exit(self.app.exec_())
 
 
@@ -335,7 +335,7 @@ def run():
         app = HallBenchApp([])
         window = _HallBenchWindow(width=_width, height=_height)
         window.show()
-        window.centralizeWindow()
+        window.centralize_window()
         _sys.exit(app.exec_())
 
 

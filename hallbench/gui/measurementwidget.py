@@ -47,7 +47,7 @@ class MeasurementWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _utils.getUiFile(self)
+        uifile = _utils.get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # add position widget
@@ -74,7 +74,7 @@ class MeasurementWidget(_QWidget):
         self.stop = False
 
         # Connect signals and slots
-        self.connectSignalSlots()
+        self.connect_signal_slots()
 
         # Add legend to plot
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
@@ -82,8 +82,8 @@ class MeasurementWidget(_QWidget):
         self.legend.setAutoFillBackground(1)
 
         # Update probe names and configuration ID combo box
-        self.updateProbeNames()
-        self.updateConfigurationIDs()
+        self.update_probe_names()
+        self.update_configuration_ids()
 
         # Create voltage threads
         self.threadx = _QThread()
@@ -155,6 +155,16 @@ class MeasurementWidget(_QWidget):
         """View scan dialog."""
         return _QApplication.instance().view_scan_dialog
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.current_position_widget.close()
+            self.kill_voltage_threads()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
     def clear(self):
         """Clear."""
         self.workerx.clear()
@@ -172,22 +182,22 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan_id_list = []
         self.measurements_id_list = []
         self.stop = False
-        self.clearGraph()
+        self.clear_graph()
         self.ui.tbt_view_scan.setEnabled(False)
         self.ui.tbt_clear_graph.setEnabled(False)
         self.ui.tbt_create_fieldmap.setEnabled(False)
         self.ui.tbt_save_scan_files.setEnabled(False)
 
-    def clearButtonClicked(self):
+    def clear_button_clicked(self):
         """Clear current measurement and plots."""
-        self.clearCurrentMeasurement()
-        self.clearGraph()
+        self.clear_current_measurement()
+        self.clear_graph()
         self.ui.tbt_view_scan.setEnabled(False)
         self.ui.tbt_clear_graph.setEnabled(False)
         self.ui.tbt_create_fieldmap.setEnabled(False)
         self.ui.tbt_save_scan_files.setEnabled(False)
 
-    def clearCurrentMeasurement(self):
+    def clear_current_measurement(self):
         """Clear current measurement data."""
         self.voltage_scan = None
         self.field_scan = None
@@ -195,7 +205,7 @@ class MeasurementWidget(_QWidget):
         self.field_scan_id_list = []
         self.voltage_scan_id_list = []
 
-    def clearGraph(self):
+    def clear_graph(self):
         """Clear plots."""
         self.ui.pw_graph.plotItem.curves.clear()
         self.ui.pw_graph.clear()
@@ -203,27 +213,17 @@ class MeasurementWidget(_QWidget):
         self.graphy = []
         self.graphz = []
 
-    def clearHallProbe(self):
+    def clear_hall_probe(self):
         """Clear hall probe calibration data."""
         self.hall_probe.clear()
         self.ui.cmb_probe_name.setCurrentIndex(-1)
 
-    def clearLoadOptions(self):
+    def clear_load_options(self):
         """Clear load options."""
         self.ui.le_filename.setText("")
         self.ui.cmb_idn.setCurrentIndex(-1)
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.current_position_widget.close()
-            self.killVoltageThreads()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def configureGraph(self, nr_curves, label):
+    def configure_graph(self, nr_curves, label):
         """Configure graph.
 
         Args:
@@ -274,22 +274,22 @@ class MeasurementWidget(_QWidget):
         self.legend.addItem(self.graphy[0], 'Y')
         self.legend.addItem(self.graphz[0], 'Z')
 
-    def configureMeasurement(self):
+    def configure_measurement(self):
         """Configure measurement."""
         self.clear()
 
-        if (not self.validDatabase()
-           or not self.updateHallProbe()
-           or not self.updateConfiguration()
-           or not self.updatePowerSupplyConfig()
-           or not self.configureMultimeters()
-           or not self.configurePmac()
-           or not self.configureMultichannel()):
+        if (not self.valid_database()
+           or not self.update_hall_probe()
+           or not self.update_configuration()
+           or not self.update_power_supply_config()
+           or not self.configure_multimeters()
+           or not self.configure_pmac()
+           or not self.configure_multichannel()):
             self.measurement_configured = False
         else:
             self.measurement_configured = True
 
-    def configureMultichannel(self):
+    def configure_multichannel(self):
         """Configure multichannel to monitor dcct current and temperatures."""
         if (not self.ui.chb_save_temperature.isChecked() and
            not self.ui.chb_save_current.isChecked()):
@@ -318,7 +318,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def configureMultimeters(self):
+    def configure_multimeters(self):
         """Configure multimeters."""
         if self.local_measurement_config is None:
             return False
@@ -362,7 +362,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def configurePmac(self):
+    def configure_pmac(self):
         """Configure devices."""
         if not self.devices.pmac.connected:
             msg = 'Pmac not connected.'
@@ -386,189 +386,189 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.rbt_first_ax1.clicked.connect(self.clearLoadOptions)
-        self.ui.rbt_first_ax2.clicked.connect(self.clearLoadOptions)
-        self.ui.rbt_first_ax3.clicked.connect(self.clearLoadOptions)
-        self.ui.rbt_first_ax5.clicked.connect(self.clearLoadOptions)
-        self.ui.rbt_second_ax1.clicked.connect(self.clearLoadOptions)
-        self.ui.rbt_second_ax2.clicked.connect(self.clearLoadOptions)
-        self.ui.rbt_second_ax3.clicked.connect(self.clearLoadOptions)
-        self.ui.rbt_second_ax5.clicked.connect(self.clearLoadOptions)
-        self.ui.le_magnet_name.editingFinished.connect(self.clearLoadOptions)
+        self.ui.rbt_first_ax1.clicked.connect(self.clear_load_options)
+        self.ui.rbt_first_ax2.clicked.connect(self.clear_load_options)
+        self.ui.rbt_first_ax3.clicked.connect(self.clear_load_options)
+        self.ui.rbt_first_ax5.clicked.connect(self.clear_load_options)
+        self.ui.rbt_second_ax1.clicked.connect(self.clear_load_options)
+        self.ui.rbt_second_ax2.clicked.connect(self.clear_load_options)
+        self.ui.rbt_second_ax3.clicked.connect(self.clear_load_options)
+        self.ui.rbt_second_ax5.clicked.connect(self.clear_load_options)
+        self.ui.le_magnet_name.editingFinished.connect(self.clear_load_options)
         self.ui.le_current_setpoint.editingFinished.connect(
-            self.clearLoadOptions)
-        self.ui.le_temperature.editingFinished.connect(self.clearLoadOptions)
-        self.ui.le_operator.editingFinished.connect(self.clearLoadOptions)
-        self.ui.le_comments.editingFinished.connect(self.clearLoadOptions)
-        self.ui.sb_nr_measurements.valueChanged.connect(self.clearLoadOptions)
+            self.clear_load_options)
+        self.ui.le_temperature.editingFinished.connect(self.clear_load_options)
+        self.ui.le_operator.editingFinished.connect(self.clear_load_options)
+        self.ui.le_comments.editingFinished.connect(self.clear_load_options)
+        self.ui.sb_nr_measurements.valueChanged.connect(self.clear_load_options)
         self.ui.cmb_probe_name.currentIndexChanged.connect(
-            self.clearLoadOptions)
+            self.clear_load_options)
         self.ui.cmb_voltage_precision.currentIndexChanged.connect(
-            self.clearLoadOptions)
-        self.chb_voltx_enable.stateChanged.connect(self.clearLoadOptions)
-        self.chb_volty_enable.stateChanged.connect(self.clearLoadOptions)
-        self.chb_voltz_enable.stateChanged.connect(self.clearLoadOptions)
-        self.ui.cmb_idn.currentIndexChanged.connect(self.enableLoadDB)
-        self.ui.tbt_update_idn.clicked.connect(self.updateConfigurationIDs)
+            self.clear_load_options)
+        self.chb_voltx_enable.stateChanged.connect(self.clear_load_options)
+        self.chb_volty_enable.stateChanged.connect(self.clear_load_options)
+        self.chb_voltz_enable.stateChanged.connect(self.clear_load_options)
+        self.ui.cmb_idn.currentIndexChanged.connect(self.enable_load_db)
+        self.ui.tbt_update_idn.clicked.connect(self.update_configuration_ids)
 
         self.ui.tbt_current_start.clicked.connect(
-            self.copyCurrentStartPosition)
+            self.copy_current_start_position)
 
         self.ui.le_current_setpoint.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_current_setpoint))
+            lambda: self.set_float_line_edit_text(self.ui.le_current_setpoint))
 
         self.ui.le_start_ax1.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_start_ax1))
+            lambda: self.set_float_line_edit_text(self.ui.le_start_ax1))
         self.ui.le_start_ax2.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_start_ax2))
+            lambda: self.set_float_line_edit_text(self.ui.le_start_ax2))
         self.ui.le_start_ax3.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_start_ax3))
+            lambda: self.set_float_line_edit_text(self.ui.le_start_ax3))
         self.ui.le_start_ax5.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_start_ax5))
+            lambda: self.set_float_line_edit_text(self.ui.le_start_ax5))
 
         self.ui.le_end_ax1.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_end_ax1))
+            lambda: self.set_float_line_edit_text(self.ui.le_end_ax1))
         self.ui.le_end_ax2.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_end_ax2))
+            lambda: self.set_float_line_edit_text(self.ui.le_end_ax2))
         self.ui.le_end_ax3.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_end_ax3))
+            lambda: self.set_float_line_edit_text(self.ui.le_end_ax3))
         self.ui.le_end_ax5.editingFinished.connect(
-            lambda: self.setFloatLineEditText(self.ui.le_end_ax5))
+            lambda: self.set_float_line_edit_text(self.ui.le_end_ax5))
 
         self.ui.le_step_ax1.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_step_ax1, positive=True, nonzero=True))
         self.ui.le_step_ax2.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_step_ax2, positive=True, nonzero=True))
         self.ui.le_step_ax3.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_step_ax3, positive=True, nonzero=True))
         self.ui.le_step_ax5.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_step_ax5, positive=True, nonzero=True))
 
         self.ui.le_extra_ax1.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_extra_ax1, positive=True))
         self.ui.le_extra_ax2.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_extra_ax2, positive=True))
         self.ui.le_extra_ax3.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_extra_ax3, positive=True))
         self.ui.le_extra_ax5.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_extra_ax5, positive=True))
 
         self.ui.le_vel_ax1.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_vel_ax1, positive=True, nonzero=True))
         self.ui.le_vel_ax2.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_vel_ax2, positive=True, nonzero=True))
         self.ui.le_vel_ax3.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_vel_ax3, positive=True, nonzero=True))
         self.ui.le_vel_ax5.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_vel_ax5, positive=True, nonzero=True))
 
         self.ui.le_integration_time.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_integration_time, precision=4))
 
         self.ui.le_voltage_range.editingFinished.connect(
-            lambda: self.setFloatLineEditText(
+            lambda: self.set_float_line_edit_text(
                 self.ui.le_voltage_range, precision=1))
 
         self.ui.le_step_ax1.editingFinished.connect(
-            lambda: self.updateTriggerStep(1))
+            lambda: self.update_trigger_step(1))
         self.ui.le_step_ax2.editingFinished.connect(
-            lambda: self.updateTriggerStep(2))
+            lambda: self.update_trigger_step(2))
         self.ui.le_step_ax3.editingFinished.connect(
-            lambda: self.updateTriggerStep(3))
+            lambda: self.update_trigger_step(3))
         self.ui.le_step_ax5.editingFinished.connect(
-            lambda: self.updateTriggerStep(5))
+            lambda: self.update_trigger_step(5))
         self.ui.le_vel_ax1.editingFinished.connect(
-            lambda: self.updateTriggerStep(1))
+            lambda: self.update_trigger_step(1))
         self.ui.le_vel_ax2.editingFinished.connect(
-            lambda: self.updateTriggerStep(2))
+            lambda: self.update_trigger_step(2))
         self.ui.le_vel_ax3.editingFinished.connect(
-            lambda: self.updateTriggerStep(3))
+            lambda: self.update_trigger_step(3))
         self.ui.le_vel_ax5.editingFinished.connect(
-            lambda: self.updateTriggerStep(5))
+            lambda: self.update_trigger_step(5))
 
-        self.ui.rbt_first_ax1.clicked.connect(self.disableSecondAxisButton)
-        self.ui.rbt_first_ax2.clicked.connect(self.disableSecondAxisButton)
-        self.ui.rbt_first_ax3.clicked.connect(self.disableSecondAxisButton)
-        self.ui.rbt_first_ax5.clicked.connect(self.disableSecondAxisButton)
+        self.ui.rbt_first_ax1.clicked.connect(self.disable_second_axis_button)
+        self.ui.rbt_first_ax2.clicked.connect(self.disable_second_axis_button)
+        self.ui.rbt_first_ax3.clicked.connect(self.disable_second_axis_button)
+        self.ui.rbt_first_ax5.clicked.connect(self.disable_second_axis_button)
 
-        self.ui.rbt_first_ax1.toggled.connect(self.disableInvalidLineEdit)
-        self.ui.rbt_first_ax2.toggled.connect(self.disableInvalidLineEdit)
-        self.ui.rbt_first_ax3.toggled.connect(self.disableInvalidLineEdit)
-        self.ui.rbt_first_ax5.toggled.connect(self.disableInvalidLineEdit)
+        self.ui.rbt_first_ax1.toggled.connect(self.disable_invalid_line_edit)
+        self.ui.rbt_first_ax2.toggled.connect(self.disable_invalid_line_edit)
+        self.ui.rbt_first_ax3.toggled.connect(self.disable_invalid_line_edit)
+        self.ui.rbt_first_ax5.toggled.connect(self.disable_invalid_line_edit)
 
-        self.ui.rbt_second_ax1.toggled.connect(self.disableInvalidLineEdit)
-        self.ui.rbt_second_ax2.toggled.connect(self.disableInvalidLineEdit)
-        self.ui.rbt_second_ax3.toggled.connect(self.disableInvalidLineEdit)
-        self.ui.rbt_second_ax5.toggled.connect(self.disableInvalidLineEdit)
+        self.ui.rbt_second_ax1.toggled.connect(self.disable_invalid_line_edit)
+        self.ui.rbt_second_ax2.toggled.connect(self.disable_invalid_line_edit)
+        self.ui.rbt_second_ax3.toggled.connect(self.disable_invalid_line_edit)
+        self.ui.rbt_second_ax5.toggled.connect(self.disable_invalid_line_edit)
 
         self.ui.rbt_second_ax1.clicked.connect(
-            lambda: self.uncheckRadioButtons(1))
+            lambda: self.uncheck_radio_buttons(1))
         self.ui.rbt_second_ax2.clicked.connect(
-            lambda: self.uncheckRadioButtons(2))
+            lambda: self.uncheck_radio_buttons(2))
         self.ui.rbt_second_ax3.clicked.connect(
-            lambda: self.uncheckRadioButtons(3))
+            lambda: self.uncheck_radio_buttons(3))
         self.ui.rbt_second_ax5.clicked.connect(
-            lambda: self.uncheckRadioButtons(5))
+            lambda: self.uncheck_radio_buttons(5))
 
         self.ui.le_start_ax1.editingFinished.connect(
-            lambda: self.fixEndPositionValue(1))
+            lambda: self.fix_end_position_value(1))
         self.ui.le_start_ax2.editingFinished.connect(
-            lambda: self.fixEndPositionValue(2))
+            lambda: self.fix_end_position_value(2))
         self.ui.le_start_ax3.editingFinished.connect(
-            lambda: self.fixEndPositionValue(3))
+            lambda: self.fix_end_position_value(3))
         self.ui.le_start_ax5.editingFinished.connect(
-            lambda: self.fixEndPositionValue(5))
+            lambda: self.fix_end_position_value(5))
 
         self.ui.le_step_ax1.editingFinished.connect(
-            lambda: self.fixEndPositionValue(1))
+            lambda: self.fix_end_position_value(1))
         self.ui.le_step_ax2.editingFinished.connect(
-            lambda: self.fixEndPositionValue(2))
+            lambda: self.fix_end_position_value(2))
         self.ui.le_step_ax3.editingFinished.connect(
-            lambda: self.fixEndPositionValue(3))
+            lambda: self.fix_end_position_value(3))
         self.ui.le_step_ax5.editingFinished.connect(
-            lambda: self.fixEndPositionValue(5))
+            lambda: self.fix_end_position_value(5))
 
         self.ui.le_end_ax1.editingFinished.connect(
-            lambda: self.fixEndPositionValue(1))
+            lambda: self.fix_end_position_value(1))
         self.ui.le_end_ax2.editingFinished.connect(
-            lambda: self.fixEndPositionValue(2))
+            lambda: self.fix_end_position_value(2))
         self.ui.le_end_ax3.editingFinished.connect(
-            lambda: self.fixEndPositionValue(3))
+            lambda: self.fix_end_position_value(3))
         self.ui.le_end_ax5.editingFinished.connect(
-            lambda: self.fixEndPositionValue(5))
+            lambda: self.fix_end_position_value(5))
 
-        self.ui.pbt_loadfile.clicked.connect(self.loadConfigFile)
-        self.ui.pbt_savefile.clicked.connect(self.saveConfigFile)
-        self.ui.pbt_loaddb.clicked.connect(self.loadConfigDB)
-        self.ui.tbt_savedb.clicked.connect(self.saveConfigDB)
-        self.ui.cmb_probe_name.currentIndexChanged.connect(self.loadHallProbe)
-        self.ui.tbt_update_probe_name.clicked.connect(self.updateProbeNames)
-        self.ui.tbt_clear_probe.clicked.connect(self.clearHallProbe)
-        self.ui.pbt_view_probe.clicked.connect(self.showViewProbeDialog)
+        self.ui.pbt_loadfile.clicked.connect(self.load_config_file)
+        self.ui.pbt_savefile.clicked.connect(self.save_config_file)
+        self.ui.pbt_load_db.clicked.connect(self.load_config_db)
+        self.ui.tbt_save_db.clicked.connect(self.save_config_db)
+        self.ui.cmb_probe_name.currentIndexChanged.connect(self.load_hall_probe)
+        self.ui.tbt_update_probe_name.clicked.connect(self.update_probe_names)
+        self.ui.tbt_clear_probe.clicked.connect(self.clear_hall_probe)
+        self.ui.pbt_view_probe.clicked.connect(self.show_view_probe_dialog)
 
-        self.ui.pbt_measure.clicked.connect(self.measureButtonClicked)
-        self.ui.pbt_stop.clicked.connect(self.stopMeasurement)
-        self.ui.tbt_create_fieldmap.clicked.connect(self.showFieldmapDialog)
-        self.ui.tbt_save_scan_files.clicked.connect(self.saveFieldScanFiles)
-        self.ui.tbt_view_scan.clicked.connect(self.showViewScanDialog)
-        self.ui.tbt_clear_graph.clicked.connect(self.clearButtonClicked)
+        self.ui.pbt_measure.clicked.connect(self.measure_button_clicked)
+        self.ui.pbt_stop.clicked.connect(self.stop_measurement)
+        self.ui.tbt_create_fieldmap.clicked.connect(self.show_fieldmap_dialog)
+        self.ui.tbt_save_scan_files.clicked.connect(self.save_field_scan_files)
+        self.ui.tbt_view_scan.clicked.connect(self.show_view_scan_dialog)
+        self.ui.tbt_clear_graph.clicked.connect(self.clear_button_clicked)
 
-    def copyCurrentStartPosition(self):
+    def copy_current_start_position(self):
         """Copy current start position to line edits."""
         for axis in self._measurement_axes:
             le_start = getattr(self.ui, 'le_start_ax' + str(axis))
@@ -577,7 +577,7 @@ class MeasurementWidget(_QWidget):
             else:
                 le_start.setText('')
 
-    def disableInvalidLineEdit(self):
+    def disable_invalid_line_edit(self):
         """Disable invalid line edit."""
         for axis in self._measurement_axes:
             rbt_first = getattr(self.ui, 'rbt_first_ax' + str(axis))
@@ -601,7 +601,7 @@ class MeasurementWidget(_QWidget):
                 le_extra.setEnabled(False)
                 le_extra.setText('')
 
-    def disableSecondAxisButton(self):
+    def disable_second_axis_button(self):
         """Disable invalid second axis radio buttons."""
         for axis in self._measurement_axes:
             rbt_first = getattr(self.ui, 'rbt_first_ax' + str(axis))
@@ -613,16 +613,16 @@ class MeasurementWidget(_QWidget):
                 if axis != 5:
                     rbt_second.setEnabled(True)
 
-    def enableLoadDB(self):
+    def enable_load_db(self):
         """Enable button to load configuration from database."""
         if self.ui.cmb_idn.currentIndex() != -1:
-            self.ui.pbt_loaddb.setEnabled(True)
+            self.ui.pbt_load_db.setEnabled(True)
         else:
-            self.ui.pbt_loaddb.setEnabled(False)
+            self.ui.pbt_load_db.setEnabled(False)
 
-    def endAutomaticMeasurements(self, setpoint_changed):
+    def end_automatic_measurements(self, setpoint_changed):
         """End automatic measurements."""
-        if not self.resetMultimeters():
+        if not self.reset_multimeters():
             return
 
         if not setpoint_changed:
@@ -643,21 +643,21 @@ class MeasurementWidget(_QWidget):
         _QMessageBox.information(
             self, 'Measurements', msg, _QMessageBox.Ok)
 
-    def fixEndPositionValue(self, axis):
+    def fix_end_position_value(self, axis):
         """Fix end position value."""
         try:
             le_start = getattr(self.ui, 'le_start_ax' + str(axis))
-            start = _utils.getValueFromStringExpresssion(le_start.text())
+            start = _utils.get_value_from_string(le_start.text())
             if start is None:
                 return
 
             le_step = getattr(self.ui, 'le_step_ax' + str(axis))
-            step = _utils.getValueFromStringExpresssion(le_step.text())
+            step = _utils.get_value_from_string(le_step.text())
             if step is None:
                 return
 
             le_end = getattr(self.ui, 'le_end_ax' + str(axis))
-            end = _utils.getValueFromStringExpresssion(le_end.text())
+            end = _utils.get_value_from_string(le_end.text())
             if end is None:
                 return
 
@@ -671,12 +671,12 @@ class MeasurementWidget(_QWidget):
         except Exception:
             pass
 
-    def getAxisParam(self, param, axis):
+    def get_axis_param(self, param, axis):
         """Get axis parameter."""
         le = getattr(self.ui, 'le_' + param + '_ax' + str(axis))
-        return _utils.getValueFromStringExpresssion(le.text())
+        return _utils.get_value_from_string(le.text())
 
-    def getFixedAxes(self):
+    def get_fixed_axes(self):
         """Get fixed axes."""
         first_axis = self.local_measurement_config.first_axis
         second_axis = self.local_measurement_config.second_axis
@@ -686,7 +686,7 @@ class MeasurementWidget(_QWidget):
             fixed_axes.remove(second_axis)
         return fixed_axes
 
-    def killVoltageThreads(self):
+    def kill_voltage_threads(self):
         """Kill threads."""
         try:
             del self.threadx
@@ -696,7 +696,7 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             pass
 
-    def loadConfig(self):
+    def load_config(self):
         """Set measurement parameters."""
         try:
             self.ui.le_magnet_name.setText(self.measurement_config.magnet_name)
@@ -741,16 +741,16 @@ class MeasurementWidget(_QWidget):
             rbt_first = getattr(self.ui, 'rbt_first_ax' + str(first_axis))
             rbt_first.setChecked(True)
 
-            self.disableSecondAxisButton()
+            self.disable_second_axis_button()
 
             second_axis = self.measurement_config.second_axis
             if second_axis != -1:
                 rbt_second = getattr(
                     self.ui, 'rbt_second_ax' + str(second_axis))
                 rbt_second.setChecked(True)
-                self.uncheckRadioButtons(second_axis)
+                self.uncheck_radio_buttons(second_axis)
             else:
-                self.uncheckRadioButtons(second_axis)
+                self.uncheck_radio_buttons(second_axis)
 
             self.ui.chb_subtract_voltage_offset.setChecked(
                 self.measurement_config.subtract_voltage_offset)
@@ -784,8 +784,8 @@ class MeasurementWidget(_QWidget):
                 value = self.measurement_config.get_velocity(axis)
                 le_vel.setText('{0:0.4f}'.format(value))
 
-            self.disableInvalidLineEdit()
-            self.updateTriggerStep(first_axis)
+            self.disable_invalid_line_edit()
+            self.update_trigger_step(first_axis)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -793,7 +793,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', msg, _QMessageBox.Ok)
 
-    def loadConfigDB(self):
+    def load_config_db(self):
         """Load configuration from database to set measurement parameters."""
         self.ui.le_filename.setText("")
 
@@ -805,7 +805,7 @@ class MeasurementWidget(_QWidget):
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
 
-        self.updateConfigurationIDs()
+        self.update_configuration_ids()
         idx = self.ui.cmb_idn.findText(str(idn))
         if idx == -1:
             self.ui.cmb_idn.setCurrentIndex(-1)
@@ -822,11 +822,11 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-        self.loadConfig()
+        self.load_config()
         self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.findText(str(idn)))
-        self.ui.pbt_loaddb.setEnabled(False)
+        self.ui.pbt_load_db.setEnabled(False)
 
-    def loadConfigFile(self):
+    def load_config_file(self):
         """Load configuration file to set measurement parameters."""
         self.ui.cmb_idn.setCurrentIndex(-1)
 
@@ -855,10 +855,10 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-        self.loadConfig()
+        self.load_config()
         self.ui.le_filename.setText(filename)
 
-    def loadHallProbe(self):
+    def load_hall_probe(self):
         """Load hall probe from database."""
         self.hall_probe.clear()
         probe_name = self.ui.cmb_probe_name.currentText()
@@ -889,7 +889,7 @@ class MeasurementWidget(_QWidget):
             nr_measurements = self.local_measurement_config.nr_measurements
             first_axis = self.local_measurement_config.first_axis
             second_axis = self.local_measurement_config.second_axis
-            fixed_axes = self.getFixedAxes()
+            fixed_axes = self.get_fixed_axes()
 
             for nmeas in range(nr_measurements):
                 self.la_nr_measurements.setText('{0:d}'.format(nmeas+1))
@@ -898,7 +898,7 @@ class MeasurementWidget(_QWidget):
                     if self.stop is True:
                         return
                     pos = self.local_measurement_config.get_start(axis)
-                    self.moveAxis(axis, pos)
+                    self.move_axis(axis, pos)
 
                 if second_axis != -1:
                     start = self.local_measurement_config.get_start(
@@ -914,8 +914,8 @@ class MeasurementWidget(_QWidget):
                     for pos in pos_list:
                         if self.stop is True:
                             return
-                        self.moveAxis(second_axis, pos)
-                        if not self.measureFieldScan(
+                        self.move_axis(second_axis, pos)
+                        if not self.measure_field_scan(
                                 first_axis, second_axis, pos):
                             return
 
@@ -925,12 +925,12 @@ class MeasurementWidget(_QWidget):
                     lmc = self.local_measurement_config
                     second_axis_start = lmc.get_start(
                         second_axis)
-                    self.moveAxis(second_axis, second_axis_start)
+                    self.move_axis(second_axis, second_axis_start)
 
                 else:
                     if self.stop is True:
                         return
-                    if not self.measureFieldScan(first_axis):
+                    if not self.measure_field_scan(first_axis):
                         return
 
                 if self.stop is True:
@@ -939,10 +939,10 @@ class MeasurementWidget(_QWidget):
                 # move to initial position
                 first_axis_start = self.local_measurement_config.get_start(
                     first_axis)
-                self.moveAxis(first_axis, first_axis_start)
+                self.move_axis(first_axis, first_axis_start)
 
-                #self.plotField()
-                self.quitVoltageThreads()
+                #self.plot_field()
+                self.quit_voltage_threads()
 
             if nr_measurements > 1:
                 lid = self.field_scan_id_list
@@ -962,7 +962,7 @@ class MeasurementWidget(_QWidget):
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            self.quitVoltageThreads()
+            self.quit_voltage_threads()
             if self.local_measurement_config.automatic_ramp:
                 self.turn_off_power_supply_current.emit(True)
             self.power_supply_config.update_display = True
@@ -971,9 +971,9 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def measureAndEmitSignal(self):
+    def measure_and_emit_signal(self):
         """Measure and emit signal to change current setpoint."""
-        self.clearCurrentMeasurement()
+        self.clear_current_measurement()
 
         try:
             self.local_measurement_config.current_setpoint = (
@@ -988,7 +988,7 @@ class MeasurementWidget(_QWidget):
             self.change_current_setpoint.emit(True)
             return
 
-        if not self.saveConfiguration():
+        if not self.save_configuration():
             return
 
         if not self.measure():
@@ -996,14 +996,14 @@ class MeasurementWidget(_QWidget):
 
         self.change_current_setpoint.emit(True)
 
-    def measureButtonClicked(self):
+    def measure_button_clicked(self):
         """Start measurements."""
         if self.ui.chb_automatic_ramp.isChecked():
-            self.startAutomaticMeasurements()
+            self.start_automatic_measurements()
         else:
-            self.startMeasurement()
+            self.start_measurement()
 
-    def measureCurrentAndTemperature(self):
+    def measure_current_and_temperature(self):
         """Measure current and temperatures."""
         if (not self.ui.chb_save_temperature.isChecked() and
            not self.ui.chb_save_current.isChecked()):
@@ -1044,7 +1044,7 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             return False
 
-    def measureFieldScan(
+    def measure_field_scan(
             self, first_axis, second_axis=-1, second_axis_pos=None):
         """Start line scan."""
         self.field_scan = _FieldScan()
@@ -1067,8 +1067,8 @@ class MeasurementWidget(_QWidget):
         to_pos_scan_list = scan_list + aper_displacement/2
         to_neg_scan_list = (scan_list - aper_displacement/2)[::-1]
 
-        self.clearGraph()
-        self.configureGraph(2, 'Voltage [V]')
+        self.clear_graph()
+        self.configure_graph(2, 'Voltage [V]')
         _QApplication.processEvents()
 
         voltage_scan_list = []
@@ -1110,7 +1110,7 @@ class MeasurementWidget(_QWidget):
 
             _QApplication.processEvents()
 
-            if not self.measureVoltageScan(
+            if not self.measure_voltage_scan(
                     idx, to_pos, first_axis, start, end, step, extra, npts):
                 return False
 
@@ -1129,7 +1129,7 @@ class MeasurementWidget(_QWidget):
             if self.voltage_scan.npts == 0:
                 _warnings.warn(
                     'Invalid number of points in voltage scan.')
-                if not self.measureVoltageScan(
+                if not self.measure_voltage_scan(
                         idx, to_pos, first_axis,
                         start, end, step, extra, npts):
                     return False
@@ -1154,7 +1154,7 @@ class MeasurementWidget(_QWidget):
             _QApplication.processEvents()
 
             if self.ui.chb_save_voltage.isChecked():
-                if not self.saveVoltageScan():
+                if not self.save_voltage_scan():
                     return False
 
             voltage_scan_list.append(self.voltage_scan.copy())
@@ -1162,14 +1162,14 @@ class MeasurementWidget(_QWidget):
         if self.local_hall_probe is not None:
             self.field_scan.set_field_scan(
                 voltage_scan_list, self.local_hall_probe)
-            success = self.saveFieldScan()
+            success = self.save_field_scan()
         else:
             success = True
         _QApplication.processEvents()
 
         return success
 
-    def measureVoltageScan(
+    def measure_voltage_scan(
             self, idx, to_pos, axis, start, end, step, extra, npts):
         """Measure one voltage scan."""
         if self.stop is True:
@@ -1190,15 +1190,15 @@ class MeasurementWidget(_QWidget):
 
         # go to initial position
         if to_pos:
-            self.moveAxis(axis, start - extra)
+            self.move_axis(axis, start - extra)
         else:
-            self.moveAxis(axis, end + extra)
+            self.move_axis(axis, end + extra)
         _QApplication.processEvents()
 
         if self.stop is True:
             return False
 
-        self.measureCurrentAndTemperature()
+        self.measure_current_and_temperature()
         _QApplication.processEvents()
 
         if self.stop is True:
@@ -1220,16 +1220,16 @@ class MeasurementWidget(_QWidget):
             self.devices.voltz.configure_reading_format(formtype)
         _QApplication.processEvents()
 
-        self.startVoltageThreads()
+        self.start_voltage_threads()
 
         if self.stop is False:
             if to_pos:
-                self.moveAxisAndUpdateGraph(axis, end + extra, idx)
+                self.move_axis_and_update_graph(axis, end + extra, idx)
             else:
-                self.moveAxisAndUpdateGraph(axis, start - extra, idx)
+                self.move_axis_and_update_graph(axis, start - extra, idx)
 
-        self.stopTrigger()
-        self.waitVoltageThreads()
+        self.stop_trigger()
+        self.wait_voltage_threads()
 
         _QApplication.processEvents()
 
@@ -1238,7 +1238,7 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan.avgz = self.workerz.voltage
 
         _QApplication.processEvents()
-        self.quitVoltageThreads()
+        self.quit_voltage_threads()
 
         if self.voltage_scan.npts == 0:
             return True
@@ -1277,7 +1277,7 @@ class MeasurementWidget(_QWidget):
         else:
             return True
 
-    def moveAxis(self, axis, position):
+    def move_axis(self, axis, position):
         """Move bench axis.
 
         Args:
@@ -1291,7 +1291,7 @@ class MeasurementWidget(_QWidget):
                 status = self.devices.pmac.axis_status(axis)
                 _QApplication.processEvents()
 
-    def moveAxisAndUpdateGraph(self, axis, position, idx):
+    def move_axis_and_update_graph(self, axis, position, idx):
         """Move bench axis and update plot with the measure data.
 
         Args:
@@ -1303,12 +1303,12 @@ class MeasurementWidget(_QWidget):
             self.devices.pmac.move_axis(axis, position)
             status = self.devices.pmac.axis_status(axis)
             while (status is None or (status & 1) == 0) and self.stop is False:
-                self.plotVoltage(idx)
+                self.plot_voltage(idx)
                 status = self.devices.pmac.axis_status(axis)
                 _QApplication.processEvents()
                 _time.sleep(self._update_graph_time_interval)
 
-    def plotField(self):
+    def plot_field(self):
         """Plot field scan."""
         if self.local_hall_probe is None:
             return
@@ -1318,9 +1318,9 @@ class MeasurementWidget(_QWidget):
             fs = _FieldScan(database=self.database, idn=idn)
             field_scan_list.append(fs)
 
-        self.clearGraph()
+        self.clear_graph()
         nr_curves = len(field_scan_list)
-        self.configureGraph(nr_curves, 'Magnetic Field [T]')
+        self.configure_graph(nr_curves, 'Magnetic Field [T]')
 
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
@@ -1331,7 +1331,7 @@ class MeasurementWidget(_QWidget):
                 self.graphy[i].setData(positions, fs.avgy)
                 self.graphz[i].setData(positions, fs.avgz)
 
-    def plotVoltage(self, idx):
+    def plot_voltage(self, idx):
         """Plot voltage values.
 
         Args:
@@ -1350,7 +1350,7 @@ class MeasurementWidget(_QWidget):
             self.graphz[idx].setData(
                 self.position_list[:len(voltagez)], voltagez)
 
-    def resetMultimeters(self):
+    def reset_multimeters(self):
         """Reset connected multimeters."""
         try:
             if self.devices.voltx.connected:
@@ -1370,17 +1370,17 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def saveConfigDB(self):
+    def save_config_db(self):
         """Save configuration to database."""
         self.ui.cmb_idn.setCurrentIndex(-1)
         if self.database is not None and _os.path.isfile(self.database):
             try:
-                if self.updateConfiguration():
+                if self.update_configuration():
                     idn = self.measurement_config.save_to_database(
                         self.database)
                     self.ui.cmb_idn.addItem(str(idn))
                     self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.count()-1)
-                    self.ui.pbt_loaddb.setEnabled(False)
+                    self.ui.pbt_load_db.setEnabled(False)
             except Exception:
                 _traceback.print_exc(file=_sys.stdout)
                 msg = 'Failed to save configuration to database.'
@@ -1389,7 +1389,7 @@ class MeasurementWidget(_QWidget):
             msg = 'Invalid database filename.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def saveConfigFile(self):
+    def save_config_file(self):
         """Save measurement parameters to file."""
         default_filename = self.ui.le_filename.text()
         if len(default_filename) == 0:
@@ -1407,7 +1407,7 @@ class MeasurementWidget(_QWidget):
         if len(filename) == 0:
             return
 
-        if self.updateConfiguration():
+        if self.update_configuration():
             try:
                 if (not filename.endswith('.txt')
                    and not filename.endswith('.dat')):
@@ -1419,7 +1419,7 @@ class MeasurementWidget(_QWidget):
                 msg = 'Failed to save configuration to file.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def saveConfiguration(self):
+    def save_configuration(self):
         """Save configuration to database table."""
         try:
             text = self.ui.cmb_idn.currentText()
@@ -1435,10 +1435,10 @@ class MeasurementWidget(_QWidget):
             else:
                 idn = self.local_measurement_config.save_to_database(
                     self.database)
-                self.updateConfigurationIDs()
+                self.update_configuration_ids()
                 idx = self.ui.cmb_idn.findText(str(idn))
                 self.ui.cmb_idn.setCurrentIndex(idx)
-                self.ui.pbt_loaddb.setEnabled(False)
+                self.ui.pbt_load_db.setEnabled(False)
 
             self.local_measurement_config_id = idn
             return True
@@ -1448,7 +1448,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def saveFieldScan(self):
+    def save_field_scan(self):
         """Save field scan to database table."""
         if self.field_scan is None:
             msg = 'Invalid field scan.'
@@ -1479,7 +1479,7 @@ class MeasurementWidget(_QWidget):
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
 
-    def saveFieldScanFiles(self):
+    def save_field_scan_files(self):
         """Save scan files."""
         field_scan_list = []
         for idn in self.field_scan_id_list:
@@ -1513,7 +1513,7 @@ class MeasurementWidget(_QWidget):
             msg = 'Failed to save files.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def saveVoltageScan(self):
+    def save_voltage_scan(self):
         """Save voltage scan to database table."""
         if self.voltage_scan is None:
             msg = 'Invalid voltage scan.'
@@ -1546,19 +1546,19 @@ class MeasurementWidget(_QWidget):
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
                 return False
 
-    def setFloatLineEditText(
+    def set_float_line_edit_text(
             self, line_edit, precision=4, expression=True,
             positive=False, nonzero=False):
         """Set the line edit string format for float value."""
         try:
             if line_edit.isModified():
-                self.clearLoadOptions()
-                _utils.setFloatLineEditText(
+                self.clear_load_options()
+                _utils.set_float_line_edit_text(
                     line_edit, precision, expression, positive, nonzero)
         except Exception:
             pass
 
-    def showFieldmapDialog(self):
+    def show_fieldmap_dialog(self):
         """Open fieldmap dialog."""
         if len(self.measurements_id_list) > 1:
             field_scan_id_list = self.measurements_id_list
@@ -1568,11 +1568,11 @@ class MeasurementWidget(_QWidget):
         self.save_fieldmap_dialog.show(
             field_scan_id_list, self.local_hall_probe)
 
-    def showViewProbeDialog(self):
+    def show_view_probe_dialog(self):
         """Open view probe dialog."""
         self.view_probe_dialog.show(self.hall_probe)
 
-    def showViewScanDialog(self):
+    def show_view_scan_dialog(self):
         """Open view data dialog."""
         try:
             if self.local_hall_probe is None:
@@ -1598,10 +1598,10 @@ class MeasurementWidget(_QWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def startAutomaticMeasurements(self):
+    def start_automatic_measurements(self):
         """Configure and emit signal to start automatic ramp measurements."""
         self.measurements_id_list = []
-        self.configureMeasurement()
+        self.configure_measurement()
         if not self.measurement_configured:
             return
 
@@ -1609,14 +1609,14 @@ class MeasurementWidget(_QWidget):
         self.ui.pbt_stop.setEnabled(True)
         self.change_current_setpoint.emit(1)
 
-    def startMeasurement(self):
+    def start_measurement(self):
         """Configure devices and start measurement."""
         self.measurements_id_list = []
-        self.configureMeasurement()
+        self.configure_measurement()
         if not self.measurement_configured:
             return
 
-        if not self.saveConfiguration():
+        if not self.save_configuration():
             return
 
         self.ui.pbt_measure.setEnabled(False)
@@ -1625,7 +1625,7 @@ class MeasurementWidget(_QWidget):
         if not self.measure():
             return
 
-        if not self.resetMultimeters():
+        if not self.reset_multimeters():
             return
 
         self.ui.pbt_stop.setEnabled(False)
@@ -1640,7 +1640,7 @@ class MeasurementWidget(_QWidget):
         _QMessageBox.information(
             self, 'Measurement', msg, _QMessageBox.Ok)
 
-    def startVoltageThreads(self):
+    def start_voltage_threads(self):
         """Start threads to read voltage values."""
         if self.local_measurement_config.voltx_enable:
             self.threadx.start()
@@ -1651,7 +1651,7 @@ class MeasurementWidget(_QWidget):
         if self.local_measurement_config.voltz_enable:
             self.threadz.start()
 
-    def stopMeasurement(self):
+    def stop_measurement(self):
         """Stop measurement to True."""
         try:
             self.stop = True
@@ -1670,21 +1670,21 @@ class MeasurementWidget(_QWidget):
             msg = 'Failed to stop measurements.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def stopTrigger(self):
+    def stop_trigger(self):
         """Stop trigger."""
         self.devices.pmac.stop_trigger()
         self.workerx.end_measurement = True
         self.workery.end_measurement = True
         self.workerz.end_measurement = True
 
-    def uncheckRadioButtons(self, selected_axis):
+    def uncheck_radio_buttons(self, selected_axis):
         """Uncheck radio buttons."""
         axes = [a for a in self._measurement_axes if a != selected_axis]
         for axis in axes:
             rbt_second = getattr(self.ui, 'rbt_second_ax' + str(axis))
             rbt_second.setChecked(False)
 
-    def updateConfiguration(self):
+    def update_configuration(self):
         """Update measurement configuration parameters."""
         try:
             self.measurement_config.clear()
@@ -1692,7 +1692,7 @@ class MeasurementWidget(_QWidget):
             _s = self.ui.le_magnet_name.text().strip()
             self.measurement_config.magnet_name = _s if len(_s) != 0 else None
 
-            current_setpoint = _utils.getValueFromStringExpresssion(
+            current_setpoint = _utils.get_value_from_string(
                 self.ui.le_current_setpoint.text())
             self.measurement_config.current_setpoint = current_setpoint
 
@@ -1726,11 +1726,11 @@ class MeasurementWidget(_QWidget):
             nr_meas = self.ui.sb_nr_measurements.value()
             self.measurement_config.nr_measurements = nr_meas
 
-            integration_time = _utils.getValueFromStringExpresssion(
+            integration_time = _utils.get_value_from_string(
                 self.ui.le_integration_time.text())
             self.measurement_config.integration_time = integration_time
 
-            voltage_range = _utils.getValueFromStringExpresssion(
+            voltage_range = _utils.get_value_from_string(
                 self.ui.le_voltage_range.text())
             self.measurement_config.voltage_range = voltage_range
 
@@ -1761,31 +1761,31 @@ class MeasurementWidget(_QWidget):
                 elif rbt_second.isChecked():
                     self.measurement_config.second_axis = axis
 
-                start = self.getAxisParam('start', axis)
+                start = self.get_axis_param('start', axis)
                 self.measurement_config.set_start(axis, start)
 
                 le_step = getattr(self.ui, 'le_step_ax' + str(axis))
                 if le_step.isEnabled():
-                    step = self.getAxisParam('step', axis)
+                    step = self.get_axis_param('step', axis)
                     self.measurement_config.set_step(axis, step)
                 else:
                     self.measurement_config.set_step(axis, 0.0)
 
                 le_end = getattr(self.ui, 'le_end_ax' + str(axis))
                 if le_end.isEnabled():
-                    end = self.getAxisParam('end', axis)
+                    end = self.get_axis_param('end', axis)
                     self.measurement_config.set_end(axis, end)
                 else:
                     self.measurement_config.set_end(axis, start)
 
                 le_extra = getattr(self.ui, 'le_extra_ax' + str(axis))
                 if le_extra.isEnabled():
-                    extra = self.getAxisParam('extra', axis)
+                    extra = self.get_axis_param('extra', axis)
                     self.measurement_config.set_extra(axis, extra)
                 else:
                     self.measurement_config.set_extra(axis, 0.0)
 
-                vel = self.getAxisParam('vel', axis)
+                vel = self.get_axis_param('vel', axis)
                 self.measurement_config.set_velocity(axis, vel)
 
             if self.measurement_config.second_axis is None:
@@ -1833,10 +1833,10 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def updateConfigurationIDs(self):
+    def update_configuration_ids(self):
         """Update combo box ids."""
         current_text = self.ui.cmb_idn.currentText()
-        load_enabled = self.ui.pbt_loaddb.isEnabled()
+        load_enabled = self.ui.pbt_load_db.isEnabled()
         self.ui.cmb_idn.clear()
         try:
             idns = self.measurement_config.get_table_column(
@@ -1845,15 +1845,15 @@ class MeasurementWidget(_QWidget):
             self.ui.cmb_idn.addItems([str(idn) for idn in idns])
             if len(current_text) == 0:
                 self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.count()-1)
-                self.ui.pbt_loaddb.setEnabled(True)
+                self.ui.pbt_load_db.setEnabled(True)
             else:
                 self.ui.cmb_idn.setCurrentText(current_text)
-                self.ui.pbt_loaddb.setEnabled(load_enabled)
+                self.ui.pbt_load_db.setEnabled(load_enabled)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             pass
 
-    def updateCurrentSetpoint(self, current_setpoint):
+    def update_current_setpoint(self, current_setpoint):
         """Update current setpoint value."""
         try:
             current_value_str = str(current_setpoint)
@@ -1865,7 +1865,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updateHallProbe(self):
+    def update_hall_probe(self):
         """Update hall probe."""
         self.local_hall_probe = self.hall_probe.copy()
         if self.local_hall_probe.valid_data():
@@ -1881,12 +1881,12 @@ class MeasurementWidget(_QWidget):
             else:
                 return False
 
-    def updatePowerSupplyConfig(self):
+    def update_power_supply_config(self):
         """Update local power supply configuration."""
         self.local_power_supply_config = self.power_supply_config
         return True
 
-    def updateProbeNames(self):
+    def update_probe_names(self):
         """Update combo box with database probe names."""
         current_text = self.ui.cmb_probe_name.currentText()
         self.ui.cmb_probe_name.clear()
@@ -1902,13 +1902,13 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             pass
 
-    def updateTriggerStep(self, axis):
+    def update_trigger_step(self, axis):
         """Update trigger step."""
         try:
             rbt_first = getattr(self.ui, 'rbt_first_ax' + str(axis))
             if rbt_first.isChecked():
-                step = self.getAxisParam('step', axis)
-                vel = self.getAxisParam('vel', axis)
+                step = self.get_axis_param('step', axis)
+                vel = self.get_axis_param('vel', axis)
                 if step is not None and vel is not None:
                     max_int_time = _np.abs(step/vel)*1000 - 5
                     _s = 'Max. Int. Time [ms]:  {0:.4f}'.format(
@@ -1920,13 +1920,13 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             pass
 
-    def quitVoltageThreads(self):
+    def quit_voltage_threads(self):
         """Quit voltage threads."""
         self.threadx.quit()
         self.thready.quit()
         self.threadz.quit()
 
-    def validDatabase(self):
+    def valid_database(self):
         """Check if the database filename is valid."""
         if (self.database is not None
            and len(self.database) != 0 and _os.path.isfile(self.database)):
@@ -1936,7 +1936,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def waitVoltageThreads(self):
+    def wait_voltage_threads(self):
         """Wait threads."""
         while self.threadx.isRunning() and self.stop is False:
             _QApplication.processEvents()

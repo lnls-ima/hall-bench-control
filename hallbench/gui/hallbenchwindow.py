@@ -17,7 +17,7 @@ from qtpy.QtCore import (
     )
 import qtpy.uic as _uic
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui.utils import get_ui_file as _get_ui_file
 from hallbench.gui.auxiliarywidgets import PreferencesDialog \
     as _PreferencesDialog
 from hallbench.gui.connectionwidget import ConnectionWidget \
@@ -54,7 +54,7 @@ class HallBenchWindow(_QMainWindow):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
         self.resize(width, height)
 
@@ -94,7 +94,7 @@ class HallBenchWindow(_QMainWindow):
 
         # add preferences dialog
         self.preferences_dialog = _PreferencesDialog(self.tab_names)
-        self.preferences_dialog.preferences_changed.connect(self.changeTabs)
+        self.preferences_dialog.preferences_changed.connect(self.change_tabs)
 
         # show database name
         self.ui.le_database.setText(self.database)
@@ -103,11 +103,11 @@ class HallBenchWindow(_QMainWindow):
         self.stop_positions_update = False
         self.threadpool = _QThreadPool.globalInstance()
         self.timer = _QTimer()
-        self.timer.timeout.connect(self.updatePositions)
+        self.timer.timeout.connect(self.update_positions)
         self.timer.start(self._update_positions_timer_interval)
 
         # connect signals and slots
-        self.connectSignalSlots()
+        self.connect_signal_slots()
 
     @property
     def database(self):
@@ -162,7 +162,7 @@ class HallBenchWindow(_QMainWindow):
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def changeDatabase(self):
+    def change_database(self):
         """Change database file."""
         fn = _QFileDialog.getOpenFileName(
             self, caption='Database file', directory=self.directory,
@@ -177,7 +177,7 @@ class HallBenchWindow(_QMainWindow):
         self.database = fn
         self.ui.le_database.setText(self.database)
 
-    def changeTabs(self, tab_status):
+    def change_tabs(self, tab_status):
         """Hide or show tabs."""
         try:
             if self.ui.twg_main.count() != 0:
@@ -206,14 +206,14 @@ class HallBenchWindow(_QMainWindow):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def centralizeWindow(self):
+    def centralize_window(self):
         """Centralize window."""
         window_center = _QDesktopWidget().availableGeometry().center()
         self.move(
             window_center.x() - self.geometry().width()/2,
             window_center.y() - self.geometry().height()/2)
 
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
         if (hasattr(self, 'tab_measurement') and
             hasattr(self, 'tab_power_supply')):
@@ -224,19 +224,19 @@ class HallBenchWindow(_QMainWindow):
                 self.tab_power_supply.set_current_to_zero)
 
             self.tab_power_supply.current_setpoint_changed.connect(
-                self.tab_measurement.updateCurrentSetpoint)
+                self.tab_measurement.update_current_setpoint)
 
             self.tab_power_supply.start_measurement.connect(
-                self.tab_measurement.measureAndEmitSignal)
+                self.tab_measurement.measure_and_emit_signal)
 
             self.tab_power_supply.current_ramp_end.connect(
-                self.tab_measurement.endAutomaticMeasurements)
+                self.tab_measurement.end_automatic_measurements)
 
-        self.preferences_dialog.tabsPreferencesChanged()
+        self.preferences_dialog.tabs_preferences_changed()
         self.ui.tbt_preferences.clicked.connect(self.preferences_dialog.show)
-        self.ui.tbt_database.clicked.connect(self.changeDatabase)
+        self.ui.tbt_database.clicked.connect(self.change_database)
 
-    def updatePositions(self):
+    def update_positions(self):
         """Update pmac positions."""
         if self.stop_positions_update:
             return

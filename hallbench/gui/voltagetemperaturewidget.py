@@ -53,14 +53,14 @@ class VoltageTempWidget(_TablePlotWidget):
         self.chb_ch103 = _QCheckBox('CH 103')
         self.chb_ch105 = _QCheckBox('CH 105')
         self.pbt_config = _QPushButton('Configure Devices')
-        self.pbt_config.clicked.connect(self.configureDevices)
-        self.addWidgetsNextToTable([
+        self.pbt_config.clicked.connect(self.configure_devices)
+        self.add_widgets_next_to_table([
             [self.chb_voltx, self.chb_volty, self.chb_voltz],
             [self.chb_ch101, self.chb_ch102, self.chb_ch103, self.chb_ch105],
             [self.pbt_config]])
 
         # Change default appearance
-        self.setTableColumnSize(95)
+        self.set_table_column_size(95)
 
         # Create reading thread
         self.wthread = _QThread()
@@ -68,19 +68,31 @@ class VoltageTempWidget(_TablePlotWidget):
         self.worker.moveToThread(self.wthread)
         self.wthread.started.connect(self.worker.run)
         self.worker.finished.connect(self.wthread.quit)
-        self.worker.finished.connect(self.getReading)
+        self.worker.finished.connect(self.get_reading)
 
         self.wait = None
         self.updateWait()
-        self.sbd_monitorstep.valueChanged.connect(self.updateWait)
-        self.cmb_monitorunit.currentIndexChanged.connect(self.updateWait)
+        self.sbd_monitor_step.valueChanged.connect(self.updateWait)
+        self.cmb_monitor_unit.currentIndexChanged.connect(self.updateWait)
 
     @property
     def devices(self):
         """Hall Bench Devices."""
         return _QApplication.instance().devices
 
-    def checkConnection(self, monitor=False):
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.timer.stop()
+            self.wthread.quit()
+            del self.wthread
+            self.close_dialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
+    def check_connection(self, monitor=False):
         """Check devices connection."""
         if self.chb_voltx.isChecked() and not self.devices.voltx.connected:
             if not monitor:
@@ -109,21 +121,9 @@ class VoltageTempWidget(_TablePlotWidget):
 
         return True
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.timer.stop()
-            self.wthread.quit()
-            del self.wthread
-            self.closeDialogs()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def configureDevices(self):
+    def configure_devices(self):
         """Configure devices."""
-        if not self.checkConnection():
+        if not self.check_connection():
             return
 
         try:
@@ -159,7 +159,7 @@ class VoltageTempWidget(_TablePlotWidget):
             _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
 
-    def getReading(self):
+    def get_reading(self):
         """Get reading from worker thread."""
         try:
             ts = self.worker.timestamp
@@ -174,18 +174,18 @@ class VoltageTempWidget(_TablePlotWidget):
             self._timestamp.append(ts)
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
-            self.addLastValueToTable()
-            self.updatePlot()
+            self.add_last_value_to_table()
+            self.update_plot()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def readValue(self, monitor=False):
+    def read_value(self, monitor=False):
         """Read value."""
         if len(self._data_labels) == 0:
             return
 
-        if not self.checkConnection(monitor=monitor):
+        if not self.check_connection(monitor=monitor):
             return
 
         try:
@@ -203,7 +203,7 @@ class VoltageTempWidget(_TablePlotWidget):
 
     def updateWait(self):
         """Update wait value."""
-        self.wait = self.sbd_monitorstep.value()/2
+        self.wait = self.sbd_monitor_step.value()/2
 
 
 class ReadValueWorker(_QObject):

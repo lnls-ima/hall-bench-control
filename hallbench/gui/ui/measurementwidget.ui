@@ -104,7 +104,7 @@
        </spacer>
       </item>
       <item row="1" column="0">
-       <widget class="QPushButton" name="pbt_loaddb">
+       <widget class="QPushButton" name="pbt_load_db">
         <property name="minimumSize">
          <size>
           <width>200</width>
@@ -123,7 +123,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QToolButton" name="tbt_savedb">
+       <widget class="QToolButton" name="tbt_save_db">
         <property name="toolTip">
          <string>Add current configuration to database.</string>
         </property>
@@ -1658,8 +1658,8 @@
  <tabstops>
   <tabstop>cmb_idn</tabstop>
   <tabstop>tbt_update_idn</tabstop>
-  <tabstop>pbt_loaddb</tabstop>
-  <tabstop>tbt_savedb</tabstop>
+  <tabstop>pbt_load_db</tabstop>
+  <tabstop>tbt_save_db</tabstop>
   <tabstop>le_filename</tabstop>
   <tabstop>pbt_loadfile</tabstop>
   <tabstop>pbt_savefile</tabstop>

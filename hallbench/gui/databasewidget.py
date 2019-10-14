@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (
     QAbstractItemView as _QAbstractItemView,
     )
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui.utils import get_ui_file as _get_ui_file
 import hallbench.data as _data
 
 
@@ -58,7 +58,7 @@ class DatabaseWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
         self._table_object_dict = {
@@ -100,7 +100,7 @@ class DatabaseWidget(_QWidget):
 
         self._tables = []
         self.ui.twg_database.clear()
-        self.connectSignalSlots()
+        self.connect_signal_slots()
 
     @property
     def database(self):
@@ -144,33 +144,34 @@ class DatabaseWidget(_QWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.pbt_save.clicked.connect(self.saveFiles)
-        self.ui.pbt_read.clicked.connect(self.readFiles)
-        self.ui.pbt_delete.clicked.connect(self.deleteDatabaseRecords)
+        self.ui.pbt_save.clicked.connect(self.save_files)
+        self.ui.pbt_read.clicked.connect(self.read_files)
+        self.ui.pbt_delete.clicked.connect(self.delete_database_records)
 
-        self.ui.tbt_refresh.clicked.connect(self.updateDatabaseTables)
+        self.ui.tbt_refresh.clicked.connect(self.update_database_tables)
         self.ui.tbt_clear.clicked.connect(self.clear)
-        self.ui.twg_database.currentChanged.connect(self.disableInvalidButtons)
+        self.ui.twg_database.currentChanged.connect(
+            self.disable_invalid_buttons)
 
-        self.ui.pbt_view_hall_probe.clicked.connect(self.viewHallProbe)
+        self.ui.pbt_view_hall_probe.clicked.connect(self.view_hall_probe)
 
         self.ui.pbt_remove_unused_configurations.clicked.connect(
-            self.removeUnusedConfigurations)
+            self.remove_unused_configurations)
 
-        self.ui.pbt_view_voltage_scan.clicked.connect(self.viewVoltageScan)
+        self.ui.pbt_view_voltage_scan.clicked.connect(self.view_voltage_scan)
         self.ui.pbt_convert_to_field_scan.clicked.connect(
-            self.convertToFieldScan)
+            self.convert_to_field_scan)
 
-        self.ui.pbt_view_field_scan.clicked.connect(self.viewFieldScan)
-        self.ui.pbt_create_fieldmap.clicked.connect(self.createFieldmap)
+        self.ui.pbt_view_field_scan.clicked.connect(self.view_field_scan)
+        self.ui.pbt_create_fieldmap.clicked.connect(self.create_fieldmap)
 
-        self.ui.pbt_view_fieldmap.clicked.connect(self.viewFieldmap)
+        self.ui.pbt_view_fieldmap.clicked.connect(self.view_fieldmap)
 
-    def convertToFieldScan(self):
+    def convert_to_field_scan(self):
         """Convert voltage scans to field scans."""
-        idns = self.getTableSelectedIDs(self._voltage_scan_table_name)
+        idns = self.get_table_selected_ids(self._voltage_scan_table_name)
         if len(idns) == 0:
             return
 
@@ -269,7 +270,7 @@ class DatabaseWidget(_QWidget):
                 idn = field_scan.save_to_database(self.database)
                 idns.append(idn)
 
-            self.updateDatabaseTables()
+            self.update_database_tables()
 
             msg = 'Field scans saved in database.\nIDs: ' + str(idns)
             _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
@@ -279,10 +280,10 @@ class DatabaseWidget(_QWidget):
             msg = 'Failed to convert VoltageScan to FieldScan.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def createFieldmap(self):
+    def create_fieldmap(self):
         """Create fieldmap from field scan records."""
         self.save_fieldmap_dialog.accept()
-        idns = self.getTableSelectedIDs(self._field_scan_table_name)
+        idns = self.get_table_selected_ids(self._field_scan_table_name)
         if len(idns) == 0:
             return
 
@@ -326,14 +327,14 @@ class DatabaseWidget(_QWidget):
             msg = 'Failed to create Fieldmap.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def deleteDatabaseRecords(self):
+    def delete_database_records(self):
         """Delete record from database table."""
         try:
-            table_name = self.getCurrentTableName()
+            table_name = self.get_current_table_name()
             if table_name is None:
                 return
 
-            idns = self.getTableSelectedIDs(table_name)
+            idns = self.get_table_selected_ids(table_name)
             if len(idns) == 0:
                 return
 
@@ -350,7 +351,7 @@ class DatabaseWidget(_QWidget):
                 cur.execute(cmd, idns)
                 con.commit()
                 con.close()
-                self.updateDatabaseTables()
+                self.update_database_tables()
             else:
                 con.close()
                 return
@@ -360,10 +361,10 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def disableInvalidButtons(self):
+    def disable_invalid_buttons(self):
         """Disable invalid buttons."""
         try:
-            current_table_name = self.getCurrentTableName()
+            current_table_name = self.get_current_table_name()
             if current_table_name is not None:
                 self.ui.buttons_tbx.setEnabled(True)
 
@@ -386,7 +387,7 @@ class DatabaseWidget(_QWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def getCurrentTable(self):
+    def get_current_table(self):
         """Get current table."""
         try:
             idx = self.ui.twg_database.currentIndex()
@@ -399,10 +400,10 @@ class DatabaseWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             return None
 
-    def getCurrentTableName(self):
+    def get_current_table_name(self):
         """Get current table name."""
         try:
-            current_table = self.getCurrentTable()
+            current_table = self.get_current_table()
             if current_table is not None:
                 current_table_name = current_table.table_name
             else:
@@ -412,16 +413,16 @@ class DatabaseWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             return None
 
-    def getTableSelectedID(self, table_name):
+    def get_table_selected_id(self, table_name):
         """Get table selected ID."""
-        current_table = self.getCurrentTable()
+        current_table = self.get_current_table()
         if current_table is None:
             return None
 
         if current_table.table_name != table_name:
             return None
 
-        idns = current_table.getSelectedIDs()
+        idns = current_table.get_selected_ids()
 
         if len(idns) == 0:
             return None
@@ -434,18 +435,18 @@ class DatabaseWidget(_QWidget):
         idn = idns[0]
         return idn
 
-    def getTableSelectedIDs(self, table_name):
+    def get_table_selected_ids(self, table_name):
         """Get table selected IDs."""
-        current_table = self.getCurrentTable()
+        current_table = self.get_current_table()
         if current_table is None:
             return []
 
         if current_table.table_name != table_name:
             return []
 
-        return current_table.getSelectedIDs()
+        return current_table.get_selected_ids()
 
-    def loadDatabase(self):
+    def load_database(self):
         """Load database."""
         try:
             self._tables = []
@@ -490,7 +491,7 @@ class DatabaseWidget(_QWidget):
                 hlayout.addWidget(la_number_rows)
                 hlayout.addWidget(sb_number_rows)
 
-                table.loadDatabaseTable(
+                table.load_database_table(
                     self.database,
                     table_name,
                     sb_initial_id,
@@ -510,9 +511,9 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def readFiles(self):
+    def read_files(self):
         """Read file and save in database."""
-        table_name = self.getCurrentTableName()
+        table_name = self.get_current_table_name()
         if table_name is None:
             return
 
@@ -535,7 +536,7 @@ class DatabaseWidget(_QWidget):
                 idn = obj.save_to_database(self.database)
                 idns.append(idn)
             msg = 'Added to database table.\nIDs: ' + str(idns)
-            self.updateDatabaseTables()
+            self.update_database_tables()
             _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -543,7 +544,7 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def removeUnusedConfigurations(self):
+    def remove_unused_configurations(self):
         """Remove unused configurations from database table."""
         try:
             idns = _MeasurementConfig.get_table_column(self.database, 'id')
@@ -578,7 +579,7 @@ class DatabaseWidget(_QWidget):
                 con.commit()
                 con.close()
 
-                self.updateDatabaseTables()
+                self.update_database_tables()
 
                 self.blockSignals(False)
                 _QApplication.restoreOverrideCursor()
@@ -592,15 +593,15 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def saveFiles(self):
+    def save_files(self):
         """Save database record to file."""
-        table_name = self.getCurrentTableName()
+        table_name = self.get_current_table_name()
         if table_name is None:
             return
 
         object_class = self._table_object_dict[table_name]
 
-        idns = self.getTableSelectedIDs(table_name)
+        idns = self.get_table_selected_ids(table_name)
         nr_idns = len(idns)
         if nr_idns == 0:
             return
@@ -666,13 +667,13 @@ class DatabaseWidget(_QWidget):
             msg = 'Failed to save files.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def scrollDownTables(self):
+    def scroll_down_tables(self):
         """Scroll down all tables."""
         for idx in range(len(self._tables)):
             self.ui.twg_database.setCurrentIndex(idx)
-            self._tables[idx].scrollDown()
+            self._tables[idx].scroll_down()
 
-    def updateDatabaseTables(self):
+    def update_database_tables(self):
         """Update database tables."""
         if not self.isVisible():
             return
@@ -683,8 +684,8 @@ class DatabaseWidget(_QWidget):
 
             idx = self.ui.twg_database.currentIndex()
             self.clear()
-            self.loadDatabase()
-            self.scrollDownTables()
+            self.load_database()
+            self.scroll_down_tables()
             self.ui.twg_database.setCurrentIndex(idx)
 
             self.blockSignals(False)
@@ -697,9 +698,9 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', 'Failed to update database.', _QMessageBox.Ok)
 
-    def viewHallProbe(self):
+    def view_hall_probe(self):
         """Open hall probe dialog."""
-        idn = self.getTableSelectedID(self._hall_probe_table_name)
+        idn = self.get_table_selected_id(self._hall_probe_table_name)
         if idn is None:
             return
 
@@ -711,9 +712,9 @@ class DatabaseWidget(_QWidget):
             msg = 'Failed to show Hall probe dialog,'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def viewVoltageScan(self):
+    def view_voltage_scan(self):
         """Open view data dialog."""
-        idns = self.getTableSelectedIDs(self._voltage_scan_table_name)
+        idns = self.get_table_selected_ids(self._voltage_scan_table_name)
         if len(idns) == 0:
             return
 
@@ -738,9 +739,9 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def viewFieldScan(self):
+    def view_field_scan(self):
         """Open view data dialog."""
-        idns = self.getTableSelectedIDs(self._field_scan_table_name)
+        idns = self.get_table_selected_ids(self._field_scan_table_name)
         if len(idns) == 0:
             return
 
@@ -765,9 +766,9 @@ class DatabaseWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def viewFieldmap(self):
+    def view_fieldmap(self):
         """Open view fieldmap dialog."""
-        idn = self.getTableSelectedID(self._fieldmap_table_name)
+        idn = self.get_table_selected_id(self._fieldmap_table_name)
         if idn is None:
             return
 
@@ -834,16 +835,16 @@ class DatabaseTable(_QTableWidget):
         self.sb_number_rows = None
         self.sb_max_number_rows = None
 
-    def changeInitialID(self):
+    def change_initial_id(self):
         """Change initial ID."""
         initial_id = self.sb_initial_id.value()
-        self.filterData(initial_id=initial_id)
+        self.filter_data(initial_id=initial_id)
 
-    def changeMaxRows(self):
+    def change_max_rows(self):
         """Change maximum number of rows."""
-        self.filterData()
+        self.filter_data()
 
-    def loadDatabaseTable(
+    def load_database_table(
             self, database, table_name,
             sb_initial_id, sb_number_rows, sb_max_number_rows):
         """Set database filename and table name."""
@@ -851,20 +852,20 @@ class DatabaseTable(_QTableWidget):
         self.table_name = table_name
 
         self.sb_initial_id = sb_initial_id
-        self.sb_initial_id.editingFinished.connect(self.changeInitialID)
+        self.sb_initial_id.editingFinished.connect(self.change_initial_id)
 
         self.sb_max_number_rows = sb_max_number_rows
         self.sb_max_number_rows.setMaximum(_limit_number_rows)
         self.sb_max_number_rows.setValue(_max_number_rows)
-        self.sb_max_number_rows.editingFinished.connect(self.changeMaxRows)
+        self.sb_max_number_rows.editingFinished.connect(self.change_max_rows)
 
         self.sb_number_rows = sb_number_rows
         self.sb_number_rows.setMaximum(_limit_number_rows)
         self.sb_number_rows.setValue(_max_number_rows)
 
-        self.updateTable()
+        self.update_table()
 
-    def updateTable(self):
+    def update_table(self):
         """Update table."""
         if self.database is None or self.table_name is None:
             return
@@ -918,7 +919,7 @@ class DatabaseTable(_QTableWidget):
 
             self.sb_max_number_rows.setValue(len(data))
             self.data = data[:]
-            self.addRowsToTable(data)
+            self.add_rows_to_table(data)
         else:
             self.sb_initial_id.setMinimum(0)
             self.sb_initial_id.setMaximum(0)
@@ -927,10 +928,10 @@ class DatabaseTable(_QTableWidget):
         con.close()
         self.setSelectionBehavior(_QAbstractItemView.SelectRows)
         self.blockSignals(False)
-        self.itemChanged.connect(self.filterChanged)
-        self.itemSelectionChanged.connect(self.selectLine)
+        self.itemChanged.connect(self.filter_changed)
+        self.itemSelectionChanged.connect(self.select_line)
 
-    def addRowsToTable(self, data):
+    def add_rows_to_table(self, data):
         """Add rows to table."""
         if len(self.column_names) == 0:
             return
@@ -959,12 +960,12 @@ class DatabaseTable(_QTableWidget):
                 item.setFlags(_Qt.ItemIsSelectable | _Qt.ItemIsEnabled)
                 self.setItem(i + 1, j, item)
 
-    def scrollDown(self):
+    def scroll_down(self):
         """Scroll down."""
         vbar = self.verticalScrollBar()
         vbar.setValue(vbar.maximum())
 
-    def selectLine(self):
+    def select_line(self):
         """Select the entire line."""
         if (self.rowCount() == 0
            or self.columnCount() == 0
@@ -979,12 +980,12 @@ class DatabaseTable(_QTableWidget):
         else:
             self.setSelectionBehavior(_QAbstractItemView.SelectRows)
 
-    def filterChanged(self, item):
+    def filter_changed(self, item):
         """Apply column filter to data."""
         if item.row() == 0:
-            self.filterData()
+            self.filter_data()
 
-    def filterData(self, initial_id=None):
+    def filter_data(self, initial_id=None):
         """Apply column filter to data."""
         if (self.rowCount() == 0
            or self.columnCount() == 0
@@ -1069,9 +1070,9 @@ class DatabaseTable(_QTableWidget):
         data = cur.fetchall()
         con.close()
         self.data = data[:]
-        self.addRowsToTable(data)
+        self.add_rows_to_table(data)
 
-    def getSelectedIDs(self):
+    def get_selected_ids(self):
         """Get selected IDs."""
         selected = self.selectedItems()
         rows = [s.row() for s in selected if s.row() != 0]

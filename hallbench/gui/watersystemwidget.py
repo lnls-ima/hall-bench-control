@@ -44,11 +44,11 @@ class WaterSystemWidget(_TablePlotWidget):
         self.chb_pv2 = _QCheckBox(' PV2 ')
         self.chb_output1 = _QCheckBox(' Output1')
         self.chb_output2 = _QCheckBox(' Output2')
-        self.addWidgetsNextToTable(
+        self.add_widgets_next_to_table(
             [self.chb_pv1, self.chb_pv2, self.chb_output1, self.chb_output2])
 
         # Change default appearance
-        self.setTableColumnSize(120)
+        self.set_table_column_size(120)
 
         # Create reading thread
         self.wthread = _QThread()
@@ -56,21 +56,12 @@ class WaterSystemWidget(_TablePlotWidget):
         self.worker.moveToThread(self.wthread)
         self.wthread.started.connect(self.worker.run)
         self.worker.finished.connect(self.wthread.quit)
-        self.worker.finished.connect(self.getReading)
+        self.worker.finished.connect(self.get_reading)
 
     @property
     def devices(self):
         """Hall Bench Devices."""
         return _QApplication.instance().devices
-
-    def checkConnection(self, monitor=False):
-        """Check devices connection."""
-        if not self.devices.water_udc.connected:
-            if not monitor:
-                _QMessageBox.critical(
-                    self, 'Failure', 'UDC not connected.', _QMessageBox.Ok)
-            return False
-        return True
 
     def closeEvent(self, event):
         """Close widget."""
@@ -81,7 +72,16 @@ class WaterSystemWidget(_TablePlotWidget):
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def getReading(self):
+    def check_connection(self, monitor=False):
+        """Check devices connection."""
+        if not self.devices.water_udc.connected:
+            if not monitor:
+                _QMessageBox.critical(
+                    self, 'Failure', 'UDC not connected.', _QMessageBox.Ok)
+            return False
+        return True
+
+    def get_reading(self):
         """Get reading from worker thread."""
         try:
             ts = self.worker.timestamp
@@ -96,18 +96,18 @@ class WaterSystemWidget(_TablePlotWidget):
             self._timestamp.append(ts)
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
-            self.addLastValueToTable()
-            self.updatePlot()
+            self.add_last_value_to_table()
+            self.update_plot()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def readValue(self, monitor=False):
+    def read_value(self, monitor=False):
         """Read value."""
         if len(self._data_labels) == 0:
             return
 
-        if not self.checkConnection(monitor=monitor):
+        if not self.check_connection(monitor=monitor):
             return
 
         try:

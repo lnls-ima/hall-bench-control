@@ -130,7 +130,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QToolButton" name="tbt_savedb">
+       <widget class="QToolButton" name="tbt_save_db">
         <property name="text">
          <string>...</string>
         </property>
@@ -166,7 +166,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QPushButton" name="pbt_loaddb">
+       <widget class="QPushButton" name="pbt_load_db">
         <property name="minimumSize">
          <size>
           <width>230</width>
@@ -1754,8 +1754,8 @@ Power Supply</string>
  <tabstops>
   <tabstop>cmb_idn</tabstop>
   <tabstop>tbt_update_idn</tabstop>
-  <tabstop>pbt_loaddb</tabstop>
-  <tabstop>tbt_savedb</tabstop>
+  <tabstop>pbt_load_db</tabstop>
+  <tabstop>tbt_save_db</tabstop>
   <tabstop>pbt_connect</tabstop>
   <tabstop>pbt_disconnect</tabstop>
   <tabstop>chb_voltx_enable</tabstop>

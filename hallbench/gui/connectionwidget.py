@@ -14,7 +14,7 @@ from qtpy.QtWidgets import (
 from qtpy.QtCore import Qt as _Qt
 import qtpy.uic as _uic
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui.utils import get_ui_file as _get_ui_file
 
 
 class ConnectionWidget(_QWidget):
@@ -25,12 +25,12 @@ class ConnectionWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.connectSignalSlots()
-        self.updateSerialPorts()
-        self.updateConnectionIDs()
+        self.connect_signal_slots()
+        self.update_serial_ports()
+        self.update_connection_ids()
 
     @property
     def connection_config(self):
@@ -52,10 +52,6 @@ class ConnectionWidget(_QWidget):
         """Return the default directory."""
         return _QApplication.instance().directory
 
-    def clearLoadOptions(self):
-        """Clear load options."""
-        self.ui.cmb_idn.setCurrentIndex(-1)
-
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -65,9 +61,13 @@ class ConnectionWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def connectDevices(self):
+    def clear_load_options(self):
+        """Clear load options."""
+        self.ui.cmb_idn.setCurrentIndex(-1)
+
+    def connect_devices(self):
         """Connect bench devices."""
-        if not self.updateConfiguration():
+        if not self.update_configuration():
             return
 
         self.blockSignals(True)
@@ -75,8 +75,8 @@ class ConnectionWidget(_QWidget):
 
         try:
             self.devices.connect(self.connection_config)
-            self.updateLedStatus()
-            connected = self.connectionStatus()
+            self.update_led_status()
+            connected = self.connection_status()
 
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -93,7 +93,7 @@ class ConnectionWidget(_QWidget):
             msg = 'Failed to connect devices.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def connectionStatus(self):
+    def connection_status(self):
         """Return the connection status."""
         try:
             if self.connection_config.pmac_enable:
@@ -147,7 +147,7 @@ class ConnectionWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             return False
 
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
         chbs = [
             self.ui.chb_voltx_enable,
@@ -163,7 +163,7 @@ class ConnectionWidget(_QWidget):
             self.ui.chb_air_udc_enable,
             ]
         for chb in chbs:
-            chb.stateChanged.connect(self.clearLoadOptions)
+            chb.stateChanged.connect(self.clear_load_options)
 
         sbs = [
             self.ui.sb_voltx_address,
@@ -175,7 +175,7 @@ class ConnectionWidget(_QWidget):
             self.ui.sb_air_udc_slave_address,
             ]
         for sb in sbs:
-            sb.valueChanged.connect(self.clearLoadOptions)
+            sb.valueChanged.connect(self.clear_load_options)
 
         cmbs = [
             self.ui.cmb_ps_port,
@@ -189,34 +189,34 @@ class ConnectionWidget(_QWidget):
             self.ui.cmb_air_udc_baudrate,
             ]
         for cmb in cmbs:
-              cmb.currentIndexChanged.connect(self.clearLoadOptions)
+              cmb.currentIndexChanged.connect(self.clear_load_options)
 
-        self.ui.cmb_idn.currentIndexChanged.connect(self.enableLoadDB)
-        self.ui.tbt_update_idn.clicked.connect(self.updateConnectionIDs)
-        self.ui.pbt_loaddb.clicked.connect(self.loadDB)
-        self.ui.tbt_savedb.clicked.connect(self.saveDB)
-        self.ui.pbt_connect.clicked.connect(self.connectDevices)
-        self.ui.pbt_disconnect.clicked.connect(self.disconnectDevices)
+        self.ui.cmb_idn.currentIndexChanged.connect(self.enable_load_db)
+        self.ui.tbt_update_idn.clicked.connect(self.update_connection_ids)
+        self.ui.pbt_load_db.clicked.connect(self.load_db)
+        self.ui.tbt_save_db.clicked.connect(self.save_db)
+        self.ui.pbt_connect.clicked.connect(self.connect_devices)
+        self.ui.pbt_disconnect.clicked.connect(self.disconnect_devices)
 
-    def disconnectDevices(self):
+    def disconnect_devices(self):
         """Disconnect bench devices."""
         try:
             self.devices.disconnect()
-            self.updateLedStatus()
+            self.update_led_status()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to disconnect devices.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def enableLoadDB(self):
+    def enable_load_db(self):
         """Enable button to load configuration from database."""
         if self.ui.cmb_idn.currentIndex() != -1:
-            self.ui.pbt_loaddb.setEnabled(True)
+            self.ui.pbt_load_db.setEnabled(True)
         else:
-            self.ui.pbt_loaddb.setEnabled(False)
+            self.ui.pbt_load_db.setEnabled(False)
 
-    def loadDB(self):
+    def load_db(self):
         """Load configuration from database to set parameters."""
         try:
             idn = int(self.ui.cmb_idn.currentText())
@@ -225,7 +225,7 @@ class ConnectionWidget(_QWidget):
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
 
-        self.updateConnectionIDs()
+        self.update_connection_ids()
         idx = self.ui.cmb_idn.findText(str(idn))
         if idx == -1:
             self.ui.cmb_idn.setCurrentIndex(-1)
@@ -244,7 +244,7 @@ class ConnectionWidget(_QWidget):
 
         self.load()
         self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.findText(str(idn)))
-        self.ui.pbt_loaddb.setEnabled(False)
+        self.ui.pbt_load_db.setEnabled(False)
 
     def load(self):
         """Load configuration to set connection parameters."""
@@ -328,17 +328,17 @@ class ConnectionWidget(_QWidget):
             msg = 'Failed to load configuration.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def saveDB(self):
+    def save_db(self):
         """Save connection parameters to database."""
         self.ui.cmb_idn.setCurrentIndex(-1)
         if self.database is not None and _os.path.isfile(self.database):
             try:
-                if self.updateConfiguration():
+                if self.update_configuration():
                     idn = self.connection_config.save_to_database(
                         self.database)
                     self.ui.cmb_idn.addItem(str(idn))
                     self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.count()-1)
-                    self.ui.pbt_loaddb.setEnabled(False)
+                    self.ui.pbt_load_db.setEnabled(False)
             except Exception:
                 _traceback.print_exc(file=_sys.stdout)
                 msg = 'Failed to save connection to database.'
@@ -348,10 +348,10 @@ class ConnectionWidget(_QWidget):
             _QMessageBox.critical(
                 self, 'Failure', msg, _QMessageBox.Ok)
 
-    def updateConnectionIDs(self):
+    def update_connection_ids(self):
         """Update connection IDs in combo box."""
         current_text = self.ui.cmb_idn.currentText()
-        load_enabled = self.ui.pbt_loaddb.isEnabled()
+        load_enabled = self.ui.pbt_load_db.isEnabled()
         self.ui.cmb_idn.clear()
         try:
             idns = self.connection_config.get_table_column(
@@ -359,14 +359,14 @@ class ConnectionWidget(_QWidget):
             self.ui.cmb_idn.addItems([str(idn) for idn in idns])
             if len(current_text) == 0:
                 self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.count()-1)
-                self.ui.pbt_loaddb.setEnabled(True)
+                self.ui.pbt_load_db.setEnabled(True)
             else:
                 self.ui.cmb_idn.setCurrentText(current_text)
-                self.ui.pbt_loaddb.setEnabled(load_enabled)
+                self.ui.pbt_load_db.setEnabled(load_enabled)
         except Exception:
             pass
 
-    def updateConfiguration(self):
+    def update_configuration(self):
         """Update connection configuration parameters."""
         self.connection_config.clear()
 
@@ -447,7 +447,7 @@ class ConnectionWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def updateLedStatus(self):
+    def update_led_status(self):
         """Update led status."""
         try:
             pmac_connected = self.devices.pmac.connected
@@ -473,7 +473,7 @@ class ConnectionWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             pass
 
-    def updateSerialPorts(self):
+    def update_serial_ports(self):
         """Update avaliable serial ports."""
         _l = [p[0] for p in _list_ports.comports()]
 

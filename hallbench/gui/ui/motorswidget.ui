@@ -920,7 +920,7 @@
     </widget>
    </item>
    <item row="1" column="1" colspan="3">
-    <widget class="QGroupBox" name="gb_moveaxis">
+    <widget class="QGroupBox" name="gb_move_axis">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -971,7 +971,7 @@
          </widget>
         </item>
         <item row="0" column="1" colspan="2">
-         <widget class="QComboBox" name="cmb_selectaxis">
+         <widget class="QComboBox" name="cmb_select_axis">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -1026,7 +1026,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLabel" name="la_targetvelunit">
+         <widget class="QLabel" name="la_target_vel_unit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1045,7 +1045,7 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QLabel" name="la_targetposunit">
+         <widget class="QLabel" name="la_target_pos_unit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1077,7 +1077,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="le_targetvel">
+         <widget class="QLineEdit" name="le_target_vel">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -1136,7 +1136,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLineEdit" name="le_targetpos">
+         <widget class="QLineEdit" name="le_target_pos">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -1532,10 +1532,10 @@
   <tabstop>le_maxax3</tabstop>
   <tabstop>pbt_setlimits</tabstop>
   <tabstop>pbt_resetlimits</tabstop>
-  <tabstop>cmb_selectaxis</tabstop>
-  <tabstop>le_targetvel</tabstop>
+  <tabstop>cmb_select_axis</tabstop>
+  <tabstop>le_target_vel</tabstop>
   <tabstop>le_reldisp</tabstop>
-  <tabstop>le_targetpos</tabstop>
+  <tabstop>le_target_pos</tabstop>
   <tabstop>pbt_move</tabstop>
   <tabstop>pbt_stop</tabstop>
   <tabstop>cmb_selecttrigaxis</tabstop>

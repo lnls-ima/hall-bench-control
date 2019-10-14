@@ -36,7 +36,7 @@ class SupplyWidget(_QWidget):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _utils.getUiFile(self)
+        uifile = _utils.get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialization
@@ -50,13 +50,13 @@ class SupplyWidget(_QWidget):
         self.plot_dialog = _PlotDialog()
 
         # fill combobox
-        self.list_powersupply()
+        self.list_power_supply()
 
         # create signal/slot connections
-        self.ui.pb_ps_button.clicked.connect(self.start_powersupply)
+        self.ui.pb_ps_button.clicked.connect(self.start_power_supply)
         self.ui.pb_refresh.clicked.connect(self.display_current)
-        self.ui.pb_load_ps.clicked.connect(self.load_powersupply)
-        self.ui.pb_save_ps.clicked.connect(self.save_powersupply)
+        self.ui.pb_load_ps.clicked.connect(self.load_power_supply)
+        self.ui.pb_save_ps.clicked.connect(self.save_power_supply)
         self.ui.pb_send.clicked.connect(self.send_setpoint)
         self.ui.pb_send_curve.clicked.connect(self.send_curve)
         self.ui.pb_config_pid.clicked.connect(self.config_pid)
@@ -79,7 +79,7 @@ class SupplyWidget(_QWidget):
         self.ui.cb_ps_name.currentIndexChanged.connect(self.change_ps)
         self.ui.cb_ps_name.editTextChanged.connect(self.change_ps)
         self.ui.sbd_current_setpoint.valueChanged.connect(self.check_setpoint)
-        self.timer.timeout.connect(self.status_powersupply)
+        self.timer.timeout.connect(self.status_power_supply)
 
         self.probe_calibration_config_plot()
         self.ui.pbt_pc_measure.clicked.connect(self.probe_calibration_measure)
@@ -107,7 +107,18 @@ class SupplyWidget(_QWidget):
         """Power Supply configurations."""
         return _QApplication.instance().power_supply_config
 
-    def closeDialogs(self):
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            if self.config.status:
+               self.start_power_supply()
+            self.close_dialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
+    def close_dialogs(self):
         """Close dialogs."""
         try:
             self.plot_dialog.accept()
@@ -115,23 +126,12 @@ class SupplyWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             pass
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            if self.config.status:
-               self.start_powersupply()
-            self.closeDialogs()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
     def set_current_to_zero(self):
         """Set Power Supply current to zero."""
         self.current_array_index = 0
         self.current_setpoint(setpoint=0)
 
-    def list_powersupply(self):
+    def list_power_supply(self):
         """Updates available power supply supply names."""
         _l = self.config.get_table_column(self.database, 'name')
         for _ in range(self.ui.cb_ps_name.count()):
@@ -163,7 +163,7 @@ class SupplyWidget(_QWidget):
         else:
             self.ui.pb_load_ps.setEnabled(True)
 
-    def start_powersupply(self):
+    def start_power_supply(self):
         """Starts/Stops the Power Supply."""
         try:
             self.devices.dcct.config()
@@ -975,7 +975,7 @@ class SupplyWidget(_QWidget):
             self.drs.SetSlaveAdd(_ps_type)
             self.drs.ResetInterlocks()
             self.ui.pb_interlock.setEnabled(False)
-            self.status_powersupply()
+            self.status_power_supply()
             _QMessageBox.information(self, 'Information',
                                      'Interlocks reseted.',
                                      _QMessageBox.Ok)
@@ -1284,7 +1284,7 @@ class SupplyWidget(_QWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def status_powersupply(self):
+    def status_power_supply(self):
         """Read and display Power Supply status."""
         if self.isActiveWindow():
             try:
@@ -1321,7 +1321,7 @@ class SupplyWidget(_QWidget):
                 _QApplication.processEvents()
                 return
 
-    def save_powersupply(self):
+    def save_power_supply(self):
         """Save Power Supply settings into database."""
         self.config_ps()
         _name = self.config.ps_name
@@ -1329,7 +1329,7 @@ class SupplyWidget(_QWidget):
             _idn = self.config.get_database_id(self.database, 'name', _name)
             if not len(_idn):
                 if self.config.save_to_database(self.database) is not None:
-                    self.list_powersupply()
+                    self.list_power_supply()
                     self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
                     _QMessageBox.information(self, 'Information', 'Power '
                                              'Supply saved into database.',
@@ -1358,7 +1358,7 @@ class SupplyWidget(_QWidget):
                                  _QMessageBox.Ok)
             return
 
-    def load_powersupply(self):
+    def load_power_supply(self):
         """Load Power Supply settings from database."""
         self.config.ps_name = self.ui.cb_ps_name.currentText()
         try:

@@ -28,7 +28,7 @@ class ViewFieldmapDialog(_QDialog):
         """Set up the ui and create connections."""
         super().__init__(parent)
 
-        uifile = _utils.getUiFile(self)
+        uifile = _utils.get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
         self.text_updated = False
@@ -51,12 +51,21 @@ class ViewFieldmapDialog(_QDialog):
         self.legend.setParentItem(self.ui.pw_graph.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
-        self.connectSignalSlots()
+        self.connect_signal_slots()
 
     def accept(self):
         """Close dialog."""
         self.clear()
         super().accept()
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
 
     def clear(self):
         """Clear data."""
@@ -71,25 +80,16 @@ class ViewFieldmapDialog(_QDialog):
         self.graphy = None
         self.graphz = None
         self.xlabel = ''
-        self.clearGraph()
+        self.clear_graph()
         self.ui.te_text.setText('')
         self.ui.twg_main.setCurrentIndex(0)
 
-    def clearGraph(self):
+    def clear_graph(self):
         """Clear plots."""
         self.ui.pw_graph.plotItem.curves.clear()
         self.ui.pw_graph.clear()
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.clear()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def configureGraph(self):
+    def configure_graph(self):
         """Configure graph.
 
         Args:
@@ -132,10 +132,10 @@ class ViewFieldmapDialog(_QDialog):
         self.ui.pw_graph.setLabel('left', 'Magnetic Field [T]')
         self.ui.pw_graph.showGrid(x=True, y=True)
 
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.pbt_update_plot.clicked.connect(self.updatePlot)
-        self.ui.twg_main.currentChanged.connect(self.updateTab)
+        self.ui.pbt_update_plot.clicked.connect(self.update_plot)
+        self.ui.twg_main.currentChanged.connect(self.update_tab)
 
     def show(self, fieldmap, idn):
         """Update fieldmap and show dialog."""
@@ -143,9 +143,9 @@ class ViewFieldmapDialog(_QDialog):
         self.fieldmap = fieldmap
 
         try:
-            self.updateLineEdits(idn)
-            self.updatePlotOptions()
-            self.updatePlot()
+            self.update_line_edits(idn)
+            self.update_plot_options()
+            self.update_plot()
             if len(self.fieldmap.temperature) != 0:
                 self.ui.twg_main.setTabEnabled(1, True)
             else:
@@ -158,7 +158,7 @@ class ViewFieldmapDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updateLineEdits(self, idn):
+    def update_line_edits(self, idn):
         """Update line edit texts."""
         self.ui.le_idn.setText('')
         self.ui.le_nr_scans.setText('')
@@ -196,12 +196,12 @@ class ViewFieldmapDialog(_QDialog):
 
             dcct_avg = self.fieldmap.dcct_current_avg
             dcct_std = self.fieldmap.dcct_current_std
-            dcct_str = _utils.scientificNotation(dcct_avg, dcct_std)
+            dcct_str = _utils.scientific_notation(dcct_avg, dcct_std)
             self.ui.le_dcct_current.setText(dcct_str)
 
             ps_avg = self.fieldmap.ps_current_avg
             ps_std = self.fieldmap.ps_current_std
-            ps_str = _utils.scientificNotation(ps_avg, ps_std)
+            ps_str = _utils.scientific_notation(ps_avg, ps_std)
             self.ui.le_ps_current.setText(ps_str)
 
             current_setpoint = self.fieldmap.current_setpoint
@@ -259,10 +259,10 @@ class ViewFieldmapDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
             return
 
-    def updatePlot(self):
+    def update_plot(self):
         """Update plot."""
-        self.clearGraph()
-        self.configureGraph()
+        self.clear_graph()
+        self.configure_graph()
         if self.fieldmap is None:
             return
 
@@ -287,7 +287,7 @@ class ViewFieldmapDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updatePlotOptions(self):
+    def update_plot_options(self):
         """Update plot options."""
         self.ui.la_plot.setText('')
         self.ui.cmb_plot.clear()
@@ -393,14 +393,14 @@ class ViewFieldmapDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
             return
 
-    def updateTab(self, idx):
+    def update_tab(self, idx):
         """Update current tab."""
         if idx ==  1:
-            self.updateTemperatures()
+            self.update_temperatures()
         elif idx == 2:
-            self.updateText()
+            self.update_text()
 
-    def updateTemperatures(self):
+    def update_temperatures(self):
         """Show dialog with temperature readings."""
         if self.temperature_updated:
             return
@@ -420,7 +420,7 @@ class ViewFieldmapDialog(_QDialog):
             readings = {}
             for col in df.columns:
                 readings[col] = df[col].values.tolist()
-            self.temperature_widget.updateTemperatures(timestamp, readings)
+            self.temperature_widget.update_temperatures(timestamp, readings)
             self.temperature_updated = True
 
         except Exception:
@@ -429,7 +429,7 @@ class ViewFieldmapDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updateText(self):
+    def update_text(self):
         """Update text."""
         if self.text_updated:
             return

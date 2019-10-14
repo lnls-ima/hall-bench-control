@@ -14,7 +14,7 @@ from qtpy.QtWidgets import (
     )
 import qtpy.uic as _uic
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui.utils import get_ui_file as _get_ui_file
 from hallbench.gui.auxiliarywidgets import (
     PolynomialTableDialog as _PolynomialTableDialog,
     InterpolationTableDialog as _InterpolationTableDialog,
@@ -32,7 +32,7 @@ class ViewProbeDialog(_QDialog):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
         self.local_hall_probe = None
@@ -44,12 +44,12 @@ class ViewProbeDialog(_QDialog):
         self.graphy = []
         self.graphz = []
 
-        self.configureGraph()
+        self.configure_graph()
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.pw_plot.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
-        self.connectSignalSlots()
+        self.connect_signal_slots()
 
     @property
     def database(self):
@@ -59,8 +59,18 @@ class ViewProbeDialog(_QDialog):
     def accept(self):
         """Close dialog."""
         self.clear()
-        self.closeDialogs()
+        self.close_dialogs()
         super().accept()
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            self.close_dialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
 
     def clear(self):
         """Clear."""
@@ -72,7 +82,7 @@ class ViewProbeDialog(_QDialog):
         self.interpolation_dialog.clear()
         self.polynomial_dialog.clear()
 
-    def closeDialogs(self):
+    def close_dialogs(self):
         """Close dialogs."""
         try:
             self.interpolation_dialog.accept()
@@ -81,17 +91,7 @@ class ViewProbeDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
             pass
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.clear()
-            self.closeDialogs()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def configureGraph(self, symbol=False):
+    def configure_graph(self, symbol=False):
         """Configure data plots."""
         self.ui.pw_plot.clear()
 
@@ -154,11 +154,11 @@ class ViewProbeDialog(_QDialog):
         self.ui.pw_plot.setLabel('left', 'Magnetic Field [T]')
         self.ui.pw_plot.showGrid(x=True, y=True)
 
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.pbt_showtable.clicked.connect(self.showTable)
-        self.ui.pbt_updategraph.clicked.connect(self.updateGraph)
-        self.ui.sbd_voltage.valueChanged.connect(self.updateField)
+        self.ui.pbt_showtable.clicked.connect(self.show_table)
+        self.ui.pbt_updategraph.clicked.connect(self.update_graph)
+        self.ui.sbd_voltage.valueChanged.connect(self.update_field)
 
     def load(self):
         """Load hall probe parameters."""
@@ -211,21 +211,21 @@ class ViewProbeDialog(_QDialog):
             self.ui.le_sensorz_position.setText(sensorz_position)
             self.ui.le_sensorz_direction.setText(sensorz_direction)
 
-            self.setDataEnabled(True)
-            self.updateGraph()
+            self.set_data_enabled(True)
+            self.update_graph()
             self.ui.le_fieldx.setText('')
             self.ui.le_fieldy.setText('')
             self.ui.le_fieldz.setText('')
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            self.setDataEnabled(False)
-            self.updateGraph()
+            self.set_data_enabled(False)
+            self.update_graph()
             msg = 'Failed to load hall probe data.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def setDataEnabled(self, enabled):
+    def set_data_enabled(self, enabled):
         """Enable or disable controls."""
         self.ui.gb_probedata.setEnabled(enabled)
         self.ui.pbt_showtable.setEnabled(enabled)
@@ -239,7 +239,7 @@ class ViewProbeDialog(_QDialog):
         self.load()
         super().show()
 
-    def showTable(self):
+    def show_table(self):
         """Show probe data table."""
         if self.local_hall_probe is None:
             return
@@ -270,7 +270,7 @@ class ViewProbeDialog(_QDialog):
         else:
             return
 
-    def updateField(self):
+    def update_field(self):
         """Convert voltage to magnetic field."""
         self.ui.le_fieldx.setText('')
         self.ui.le_fieldy.setText('')
@@ -311,12 +311,12 @@ class ViewProbeDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updateGraph(self):
+    def update_graph(self):
         """Update data plots."""
         try:
-            vmin = self.ui.sbd_voltagemin.value()
-            vmax = self.ui.sbd_voltagemax.value()
-            npts = self.ui.sbd_voltagenpts.value()
+            vmin = self.ui.sbd_voltage_min.value()
+            vmax = self.ui.sbd_voltage_max.value()
+            npts = self.ui.sbd_voltage_npts.value()
             voltage = _np.linspace(vmin, vmax, npts)
             empty_data = _np.ones(len(voltage))*_np.nan
 
@@ -344,7 +344,7 @@ class ViewProbeDialog(_QDialog):
                 fieldz = empty_data
 
             symbol = self.ui.chb_addmarkers.isChecked()
-            self.configureGraph(symbol=symbol)
+            self.configure_graph(symbol=symbol)
 
             with _warnings.catch_warnings():
                 _warnings.simplefilter("ignore")

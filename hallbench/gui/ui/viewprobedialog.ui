@@ -464,7 +464,7 @@
        </widget>
       </item>
       <item row="0" column="1" colspan="2">
-       <widget class="QDoubleSpinBox" name="sbd_voltagemin">
+       <widget class="QDoubleSpinBox" name="sbd_voltage_min">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -499,7 +499,7 @@
        </widget>
       </item>
       <item row="1" column="1" colspan="2">
-       <widget class="QDoubleSpinBox" name="sbd_voltagemax">
+       <widget class="QDoubleSpinBox" name="sbd_voltage_max">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -534,7 +534,7 @@
        </widget>
       </item>
       <item row="2" column="1" colspan="2">
-       <widget class="QSpinBox" name="sbd_voltagenpts">
+       <widget class="QSpinBox" name="sbd_voltage_npts">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -804,9 +804,9 @@
   <tabstop>le_sensorz_position</tabstop>
   <tabstop>le_sensorz_direction</tabstop>
   <tabstop>pbt_showtable</tabstop>
-  <tabstop>sbd_voltagemin</tabstop>
-  <tabstop>sbd_voltagemax</tabstop>
-  <tabstop>sbd_voltagenpts</tabstop>
+  <tabstop>sbd_voltage_min</tabstop>
+  <tabstop>sbd_voltage_max</tabstop>
+  <tabstop>sbd_voltage_npts</tabstop>
   <tabstop>chb_addmarkers</tabstop>
   <tabstop>pbt_updategraph</tabstop>
   <tabstop>sbd_voltage</tabstop>

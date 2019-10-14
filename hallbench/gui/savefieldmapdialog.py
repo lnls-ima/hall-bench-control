@@ -16,7 +16,7 @@ from qtpy.QtWidgets import (
     )
 import qtpy.uic as _uic
 
-from hallbench.gui.utils import getUiFile as _getUiFile
+from hallbench.gui.utils import get_ui_file as _get_ui_file
 import hallbench.data.magnets_info as _magnets_info
 from hallbench.data.measurement import FieldScan as _FieldScan
 from hallbench.data.measurement import Fieldmap as _Fieldmap
@@ -32,7 +32,7 @@ class SaveFieldmapDialog(_QDialog):
         super().__init__(parent)
 
         # setup the ui
-        uifile = _getUiFile(self)
+        uifile = _get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
         # variables initialisation
@@ -45,8 +45,8 @@ class SaveFieldmapDialog(_QDialog):
         for name in names:
             self.ui.cmb_predefined.addItem(name)
 
-        self.disableInvalidAxes()
-        self.connectSignalSlots()
+        self.disable_invalid_axes()
+        self.connect_signal_slots()
 
     @property
     def database(self):
@@ -63,28 +63,37 @@ class SaveFieldmapDialog(_QDialog):
         self.clear()
         super().accept()
 
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
     def clear(self):
         """Clear data."""
         self.fieldmap_id_list = None
         self.field_scan_id_list = None
         self.local_hall_probe = None
-        self.disableSaveToFile()
+        self.disable_save_to_file()
 
-    def clearInfo(self):
+    def clear_info(self):
         """Clear inputs."""
-        self.clearMagnetInfo()
-        self.clearAxesInfo()
+        self.clear_magnet_info()
+        self.clear_axes_info()
 
-    def clearAxesInfo(self):
+    def clear_axes_info(self):
         """Clear axes inputs."""
         self.ui.sbd_centerpos3.setValue(0)
         self.ui.sbd_centerpos2.setValue(0)
         self.ui.sbd_centerpos1.setValue(0)
         self.ui.cmb_magnet_x_axis.setCurrentIndex(1)
         self.ui.cmb_magnet_y_axis.setCurrentIndex(2)
-        self.disableSaveToFile()
+        self.disable_save_to_file()
 
-    def clearMagnetInfo(self):
+    def clear_magnet_info(self):
         """Clear magnet inputs."""
         self.ui.cmb_predefined.setCurrentIndex(0)
         self.ui.la_predefined.setText('')
@@ -99,66 +108,57 @@ class SaveFieldmapDialog(_QDialog):
         self.ui.chb_cv.setChecked(False)
         self.ui.chb_qs.setChecked(False)
         self.ui.chb_correct_displacements.setChecked(True)
-        self.disableSaveToFile()
+        self.disable_save_to_file()
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.clear()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.chb_main.stateChanged.connect(lambda: self.setCoilFrameEnabled(
+        self.ui.chb_main.stateChanged.connect(lambda: self.set_coil_frame_enabled(
             self.ui.chb_main, self.ui.main_fm))
 
-        self.ui.chb_trim.stateChanged.connect(lambda: self.setCoilFrameEnabled(
+        self.ui.chb_trim.stateChanged.connect(lambda: self.set_coil_frame_enabled(
             self.ui.chb_trim, self.ui.trim_fm))
 
-        self.ui.chb_ch.stateChanged.connect(lambda: self.setCoilFrameEnabled(
+        self.ui.chb_ch.stateChanged.connect(lambda: self.set_coil_frame_enabled(
             self.ui.chb_ch, self.ui.ch_fm))
 
-        self.ui.chb_cv.stateChanged.connect(lambda: self.setCoilFrameEnabled(
+        self.ui.chb_cv.stateChanged.connect(lambda: self.set_coil_frame_enabled(
             self.ui.chb_cv, self.ui.cv_fm))
 
-        self.ui.chb_qs.stateChanged.connect(lambda: self.setCoilFrameEnabled(
+        self.ui.chb_qs.stateChanged.connect(lambda: self.set_coil_frame_enabled(
             self.ui.chb_qs, self.ui.qs_fm))
 
-        self.ui.sbd_centerpos3.valueChanged.connect(self.disableSaveToFile)
-        self.ui.sbd_centerpos2.valueChanged.connect(self.disableSaveToFile)
-        self.ui.sbd_centerpos1.valueChanged.connect(self.disableSaveToFile)
+        self.ui.sbd_centerpos3.valueChanged.connect(self.disable_save_to_file)
+        self.ui.sbd_centerpos2.valueChanged.connect(self.disable_save_to_file)
+        self.ui.sbd_centerpos1.valueChanged.connect(self.disable_save_to_file)
         self.ui.cmb_magnet_x_axis.currentIndexChanged.connect(
-            self.disableSaveToFile)
+            self.disable_save_to_file)
         self.ui.cmb_magnet_y_axis.currentIndexChanged.connect(
-            self.disableSaveToFile)
+            self.disable_save_to_file)
         self.ui.cmb_predefined.currentIndexChanged.connect(
-            self.disableSaveToFile)
-        self.ui.le_magnet_name.editingFinished.connect(self.disableSaveToFile)
-        self.ui.le_gap.editingFinished.connect(self.disableSaveToFile)
-        self.ui.le_control_gap.editingFinished.connect(self.disableSaveToFile)
+            self.disable_save_to_file)
+        self.ui.le_magnet_name.editingFinished.connect(self.disable_save_to_file)
+        self.ui.le_gap.editingFinished.connect(self.disable_save_to_file)
+        self.ui.le_control_gap.editingFinished.connect(self.disable_save_to_file)
         self.ui.le_magnet_length.editingFinished.connect(
-            self.disableSaveToFile)
-        self.ui.te_comments.textChanged.connect(self.disableSaveToFile)
+            self.disable_save_to_file)
+        self.ui.te_comments.textChanged.connect(self.disable_save_to_file)
         self.ui.chb_correct_displacements.stateChanged.connect(
-            self.disableSaveToFile)
+            self.disable_save_to_file)
 
         for coil in self._coil_list:
             le_turns = getattr(self.ui, 'le_nr_turns_' + coil)
-            le_turns.editingFinished.connect(self.disableSaveToFile)
+            le_turns.editingFinished.connect(self.disable_save_to_file)
             le_current = getattr(self.ui, 'le_current_' + coil)
-            le_current.editingFinished.connect(self.disableSaveToFile)
+            le_current.editingFinished.connect(self.disable_save_to_file)
 
-        self.ui.tbt_clear.clicked.connect(self.clearInfo)
-        self.ui.cmb_predefined.currentIndexChanged.connect(self.loadMagnetInfo)
+        self.ui.tbt_clear.clicked.connect(self.clear_info)
+        self.ui.cmb_predefined.currentIndexChanged.connect(self.load_magnet_info)
         self.ui.cmb_magnet_x_axis.currentIndexChanged.connect(
-            self.disableInvalidAxes)
-        self.ui.pbt_savedb.clicked.connect(self.saveToDB)
-        self.ui.pbt_savefile.clicked.connect(self.saveToFile)
+            self.disable_invalid_axes)
+        self.ui.pbt_savedb.clicked.connect(self.save_to_db)
+        self.ui.pbt_savefile.clicked.connect(self.save_to_file)
 
-    def disableInvalidAxes(self):
+    def disable_invalid_axes(self):
         """Disable invalid magnet axes."""
         for i in range(6):
             self.ui.cmb_magnet_y_axis.model().item(i).setEnabled(True)
@@ -181,11 +181,11 @@ class SaveFieldmapDialog(_QDialog):
             self.ui.cmb_magnet_y_axis.model().item(4).setEnabled(False)
             self.ui.cmb_magnet_y_axis.model().item(5).setEnabled(False)
 
-    def disableSaveToFile(self):
+    def disable_save_to_file(self):
         """Disable save to file button."""
         self.ui.pbt_savefile.setEnabled(False)
 
-    def getFieldMap(self, idx):
+    def get_fieldmap(self, idx):
         """Get fieldmap data."""
         if self.field_scan_id_list is None or self.local_hall_probe is None:
             return None
@@ -207,8 +207,8 @@ class SaveFieldmapDialog(_QDialog):
         center_pos2 = self.ui.sbd_centerpos2.value()
         center_pos1 = self.ui.sbd_centerpos1.value()
         magnet_center = [center_pos3, center_pos2, center_pos1]
-        magnet_x_axis = self.magnetXAxis()
-        magnet_y_axis = self.magnetYAxis()
+        magnet_x_axis = self.magnet_x_axis()
+        magnet_y_axis = self.magnet_y_axis()
 
         correct_displacements = self.ui.chb_correct_displacements.isChecked()
 
@@ -240,10 +240,10 @@ class SaveFieldmapDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
             return None
 
-    def loadMagnetInfo(self):
+    def load_magnet_info(self):
         """Load pre-defined magnet info."""
         if self.ui.cmb_predefined.currentIndex() < 1:
-            self.clearMagnetInfo()
+            self.clear_magnet_info()
             return
 
         m = _magnets_info.get_magnet_info(self.ui.cmb_predefined.currentText())
@@ -270,7 +270,7 @@ class SaveFieldmapDialog(_QDialog):
             else:
                 chb.setChecked(False)
 
-    def magnetXAxis(self):
+    def magnet_x_axis(self):
         """Get magnet x-axis value."""
         axis_str = self.ui.cmb_magnet_x_axis.currentText()
         axis = int(axis_str[8])
@@ -278,7 +278,7 @@ class SaveFieldmapDialog(_QDialog):
             axis = axis*(-1)
         return axis
 
-    def magnetYAxis(self):
+    def magnet_y_axis(self):
         """Get magnet y-axis value."""
         axis_str = self.ui.cmb_magnet_y_axis.currentText()
         if '1' in axis_str:
@@ -291,7 +291,7 @@ class SaveFieldmapDialog(_QDialog):
             axis = axis*(-1)
         return axis
 
-    def saveToDB(self):
+    def save_to_db(self):
         """Save fieldmap to database."""
         if self.database is None or len(self.database) == 0:
             msg = 'Invalid database filename.'
@@ -310,7 +310,7 @@ class SaveFieldmapDialog(_QDialog):
         try:
             self.fieldmap_id_list = []
             for idx in range(len(self.field_scan_id_list)):
-                fieldmap = self.getFieldMap(idx)
+                fieldmap = self.get_fieldmap(idx)
                 if fieldmap is None:
                     self.blockSignals(False)
                     _QApplication.restoreOverrideCursor()
@@ -348,7 +348,7 @@ class SaveFieldmapDialog(_QDialog):
             msg = 'Failed to save Fieldmaps to database.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def saveToFile(self):
+    def save_to_file(self):
         """Save fieldmap to database."""
         if self.fieldmap_id_list is None:
             return
@@ -406,9 +406,9 @@ class SaveFieldmapDialog(_QDialog):
             msg = 'Failed to save Fieldmaps to file.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
-    def setCoilFrameEnabled(self, checkbox, frame):
+    def set_coil_frame_enabled(self, checkbox, frame):
         """Enable or disable coil frame."""
-        self.disableSaveToFile()
+        self.disable_save_to_file()
         if checkbox.isChecked():
             frame.setEnabled(True)
         else:
@@ -446,7 +446,7 @@ class SaveFieldmapDialog(_QDialog):
                     mn = mn.replace('B80', 'B1')
                 idx = self.ui.cmb_predefined.findText(mag)
                 self.ui.cmb_predefined.setCurrentIndex(idx)
-                self.loadMagnetInfo()
+                self.load_magnet_info()
                 self.ui.le_magnet_name.setText(mn)
 
             current_list = []

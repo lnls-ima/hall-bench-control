@@ -882,7 +882,7 @@ class MeasurementWidget(_QWidget):
 
     def measure(self):
         """Perform one measurement."""
-        if not self.measurement_configured:
+        if not self.measurement_configured or self.stop is True:
             return False
 
         try:
@@ -1135,10 +1135,10 @@ class MeasurementWidget(_QWidget):
                         idx, to_pos, first_axis,
                         start, end, step, extra, npts):
                     return False
-
+ 
                 if self.stop is True:
                     return
-
+ 
                 if self.voltage_scan.npts == 0:
                     raise Exception(
                         'Invalid number of points in voltage scan.')
@@ -1242,6 +1242,12 @@ class MeasurementWidget(_QWidget):
         _QApplication.processEvents()
         self.quit_voltage_threads()
 
+        if axis == 5:
+            npts = len(self.voltage_scan.scan_pos)
+            self.voltage_scan.avgx = self.voltage_scan.avgx[:npts]
+            self.voltage_scan.avgy = self.voltage_scan.avgy[:npts]
+            self.voltage_scan.avgz = self.voltage_scan.avgz[:npts]
+
         if self.voltage_scan.npts == 0:
             return True
 
@@ -1339,9 +1345,10 @@ class MeasurementWidget(_QWidget):
         Args:
             idx (int): index of the plot to update.
         """
-        voltagex = [v for v in self.workerx.voltage]
-        voltagey = [v for v in self.workery.voltage]
-        voltagez = [v for v in self.workerz.voltage]
+        npts = len(self.position_list)
+        voltagex = [v for v in self.workerx.voltage[:npts]]
+        voltagey = [v for v in self.workery.voltage[:npts]]
+        voltagez = [v for v in self.workerz.voltage[:npts]]
 
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
@@ -1657,8 +1664,8 @@ class MeasurementWidget(_QWidget):
         """Stop measurement to True."""
         try:
             self.stop = True
-            self.ui.pbt_measure.setEnabled(True)
             self.devices.pmac.stop_all_axis()
+            self.ui.pbt_measure.setEnabled(True)
             self.ui.pbt_stop.setEnabled(False)
             self.ui.tbt_clear_graph.setEnabled(True)
             self.ui.la_nr_measurements.setText('')
@@ -1667,6 +1674,8 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.information(
                 self, 'Abort', msg, _QMessageBox.Ok)
         except Exception:
+            self.stop = True
+            self.devices.pmac.stop_all_axis()
             self.power_supply_config.update_display = True
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to stop measurements.'

@@ -74,7 +74,54 @@ class ConnectionWidget(_QWidget):
         _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
         try:
-            self.devices.connect(self.connection_config)
+            if self.connection_config.pmac_enable:
+                self.devices.pmac.connect()
+    
+            if self.connection_config.voltx_enable:
+                self.devices.voltx.connect(
+                    self.connection_config.voltx_address)
+    
+            if self.connection_config.volty_enable:
+                self.devices.volty.connect(
+                    self.connection_config.volty_address)
+    
+            if self.connection_config.voltz_enable:
+                self.devices.voltz.connect(
+                    self.connection_config.voltz_address)
+    
+            if self.connection_config.multich_enable:
+                self.devices.multich.connect(
+                    self.connection_config.multich_address)
+    
+            if self.connection_config.nmr_enable:
+                self.devices.nmr.connect(
+                    self.connection_config.nmr_port,
+                    self.connection_config.nmr_baudrate)
+    
+            if self.connection_config.elcomat_enable:
+                self.devices.elcomat.connect(
+                    self.connection_config.elcomat_port,
+                    self.connection_config.elcomat_baudrate)
+    
+            if self.connection_config.dcct_enable:
+                self.devices.dcct.connect(
+                    self.connection_config.dcct_address)
+    
+            if self.connection_config.water_udc_enable:
+                self.devices.water_udc.connect(
+                    self.connection_config.water_udc_port,
+                    self.connection_config.water_udc_baudrate,
+                    self.connection_config.water_udc_slave_address)
+    
+            if self.connection_config.air_udc_enable:
+                self.devices.air_udc.connect(
+                    self.connection_config.air_udc_port,
+                    self.connection_config.air_udc_baudrate,
+                    self.connection_config.air_udc_slave_address)
+    
+            if self.connection_config.ps_enable:
+                self.devices.ps.Connect(self.connection_config.ps_port)
+
             self.update_led_status()
             connected = self.connection_status()
 
@@ -201,7 +248,17 @@ class ConnectionWidget(_QWidget):
     def disconnect_devices(self):
         """Disconnect bench devices."""
         try:
-            self.devices.disconnect()
+            self.devices.pmac.disconnect()
+            self.devices.voltx.disconnect()
+            self.devices.volty.disconnect()
+            self.devices.voltz.disconnect()
+            self.devices.multich.disconnect()
+            self.devices.nmr.disconnect()
+            self.devices.elcomat.disconnect()
+            self.devices.dcct.disconnect()
+            self.devices.water_udc.disconnect()
+            self.devices.air_udc.disconnect()
+            self.devices.ps.Disconnect()
             self.update_led_status()
 
         except Exception:

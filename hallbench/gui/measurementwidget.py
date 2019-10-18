@@ -496,14 +496,11 @@ class MeasurementWidget(_QWidget):
                 self.ui.le_voltage_range, precision=1))
 
         self.ui.le_offsetx.editingFinished.connect(
-            lambda: self.set_float_line_edit_text(
-                self.ui.le_offsetx, precision=2))
+            lambda: self.set_float_line_edit_text(self.ui.le_offsetx))
         self.ui.le_offsety.editingFinished.connect(
-            lambda: self.set_float_line_edit_text(
-                self.ui.le_offsety, precision=2))
+            lambda: self.set_float_line_edit_text(self.ui.le_offsety))
         self.ui.le_offsetz.editingFinished.connect(
-            lambda: self.set_float_line_edit_text(
-                self.ui.le_offsetz, precision=2))
+            lambda: self.set_float_line_edit_text(self.ui.le_offsetz))
         self.ui.le_offset_range.editingFinished.connect(
             lambda: self.set_float_line_edit_text(
                 self.ui.le_offset_range, precision=2))

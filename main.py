@@ -5,11 +5,10 @@
 from hallbench.gui import hallbenchapp
 
 
-_thread = True
+_thread = False
 
 
 if _thread:
     thread = hallbenchapp.run_in_thread()
 else:
     hallbenchapp.run()
-

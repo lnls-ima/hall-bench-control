@@ -60,9 +60,6 @@ class VoltageWidget(_TablePlotWidget):
         # Change default appearance
         self.set_table_column_size(140)
 
-        # Hide right axis
-        self.hide_right_axes()
-
         # Create reading thread
         self.wthread = _QThread()
         self.worker = ReadValueWorker(self._voltage_mfactor)

@@ -39,7 +39,6 @@ class MeasurementWidget(_QWidget):
     turn_off_power_supply_current = _Signal([bool])
 
     _measurement_axes = [1, 2, 3, 5]
-    _voltage_offset_avg_interval = 10  # [mm]
     _update_graph_time_interval = 0.1  # [s]
 
     def __init__(self, parent=None):
@@ -165,6 +164,18 @@ class MeasurementWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
+    def change_offset_page(self):
+        """Change offset stacked widget page."""
+        try:
+            if self.ui.rbt_measure_offsets.isChecked():
+                self.ui.stw_offsets.setCurrentIndex(2)
+            elif self.ui.rbt_configure_offsets.isChecked():
+                self.ui.stw_offsets.setCurrentIndex(1)
+            else:
+                self.ui.stw_offsets.setCurrentIndex(0)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            
     def clear(self):
         """Clear."""
         self.workerx.clear()
@@ -220,7 +231,6 @@ class MeasurementWidget(_QWidget):
 
     def clear_load_options(self):
         """Clear load options."""
-        self.ui.le_filename.setText("")
         self.ui.cmb_idn.setCurrentIndex(-1)
 
     def configure_graph(self, nr_curves, label):
@@ -485,6 +495,19 @@ class MeasurementWidget(_QWidget):
             lambda: self.set_float_line_edit_text(
                 self.ui.le_voltage_range, precision=1))
 
+        self.ui.le_offsetx.editingFinished.connect(
+            lambda: self.set_float_line_edit_text(
+                self.ui.le_offsetx, precision=2))
+        self.ui.le_offsety.editingFinished.connect(
+            lambda: self.set_float_line_edit_text(
+                self.ui.le_offsety, precision=2))
+        self.ui.le_offsetz.editingFinished.connect(
+            lambda: self.set_float_line_edit_text(
+                self.ui.le_offsetz, precision=2))
+        self.ui.le_offset_range.editingFinished.connect(
+            lambda: self.set_float_line_edit_text(
+                self.ui.le_offset_range, precision=2))
+
         self.ui.le_step_ax1.editingFinished.connect(
             lambda: self.update_trigger_step(1))
         self.ui.le_step_ax2.editingFinished.connect(
@@ -553,8 +576,6 @@ class MeasurementWidget(_QWidget):
         self.ui.le_end_ax5.editingFinished.connect(
             lambda: self.fix_end_position_value(5))
 
-        self.ui.pbt_loadfile.clicked.connect(self.load_config_file)
-        self.ui.pbt_savefile.clicked.connect(self.save_config_file)
         self.ui.pbt_load_db.clicked.connect(self.load_config_db)
         self.ui.tbt_save_db.clicked.connect(self.save_config_db)
         self.ui.cmb_probe_name.currentIndexChanged.connect(
@@ -562,6 +583,10 @@ class MeasurementWidget(_QWidget):
         self.ui.tbt_update_probe_name.clicked.connect(self.update_probe_names)
         self.ui.tbt_clear_probe.clicked.connect(self.clear_hall_probe)
         self.ui.pbt_view_probe.clicked.connect(self.show_view_probe_dialog)
+
+        self.ui.rbt_ignore_offsets.toggled.connect(self.change_offset_page)
+        self.ui.rbt_configure_offsets.toggled.connect(self.change_offset_page)
+        self.ui.rbt_measure_offsets.toggled.connect(self.change_offset_page)
 
         self.ui.pbt_measure.clicked.connect(self.measure_button_clicked)
         self.ui.pbt_stop.clicked.connect(self.stop_measurement)
@@ -754,8 +779,11 @@ class MeasurementWidget(_QWidget):
             else:
                 self.uncheck_radio_buttons(second_axis)
 
-            self.ui.chb_subtract_voltage_offset.setChecked(
+            self.ui.rbt_ignore_offsets.setChecked(
+                not self.measurement_config.subtract_voltage_offset)
+            self.ui.rbt_measure_offsets.setChecked(
                 self.measurement_config.subtract_voltage_offset)
+
             self.ui.chb_save_voltage.setChecked(
                 self.measurement_config.save_voltage)
             self.ui.chb_save_current.setChecked(
@@ -797,8 +825,6 @@ class MeasurementWidget(_QWidget):
 
     def load_config_db(self):
         """Load configuration from database to set measurement parameters."""
-        self.ui.le_filename.setText("")
-
         try:
             idn = int(self.ui.cmb_idn.currentText())
         except Exception:
@@ -827,38 +853,6 @@ class MeasurementWidget(_QWidget):
         self.load_config()
         self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.findText(str(idn)))
         self.ui.pbt_load_db.setEnabled(False)
-
-    def load_config_file(self):
-        """Load configuration file to set measurement parameters."""
-        self.ui.cmb_idn.setCurrentIndex(-1)
-
-        default_filename = self.ui.le_filename.text()
-        if len(default_filename) == 0:
-            default_filename = self.directory
-        elif len(_os.path.split(default_filename)[0]) == 0:
-            default_filename = _os.path.join(self.directory, default_filename)
-
-        filename = _QFileDialog.getOpenFileName(
-            self, caption='Open measurement configuration file',
-            directory=default_filename, filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        try:
-            self.measurement_config.clear()
-            self.measurement_config.read_file(filename)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to read configuration file.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
-
-        self.load_config()
-        self.ui.le_filename.setText(filename)
 
     def load_hall_probe(self):
         """Load hall probe from database."""
@@ -1255,30 +1249,46 @@ class MeasurementWidget(_QWidget):
             self.voltage_scan.reverse()
 
         if self.local_measurement_config.subtract_voltage_offset:
-            scan_pos = self.voltage_scan.scan_pos
-            if scan_pos[-1] - scan_pos[0] <= self._voltage_offset_avg_interval:
-                self.voltage_scan.offsetx_start = self.voltage_scan.avgx[0]
-                self.voltage_scan.offsetx_end = self.voltage_scan.avgx[-1]
-                self.voltage_scan.offsety_start = self.voltage_scan.avgy[0]
-                self.voltage_scan.offsety_end = self.voltage_scan.avgy[-1]
-                self.voltage_scan.offsetz_start = self.voltage_scan.avgz[0]
-                self.voltage_scan.offsetz_end = self.voltage_scan.avgz[-1]
-            else:
-                idx_start = _np.where(_np.cumsum(_np.diff(
-                    scan_pos)) >= self._voltage_offset_avg_interval)[0][0] + 1
-                idx_end = len(scan_pos) - idx_start
-                self.voltage_scan.offsetx_start = _np.mean(
-                    self.voltage_scan.avgx[:idx_start])
-                self.voltage_scan.offsetx_end = _np.mean(
-                    self.voltage_scan.avgx[idx_end:])
-                self.voltage_scan.offsety_start = _np.mean(
-                    self.voltage_scan.avgy[:idx_start])
-                self.voltage_scan.offsety_end = _np.mean(
-                    self.voltage_scan.avgy[idx_end:])
-                self.voltage_scan.offsetz_start = _np.mean(
-                    self.voltage_scan.avgz[:idx_start])
-                self.voltage_scan.offsetz_end = _np.mean(
-                    self.voltage_scan.avgz[idx_end:])
+            if self.ui.rbt_measure_offsets.isChecked():
+                offset_range = _utils.get_value_from_string(
+                    self.ui.le_offset_range.text())   
+                scan_pos = self.voltage_scan.scan_pos
+                if scan_pos[-1] - scan_pos[0] <= offset_range:
+                    self.voltage_scan.offsetx_start = self.voltage_scan.avgx[0]
+                    self.voltage_scan.offsetx_end = self.voltage_scan.avgx[-1]
+                    self.voltage_scan.offsety_start = self.voltage_scan.avgy[0]
+                    self.voltage_scan.offsety_end = self.voltage_scan.avgy[-1]
+                    self.voltage_scan.offsetz_start = self.voltage_scan.avgz[0]
+                    self.voltage_scan.offsetz_end = self.voltage_scan.avgz[-1]
+                else:
+                    idx_start = _np.where(_np.cumsum(_np.diff(
+                        scan_pos)) >= offset_range)[0][0] + 1
+                    idx_end = len(scan_pos) - idx_start
+                    self.voltage_scan.offsetx_start = _np.mean(
+                        self.voltage_scan.avgx[:idx_start])
+                    self.voltage_scan.offsetx_end = _np.mean(
+                        self.voltage_scan.avgx[idx_end:])
+                    self.voltage_scan.offsety_start = _np.mean(
+                        self.voltage_scan.avgy[:idx_start])
+                    self.voltage_scan.offsety_end = _np.mean(
+                        self.voltage_scan.avgy[idx_end:])
+                    self.voltage_scan.offsetz_start = _np.mean(
+                        self.voltage_scan.avgz[:idx_start])
+                    self.voltage_scan.offsetz_end = _np.mean(
+                        self.voltage_scan.avgz[idx_end:])
+            elif self.ui.rbt_configure_offsets.isChecked():
+                offsetx = _utils.get_value_from_string(
+                    self.ui.le_offsetx.text())/1000
+                offsety = _utils.get_value_from_string(
+                    self.ui.le_offsety.text())/1000
+                offsetz = _utils.get_value_from_string(
+                    self.ui.le_offsetz.text())/1000
+                self.voltage_scan.offsetx_start = offsetx
+                self.voltage_scan.offsetx_end = offsetx
+                self.voltage_scan.offsety_start = offsety
+                self.voltage_scan.offsety_end = offsety
+                self.voltage_scan.offsetz_start = offsetz
+                self.voltage_scan.offsetz_end = offsetz                
 
         if self.stop is True:
             return False
@@ -1397,36 +1407,6 @@ class MeasurementWidget(_QWidget):
         else:
             msg = 'Invalid database filename.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-
-    def save_config_file(self):
-        """Save measurement parameters to file."""
-        default_filename = self.ui.le_filename.text()
-        if len(default_filename) == 0:
-            default_filename = self.directory
-        elif len(_os.path.split(default_filename)[0]) == 0:
-            default_filename = _os.path.join(self.directory, default_filename)
-
-        filename = _QFileDialog.getSaveFileName(
-            self, caption='Save measurement configuration file',
-            directory=default_filename, filter="Text files (*.txt *.dat)")
-
-        if isinstance(filename, tuple):
-            filename = filename[0]
-
-        if len(filename) == 0:
-            return
-
-        if self.update_configuration():
-            try:
-                if (not filename.endswith('.txt')
-                   and not filename.endswith('.dat')):
-                    filename = filename + '.txt'
-                self.measurement_config.save_file(filename)
-
-            except Exception:
-                _traceback.print_exc(file=_sys.stdout)
-                msg = 'Failed to save configuration to file.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def save_configuration(self):
         """Save configuration to database table."""
@@ -1745,8 +1725,8 @@ class MeasurementWidget(_QWidget):
                 self.ui.le_voltage_range.text())
             self.measurement_config.voltage_range = voltage_range
 
-            _ch = self.ui.chb_subtract_voltage_offset.isChecked()
-            self.measurement_config.subtract_voltage_offset = 1 if _ch else 0
+            _ch = self.ui.rbt_ignore_offsets.isChecked()
+            self.measurement_config.subtract_voltage_offset = 0 if _ch else 1
 
             _ch = self.ui.chb_save_voltage.isChecked()
             self.measurement_config.save_voltage = 1 if _ch else 0

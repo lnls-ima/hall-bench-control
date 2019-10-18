@@ -306,13 +306,16 @@ class InterpolationTableDialog(_QDialog):
 
     def copy_to_clipboard(self, sensor):
         """Copy table data to clipboard."""
-        table = getattr(self, 'sensor' + sensor + '_tbl')
-        text = ""
-        for r in range(table.rowCount()):
-            for c in range(table.columnCount()):
-                text += str(table.item(r, c).text()) + "\t"
-            text = text[:-1] + "\n"
-        self.clip.setText(text)
+        try:
+            table = getattr(self, 'tbl_sensor' + sensor)
+            text = ""
+            for r in range(table.rowCount()):
+                for c in range(table.columnCount()):
+                    text += str(table.item(r, c).text()) + "\t"
+                text = text[:-1] + "\n"
+            self.clip.setText(text)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def show(self, hall_probe):
         """Update hall probe object and show dialog."""
@@ -767,13 +770,16 @@ class PolynomialTableDialog(_QDialog):
 
     def copy_to_clipboard(self, sensor):
         """Copy table data to clipboard."""
-        table = getattr(self, 'sensor' + sensor + '_tbl')
-        text = ""
-        for r in range(table.rowCount()):
-            for c in range(table.columnCount()):
-                text += str(table.item(r, c).text()) + "\t"
-            text = text[:-1] + "\n"
-        self.clip.setText(text)
+        try:
+            table = getattr(self, 'tbl_sensor' + sensor)
+            text = ""
+            for r in range(table.rowCount()):
+                for c in range(table.columnCount()):
+                    text += str(table.item(r, c).text()) + "\t"
+                text = text[:-1] + "\n"
+            self.clip.setText(text)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def show(self, hall_probe=None):
         """Update hall probe object and show dialog."""

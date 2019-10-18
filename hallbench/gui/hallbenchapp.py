@@ -314,6 +314,7 @@ class GUIThread(_threading.Thread):
         _threading.Thread.__init__(self)
         self.app = None
         self.window = None
+        self.daemon = True
         self.start()
 
     def run(self):

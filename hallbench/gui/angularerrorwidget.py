@@ -7,7 +7,6 @@ import numpy as _np
 import time as _time
 import traceback as _traceback
 from qtpy.QtWidgets import (
-    QApplication as _QApplication,
     QComboBox as _QComboBox,
     QLabel as _QLabel,
     QMessageBox as _QMessageBox,
@@ -21,6 +20,10 @@ from qtpy.QtCore import (
 from hallbench.gui.auxiliarywidgets import (
     MoveAxisWidget as _MoveAxisWidget,
     TablePlotWidget as _TablePlotWidget,
+    )
+from hallbench.devices import (
+    elcomat as _elcomat,
+    pmac as _pmac,
     )
 
 
@@ -65,11 +68,6 @@ class AngularErrorWidget(_TablePlotWidget):
         self.worker.finished.connect(self.wthread.quit)
         self.worker.finished.connect(self.get_reading)
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -81,8 +79,8 @@ class AngularErrorWidget(_TablePlotWidget):
             event.accept()
 
     def check_connection(self, monitor=False):
-        """Check devices connection."""
-        if not self.devices.elcomat.connected:
+        """Check connection."""
+        if not _elcomat.connected:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure',
@@ -142,11 +140,6 @@ class ReadValueWorker(_QObject):
         self.reading = []
         super().__init__()
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def run(self):
         """Read values from devices."""
         try:
@@ -156,9 +149,9 @@ class ReadValueWorker(_QObject):
             ts = _time.time()
 
             if self.measurement_type == 'relative':
-                rl = self.devices.elcomat.get_relative_measurement()
+                rl = _elcomat.get_relative_measurement()
             elif self.measurement_type == 'absolute':
-                rl = self.devices.elcomat.get_absolute_measurement()
+                rl = _elcomat.get_absolute_measurement()
             else:
                 rl = []
             rl = [r if r is not None else _np.nan for r in rl]
@@ -166,7 +159,7 @@ class ReadValueWorker(_QObject):
             if self.pmac_axis is None:
                 pos = _np.nan
             else:
-                pos = self.devices.pmac.get_position(self.pmac_axis)
+                pos = _pmac.get_position(self.pmac_axis)
                 if pos is None:
                     pos = _np.nan
 

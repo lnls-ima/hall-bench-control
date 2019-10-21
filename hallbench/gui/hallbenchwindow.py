@@ -42,6 +42,7 @@ from hallbench.gui.voltagetemperaturewidget import VoltageTempWidget \
     as _VoltageTempWidget
 from hallbench.gui.databasewidget import DatabaseWidget \
     as _DatabaseWidget
+from hallbench.devices import pmac as _pmac
 
 
 class HallBenchWindow(_QMainWindow):
@@ -216,7 +217,7 @@ class HallBenchWindow(_QMainWindow):
     def connect_signal_slots(self):
         """Create signal/slot connections."""
         if (hasattr(self, 'tab_measurement') and
-            hasattr(self, 'tab_power_supply')):
+                hasattr(self, 'tab_power_supply')):
             self.tab_measurement.change_current_setpoint.connect(
                 self.tab_power_supply.change_setpoint_and_emit_signal)
 
@@ -252,11 +253,6 @@ class PositionsWorker(_QRunnable):
     """Read position values from pmac."""
 
     @property
-    def pmac(self):
-        """Pmac communication class."""
-        return _QApplication.instance().devices.pmac
-
-    @property
     def positions(self):
         """Get current posiitons dict."""
         return _QApplication.instance().positions
@@ -267,13 +263,13 @@ class PositionsWorker(_QRunnable):
 
     def run(self):
         """Update axes positions."""
-        if not self.pmac.connected:
+        if not _pmac.connected:
             self.positions = {}
             return
 
         try:
-            for axis in self.pmac.commands.list_of_axis:
-                pos = self.pmac.get_position(axis)
+            for axis in _pmac.commands.list_of_axis:
+                pos = _pmac.get_position(axis)
                 self.positions[axis] = pos
 
         except Exception:

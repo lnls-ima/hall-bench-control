@@ -16,6 +16,7 @@ import qtpy.uic as _uic
 from hallbench.gui import utils as _utils
 from hallbench.gui.auxiliarywidgets import CurrentPositionWidget \
     as _CurrentPositionWidget
+from hallbench.devices import pmac as _pmac
 
 
 class MotorsWidget(_QWidget):
@@ -56,11 +57,6 @@ class MotorsWidget(_QWidget):
 
         self.connect_signal_slots()
 
-    @property
-    def pmac(self):
-        """Pmac communication class."""
-        return _QApplication.instance().devices.pmac
-
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -73,7 +69,7 @@ class MotorsWidget(_QWidget):
     def activate_bench(self):
         """Activate the bench and enable control."""
         try:
-            if self.pmac.activate_bench():
+            if _pmac.activate_bench():
                 self.set_homing_enabled(True)
                 self.set_axis_limits_enabled(True)
                 self.ui.pbt_setlimits.setEnabled(False)
@@ -221,7 +217,7 @@ class MotorsWidget(_QWidget):
     def kill_all_axis(self):
         """Kill all axis."""
         try:
-            self.pmac.kill_all_axis()
+            _pmac.kill_all_axis()
             self.set_homing_enabled(False)
             self.set_axis_limits_enabled(False)
             self.set_movement_enabled(False)
@@ -246,12 +242,12 @@ class MotorsWidget(_QWidget):
             if axis is None:
                 return
 
-            velocity = self.pmac.get_velocity(axis)
+            velocity = _pmac.get_velocity(axis)
 
             if targetvel != velocity:
-                self.pmac.set_axis_speed(axis, targetvel)
+                _pmac.set_axis_speed(axis, targetvel)
 
-            self.pmac.move_axis(axis, targetpos)
+            _pmac.move_axis(axis, targetpos)
             self.ui.le_reldisp.setText('')
 
         except Exception:
@@ -261,13 +257,13 @@ class MotorsWidget(_QWidget):
 
     def release_access_to_movement(self):
         """Check homing status and enable movement."""
-        if not self.pmac.connected:
+        if not _pmac.connected:
             return
 
         try:
-            list_of_axis = self.pmac.commands.list_of_axis
+            list_of_axis = _pmac.commands.list_of_axis
 
-            if not self.pmac.connected:
+            if not _pmac.connected:
                 for axis in list_of_axis:
                     axis_led = getattr(self.ui, 'la_ledax' + str(axis))
                     axis_led.setEnabled(False)
@@ -277,7 +273,7 @@ class MotorsWidget(_QWidget):
             homing_status = []
             for axis in list_of_axis:
                 axis_led = getattr(self.ui, 'la_ledax' + str(axis))
-                if self.pmac.axis_homing_status(axis):
+                if _pmac.axis_homing_status(axis):
                     self.ui.cmb_select_axis.model().item(
                         item+1).setEnabled(True)
                     self.ui.cmb_selecttrigaxis.model().item(
@@ -313,25 +309,25 @@ class MotorsWidget(_QWidget):
     def reset_axis_limits(self):
         """Reset axis limits."""
         try:
-            neg_list = self.pmac.commands.i_softlimit_neg_list
-            pos_list = self.pmac.commands.i_softlimit_pos_list
+            neg_list = _pmac.commands.i_softlimit_neg_list
+            pos_list = _pmac.commands.i_softlimit_pos_list
 
-            if self.pmac.get_response(self.pmac.set_par(neg_list[0], 0)):
+            if _pmac.get_response(_pmac.set_par(neg_list[0], 0)):
                 self.ui.le_minax1.setText('')
 
-            if self.pmac.get_response(self.pmac.set_par(pos_list[0], 0)):
+            if _pmac.get_response(_pmac.set_par(pos_list[0], 0)):
                 self.ui.le_maxax1.setText('')
 
-            if self.pmac.get_response(self.pmac.set_par(neg_list[1], 0)):
+            if _pmac.get_response(_pmac.set_par(neg_list[1], 0)):
                 self.ui.le_minax2.setText('')
 
-            if self.pmac.get_response(self.pmac.set_par(pos_list[1], 0)):
+            if _pmac.get_response(_pmac.set_par(pos_list[1], 0)):
                 self.ui.le_maxax2.setText('')
 
-            if self.pmac.get_response(self.pmac.set_par(neg_list[2], 0)):
+            if _pmac.get_response(_pmac.set_par(neg_list[2], 0)):
                 self.ui.le_minax3.setText('')
 
-            if self.pmac.get_response(self.pmac.set_par(pos_list[2], 0)):
+            if _pmac.get_response(_pmac.set_par(pos_list[2], 0)):
                 self.ui.le_maxax3.setText('')
 
         except Exception:
@@ -346,7 +342,7 @@ class MotorsWidget(_QWidget):
             return None
 
         axis = int(axis_str[1])
-        if axis in self.pmac.commands.list_of_axis:
+        if axis in _pmac.commands.list_of_axis:
             return axis
         else:
             return None
@@ -358,7 +354,7 @@ class MotorsWidget(_QWidget):
             return None
 
         axis = int(axis_str[1])
-        if axis in self.pmac.commands.list_of_axis:
+        if axis in _pmac.commands.list_of_axis:
             return axis
         else:
             return None
@@ -366,9 +362,9 @@ class MotorsWidget(_QWidget):
     def set_axis_limits(self):
         """Set axis limits."""
         try:
-            neg_list = self.pmac.commands.i_softlimit_neg_list
-            pos_list = self.pmac.commands.i_softlimit_pos_list
-            cts_mm_axis = self.pmac.commands.CTS_MM_AXIS
+            neg_list = _pmac.commands.i_softlimit_neg_list
+            pos_list = _pmac.commands.i_softlimit_pos_list
+            cts_mm_axis = _pmac.commands.CTS_MM_AXIS
 
             minax1 = _utils.get_value_from_string(
                 self.ui.le_minax1.text())
@@ -388,20 +384,20 @@ class MotorsWidget(_QWidget):
             if minax1 is not None and maxax1 is not None:
                 minax1 = minax1*cts_mm_axis[0]
                 maxax1 = maxax1*cts_mm_axis[0]
-                self.pmac.get_response(self.pmac.set_par(neg_list[0], minax1))
-                self.pmac.get_response(self.pmac.set_par(pos_list[0], maxax1))
+                _pmac.get_response(_pmac.set_par(neg_list[0], minax1))
+                _pmac.get_response(_pmac.set_par(pos_list[0], maxax1))
 
             if minax2 is not None and maxax2 is not None:
                 minax2 = minax2*cts_mm_axis[1]
                 maxax2 = maxax2*cts_mm_axis[1]
-                self.pmac.get_response(self.pmac.set_par(neg_list[1], minax2))
-                self.pmac.get_response(self.pmac.set_par(pos_list[1], maxax2))
+                _pmac.get_response(_pmac.set_par(neg_list[1], minax2))
+                _pmac.get_response(_pmac.set_par(pos_list[1], maxax2))
 
             if minax3 is not None and maxax3 is not None:
                 minax3 = minax3*cts_mm_axis[2]
                 maxax3 = maxax3*cts_mm_axis[2]
-                self.pmac.get_response(self.pmac.set_par(neg_list[2], minax3))
-                self.pmac.get_response(self.pmac.set_par(pos_list[2], maxax3))
+                _pmac.get_response(_pmac.set_par(neg_list[2], minax3))
+                _pmac.get_response(_pmac.set_par(pos_list[2], maxax3))
 
             self.ui.pbt_setlimits.setEnabled(False)
 
@@ -471,17 +467,17 @@ class MotorsWidget(_QWidget):
 
             npts = _np.abs(_np.ceil(round((end - start) / step, 4) + 1))
 
-            velocity = self.pmac.get_velocity(axis)
+            velocity = _pmac.get_velocity(axis)
             if targetvel != velocity:
-                self.pmac.set_axis_speed(axis, targetvel)
+                _pmac.set_axis_speed(axis, targetvel)
 
-            self.pmac.set_trigger(axis, start, step, 10, npts, 1)
+            _pmac.set_trigger(axis, start, step, 10, npts, 1)
 
             if self.stop_trigger:
                 return
 
-            self.pmac.move_axis(axis, start)
-            while ((self.pmac.axis_status(axis) & 1) == 0 and
+            _pmac.move_axis(axis, start)
+            while ((_pmac.axis_status(axis) & 1) == 0 and
                    self.stop_trigger is False):
                 _QApplication.processEvents()
 
@@ -489,7 +485,7 @@ class MotorsWidget(_QWidget):
                 return
 
             if not self.ui.chb_trigpause.isChecked():
-                self.pmac.move_axis(axis, end)
+                _pmac.move_axis(axis, end)
             else:
                 pos_list = _np.linspace(start, end, npts)
                 delay = self.ui.sbd_trigdelay.value()
@@ -497,8 +493,8 @@ class MotorsWidget(_QWidget):
                     if self.stop_trigger:
                         return
 
-                    self.pmac.move_axis(axis, pos)
-                    while ((self.pmac.axis_status(axis) & 1) == 0 and
+                    _pmac.move_axis(axis, pos)
+                    while ((_pmac.axis_status(axis) & 1) == 0 and
                            self.stop_trigger is False):
                         _QApplication.processEvents()
                     for i in range(100):
@@ -514,18 +510,18 @@ class MotorsWidget(_QWidget):
         """Homing of the selected axes."""
         try:
             axis_homing_mask = 0
-            list_of_axis = self.pmac.commands.list_of_axis
+            list_of_axis = _pmac.commands.list_of_axis
 
             for axis in list_of_axis:
                 obj = getattr(self.ui, 'chb_homingax' + str(axis))
                 val = int(obj.isChecked())
                 axis_homing_mask += (val << (axis-1))
 
-            self.pmac.align_bench(axis_homing_mask)
+            _pmac.align_bench(axis_homing_mask)
             _time.sleep(self._align_bench_time_interval)
 
-            while int(self.pmac.read_response(
-                    self.pmac.commands.prog_running)) == 1:
+            while int(_pmac.read_response(
+                    _pmac.commands.prog_running)) == 1:
                 _time.sleep(self._align_bench_time_interval)
             else:
                 self.release_access_to_movement()
@@ -544,7 +540,7 @@ class MotorsWidget(_QWidget):
     def stop_all_axis(self):
         """Stop all axis."""
         try:
-            self.pmac.stop_all_axis()
+            _pmac.stop_all_axis()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -557,7 +553,7 @@ class MotorsWidget(_QWidget):
             axis = self.selected_axis()
             if axis is None:
                 return
-            self.pmac.stop_axis(axis)
+            _pmac.stop_axis(axis)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -571,7 +567,7 @@ class MotorsWidget(_QWidget):
             axis = self.selectedTriggerAxis()
             if axis is None:
                 return
-            self.pmac.stop_axis(axis)
+            _pmac.stop_axis(axis)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -585,7 +581,7 @@ class MotorsWidget(_QWidget):
             if axis is None:
                 return
 
-            position = self.pmac.get_position(axis)
+            position = _pmac.get_position(axis)
             targetpos = _utils.get_value_from_string(
                 self.ui.le_target_pos.text())
             reldisp = targetpos - position
@@ -601,7 +597,7 @@ class MotorsWidget(_QWidget):
             if axis is None:
                 return
 
-            position = self.pmac.get_position(axis)
+            position = _pmac.get_position(axis)
             reldisp = _utils.get_value_from_string(
                 self.ui.le_reldisp.text())
             targetpos = position + reldisp
@@ -618,7 +614,7 @@ class MotorsWidget(_QWidget):
             if axis is None:
                 return
 
-            velocity = self.pmac.get_velocity(axis)
+            velocity = _pmac.get_velocity(axis)
             self.ui.le_trigvel.setText(self._position_format.format(velocity))
         except Exception:
             pass
@@ -630,8 +626,8 @@ class MotorsWidget(_QWidget):
             if axis is None:
                 return
 
-            velocity = self.pmac.get_velocity(axis)
-            position = self.pmac.get_position(axis)
+            velocity = _pmac.get_velocity(axis)
+            position = _pmac.get_position(axis)
             self.ui.le_target_vel.setText(self._position_format.format(
                 velocity))
             self.ui.le_reldisp.setText(self._position_format.format(0))

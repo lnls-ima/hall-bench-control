@@ -1,13 +1,9 @@
 """Sub-package for hall bench devices."""
 
 import os as _os
-import sys as _sys
 
-from imadevices import Agilent3458ALib as _Agilent3458ALib
 from imadevices import F1000DRSLib as _DRSLib
 from imadevices import PmacLib as _PmacLib
-from imadevices import Agilent34401ALib as _Agilent34401ALib
-from imadevices import Agilent34970ALib as _Agilent34970ALib
 from imadevices import ElcomatLib as _ElcomatLib
 from imadevices import NMRLib as _NMRLib
 from imadevices import UDCLib as _UDCLib

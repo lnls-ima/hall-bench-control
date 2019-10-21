@@ -115,4 +115,3 @@ class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
         else:
             current = _np.nan
         return current
-

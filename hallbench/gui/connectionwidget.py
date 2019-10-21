@@ -15,6 +15,19 @@ from qtpy.QtCore import Qt as _Qt
 import qtpy.uic as _uic
 
 from hallbench.gui.utils import get_ui_file as _get_ui_file
+from hallbench.devices import (
+    pmac as _pmac,
+    voltx as _voltx,
+    volty as _volty,
+    voltz as _voltz,
+    multich as _multich,
+    nmr as _nmr,
+    elcomat as _elcomat,
+    dcct as _dcct,
+    water_udc as _water_udc,
+    air_udc as _air_udc,
+    ps as _ps
+    )
 
 
 class ConnectionWidget(_QWidget):
@@ -38,11 +51,6 @@ class ConnectionWidget(_QWidget):
         return _QApplication.instance().connection_config
 
     @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
-    @property
     def database(self):
         """Database filename."""
         return _QApplication.instance().database
@@ -55,7 +63,7 @@ class ConnectionWidget(_QWidget):
     def closeEvent(self, event):
         """Close widget."""
         try:
-            self.devices.disconnect()
+            self.disconnect_devices(msgbox=False)
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -75,52 +83,52 @@ class ConnectionWidget(_QWidget):
 
         try:
             if self.connection_config.pmac_enable:
-                self.devices.pmac.connect()
-    
+                _pmac.connect()
+
             if self.connection_config.voltx_enable:
-                self.devices.voltx.connect(
+                _voltx.connect(
                     self.connection_config.voltx_address)
-    
+
             if self.connection_config.volty_enable:
-                self.devices.volty.connect(
+                _volty.connect(
                     self.connection_config.volty_address)
-    
+
             if self.connection_config.voltz_enable:
-                self.devices.voltz.connect(
+                _voltz.connect(
                     self.connection_config.voltz_address)
-    
+
             if self.connection_config.multich_enable:
-                self.devices.multich.connect(
+                _multich.connect(
                     self.connection_config.multich_address)
-    
+
             if self.connection_config.nmr_enable:
-                self.devices.nmr.connect(
+                _nmr.connect(
                     self.connection_config.nmr_port,
                     self.connection_config.nmr_baudrate)
-    
+
             if self.connection_config.elcomat_enable:
-                self.devices.elcomat.connect(
+                _elcomat.connect(
                     self.connection_config.elcomat_port,
                     self.connection_config.elcomat_baudrate)
-    
+
             if self.connection_config.dcct_enable:
-                self.devices.dcct.connect(
+                _dcct.connect(
                     self.connection_config.dcct_address)
-    
+
             if self.connection_config.water_udc_enable:
-                self.devices.water_udc.connect(
+                _water_udc.connect(
                     self.connection_config.water_udc_port,
                     self.connection_config.water_udc_baudrate,
                     self.connection_config.water_udc_slave_address)
-    
+
             if self.connection_config.air_udc_enable:
-                self.devices.air_udc.connect(
+                _air_udc.connect(
                     self.connection_config.air_udc_port,
                     self.connection_config.air_udc_baudrate,
                     self.connection_config.air_udc_slave_address)
-    
+
             if self.connection_config.ps_enable:
-                self.devices.ps.Connect(self.connection_config.ps_port)
+                _ps.Connect(self.connection_config.ps_port)
 
             self.update_led_status()
             connected = self.connection_status()
@@ -144,48 +152,43 @@ class ConnectionWidget(_QWidget):
         """Return the connection status."""
         try:
             if self.connection_config.pmac_enable:
-                pmac_connected = self.devices.pmac.connected
+                pmac_connected = _pmac.connected
                 if pmac_connected is None or pmac_connected is False:
                     return False
 
-            if (self.connection_config.voltx_enable and
-                not self.devices.voltx.connected):
+            if self.connection_config.voltx_enable and not _voltx.connected:
                 return False
 
-            if (self.connection_config.volty_enable and
-               not self.devices.volty.connected):
+            if self.connection_config.volty_enable and not _volty.connected:
                 return False
 
-            if (self.connection_config.voltz_enable and
-               not self.devices.voltz.connected):
+            if self.connection_config.voltz_enable and not _voltz.connected:
                 return False
 
             if (self.connection_config.multich_enable and
-               not self.devices.multich.connected):
+                    not _multich.connected):
                 return False
 
-            if (self.connection_config.nmr_enable and
-               not self.devices.nmr.connected):
+            if self.connection_config.nmr_enable and not _nmr.connected:
                 return False
 
             if (self.connection_config.elcomat_enable and
-               not self.devices.elcomat.connected):
+                    not _elcomat.connected):
                 return False
 
-            if (self.connection_config.dcct_enable and
-               not self.devices.dcct.connected):
+            if self.connection_config.dcct_enable and not _dcct.connected:
                 return False
 
             if (self.connection_config.ps_enable and
-               not self.devices.ps.ser.is_open):
+                    not _ps.ser.is_open):
                 return False
 
             if (self.connection_config.water_udc_enable and
-               not self.devices.water_udc.connected):
+                    not _water_udc.connected):
                 return False
 
             if (self.connection_config.air_udc_enable and
-               not self.devices.air_udc.connected):
+                    not _air_udc.connected):
                 return False
 
             return True
@@ -245,26 +248,27 @@ class ConnectionWidget(_QWidget):
         self.ui.pbt_connect.clicked.connect(self.connect_devices)
         self.ui.pbt_disconnect.clicked.connect(self.disconnect_devices)
 
-    def disconnect_devices(self):
+    def disconnect_devices(self, msgbox=True):
         """Disconnect bench devices."""
         try:
-            self.devices.pmac.disconnect()
-            self.devices.voltx.disconnect()
-            self.devices.volty.disconnect()
-            self.devices.voltz.disconnect()
-            self.devices.multich.disconnect()
-            self.devices.nmr.disconnect()
-            self.devices.elcomat.disconnect()
-            self.devices.dcct.disconnect()
-            self.devices.water_udc.disconnect()
-            self.devices.air_udc.disconnect()
-            self.devices.ps.Disconnect()
+            _pmac.disconnect()
+            _voltx.disconnect()
+            _volty.disconnect()
+            _voltz.disconnect()
+            _multich.disconnect()
+            _nmr.disconnect()
+            _elcomat.disconnect()
+            _dcct.disconnect()
+            _water_udc.disconnect()
+            _air_udc.disconnect()
+            _ps.Disconnect()
             self.update_led_status()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to disconnect devices.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            if msgbox:
+                msg = 'Failed to disconnect devices.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def enable_load_db(self):
         """Enable button to load configuration from database."""
@@ -507,24 +511,24 @@ class ConnectionWidget(_QWidget):
     def update_led_status(self):
         """Update led status."""
         try:
-            pmac_connected = self.devices.pmac.connected
+            pmac_connected = _pmac.connected
             if pmac_connected is None:
                 self.ui.la_pmac_led.setEnabled(False)
             else:
                 self.ui.la_pmac_led.setEnabled(pmac_connected)
 
-            self.ui.la_voltx_led.setEnabled(self.devices.voltx.connected)
-            self.ui.la_volty_led.setEnabled(self.devices.volty.connected)
-            self.ui.la_voltz_led.setEnabled(self.devices.voltz.connected)
-            self.ui.la_multich_led.setEnabled(self.devices.multich.connected)
-            self.ui.la_nmr_led.setEnabled(self.devices.nmr.connected)
-            self.ui.la_elcomat_led.setEnabled(self.devices.elcomat.connected)
-            self.ui.la_dcct_led.setEnabled(self.devices.dcct.connected)
-            self.ui.la_ps_led.setEnabled(self.devices.ps.ser.is_open)
+            self.ui.la_voltx_led.setEnabled(_voltx.connected)
+            self.ui.la_volty_led.setEnabled(_volty.connected)
+            self.ui.la_voltz_led.setEnabled(_voltz.connected)
+            self.ui.la_multich_led.setEnabled(_multich.connected)
+            self.ui.la_nmr_led.setEnabled(_nmr.connected)
+            self.ui.la_elcomat_led.setEnabled(_elcomat.connected)
+            self.ui.la_dcct_led.setEnabled(_dcct.connected)
+            self.ui.la_ps_led.setEnabled(_ps.ser.is_open)
             self.ui.la_water_udc_led.setEnabled(
-                self.devices.water_udc.connected)
+                _water_udc.connected)
             self.ui.la_air_udc_led.setEnabled(
-                self.devices.air_udc.connected)
+                _air_udc.connected)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

@@ -30,6 +30,15 @@ from hallbench.data.configuration import MeasurementConfig \
     as _MeasurementConfig
 from hallbench.data.measurement import VoltageScan as _VoltageScan
 from hallbench.data.measurement import FieldScan as _FieldScan
+from hallbench.devices import (
+    pmac as _pmac,
+    voltx as _voltx,
+    volty as _volty,
+    voltz as _voltz,
+    multich as _multich,
+    dcct as _dcct,
+    ps as _ps
+    )
 
 
 class MeasurementWidget(_QWidget):
@@ -89,17 +98,17 @@ class MeasurementWidget(_QWidget):
         self.thready = _QThread()
         self.threadz = _QThread()
 
-        self.workerx = VoltageWorker(self.devices.voltx)
+        self.workerx = VoltageWorker(_voltx)
         self.workerx.moveToThread(self.threadx)
         self.threadx.started.connect(self.workerx.run)
         self.workerx.finished.connect(self.threadx.quit)
 
-        self.workery = VoltageWorker(self.devices.volty)
+        self.workery = VoltageWorker(_volty)
         self.workery.moveToThread(self.thready)
         self.thready.started.connect(self.workery.run)
         self.workery.finished.connect(self.thready.quit)
 
-        self.workerz = VoltageWorker(self.devices.voltz)
+        self.workerz = VoltageWorker(_voltz)
         self.workerz.moveToThread(self.threadz)
         self.threadz.started.connect(self.workerz.run)
         self.workerz.finished.connect(self.threadz.quit)
@@ -108,11 +117,6 @@ class MeasurementWidget(_QWidget):
     def database(self):
         """Database filename."""
         return _QApplication.instance().database
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
 
     @property
     def directory(self):
@@ -175,7 +179,7 @@ class MeasurementWidget(_QWidget):
                 self.ui.stw_offsets.setCurrentIndex(0)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            
+
     def clear(self):
         """Clear."""
         self.workerx.clear()
@@ -234,11 +238,7 @@ class MeasurementWidget(_QWidget):
         self.ui.cmb_idn.setCurrentIndex(-1)
 
     def configure_graph(self, nr_curves, label):
-        """Configure graph.
-
-        Args:
-            nr_curves (int): number of curves to plot.
-        """
+        """Configure graph."""
         self.graphx = []
         self.graphy = []
         self.graphz = []
@@ -289,12 +289,12 @@ class MeasurementWidget(_QWidget):
         self.clear()
 
         if (not self.valid_database()
-           or not self.update_hall_probe()
-           or not self.update_configuration()
-           or not self.update_power_supply_config()
-           or not self.configure_multimeters()
-           or not self.configure_pmac()
-           or not self.configure_multichannel()):
+                or not self.update_hall_probe()
+                or not self.update_configuration()
+                or not self.update_power_supply_config()
+                or not self.configure_multimeters()
+                or not self.configure_pmac()
+                or not self.configure_multichannel()):
             self.measurement_configured = False
         else:
             self.measurement_configured = True
@@ -302,10 +302,10 @@ class MeasurementWidget(_QWidget):
     def configure_multichannel(self):
         """Configure multichannel to monitor dcct current and temperatures."""
         if (not self.ui.chb_save_temperature.isChecked() and
-           not self.ui.chb_save_current.isChecked()):
+                not self.ui.chb_save_current.isChecked()):
             return True
 
-        if not self.devices.multich.connected:
+        if not _multich.connected:
             msg = 'Multichannel not connected.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
@@ -313,13 +313,13 @@ class MeasurementWidget(_QWidget):
         try:
             channels = []
             if self.ui.chb_save_temperature.isChecked():
-                channels = channels + self.devices.multich.voltage_channels
-                channels = channels + self.devices.multich.temperature_channels
+                channels = channels + _multich.voltage_channels
+                channels = channels + _multich.temperature_channels
 
             if len(channels) == 0:
                 return True
 
-            self.devices.multich.configure(channel_list=channels)
+            _multich.configure(channel_list=channels)
             return True
 
         except Exception:
@@ -334,34 +334,34 @@ class MeasurementWidget(_QWidget):
             return False
 
         if (self.local_measurement_config.voltx_enable
-           and not self.devices.voltx.connected):
-                msg = 'Multimeter X not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-                return False
+                and not _voltx.connected):
+            msg = 'Multimeter X not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
 
         if (self.local_measurement_config.volty_enable
-           and not self.devices.volty.connected):
-                msg = 'Multimeter Y not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-                return False
+                and not _volty.connected):
+            msg = 'Multimeter Y not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
 
         if (self.local_measurement_config.voltz_enable
-           and not self.devices.voltz.connected):
-                msg = 'Multimeter Z not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-                return False
+                and not _voltz.connected):
+            msg = 'Multimeter Z not connected.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
 
         try:
             if self.local_measurement_config.voltx_enable:
-                self.devices.voltx.configure(
+                _voltx.configure(
                     self.local_measurement_config.integration_time,
                     self.local_measurement_config.voltage_range)
             if self.local_measurement_config.volty_enable:
-                self.devices.volty.configure(
+                _volty.configure(
                     self.local_measurement_config.integration_time,
                     self.local_measurement_config.voltage_range)
             if self.local_measurement_config.voltz_enable:
-                self.devices.voltz.configure(
+                _voltz.configure(
                     self.local_measurement_config.integration_time,
                     self.local_measurement_config.voltage_range)
             return True
@@ -373,26 +373,26 @@ class MeasurementWidget(_QWidget):
             return False
 
     def configure_pmac(self):
-        """Configure devices."""
-        if not self.devices.pmac.connected:
+        """Configure pmac."""
+        if not _pmac.connected:
             msg = 'Pmac not connected.'
             _QMessageBox.critical(
                 self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
         try:
-            self.devices.pmac.set_axis_speed(
+            _pmac.set_axis_speed(
                 1, self.local_measurement_config.vel_ax1)
-            self.devices.pmac.set_axis_speed(
+            _pmac.set_axis_speed(
                 2, self.local_measurement_config.vel_ax2)
-            self.devices.pmac.set_axis_speed(
+            _pmac.set_axis_speed(
                 3, self.local_measurement_config.vel_ax3)
-            self.devices.pmac.set_axis_speed(
+            _pmac.set_axis_speed(
                 5, self.local_measurement_config.vel_ax5)
             return True
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to configure devices.'
+            msg = 'Failed to configure pmac.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
@@ -718,7 +718,6 @@ class MeasurementWidget(_QWidget):
             del self.threadz
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            pass
 
     def load_config(self):
         """Set measurement parameters."""
@@ -889,7 +888,7 @@ class MeasurementWidget(_QWidget):
 
                 for axis in fixed_axes:
                     if self.stop is True:
-                        return
+                        return False
                     pos = self.local_measurement_config.get_start(axis)
                     self.move_axis(axis, pos)
 
@@ -906,15 +905,15 @@ class MeasurementWidget(_QWidget):
 
                     for pos in pos_list:
                         if self.stop is True:
-                            return
+                            return False
                         self.move_axis(second_axis, pos)
                         if not self.measure_field_scan(
                                 first_axis, second_axis, pos):
-                            return
+                            return False
 
                     # move to initial position
                     if self.stop is True:
-                        return
+                        return False
                     lmc = self.local_measurement_config
                     second_axis_start = lmc.get_start(
                         second_axis)
@@ -922,12 +921,12 @@ class MeasurementWidget(_QWidget):
 
                 else:
                     if self.stop is True:
-                        return
+                        return False
                     if not self.measure_field_scan(first_axis):
-                        return
+                        return False
 
                 if self.stop is True:
-                    return
+                    return False
 
                 # move to initial position
                 first_axis_start = self.local_measurement_config.get_start(
@@ -999,7 +998,7 @@ class MeasurementWidget(_QWidget):
     def measure_current_and_temperature(self):
         """Measure current and temperatures."""
         if (not self.ui.chb_save_temperature.isChecked() and
-           not self.ui.chb_save_current.isChecked()):
+                not self.ui.chb_save_current.isChecked()):
             return True
 
         try:
@@ -1010,19 +1009,19 @@ class MeasurementWidget(_QWidget):
 
             # Read power supply current
             if self.ui.chb_save_current.isChecked() and ps_type is not None:
-                self.devices.ps.SetSlaveAdd(ps_type)
-                ps_current = float(self.devices.ps.Read_iLoad1())
+                _ps.SetSlaveAdd(ps_type)
+                ps_current = float(_ps.Read_iLoad1())
                 self.voltage_scan.ps_current_avg = ps_current
 
             # Read dcct current
             if dcct_head is not None:
-                dcct_current = self.devices.dcct.read_current(
+                dcct_current = _dcct.read_current(
                     dcct_head=dcct_head)
                 self.voltage_scan.dcct_current_avg = dcct_current
 
             # Read multichannel
-            r = self.devices.multich.get_converted_readings()
-            channels = self.devices.multich.config_channels
+            r = _multich.get_converted_readings()
+            channels = _multich.config_channels
             for i, ch in enumerate(channels):
                 temperature_dict[ch] = [[ts, r[i]]]
             _QApplication.processEvents()
@@ -1050,7 +1049,6 @@ class MeasurementWidget(_QWidget):
 
         if start == end:
             raise Exception('Start and end positions are equal.')
-            return False
 
         npts = _np.ceil(round((end - start) / step, 4) + 1)
         scan_list = _np.linspace(start, end, npts)
@@ -1070,7 +1068,7 @@ class MeasurementWidget(_QWidget):
                 return False
 
             # flag to check if sensor is going or returning
-            to_pos = not(bool(idx % 2))
+            to_pos = not bool(idx % 2)
 
             # go to initial position
             if to_pos:
@@ -1089,7 +1087,7 @@ class MeasurementWidget(_QWidget):
                     setattr(self.voltage_scan, 'pos' + str(second_axis),
                             second_axis_pos)
                 else:
-                    pos = self.devices.pmac.get_position(axis)
+                    pos = _pmac.get_position(axis)
                     setattr(self.voltage_scan, 'pos' + str(axis), pos)
 
             _QApplication.processEvents()
@@ -1098,7 +1096,7 @@ class MeasurementWidget(_QWidget):
                 if axis not in [first_axis, second_axis]:
                     pos = getattr(self.voltage_scan, 'pos' + str(axis))
                     if len(pos) == 0:
-                        pos = self.devices.pmac.get_position(axis)
+                        pos = _pmac.get_position(axis)
                         setattr(self.voltage_scan, 'pos' + str(axis), pos)
 
             _QApplication.processEvents()
@@ -1111,13 +1109,13 @@ class MeasurementWidget(_QWidget):
                 if axis not in [first_axis, second_axis]:
                     pos = getattr(self.voltage_scan, 'pos' + str(axis))
                     if len(pos) == 0:
-                        pos = self.devices.pmac.get_position(axis)
+                        pos = _pmac.get_position(axis)
                         setattr(self.voltage_scan, 'pos' + str(axis), pos)
 
             _QApplication.processEvents()
 
             if self.stop is True:
-                return
+                return False
 
             if self.voltage_scan.npts == 0:
                 _warnings.warn(
@@ -1126,14 +1124,13 @@ class MeasurementWidget(_QWidget):
                         idx, to_pos, first_axis,
                         start, end, step, extra, npts):
                     return False
- 
+
                 if self.stop is True:
-                    return
- 
+                    return False
+
                 if self.voltage_scan.npts == 0:
                     raise Exception(
                         'Invalid number of points in voltage scan.')
-                    return False
 
             _QApplication.processEvents()
 
@@ -1141,7 +1138,7 @@ class MeasurementWidget(_QWidget):
                 if axis not in [first_axis, second_axis]:
                     pos = getattr(self.voltage_scan, 'pos' + str(axis))
                     if len(pos) == 0:
-                        pos = self.devices.pmac.get_position(axis)
+                        pos = _pmac.get_position(axis)
                         setattr(self.voltage_scan, 'pos' + str(axis), pos)
 
             _QApplication.processEvents()
@@ -1198,19 +1195,19 @@ class MeasurementWidget(_QWidget):
             return False
         else:
             if to_pos:
-                self.devices.pmac.set_trigger(
+                _pmac.set_trigger(
                     axis, start, step, 10, npts, 1)
             else:
-                self.devices.pmac.set_trigger(
+                _pmac.set_trigger(
                     axis, end, step*(-1), 10, npts, 1)
 
         formtype = self.local_measurement_config.voltage_precision
         if self.local_measurement_config.voltx_enable:
-            self.devices.voltx.configure_reading_format(formtype)
+            _voltx.configure_reading_format(formtype)
         if self.local_measurement_config.volty_enable:
-            self.devices.volty.configure_reading_format(formtype)
+            _volty.configure_reading_format(formtype)
         if self.local_measurement_config.voltz_enable:
-            self.devices.voltz.configure_reading_format(formtype)
+            _voltz.configure_reading_format(formtype)
         _QApplication.processEvents()
 
         self.start_voltage_threads()
@@ -1248,7 +1245,7 @@ class MeasurementWidget(_QWidget):
         if self.local_measurement_config.subtract_voltage_offset:
             if self.ui.rbt_measure_offsets.isChecked():
                 offset_range = _utils.get_value_from_string(
-                    self.ui.le_offset_range.text())   
+                    self.ui.le_offset_range.text())
                 scan_pos = self.voltage_scan.scan_pos
                 if scan_pos[-1] - scan_pos[0] <= offset_range:
                     self.voltage_scan.offsetx_start = self.voltage_scan.avgx[0]
@@ -1285,7 +1282,7 @@ class MeasurementWidget(_QWidget):
                 self.voltage_scan.offsety_start = offsety
                 self.voltage_scan.offsety_end = offsety
                 self.voltage_scan.offsetz_start = offsetz
-                self.voltage_scan.offsetz_end = offsetz                
+                self.voltage_scan.offsetz_end = offsetz
 
         if self.stop is True:
             return False
@@ -1293,33 +1290,22 @@ class MeasurementWidget(_QWidget):
             return True
 
     def move_axis(self, axis, position):
-        """Move bench axis.
-
-        Args:
-            axis (int): axis number.
-            position (float): target position.
-        """
+        """Move bench axis."""
         if self.stop is False:
-            self.devices.pmac.move_axis(axis, position)
-            status = self.devices.pmac.axis_status(axis)
+            _pmac.move_axis(axis, position)
+            status = _pmac.axis_status(axis)
             while (status is None or (status & 1) == 0) and self.stop is False:
-                status = self.devices.pmac.axis_status(axis)
+                status = _pmac.axis_status(axis)
                 _QApplication.processEvents()
 
     def move_axis_and_update_graph(self, axis, position, idx):
-        """Move bench axis and update plot with the measure data.
-
-        Args:
-            axis (int): axis number.
-            position (float): target position.
-            idx (int):  index of the plot to update.
-        """
+        """Move bench axis and update plot with the measure data."""
         if self.stop is False:
-            self.devices.pmac.move_axis(axis, position)
-            status = self.devices.pmac.axis_status(axis)
+            _pmac.move_axis(axis, position)
+            status = _pmac.axis_status(axis)
             while (status is None or (status & 1) == 0) and self.stop is False:
                 self.plot_voltage(idx)
-                status = self.devices.pmac.axis_status(axis)
+                status = _pmac.axis_status(axis)
                 _QApplication.processEvents()
                 _time.sleep(self._update_graph_time_interval)
 
@@ -1347,11 +1333,7 @@ class MeasurementWidget(_QWidget):
                 self.graphz[i].setData(positions, fs.avgz)
 
     def plot_voltage(self, idx):
-        """Plot voltage values.
-
-        Args:
-            idx (int): index of the plot to update.
-        """
+        """Plot voltage values."""
         npts = len(self.position_list)
         voltagex = [v for v in self.workerx.voltage[:npts]]
         voltagey = [v for v in self.workery.voltage[:npts]]
@@ -1369,14 +1351,14 @@ class MeasurementWidget(_QWidget):
     def reset_multimeters(self):
         """Reset connected multimeters."""
         try:
-            if self.devices.voltx.connected:
-                self.devices.voltx.reset()
+            if _voltx.connected:
+                _voltx.reset()
 
-            if self.devices.volty.connected:
-                self.devices.volty.reset()
+            if _volty.connected:
+                _volty.reset()
 
-            if self.devices.voltz.connected:
-                self.devices.voltz.reset()
+            if _voltz.connected:
+                _voltz.reset()
 
             return True
 
@@ -1641,7 +1623,7 @@ class MeasurementWidget(_QWidget):
         """Stop measurement to True."""
         try:
             self.stop = True
-            self.devices.pmac.stop_all_axis()
+            _pmac.stop_all_axis()
             self.ui.pbt_measure.setEnabled(True)
             self.ui.pbt_stop.setEnabled(False)
             self.ui.tbt_clear_graph.setEnabled(True)
@@ -1652,7 +1634,7 @@ class MeasurementWidget(_QWidget):
                 self, 'Abort', msg, _QMessageBox.Ok)
         except Exception:
             self.stop = True
-            self.devices.pmac.stop_all_axis()
+            _pmac.stop_all_axis()
             self.power_supply_config.update_display = True
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to stop measurements.'
@@ -1660,7 +1642,7 @@ class MeasurementWidget(_QWidget):
 
     def stop_trigger(self):
         """Stop trigger."""
-        self.devices.pmac.stop_trigger()
+        _pmac.stop_trigger()
         self.workerx.end_measurement = True
         self.workery.end_measurement = True
         self.workerz.end_measurement = True
@@ -1839,7 +1821,6 @@ class MeasurementWidget(_QWidget):
                 self.ui.pbt_load_db.setEnabled(load_enabled)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            pass
 
     def update_current_setpoint(self, current_setpoint):
         """Update current setpoint value."""
@@ -1888,7 +1869,6 @@ class MeasurementWidget(_QWidget):
                 self.ui.cmb_probe_name.setCurrentText(current_text)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            pass
 
     def update_trigger_step(self, axis):
         """Update trigger step."""
@@ -1906,7 +1886,6 @@ class MeasurementWidget(_QWidget):
                     self.ui.la_max_integration_time.setText('')
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            pass
 
     def quit_voltage_threads(self):
         """Quit voltage threads."""
@@ -1917,7 +1896,8 @@ class MeasurementWidget(_QWidget):
     def valid_database(self):
         """Check if the database filename is valid."""
         if (self.database is not None
-           and len(self.database) != 0 and _os.path.isfile(self.database)):
+                and len(self.database) != 0
+                and _os.path.isfile(self.database)):
             return True
         else:
             msg = 'Invalid database filename.'
@@ -1959,7 +1939,7 @@ class VoltageWorker(_QObject):
             self.clear()
             oformtype = self.multimeter.get_output_format()
             mformtype = self.multimeter.get_memory_format()
-            while (self.end_measurement is False):
+            while self.end_measurement is False:
                 if self.multimeter.status():
                     voltage = self.multimeter.get_readings(oformtype)
                     self.voltage = _np.append(self.voltage, voltage)

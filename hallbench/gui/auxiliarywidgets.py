@@ -2,7 +2,6 @@
 
 import sys as _sys
 import numpy as _np
-import pandas as _pd
 import datetime as _datetime
 import warnings as _warnings
 import pyqtgraph as _pyqtgraph
@@ -54,6 +53,7 @@ from matplotlib.backends.backend_qt5agg import (
     )
 
 import hallbench.gui.utils as _utils
+from hallbench.devices import pmac as _pmac
 
 
 _font = _QFont()
@@ -475,11 +475,6 @@ class MoveAxisWidget(_QWidget):
 
         self.connect_signal_slots()
 
-    @property
-    def pmac(self):
-        """Pmac communication class."""
-        return _QApplication.instance().devices.pmac
-
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -520,12 +515,12 @@ class MoveAxisWidget(_QWidget):
             if axis is None:
                 return
 
-            velocity = self.pmac.get_velocity(axis)
+            velocity = _pmac.get_velocity(axis)
 
             if targetvel != velocity:
-                self.pmac.set_axis_speed(axis, targetvel)
+                _pmac.set_axis_speed(axis, targetvel)
 
-            self.pmac.move_axis(axis, targetpos)
+            _pmac.move_axis(axis, targetpos)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -539,7 +534,7 @@ class MoveAxisWidget(_QWidget):
             return None
 
         axis = int(axis_str[1])
-        if axis in self.pmac.commands.list_of_axis:
+        if axis in _pmac.commands.list_of_axis:
             return axis
         else:
             return None
@@ -558,7 +553,7 @@ class MoveAxisWidget(_QWidget):
             axis = self.selected_axis()
             if axis is None:
                 return
-            self.pmac.stop_axis(axis)
+            _pmac.stop_axis(axis)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -576,8 +571,8 @@ class MoveAxisWidget(_QWidget):
                 self.la_target_pos_unit.setText('')
                 return
 
-            velocity = self.pmac.get_velocity(axis)
-            position = self.pmac.get_position(axis)
+            velocity = _pmac.get_velocity(axis)
+            position = _pmac.get_position(axis)
             self.le_target_vel.setText(self._position_format.format(
                 velocity))
             self.le_target_pos.setText(self._position_format.format(

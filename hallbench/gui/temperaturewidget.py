@@ -7,35 +7,22 @@ import numpy as _np
 import time as _time
 import traceback as _traceback
 from qtpy.QtWidgets import (
-    QLabel as _QLabel,
-    QWidget as _QWidget,
-    QCheckBox as _QCheckBox,
-    QGroupBox as _QGroupBox,
-    QLineEdit as _QLineEdit,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
-    QHBoxLayout as _QHBoxLayout,
-    QGridLayout as _QGridLayout,
-    QSizePolicy as _QSizePolicy,
     QApplication as _QApplication,
-    )
-from qtpy.QtGui import (
-    QFont as _QFont,
     )
 from qtpy.QtCore import (
     Qt as _Qt,
-    QSize as _QSize,
     Signal as _Signal,
     QThread as _QThread,
     QObject as _QObject,
     )
-import qtpy.uic as _uic
 
-import hallbench.gui.utils as _utils
 from hallbench.gui.auxiliarywidgets import (
     TablePlotWidget as _TablePlotWidget,
     TemperatureChannelsWidget as _TemperatureChannelsWidget,
     )
+from hallbench.devices import multich as _multich
 
 
 class TemperatureWidget(_TablePlotWidget):
@@ -80,11 +67,6 @@ class TemperatureWidget(_TablePlotWidget):
         self.worker.finished.connect(self.wthread.quit)
         self.worker.finished.connect(self.get_reading)
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -96,7 +78,7 @@ class TemperatureWidget(_TablePlotWidget):
 
     def check_connection(self, monitor=False):
         """Check devices connection."""
-        if not self.devices.multich.connected:
+        if not _multich.connected:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure',
@@ -116,7 +98,7 @@ class TemperatureWidget(_TablePlotWidget):
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
             wait = self.channels_widget.delay
-            configured = self.devices.multich.configure(
+            configured = _multich.configure(
                 selected_channels, wait=wait)
 
             self.blockSignals(False)
@@ -197,11 +179,6 @@ class ReadValueWorker(_QObject):
         self.reading = []
         super().__init__()
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def run(self):
         """Read values from devices."""
         try:
@@ -209,7 +186,7 @@ class ReadValueWorker(_QObject):
             self.reading = []
 
             ts = _time.time()
-            rl = self.devices.multich.get_converted_readings(wait=self.delay)
+            rl = _multich.get_converted_readings(wait=self.delay)
             if len(rl) == len(self.selected_channels):
                 rl = [r if _np.abs(r) < 1e37 else _np.nan for r in rl]
             else:

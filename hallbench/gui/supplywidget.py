@@ -22,6 +22,14 @@ import pyqtgraph as _pyqtgraph
 
 from hallbench.gui import utils as _utils
 from hallbench.gui.auxiliarywidgets import PlotDialog as _PlotDialog
+from hallbench.devices import (
+    voltx as _voltx,
+    volty as _volty,
+    voltz as _voltz,
+    nmr as _nmr,
+    dcct as _dcct,
+    ps as _ps
+    )
 
 
 class SupplyWidget(_QWidget):
@@ -45,7 +53,7 @@ class SupplyWidget(_QWidget):
         self.slope = [50, 90, 1000]
         self.flag_trapezoidal = False
         self.config = self.power_supply_config
-        self.drs = self.devices.ps
+        self.drs = _ps
         self.timer = _QTimer()
         self.plot_dialog = _PlotDialog()
 
@@ -91,11 +99,6 @@ class SupplyWidget(_QWidget):
     def connection_config(self):
         """Return the connection configuration."""
         return _QApplication.instance().connection_config
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
 
     @property
     def database(self):
@@ -166,7 +169,7 @@ class SupplyWidget(_QWidget):
     def start_power_supply(self):
         """Starts/Stops the Power Supply."""
         try:
-            self.devices.dcct.config()
+            _dcct.config()
 
             if self.config.ps_type is None:
                 _QMessageBox.warning(self, 'Warning',
@@ -633,7 +636,7 @@ class SupplyWidget(_QWidget):
                 self.ui.lcd_current_dcct.setEnabled(True)
                 self.ui.label_161.setEnabled(True)
                 self.ui.label_164.setEnabled(True)
-                _current = round(self.devices.dcct.read_current(
+                _current = round(_dcct.read_current(
                     dcct_head=self.config.dcct_head), 3)
                 self.ui.lcd_current_dcct.display(_current)
             _QApplication.processEvents()
@@ -1449,7 +1452,7 @@ class SupplyWidget(_QWidget):
 
     def probe_calibration_update_nmr_freq(self):
         try:
-            nmr = self.devices.nmr
+            nmr = _nmr
             if not nmr.connected:
                 msg = 'NMR not connected.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
@@ -1472,7 +1475,7 @@ class SupplyWidget(_QWidget):
             self.ui.le_pc_field.setText('')
             self.ui.le_pc_fieldstd.setText('')
 
-            nmr = self.devices.nmr
+            nmr = _nmr
             if not nmr.connected:
                 msg = 'NMR not connected.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
@@ -1480,11 +1483,11 @@ class SupplyWidget(_QWidget):
                 return False
 
             if self.ui.rbt_pc_sensorx.isChecked():
-                volt = self.ui.devices.voltx
+                volt = _voltx
             elif self.ui.rbt_pc_sensory.isChecked():
-                volt = self.ui.devices.volty
+                volt = _volty
             elif self.ui.rbt_pc_sensorz.isChecked():
-                volt = self.ui.devices.voltz
+                volt = _voltz
             else:
                 msg = 'Invalid sensor selection.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)

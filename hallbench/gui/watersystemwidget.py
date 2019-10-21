@@ -7,7 +7,6 @@ import time as _time
 import numpy as _np
 import traceback as _traceback
 from qtpy.QtWidgets import (
-    QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QCheckBox as _QCheckBox,
     )
@@ -18,6 +17,7 @@ from qtpy.QtCore import (
     )
 
 from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
+from hallbench.devices import water_udc as _water_udc
 
 
 class WaterSystemWidget(_TablePlotWidget):
@@ -56,11 +56,6 @@ class WaterSystemWidget(_TablePlotWidget):
         self.worker.finished.connect(self.wthread.quit)
         self.worker.finished.connect(self.get_reading)
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -72,7 +67,7 @@ class WaterSystemWidget(_TablePlotWidget):
 
     def check_connection(self, monitor=False):
         """Check devices connection."""
-        if not self.devices.water_udc.connected:
+        if not _water_udc.connected:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure', 'UDC not connected.', _QMessageBox.Ok)
@@ -134,11 +129,6 @@ class ReadValueWorker(_QObject):
         self.reading = []
         super().__init__()
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def run(self):
         """Read values from devices."""
         try:
@@ -148,22 +138,22 @@ class ReadValueWorker(_QObject):
             ts = _time.time()
 
             if self.pv1_enabled:
-                pv1 = self.devices.water_udc.read_pv1()
+                pv1 = _water_udc.read_pv1()
             else:
                 pv1 = _np.nan
 
             if self.pv2_enabled:
-                pv2 = self.devices.water_udc.read_pv2()
+                pv2 = _water_udc.read_pv2()
             else:
                 pv2 = _np.nan
 
             if self.output1_enabled:
-                output1 = self.devices.water_udc.read_output1()
+                output1 = _water_udc.read_output1()
             else:
                 output1 = _np.nan
 
             if self.output2_enabled:
-                output2 = self.devices.water_udc.read_output2()
+                output2 = _water_udc.read_output2()
             else:
                 output2 = _np.nan
 

@@ -4,8 +4,6 @@
 
 import os as _os
 import sys as _sys
-import numpy as _np
-import time as _time
 import threading as _threading
 from qtpy.QtWidgets import QApplication as _QApplication
 
@@ -20,43 +18,12 @@ from hallbench.gui.viewfieldmapdialog import ViewFieldmapDialog \
     as _ViewFieldmapDialog
 import hallbench.data as _data
 
-from hallbench.devices import (
-    pmac as _pmac,
-    voltx as _voltx,
-    volty as _volty,
-    voltz as _voltz,
-    multich as _multich,
-    nmr as _nmr,
-    elcomat as _elcomat,
-    dcct as _dcct,
-    water_udc as _water_udc,
-    air_udc as _air_udc,
-    ps as _ps
-    )
-
 
 # Styles: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]
 _style = 'windows'
 _width = 1200
 _height = 700
 _database_filename = 'hall_bench_measurements.db'
-
-
-class HallBenchDevices(object):
-    """Hall Bench devices class."""
-
-    def __init__(self):
-        self.pmac = _pmac
-        self.voltx = _voltx
-        self.volty = _volty
-        self.voltz = _voltz
-        self.multich = _multich
-        self.nmr = _nmr
-        self.elcomat = _elcomat
-        self.dcct = _dcct
-        self.water_udc = _water_udc
-        self.air_udc = _air_udc
-        self.ps = _ps
 
 
 class HallBenchApp(_QApplication):
@@ -82,7 +49,6 @@ class HallBenchApp(_QApplication):
         self.measurement_config = _MeasurementConfig()
         self.power_supply_config = _PowerSupplyConfig()
         self.hall_probe = _HallProbe()
-        self.devices = HallBenchDevices()
 
         # positions dict
         self.positions = {}
@@ -131,7 +97,7 @@ class GUIThread(_threading.Thread):
     def run(self):
         """Thread target function."""
         self.app = None
-        if (not _QApplication.instance()):
+        if not _QApplication.instance():
             self.app = HallBenchApp([])
             self.window = _HallBenchWindow(width=_width, height=_height)
             self.window.show()
@@ -142,7 +108,7 @@ class GUIThread(_threading.Thread):
 def run():
     """Run hallbench application."""
     app = None
-    if (not _QApplication.instance()):
+    if not _QApplication.instance():
         app = HallBenchApp([])
         window = _HallBenchWindow(width=_width, height=_height)
         window.show()

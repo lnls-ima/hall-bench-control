@@ -20,6 +20,12 @@ from qtpy.QtCore import (
     )
 
 from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
+from hallbench.devices import (
+    voltx as _voltx,
+    volty as _volty,
+    voltz as _voltz,
+    multich as _multich,
+    )
 
 
 class VoltageTempWidget(_TablePlotWidget):
@@ -72,11 +78,6 @@ class VoltageTempWidget(_TablePlotWidget):
         self.sbd_monitor_step.valueChanged.connect(self.updateWait)
         self.cmb_monitor_unit.currentIndexChanged.connect(self.updateWait)
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -91,25 +92,25 @@ class VoltageTempWidget(_TablePlotWidget):
 
     def check_connection(self, monitor=False):
         """Check devices connection."""
-        if self.chb_voltx.isChecked() and not self.devices.voltx.connected:
+        if self.chb_voltx.isChecked() and not _voltx.connected:
             if not monitor:
                 msg = 'Multimeter X not connected.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-        if self.chb_volty.isChecked() and not self.devices.volty.connected:
+        if self.chb_volty.isChecked() and not _volty.connected:
             if not monitor:
                 msg = 'Multimeter Y not connected.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-        if self.chb_voltz.isChecked() and not self.devices.voltz.connected:
+        if self.chb_voltz.isChecked() and not _voltz.connected:
             if not monitor:
                 msg = 'Multimeter Z not connected.'
                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-        if not self.devices.multich.connected:
+        if not _multich.connected:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure',
@@ -128,13 +129,13 @@ class VoltageTempWidget(_TablePlotWidget):
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
             if self.chb_voltx.isChecked():
-                self.devices.voltx.reset()
+                _voltx.reset()
 
             if self.chb_volty.isChecked():
-                self.devices.volty.reset()
+                _volty.reset()
 
             if self.chb_voltz.isChecked():
-                self.devices.voltz.reset()
+                _voltz.reset()
 
             selected_channels = []
             if self.chb_ch101.isChecked():
@@ -146,7 +147,7 @@ class VoltageTempWidget(_TablePlotWidget):
             if self.chb_ch105.isChecked():
                 selected_channels.append('105')
 
-            self.devices.multich.configure(selected_channels, wait=self.wait)
+            _multich.configure(selected_channels, wait=self.wait)
 
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -224,11 +225,6 @@ class ReadValueWorker(_QObject):
         self.voltage_mfactor = voltage_mfactor
         super().__init__()
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def run(self):
         """Read values from devices."""
         try:
@@ -238,30 +234,30 @@ class ReadValueWorker(_QObject):
             ts = _time.time()
 
             if self.voltx_enabled:
-                voltx = float(self.devices.voltx.read_from_device()[:-2])
+                voltx = float(_voltx.read_from_device()[:-2])
                 voltx = voltx*self.voltage_mfactor
             else:
                 voltx = _np.nan
 
             if self.volty_enabled:
-                volty = float(self.devices.volty.read_from_device()[:-2])
+                volty = float(_volty.read_from_device()[:-2])
                 volty = volty*self.voltage_mfactor
             else:
                 volty = _np.nan
 
             if self.voltz_enabled:
-                voltz = float(self.devices.voltz.read_from_device()[:-2])
+                voltz = float(_voltz.read_from_device()[:-2])
                 voltz = voltz*self.voltage_mfactor
             else:
                 voltz = _np.nan
 
-            if any(
-                [self.ch101_enabled, self.ch102_enabled,
-                 self.ch103_enabled, self.ch105_enabled]):
-                rl = self.devices.multich.get_converted_readings(
+            if any([
+                    self.ch101_enabled, self.ch102_enabled,
+                    self.ch103_enabled, self.ch105_enabled]):
+                rl = _multich.get_converted_readings(
                     wait=self.wait)
                 rl = [r if _np.abs(r) < 1e37 else _np.nan for r in rl]
-                config_channels = self.devices.multich.config_channels
+                config_channels = _multich.config_channels
 
                 count = 0
                 if '101' in config_channels and self.ch101_enabled:

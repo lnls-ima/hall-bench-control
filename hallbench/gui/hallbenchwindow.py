@@ -10,11 +10,7 @@ from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QDesktopWidget as _QDesktopWidget,
     )
-from qtpy.QtCore import (
-    QTimer as _QTimer,
-    QRunnable as _QRunnable,
-    QThreadPool as _QThreadPool,
-    )
+from qtpy.QtCore import QTimer as _QTimer
 import qtpy.uic as _uic
 
 from hallbench.gui.utils import get_ui_file as _get_ui_file
@@ -102,7 +98,6 @@ class HallBenchWindow(_QMainWindow):
 
         # start positions update
         self.stop_positions_update = False
-        self.threadpool = _QThreadPool.globalInstance()
         self.timer = _QTimer()
         self.timer.timeout.connect(self.update_positions)
         self.timer.start(self._update_positions_timer_interval)
@@ -123,6 +118,15 @@ class HallBenchWindow(_QMainWindow):
     def directory(self):
         """Return the default directory."""
         return _QApplication.instance().directory
+
+    @property
+    def positions(self):
+        """Get current posiitons dict."""
+        return _QApplication.instance().positions
+
+    @positions.setter
+    def positions(self, value):
+        _QApplication.instance().positions = value
 
     @property
     def save_fieldmap_dialog(self):
@@ -148,7 +152,6 @@ class HallBenchWindow(_QMainWindow):
         """Close main window and dialogs."""
         try:
             self.stop_positions_update = True
-            self.threadpool.waitForDone()
             self.timer.stop()
             for idx in range(self.ui.twg_main.count()):
                 widget = self.ui.twg_main.widget(idx)
@@ -220,16 +223,16 @@ class HallBenchWindow(_QMainWindow):
                 hasattr(self, 'tab_power_supply')):
             self.tab_measurement.change_current_setpoint.connect(
                 self.tab_power_supply.change_setpoint_and_emit_signal)
-
+ 
             self.tab_measurement.turn_off_power_supply_current.connect(
                 self.tab_power_supply.set_current_to_zero)
-
+ 
             self.tab_power_supply.current_setpoint_changed.connect(
                 self.tab_measurement.update_current_setpoint)
-
+ 
             self.tab_power_supply.start_measurement.connect(
                 self.tab_measurement.measure_and_emit_signal)
-
+ 
             self.tab_power_supply.current_ramp_end.connect(
                 self.tab_measurement.end_automatic_measurements)
 
@@ -241,28 +244,7 @@ class HallBenchWindow(_QMainWindow):
         """Update pmac positions."""
         if self.stop_positions_update:
             return
-
-        try:
-            worker = PositionsWorker()
-            self.threadpool.start(worker)
-        except Exception:
-            pass
-
-
-class PositionsWorker(_QRunnable):
-    """Read position values from pmac."""
-
-    @property
-    def positions(self):
-        """Get current posiitons dict."""
-        return _QApplication.instance().positions
-
-    @positions.setter
-    def positions(self, value):
-        _QApplication.instance().positions = value
-
-    def run(self):
-        """Update axes positions."""
+        
         if not _pmac.connected:
             self.positions = {}
             return

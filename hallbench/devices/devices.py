@@ -5,9 +5,9 @@
 import numpy as _np
 import time as _time
 
-from imadevices import Agilent3458ALib as _Agilent3458ALib
-from imadevices import Agilent34401ALib as _Agilent34401ALib
-from imadevices import Agilent34970ALib as _Agilent34970ALib
+from imautils.devices import Agilent3458ALib as _Agilent3458ALib
+from imautils.devices import Agilent34401ALib as _Agilent34401ALib
+from imautils.devices import Agilent34970ALib as _Agilent34970ALib
 
 
 class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
@@ -57,13 +57,13 @@ class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
 class Multichannel(_Agilent34970ALib.Agilent34970AGPIB):
     """Multichannel class."""
 
-    def __init__(self, logfile=None):
-        """Initiaze variables and prepare logging file.
+    def __init__(self, log=False):
+        """Initiaze variables and prepare logging.
 
         Args:
-            logfile (str): log file path.
+            log (bool): True to use event logging, False otherwise.
         """
-        super().__init__(logfile)
+        super().__init__(log=log)
         self.temperature_channels = [
             '201', '202', '203', '204', '205', '206', '207', '208', '209']
         self.voltage_channels = ['101', '102', '103', '105']

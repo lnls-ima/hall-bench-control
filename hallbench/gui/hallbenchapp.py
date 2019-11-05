@@ -69,7 +69,7 @@ class HallBenchApp(_QApplication):
         _VoltageScan = _data.measurement.VoltageScan
         _FieldScan = _data.measurement.FieldScan
         _Fieldmap = _data.measurement.Fieldmap
-
+ 
         status = []
         status.append(_ConnectionConfig.create_database_table(self.database))
         status.append(_PowerSupplyConfig.create_database_table(self.database))

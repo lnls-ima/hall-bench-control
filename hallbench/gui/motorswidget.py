@@ -245,9 +245,9 @@ class MotorsWidget(_QWidget):
             velocity = _pmac.get_velocity(axis)
 
             if targetvel != velocity:
-                _pmac.set_axis_speed(axis, targetvel)
+                _pmac.set_velocity(axis, targetvel)
 
-            _pmac.move_axis(axis, targetpos)
+            _pmac.set_position(axis, targetpos)
             self.ui.le_reldisp.setText('')
 
         except Exception:
@@ -309,8 +309,8 @@ class MotorsWidget(_QWidget):
     def reset_axis_limits(self):
         """Reset axis limits."""
         try:
-            neg_list = _pmac.commands.i_softlimit_neg_list
-            pos_list = _pmac.commands.i_softlimit_pos_list
+            neg_list = _pmac.commands.i_soft_limit_neg_list
+            pos_list = _pmac.commands.i_soft_limit_pos_list
 
             if _pmac.get_response(_pmac.set_par(neg_list[0], 0)):
                 self.ui.le_minax1.setText('')
@@ -362,9 +362,9 @@ class MotorsWidget(_QWidget):
     def set_axis_limits(self):
         """Set axis limits."""
         try:
-            neg_list = _pmac.commands.i_softlimit_neg_list
-            pos_list = _pmac.commands.i_softlimit_pos_list
-            cts_mm_axis = _pmac.commands.CTS_MM_AXIS
+            neg_list = _pmac.commands.i_soft_limit_neg_list
+            pos_list = _pmac.commands.i_soft_limit_pos_list
+            cts_mm_axis = _pmac.commands.cts_mm_axis
 
             minax1 = _utils.get_value_from_string(
                 self.ui.le_minax1.text())
@@ -469,14 +469,14 @@ class MotorsWidget(_QWidget):
 
             velocity = _pmac.get_velocity(axis)
             if targetvel != velocity:
-                _pmac.set_axis_speed(axis, targetvel)
+                _pmac.set_velocity(axis, targetvel)
 
             _pmac.set_trigger(axis, start, step, 10, npts, 1)
 
             if self.stop_trigger:
                 return
 
-            _pmac.move_axis(axis, start)
+            _pmac.set_position(axis, start)
             while ((_pmac.axis_status(axis) & 1) == 0 and
                    self.stop_trigger is False):
                 _QApplication.processEvents()
@@ -485,7 +485,7 @@ class MotorsWidget(_QWidget):
                 return
 
             if not self.ui.chb_trigpause.isChecked():
-                _pmac.move_axis(axis, end)
+                _pmac.set_position(axis, end)
             else:
                 pos_list = _np.linspace(start, end, npts)
                 delay = self.ui.sbd_trigdelay.value()
@@ -493,7 +493,7 @@ class MotorsWidget(_QWidget):
                     if self.stop_trigger:
                         return
 
-                    _pmac.move_axis(axis, pos)
+                    _pmac.set_position(axis, pos)
                     while ((_pmac.axis_status(axis) & 1) == 0 and
                            self.stop_trigger is False):
                         _QApplication.processEvents()

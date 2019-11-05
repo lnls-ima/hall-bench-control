@@ -518,9 +518,9 @@ class MoveAxisWidget(_QWidget):
             velocity = _pmac.get_velocity(axis)
 
             if targetvel != velocity:
-                _pmac.set_axis_speed(axis, targetvel)
+                _pmac.set_velocity(axis, targetvel)
 
-            _pmac.move_axis(axis, targetpos)
+            _pmac.set_position(axis, targetpos)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

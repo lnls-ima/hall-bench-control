@@ -381,13 +381,13 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
-            _pmac.set_axis_speed(
+            _pmac.set_velocity(
                 1, self.local_measurement_config.vel_ax1)
-            _pmac.set_axis_speed(
+            _pmac.set_velocity(
                 2, self.local_measurement_config.vel_ax2)
-            _pmac.set_axis_speed(
+            _pmac.set_velocity(
                 3, self.local_measurement_config.vel_ax3)
-            _pmac.set_axis_speed(
+            _pmac.set_velocity(
                 5, self.local_measurement_config.vel_ax5)
             return True
         except Exception:
@@ -1292,7 +1292,7 @@ class MeasurementWidget(_QWidget):
     def move_axis(self, axis, position):
         """Move bench axis."""
         if self.stop is False:
-            _pmac.move_axis(axis, position)
+            _pmac.set_position(axis, position)
             status = _pmac.axis_status(axis)
             while (status is None or (status & 1) == 0) and self.stop is False:
                 status = _pmac.axis_status(axis)
@@ -1301,7 +1301,7 @@ class MeasurementWidget(_QWidget):
     def move_axis_and_update_graph(self, axis, position, idx):
         """Move bench axis and update plot with the measure data."""
         if self.stop is False:
-            _pmac.move_axis(axis, position)
+            _pmac.set_position(axis, position)
             status = _pmac.axis_status(axis)
             while (status is None or (status & 1) == 0) and self.stop is False:
                 self.plot_voltage(idx)

@@ -261,7 +261,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
+         <normaloff>../../resources/img/clear.svg</normaloff>../../resources/img/clear.svg</iconset>
        </property>
        <property name="iconSize">
         <size>

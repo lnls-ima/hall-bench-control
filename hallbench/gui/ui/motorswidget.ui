@@ -43,7 +43,16 @@
       <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_8">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>20</number>
+      </property>
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <property name="bottomMargin">
        <number>20</number>
       </property>
       <item row="0" column="0" colspan="2">
@@ -80,14 +89,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="font">
@@ -130,14 +139,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="font">
@@ -167,14 +176,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="font">
@@ -204,14 +213,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="font">
@@ -316,14 +325,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="font">
@@ -366,14 +375,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="font">
@@ -416,14 +425,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="font">
@@ -466,14 +475,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="font">
@@ -551,7 +560,16 @@
       <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>20</number>
+      </property>
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <property name="bottomMargin">
        <number>20</number>
       </property>
       <item row="0" column="0">
@@ -934,10 +952,19 @@
       <string>Move Axis</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
-      <property name="horizontalSpacing">
+      <property name="leftMargin">
        <number>20</number>
       </property>
-      <property name="margin">
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <property name="bottomMargin">
+       <number>20</number>
+      </property>
+      <property name="horizontalSpacing">
        <number>20</number>
       </property>
       <item row="0" column="0" rowspan="2">
@@ -1163,7 +1190,13 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/move.png</normaloff>../../resources/img/move.png</iconset>
+          <normaloff>../../resources/img/move.svg</normaloff>../../resources/img/move.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -1183,7 +1216,13 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/stop.png</normaloff>../../resources/img/stop.png</iconset>
+          <normaloff>../../resources/img/stop.svg</normaloff>../../resources/img/stop.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -1482,7 +1521,13 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/move.png</normaloff>../../resources/img/move.png</iconset>
+          <normaloff>../../resources/img/move.svg</normaloff>../../resources/img/move.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -1502,7 +1547,13 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/stop.png</normaloff>../../resources/img/stop.png</iconset>
+          <normaloff>../../resources/img/stop.svg</normaloff>../../resources/img/stop.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
         </property>
        </widget>
       </item>

@@ -7,17 +7,43 @@ import numpy as _np
 import pandas as _pd
 import os.path as _path
 import pyqtgraph as _pyqtgraph
+from qtpy.QtGui import (
+    QFont as _QFont,
+    QIcon as _QIcon,
+    QPixmap as _QPixmap,
+    )
+from qtpy.QtCore import (
+    QSize as _QSize,
+    )
 
 
 _basepath = _path.dirname(_path.abspath(__file__))
 
 
-def get_icon_path(icon_name):
-    """Get the icon file path."""
+def get_default_font(bold=False):
+    """Return the default QFont."""
+    font = _QFont()
+    font.setPointSize(11)
+    font.setBold(bold)
+    return font
+
+
+def get_default_icon_size():
+    """Return the default QSize for icons."""
+    return _QSize(24, 24)
+
+
+def get_icon(icon_file):
+    """Get the Qt icon for the given file."""   
     img_path = _path.join(
         _path.join(_path.dirname(_basepath), 'resources'), 'img')
-    icon_path = _path.join(img_path, '{0:s}.png'.format(icon_name))
-    return icon_path
+    icon_path = _path.join(img_path, icon_file)
+    icon = _QIcon()
+    icon.addPixmap(
+        _QPixmap(icon_path),
+        _QIcon.Normal,
+        _QIcon.Off)
+    return icon
 
 
 def get_ui_file(widget):

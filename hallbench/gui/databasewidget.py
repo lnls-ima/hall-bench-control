@@ -365,23 +365,23 @@ class DatabaseWidget(_QWidget):
         try:
             current_table_name = self.get_current_table_name()
             if current_table_name is not None:
-                self.ui.buttons_tbx.setEnabled(True)
+                self.ui.stw_buttons.setEnabled(True)
 
                 for table_name, page in self._table_page_dict.items():
                     if page is not None:
                         page.setEnabled(False)
-                        _idx = self.ui.buttons_tbx.indexOf(page)
-                        self.ui.buttons_tbx.setItemEnabled(_idx, False)
+                        _idx = self.ui.stw_buttons.indexOf(page)
+                    else:
+                        self.ui.stw_buttons.setCurrentIndex(0)
 
                 current_page = self._table_page_dict[current_table_name]
                 if current_page is not None:
-                    _idx = self.ui.buttons_tbx.indexOf(current_page)
-                    self.ui.buttons_tbx.setItemEnabled(_idx, True)
                     current_page.setEnabled(True)
-                    self.ui.buttons_tbx.setCurrentWidget(current_page)
+                    _idx = self.ui.stw_buttons.indexOf(current_page)
+                    self.ui.stw_buttons.setCurrentWidget(current_page)
             else:
-                self.ui.buttons_tbx.setCurrentWidget(self.ui.pg_empty)
-                self.ui.buttons_tbx.setEnabled(False)
+                self.ui.stw_buttons.setCurrentIndex(0)
+                self.ui.stw_buttons.setEnabled(False)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

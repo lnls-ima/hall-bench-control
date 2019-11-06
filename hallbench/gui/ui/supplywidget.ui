@@ -95,14 +95,14 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>21</width>
-              <height>21</height>
+              <width>25</width>
+              <height>25</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>21</width>
-              <height>21</height>
+              <width>25</width>
+              <height>25</height>
              </size>
             </property>
             <property name="font">
@@ -120,8 +120,8 @@
             </property>
             <property name="iconSize">
              <size>
-              <width>20</width>
-              <height>61</height>
+              <width>24</width>
+              <height>24</height>
              </size>
             </property>
             <property name="checkable">
@@ -292,7 +292,13 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>:/Images/imagens/1351621535_Refresh.png</normaloff>:/Images/imagens/1351621535_Refresh.png</iconset>
+          <normaloff>../../resources/img/refresh.svg</normaloff>../../resources/img/refresh.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -417,7 +423,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../../../../../Users/james.citadini/.designer/backup/imagens/save.png</normaloff>../../../../../../Users/james.citadini/.designer/backup/imagens/save.png</iconset>
+            <normaloff>../../../../../../Users/james.citadini/.designer/backup/imagens/save.svg</normaloff>../../../../../../Users/james.citadini/.designer/backup/imagens/save.svg</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -549,7 +555,7 @@ p, li { white-space: pre-wrap; }
                  <string/>
                 </property>
                 <property name="pixmap">
-                 <pixmap>../../resources/img/PS_table.png</pixmap>
+                 <pixmap>../../resources/img/PS_table.svg</pixmap>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -626,7 +632,7 @@ p, li { white-space: pre-wrap; }
                      <bold>false</bold>
                     </font>
                    </property>
-                   <property name="currentText" stdset="0">
+                   <property name="currentText">
                     <string>1000A</string>
                    </property>
                    <property name="currentIndex">
@@ -1027,7 +1033,13 @@ p, li { white-space: pre-wrap; }
                    </property>
                    <property name="icon">
                     <iconset>
-                     <normaloff>../../resources/img/settings.png</normaloff>../../resources/img/settings.png</iconset>
+                     <normaloff>../../resources/img/settings.svg</normaloff>../../resources/img/settings.svg</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>24</width>
+                     <height>24</height>
+                    </size>
                    </property>
                   </widget>
                  </item>
@@ -1053,7 +1065,13 @@ p, li { white-space: pre-wrap; }
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>../../resources/img/settings.png</normaloff>../../resources/img/settings.png</iconset>
+                  <normaloff>../../resources/img/settings.svg</normaloff>../../resources/img/settings.svg</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>24</width>
+                  <height>24</height>
+                 </size>
                 </property>
                </widget>
               </item>
@@ -1150,7 +1168,7 @@ p, li { white-space: pre-wrap; }
                        </font>
                       </property>
                       <property name="textAlignment">
-                       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                       <set>AlignCenter</set>
                       </property>
                      </column>
                     </widget>
@@ -1173,12 +1191,12 @@ p, li { white-space: pre-wrap; }
                      </property>
                      <property name="icon">
                       <iconset>
-                       <normaloff>../../resources/img/add.png</normaloff>../../resources/img/add.png</iconset>
+                       <normaloff>../../resources/img/plus.svg</normaloff>../../resources/img/plus.svg</iconset>
                      </property>
                      <property name="iconSize">
                       <size>
-                       <width>14</width>
-                       <height>14</height>
+                       <width>24</width>
+                       <height>24</height>
                       </size>
                      </property>
                     </widget>
@@ -1196,7 +1214,13 @@ p, li { white-space: pre-wrap; }
                      </property>
                      <property name="icon">
                       <iconset>
-                       <normaloff>../../resources/img/minus.png</normaloff>../../resources/img/minus.png</iconset>
+                       <normaloff>../../resources/img/minus.svg</normaloff>../../resources/img/minus.svg</iconset>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>24</width>
+                       <height>24</height>
+                      </size>
                      </property>
                     </widget>
                    </item>
@@ -1218,7 +1242,13 @@ p, li { white-space: pre-wrap; }
                      </property>
                      <property name="icon">
                       <iconset>
-                       <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
+                       <normaloff>../../resources/img/clear.svg</normaloff>../../resources/img/clear.svg</iconset>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>24</width>
+                       <height>24</height>
+                      </size>
                      </property>
                     </widget>
                    </item>
@@ -2538,12 +2568,12 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="icon">
                    <iconset>
-                    <normaloff>../../resources/img/add.png</normaloff>../../resources/img/add.png</iconset>
+                    <normaloff>../../resources/img/plus.svg</normaloff>../../resources/img/plus.svg</iconset>
                   </property>
                   <property name="iconSize">
                    <size>
-                    <width>14</width>
-                    <height>14</height>
+                    <width>24</width>
+                    <height>24</height>
                    </size>
                   </property>
                  </widget>
@@ -2561,7 +2591,13 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="icon">
                    <iconset>
-                    <normaloff>../../resources/img/minus.png</normaloff>../../resources/img/minus.png</iconset>
+                    <normaloff>../../resources/img/minus.svg</normaloff>../../resources/img/minus.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>24</width>
+                    <height>24</height>
+                   </size>
                   </property>
                  </widget>
                 </item>
@@ -2583,7 +2619,13 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="icon">
                    <iconset>
-                    <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
+                    <normaloff>../../resources/img/clear.svg</normaloff>../../resources/img/clear.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>24</width>
+                    <height>24</height>
+                   </size>
                   </property>
                  </widget>
                 </item>
@@ -2655,12 +2697,12 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>../../resources/img/Send.png</normaloff>../../resources/img/Send.png</iconset>
+                <normaloff>../../resources/img/send.svg</normaloff>../../resources/img/send.svg</iconset>
               </property>
               <property name="iconSize">
                <size>
-                <width>16</width>
-                <height>16</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
              </widget>
@@ -2709,12 +2751,12 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>../../resources/img/wave.png</normaloff>../../resources/img/wave.png</iconset>
+                <normaloff>../../resources/img/cycle.svg</normaloff>../../resources/img/cycle.svg</iconset>
               </property>
               <property name="iconSize">
                <size>
-                <width>20</width>
-                <height>20</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
              </widget>
@@ -2754,7 +2796,13 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>../../resources/img/curve.png</normaloff>../../resources/img/curve.png</iconset>
+                <normaloff>../../resources/img/plot.svg</normaloff>../../resources/img/plot.svg</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
               </property>
              </widget>
             </item>
@@ -3424,13 +3472,13 @@ Status:</string>
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../resources/img/power_on.png</normaloff>
-            <normalon>../../resources/img/power_off.png</normalon>../../resources/img/power_on.png</iconset>
+            <normaloff>../../resources/img/power_on.svg</normaloff>
+            <normalon>../../resources/img/power_off.svg</normalon>../../resources/img/power_on.svg</iconset>
           </property>
           <property name="iconSize">
            <size>
-            <width>20</width>
-            <height>20</height>
+            <width>24</width>
+            <height>24</height>
            </size>
           </property>
           <property name="checkable">
@@ -3574,7 +3622,13 @@ Status:</string>
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../resources/img/check.png</normaloff>../../resources/img/check.png</iconset>
+              <normaloff>../../resources/img/check.svg</normaloff>../../resources/img/check.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -3601,7 +3655,7 @@ Status:</string>
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>40</height>
+         <height>70</height>
         </size>
        </property>
        <property name="palette">
@@ -3657,8 +3711,8 @@ Status:</string>
        </property>
        <property name="iconSize">
         <size>
-         <width>35</width>
-         <height>35</height>
+         <width>48</width>
+         <height>48</height>
         </size>
        </property>
       </widget>

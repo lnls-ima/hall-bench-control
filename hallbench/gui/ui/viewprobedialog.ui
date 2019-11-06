@@ -169,12 +169,12 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/table.png</normaloff>../../resources/img/table.png</iconset>
+          <normaloff>../../resources/img/table.svg</normaloff>../../resources/img/table.svg</iconset>
         </property>
         <property name="iconSize">
          <size>
-          <width>16</width>
-          <height>16</height>
+          <width>24</width>
+          <height>24</height>
          </size>
         </property>
        </widget>
@@ -444,7 +444,16 @@
       <string>Plot Options</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>9</number>
+      </property>
+      <property name="topMargin">
+       <number>9</number>
+      </property>
+      <property name="rightMargin">
+       <number>9</number>
+      </property>
+      <property name="bottomMargin">
        <number>9</number>
       </property>
       <property name="spacing">

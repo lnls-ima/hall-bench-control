@@ -16,6 +16,7 @@ from qtpy.QtWidgets import (
     QCheckBox as _QCheckBox,
     QListView as _QListView,
     QLineEdit as _QLineEdit,
+    QTextEdit as _QTextEdit,
     QMessageBox as _QMessageBox,
     QSizePolicy as _QSizePolicy,
     QSpacerItem as _QSpacerItem,
@@ -34,10 +35,8 @@ from qtpy.QtWidgets import (
     )
 from qtpy.QtGui import (
     QFont as _QFont,
-    QIcon as _QIcon,
     QColor as _QColor,
     QBrush as _QBrush,
-    QPixmap as _QPixmap,
     QStandardItemModel as _QStandardItemModel,
     )
 from qtpy.QtCore import (
@@ -56,13 +55,18 @@ import hallbench.gui.utils as _utils
 from hallbench.devices import pmac as _pmac
 
 
-_font = _QFont()
-_font.setPointSize(11)
-_font.setBold(False)
+_font = _utils.get_default_font()
+_font_bold = _utils.get_default_font(bold=True)
+_icon_size = _utils.get_default_icon_size()
 
-_font_bold = _QFont()
-_font_bold.setPointSize(11)
-_font_bold.setBold(True)
+_autorange_icon_file = "zoom.svg"
+_clear_icon_file = "clear.svg"
+_copy_icon_file = "copy.svg"
+_delete_icon_file = "close.svg"
+_move_icon_file = "move.svg"
+_save_icon_file = "save.svg"
+_stats_icon_file = "stats.svg"
+_stop_icon_file = "stop.svg"
 
 
 class CheckableComboBox(_QComboBox):
@@ -212,9 +216,7 @@ class InterpolationTableDialog(_QDialog):
         main_layout = _QHBoxLayout()
         main_layout.setSpacing(20)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('copy')), _QIcon.Normal, _QIcon.Off)
+        icon = _utils.get_icon(_copy_icon_file)
 
         sensors = ["X", "Y", "Z"]
         for idx, sensor in enumerate(sensors):
@@ -253,7 +255,7 @@ class InterpolationTableDialog(_QDialog):
 
             tbt_copy = _QToolButton()
             tbt_copy.setIcon(icon)
-            tbt_copy.setIconSize(_QSize(24, 24))
+            tbt_copy.setIconSize(_icon_size)
             setattr(self, 'pbt_sensor' + sensor.lower() + '_copy', tbt_copy)
 
             spacer_item = _QSpacerItem(
@@ -368,6 +370,23 @@ class InterpolationTableDialog(_QDialog):
         self._update_table(table, data, precision)
 
 
+class LogDialog(_QDialog):
+    """Log dialog."""
+    
+    def __init__(self, parent=None):
+        """Set up the ui."""
+        super().__init__(parent)
+        self.setWindowTitle("Log")
+        self.resize(1000, 460)
+        self.setFont(_font)
+        self.te_text = _QTextEdit()
+        self.te_text.setReadOnly(True)
+        self.te_text.setVerticalScrollBarPolicy(_Qt.ScrollBarAlwaysOn)
+        main_layout = _QHBoxLayout()
+        main_layout.addWidget(self.te_text)
+        self.setLayout(main_layout)
+        
+
 class MoveAxisWidget(_QWidget):
     """Move axis widget class for the Hall Bench Control application."""
 
@@ -452,19 +471,15 @@ class MoveAxisWidget(_QWidget):
         vertical_layout = _QVBoxLayout()
         vertical_layout.setSpacing(15)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('move')), _QIcon.Normal, _QIcon.Off)
         self.pbt_move = _QPushButton("Move to Target")
-        self.pbt_move.setIcon(icon)
+        self.pbt_move.setIcon(_utils.get_icon(_move_icon_file))
+        self.pbt_move.setIconSize(_icon_size)
         self.pbt_move.setMinimumSize(_QSize(200, 60))
         vertical_layout.addWidget(self.pbt_move)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('stop')), _QIcon.Normal, _QIcon.Off)
         self.pbt_stop = _QPushButton("Stop Motor")
-        self.pbt_stop.setIcon(icon)
+        self.pbt_stop.setIcon(_utils.get_icon(_stop_icon_file))
+        self.pbt_stop.setIconSize(_icon_size)
         self.pbt_stop.setMinimumSize(_QSize(200, 60))
         self.pbt_stop.setObjectName("pbt_stop")
         vertical_layout.addWidget(self.pbt_stop)
@@ -630,9 +645,7 @@ class PolynomialTableDialog(_QDialog):
         label.setAlignment(_Qt.AlignCenter)
         main_layout.addWidget(label)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('copy')), _QIcon.Normal, _QIcon.Off)
+        icon = _utils.get_icon(_copy_icon_file)
 
         sensors = ["X", "Y", "Z"]
         for idx, sensor in enumerate(sensors):
@@ -690,7 +703,7 @@ class PolynomialTableDialog(_QDialog):
 
             tbt_copy = _QToolButton()
             tbt_copy.setIcon(icon)
-            tbt_copy.setIconSize(_QSize(24, 24))
+            tbt_copy.setIconSize(_icon_size)
             setattr(self, 'pbt_sensor' + sensor.lower() + '_copy', tbt_copy)
 
             spacer_item = _QSpacerItem(
@@ -1186,8 +1199,6 @@ class TablePlotWidget(_QWidget):
 
     def add_widgets(self):
         """Add widgets and layouts."""
-        icon_size = _QSize(24, 24)
-
         # Layouts
         self.vertical_layout_1 = _QVBoxLayout()
         self.vertical_layout_2 = _QVBoxLayout()
@@ -1270,59 +1281,40 @@ class TablePlotWidget(_QWidget):
         self.horizontal_layout_4.addWidget(self.tbl_table)
 
         # Tool buttons
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('font')), _QIcon.Normal, _QIcon.Off)
         self.tbt_autorange = _QToolButton()
-        self.tbt_autorange.setIcon(icon)
-        self.tbt_autorange.setIconSize(icon_size)
+        self.tbt_autorange.setIcon(_utils.get_icon(_autorange_icon_file))
+        self.tbt_autorange.setIconSize(_icon_size)
         self.tbt_autorange.setCheckable(True)
         self.tbt_autorange.setToolTip('Turn on plot autorange.')
         self.vertical_layout_3.addWidget(self.tbt_autorange)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('save')), _QIcon.Normal, _QIcon.Off)
         self.tbt_save = _QToolButton()
-        self.tbt_save.setIcon(icon)
-        self.tbt_save.setIconSize(icon_size)
+        self.tbt_save.setIcon(_utils.get_icon(_save_icon_file))
+        self.tbt_save.setIconSize(_icon_size)
         self.tbt_save.setToolTip('Save table data to file.')
         self.vertical_layout_3.addWidget(self.tbt_save)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('copy')), _QIcon.Normal, _QIcon.Off)
         self.tbt_copy = _QToolButton()
-        self.tbt_copy.setIcon(icon)
-        self.tbt_copy.setIconSize(icon_size)
+        self.tbt_copy.setIcon(_utils.get_icon(_copy_icon_file))
+        self.tbt_copy.setIconSize(_icon_size)
         self.tbt_copy.setToolTip('Copy table data.')
         self.vertical_layout_3.addWidget(self.tbt_copy)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('stats')), _QIcon.Normal, _QIcon.Off)
         self.pbt_stats = _QToolButton()
-        self.pbt_stats.setIcon(icon)
-        self.pbt_stats.setIconSize(icon_size)
+        self.pbt_stats.setIcon(_utils.get_icon(_stats_icon_file))
+        self.pbt_stats.setIconSize(_icon_size)
         self.pbt_stats.setToolTip('Show data statistics.')
         self.vertical_layout_3.addWidget(self.pbt_stats)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(
-                _utils.get_icon_path('delete')), _QIcon.Normal, _QIcon.Off)
         self.pbt_remove = _QToolButton()
-        self.pbt_remove.setIcon(icon)
-        self.pbt_remove.setIconSize(icon_size)
+        self.pbt_remove.setIcon(_utils.get_icon(_delete_icon_file))
+        self.pbt_remove.setIconSize(_icon_size)
         self.pbt_remove.setToolTip('Remove selected lines from table.')
         self.vertical_layout_3.addWidget(self.pbt_remove)
 
-        icon = _QIcon()
-        icon.addPixmap(
-            _QPixmap(_utils.get_icon_path('clear')), _QIcon.Normal, _QIcon.Off)
         self.tbt_clear = _QToolButton()
-        self.tbt_clear.setIcon(icon)
-        self.tbt_clear.setIconSize(icon_size)
+        self.tbt_clear.setIcon(_utils.get_icon(_clear_icon_file))
+        self.tbt_clear.setIconSize(_icon_size)
         self.tbt_clear.setToolTip('Clear table data.')
         self.vertical_layout_3.addWidget(self.tbt_clear)
 

@@ -606,7 +606,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/pin.png</normaloff>../../resources/img/pin.png</iconset>
+          <normaloff>../../resources/img/pin.svg</normaloff>../../resources/img/pin.svg</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -1107,7 +1107,13 @@ Over:</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../resources/img/move.png</normaloff>../../resources/img/move.png</iconset>
+         <normaloff>../../resources/img/move.svg</normaloff>../../resources/img/move.svg</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -1139,7 +1145,13 @@ Over:</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../resources/img/stop.png</normaloff>../../resources/img/stop.png</iconset>
+         <normaloff>../../resources/img/stop.svg</normaloff>../../resources/img/stop.svg</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -1200,7 +1212,7 @@ Over:</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../resources/img/map.png</normaloff>../../resources/img/map.png</iconset>
+           <normaloff>../../resources/img/map_plus.svg</normaloff>../../resources/img/map_plus.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1223,7 +1235,7 @@ Over:</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../resources/img/save.png</normaloff>../../resources/img/save.png</iconset>
+           <normaloff>../../resources/img/save.svg</normaloff>../../resources/img/save.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1246,7 +1258,7 @@ Over:</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../resources/img/curve.png</normaloff>../../resources/img/curve.png</iconset>
+           <normaloff>../../resources/img/plot.svg</normaloff>../../resources/img/plot.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1269,7 +1281,7 @@ Over:</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
+           <normaloff>../../resources/img/clear.svg</normaloff>../../resources/img/clear.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1365,7 +1377,7 @@ Over:</string>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
+          <normaloff>../../resources/img/clear.svg</normaloff>../../resources/img/clear.svg</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -1398,7 +1410,7 @@ Over:</string>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/refresh.png</normaloff>../../resources/img/refresh.png</iconset>
+          <normaloff>../../resources/img/refresh.svg</normaloff>../../resources/img/refresh.svg</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -1458,7 +1470,7 @@ Over:</string>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
+          <normaloff>../../resources/img/database_plus.svg</normaloff>../../resources/img/database_plus.svg</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -1503,7 +1515,7 @@ Over:</string>
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../resources/img/refresh.png</normaloff>../../resources/img/refresh.png</iconset>
+            <normaloff>../../resources/img/refresh.svg</normaloff>../../resources/img/refresh.svg</iconset>
           </property>
           <property name="iconSize">
            <size>

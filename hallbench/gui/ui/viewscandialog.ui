@@ -700,7 +700,7 @@ Limits</string>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../resources/img/copy.png</normaloff>../../resources/img/copy.png</iconset>
+          <normaloff>../../resources/img/copy.svg</normaloff>../../resources/img/copy.svg</iconset>
         </property>
         <property name="iconSize">
          <size>

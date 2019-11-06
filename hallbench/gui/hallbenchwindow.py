@@ -14,8 +14,10 @@ from qtpy.QtCore import QTimer as _QTimer
 import qtpy.uic as _uic
 
 from hallbench.gui.utils import get_ui_file as _get_ui_file
-from hallbench.gui.auxiliarywidgets import PreferencesDialog \
-    as _PreferencesDialog
+from hallbench.gui.auxiliarywidgets import (
+    PreferencesDialog as _PreferencesDialog,
+    LogDialog as _LogDialog
+    )
 from hallbench.gui.connectionwidget import ConnectionWidget \
     as _ConnectionWidget
 from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
@@ -39,6 +41,7 @@ from hallbench.gui.voltagetemperaturewidget import VoltageTempWidget \
 from hallbench.gui.databasewidget import DatabaseWidget \
     as _DatabaseWidget
 from hallbench.devices import pmac as _pmac
+from hallbench.devices import logfile as _logfile
 
 
 class HallBenchWindow(_QMainWindow):
@@ -92,6 +95,8 @@ class HallBenchWindow(_QMainWindow):
         # add preferences dialog
         self.preferences_dialog = _PreferencesDialog(self.tab_names)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)
+
+        self.log_dialog = _LogDialog()
 
         # show database name
         self.ui.le_database.setText(self.database)
@@ -161,6 +166,7 @@ class HallBenchWindow(_QMainWindow):
             self.save_fieldmap_dialog.accept()
             self.view_fieldmap_dialog.accept()
             self.preferences_dialog.close()
+            self.log_dialog.close()
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -239,7 +245,20 @@ class HallBenchWindow(_QMainWindow):
         self.preferences_dialog.tabs_preferences_changed()
         self.ui.tbt_preferences.clicked.connect(self.preferences_dialog.show)
         self.ui.tbt_database.clicked.connect(self.change_database)
+        self.ui.tbt_log.clicked.connect(self.open_log)
 
+    def open_log(self):
+        """Open log info."""
+        try:
+            with open(_logfile, 'r') as f:
+                text = f.read()
+            self.log_dialog.te_text.setText(text)
+            vbar = self.log_dialog.te_text.verticalScrollBar()
+            vbar.setValue(vbar.maximum())
+            self.log_dialog.show()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+ 
     def update_positions(self):
         """Update pmac positions."""
         if self.stop_positions_update:

@@ -13,7 +13,7 @@ from qtpy.QtWidgets import (
 from qtpy.QtCore import QTimer as _QTimer
 import qtpy.uic as _uic
 
-from hallbench.gui.utils import get_ui_file as _get_ui_file
+from hallbench.gui import utils as _utils
 from hallbench.gui.auxiliarywidgets import (
     PreferencesDialog as _PreferencesDialog,
     LogDialog as _LogDialog
@@ -38,8 +38,8 @@ from hallbench.gui.angularerrorwidget import AngularErrorWidget \
     as _AngularErrorWidget
 from hallbench.gui.voltagetemperaturewidget import VoltageTempWidget \
     as _VoltageTempWidget
-from hallbench.gui.databasewidget import DatabaseWidget \
-    as _DatabaseWidget
+# from hallbench.gui.databasewidget import DatabaseWidget \
+#     as _DatabaseWidget
 from hallbench.devices import pmac as _pmac
 from hallbench.devices import logfile as _logfile
 
@@ -47,14 +47,16 @@ from hallbench.devices import logfile as _logfile
 class HallBenchWindow(_QMainWindow):
     """Main Window class for the Hall Bench Control application."""
 
-    _update_positions_timer_interval = 500  # [ms]
+    _update_positions_interval = _utils.UPDATE_POSITIONS_INTERVAL
 
-    def __init__(self, parent=None, width=1200, height=700):
+    def __init__(
+            self, parent=None, width=_utils.WINDOW_WIDTH,
+            height=_utils.WINDOW_HEIGHT):
         """Set up the ui and add main tabs."""
         super().__init__(parent)
 
         # setup the ui
-        uifile = _get_ui_file(self)
+        uifile = _utils.get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
         self.resize(width, height)
 
@@ -74,7 +76,7 @@ class HallBenchWindow(_QMainWindow):
             'water_system',
             'air_conditioning',
             'angular_error',
-            'database',
+#             'database',
             ]
 
         self.tab_widgets = [
@@ -89,35 +91,37 @@ class HallBenchWindow(_QMainWindow):
             _WaterSystemWidget,
             _AirConditioningWidget,
             _AngularErrorWidget,
-            _DatabaseWidget,
+#             _DatabaseWidget,  ##AQUIII
             ]
 
         # add preferences dialog
         self.preferences_dialog = _PreferencesDialog(self.tab_names)
+        self.preferences_dialog.chb_connection.setChecked(True)
+        self.preferences_dialog.chb_measurement.setChecked(True)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)
 
         self.log_dialog = _LogDialog()
 
         # show database name
-        self.ui.le_database.setText(self.database)
+        self.ui.le_database.setText(self.database_name)
 
         # start positions update
         self.stop_positions_update = False
         self.timer = _QTimer()
         self.timer.timeout.connect(self.update_positions)
-        self.timer.start(self._update_positions_timer_interval)
+        self.timer.start(self._update_positions_interval*1000)
 
         # connect signals and slots
         self.connect_signal_slots()
 
     @property
-    def database(self):
-        """Return the database filename."""
-        return _QApplication.instance().database
+    def database_name(self):
+        """Return the database name."""
+        return _QApplication.instance().database_name
 
-    @database.setter
-    def database(self, value):
-        _QApplication.instance().database = value
+    @database_name.setter
+    def database_name(self, value):
+        _QApplication.instance().database_name = value
 
     @property
     def directory(self):
@@ -184,8 +188,8 @@ class HallBenchWindow(_QMainWindow):
         if len(fn) == 0:
             return
 
-        self.database = fn
-        self.ui.le_database.setText(self.database)
+        self.database_name = fn
+        self.ui.le_database.setText(self.database_name)
 
     def change_tabs(self, tab_status):
         """Hide or show tabs."""
@@ -232,7 +236,13 @@ class HallBenchWindow(_QMainWindow):
  
             self.tab_measurement.turn_off_power_supply_current.connect(
                 self.tab_power_supply.set_current_to_zero)
- 
+
+            self.tab_measurement.turn_on_current_display.connect(
+                self.tab_power_supply.turn_on_current_display)
+
+            self.tab_measurement.turn_off_current_display.connect(
+                self.tab_power_supply.turn_off_current_display)
+             
             self.tab_power_supply.current_setpoint_changed.connect(
                 self.tab_measurement.update_current_setpoint)
  

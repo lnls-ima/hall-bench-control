@@ -43,13 +43,13 @@ class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
         """Configure multimeter reading format.
 
         Args:
-            formtype (int): format type [SREAL=4, DREAL=5].
+            formtype (str): format type [SREAL, DREAL].
         """
         self.send_command(self.commands.mem_fifo)
-        if formtype == 4:
+        if formtype == 'SREAL':
             self.send_command(self.commands.oformat_sreal)
             self.send_command(self.commands.mformat_sreal)
-        elif formtype == 5:
+        elif formtype == 'DREAL':
             self.send_command(self.commands.oformat_dreal)
             self.send_command(self.commands.mformat_dreal)
 
@@ -106,11 +106,15 @@ class Multichannel(_Agilent34970ALib.Agilent34970AGPIB):
 class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
     """DCCT Multimeter."""
 
-    def read_current(self, dcct_head=None):
+    def __init__(self, log=False):
+        super().__init__(log=log)
+        self.dcct_head = None
+
+    def read_current(self):
         """Read dcct voltage and convert to current."""
         voltage = self.read()
         dcct_heads = [40, 160, 320, 600, 1000, 1125]
-        if voltage is not None and dcct_head in dcct_heads:
+        if voltage is not None and self.dcct_head in dcct_heads:
             current = voltage * dcct_head/10
         else:
             current = _np.nan

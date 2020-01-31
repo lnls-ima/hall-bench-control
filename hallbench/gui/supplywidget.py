@@ -158,6 +158,14 @@ class SupplyWidget(_QWidget):
             return True
         return False
 
+    def turn_on_current_display(self):
+        """Set update display flag to True."""
+        self.config.update_display = True
+
+    def turn_off_current_display(self):
+        """Set update display flag to False."""
+        self.config.update_display = False
+    
     def change_ps(self):
         """Sets the Load Power Supply button disabled if the selected supply is
            already loaded."""

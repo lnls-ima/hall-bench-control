@@ -15,6 +15,7 @@ from qtpy.QtCore import Qt as _Qt
 import qtpy.uic as _uic
 
 from hallbench.gui.utils import get_ui_file as _get_ui_file
+import hallbench.data.configuration as _configuration
 from hallbench.devices import (
     pmac as _pmac,
     voltx as _voltx,
@@ -41,24 +42,26 @@ class ConnectionWidget(_QWidget):
         uifile = _get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
+        self.connection_config = _configuration.ConnectionConfig()
+
         self.connect_signal_slots()
         self.update_serial_ports()
         self.update_connection_ids()
 
     @property
-    def connection_config(self):
-        """Return the connection configuration."""
-        return _QApplication.instance().connection_config
+    def database_name(self):
+        """Database name."""
+        return _QApplication.instance().database_name
 
     @property
-    def database(self):
-        """Database filename."""
-        return _QApplication.instance().database
+    def mongo(self):
+        """MongoDB database."""
+        return _QApplication.instance().mongo
 
     @property
-    def directory(self):
-        """Return the default directory."""
-        return _QApplication.instance().directory
+    def server(self):
+        """Server for MongoDB database."""
+        return _QApplication.instance().server
 
     def closeEvent(self, event):
         """Close widget."""
@@ -286,17 +289,19 @@ class ConnectionWidget(_QWidget):
                 self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
             return
 
-        self.update_connection_ids()
-        idx = self.ui.cmb_idn.findText(str(idn))
-        if idx == -1:
-            self.ui.cmb_idn.setCurrentIndex(-1)
-            _QMessageBox.critical(
-                self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
-            return
-
         try:
+            self.update_connection_ids()
+            idx = self.ui.cmb_idn.findText(str(idn))
+            if idx == -1:
+                self.ui.cmb_idn.setCurrentIndex(-1)
+                _QMessageBox.critical(
+                    self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
+                return
+            
             self.connection_config.clear()
-            self.connection_config.read_from_database(self.database, idn)
+            self.connection_config.db_update_database(
+                self.database_name, mongo=self.mongo, server=self.server)
+            self.connection_config.db_read(idn)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to read connection from database.'
@@ -392,11 +397,13 @@ class ConnectionWidget(_QWidget):
     def save_db(self):
         """Save connection parameters to database."""
         self.ui.cmb_idn.setCurrentIndex(-1)
-        if self.database is not None and _os.path.isfile(self.database):
+        if self.database_name is not None:
             try:
                 if self.update_configuration():
-                    idn = self.connection_config.save_to_database(
-                        self.database)
+                    self.connection_config.db_update_database(
+                        self.database_name, 
+                        mongo=self.mongo, server=self.server)
+                    idn = self.connection_config.db_save()
                     self.ui.cmb_idn.addItem(str(idn))
                     self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.count()-1)
                     self.ui.pbt_load_db.setEnabled(False)
@@ -415,8 +422,10 @@ class ConnectionWidget(_QWidget):
         load_enabled = self.ui.pbt_load_db.isEnabled()
         self.ui.cmb_idn.clear()
         try:
-            idns = self.connection_config.get_table_column(
-                self.database, 'id')
+            self.connection_config.db_update_database(
+                self.database_name, 
+                mongo=self.mongo, server=self.server)
+            idns = self.connection_config.db_get_id_list()
             self.ui.cmb_idn.addItems([str(idn) for idn in idns])
             if len(current_text) == 0:
                 self.ui.cmb_idn.setCurrentIndex(self.ui.cmb_idn.count()-1)

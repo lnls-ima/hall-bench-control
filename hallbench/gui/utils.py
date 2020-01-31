@@ -12,31 +12,40 @@ from qtpy.QtGui import (
     QIcon as _QIcon,
     QPixmap as _QPixmap,
     )
-from qtpy.QtCore import (
-    QSize as _QSize,
-    )
+from qtpy.QtCore import QSize as _QSize
 
 
-_basepath = _path.dirname(_path.abspath(__file__))
+# GUI configurations
+WINDOW_STYLE = 'windows'
+WINDOW_WIDTH = 1200
+WINDOW_HEIGHT = 700
+FONT_SIZE = 11
+ICON_SIZE = 24
+DATABASE_NAME = 'hall_bench_measurements.db'
+MONGO = False
+SERVER = 'localhost'
+UPDATE_POSITIONS_INTERVAL = 0.5  # [s]
+UPDATE_PLOT_INTERVAL = 0.1  # [s]
 
 
 def get_default_font(bold=False):
     """Return the default QFont."""
     font = _QFont()
-    font.setPointSize(11)
+    font.setPointSize(FONT_SIZE)
     font.setBold(bold)
     return font
 
 
 def get_default_icon_size():
     """Return the default QSize for icons."""
-    return _QSize(24, 24)
+    return _QSize(ICON_SIZE, ICON_SIZE)
 
 
 def get_icon(icon_file):
     """Get the Qt icon for the given file."""   
     img_path = _path.join(
-        _path.join(_path.dirname(_basepath), 'resources'), 'img')
+        _path.join(_path.dirname(
+            _path.dirname(_path.abspath(__file__))), 'resources'), 'img')
     icon_path = _path.join(img_path, icon_file)
     icon = _QIcon()
     icon.addPixmap(
@@ -56,7 +65,8 @@ def get_ui_file(widget):
         basename = '%s.ui' % widget.__name__.lower()
     else:
         basename = '%s.ui' % widget.__class__.__name__.lower()
-    uifile = _path.join(_basepath, _path.join('ui', basename))
+    uifile = _path.join(_path.dirname(
+        _path.abspath(__file__)), _path.join('ui', basename))
 
     return uifile
 

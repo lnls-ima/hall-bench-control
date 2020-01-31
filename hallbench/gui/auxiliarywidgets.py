@@ -872,9 +872,6 @@ class PreferencesDialog(_QDialog):
         vertical_layout.addWidget(self.pbt_apply)
 
         self.pbt_apply.clicked.connect(self.tabs_preferences_changed)
-        self.chb_connection.setChecked(True)
-        self.chb_motors.setChecked(True)
-        self.chb_measurement.setChecked(True)
 
     def tabs_preferences_changed(self):
         """Get tabs checkbox status and emit signal to change tabs."""

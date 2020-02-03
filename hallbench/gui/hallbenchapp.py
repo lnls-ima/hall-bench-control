@@ -28,10 +28,8 @@ class HallBenchApp(_QApplication):
         super().__init__(args)
         self.setStyle(_utils.WINDOW_STYLE)
 
-        self.directory = _os.path.dirname(_os.path.dirname(
-            _os.path.dirname(_os.path.abspath(__file__))))
-        self.database_name = _os.path.join(
-            self.directory, _utils.DATABASE_NAME)
+        self.directory = _utils.BASEPATH
+        self.database_name = _utils.DATABASE_NAME
         self.mongo = _utils.MONGO
         self.server = _utils.SERVER
         self.create_database()

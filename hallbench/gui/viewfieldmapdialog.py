@@ -179,19 +179,17 @@ class ViewFieldmapDialog(_QDialog):
 
         try:
             self.ui.le_idn.setText('{0:d}'.format(idn))
-            val = (
-                self.fieldmap.nr_scans if self.fieldmap.nr_scans is not None
-                else '')
-            self.ui.le_nr_scans.setText('{0:d}'.format(val))
+            nr_scans = self.fieldmap.nr_field_scans
+            val = str(nr_scans) if nr_scans is not None else ''
+            self.ui.le_nr_scans.setText('{0:s}'.format(val))
 
+            fs_id_list = self.fieldmap.field_scan_id_list
             val = (
-                self.fieldmap.initial_scan if self.fieldmap.initial_scan
-                is not None else '')
+                fs_id_list[0] if fs_id_list is not None else '')
             self.ui.le_initial_scan.setText('{0:d}'.format(val))
 
             val = (
-                self.fieldmap.final_scan if self.fieldmap.final_scan
-                is not None else '')
+                fs_id_list[-1] if fs_id_list is not None else '')
             self.ui.le_final_scan.setText('{0:d}'.format(val))
 
             dcct_avg = self.fieldmap.dcct_current_avg

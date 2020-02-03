@@ -81,6 +81,9 @@ class MeasurementWidget(_QWidget):
         self.graphy = []
         self.graphz = []
         self.stop = False
+        self.calibrationx_valid = False
+        self.calibrationy_valid = False
+        self.calibrationz_valid = False
 
         # Connect signals and slots
         self.connect_signal_slots()
@@ -193,6 +196,9 @@ class MeasurementWidget(_QWidget):
         self.voltage_scan_id_list = []
         self.measurements_id_list = []
         self.stop = False
+        self.calibrationx_valid = False
+        self.calibrationy_valid = False
+        self.calibrationz_valid = False
         self.clear_graph()
         self.ui.tbt_view_scan.setEnabled(False)
         self.ui.tbt_clear_graph.setEnabled(False)
@@ -841,7 +847,14 @@ class MeasurementWidget(_QWidget):
     def load_config_db(self):
         """Load configuration from database to set measurement parameters."""
         try:
-            idn = int(self.ui.cmb_idn.currentText())
+            idn_text = self.ui.cmb_idn.currentText()
+            if len(idn_text) == 0:
+                _QMessageBox.critical(
+                    self, 'Failure', 'Invalid database ID.', _QMessageBox.Ok)
+                return
+            
+            idn = int(idn_text)
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             _QMessageBox.critical(
@@ -876,29 +889,31 @@ class MeasurementWidget(_QWidget):
         self.calibrationx.clear()
         self.calibrationy.clear()
         self.calibrationz.clear()
+        self.calibrationx_valid = False
+        self.calibrationy_valid = False
+        self.calibrationz_valid = False
 
         try:
-            status_list = []
             if self.ui.chb_voltx_enable.isChecked():
                 calibrationx_name = self.ui.cmb_calibrationx.currentText()
-                status = self.calibrationx.update_calibration(
+                self.calibrationx_valid = self.calibrationx.update_calibration(
                     calibrationx_name)
-                status_list.append(status)
 
             if self.ui.chb_volty_enable.isChecked():
                 calibrationy_name = self.ui.cmb_calibrationy.currentText()
-                status = self.calibrationy.update_calibration(
+                self.calibrationy_valid = self.calibrationy.update_calibration(
                         calibrationy_name)
-                status_list.append(status)
             
             if self.ui.chb_voltz_enable.isChecked():
                 calibrationz_name = self.ui.cmb_calibrationz.currentText()
-                status = self.calibrationz.update_calibration(
+                self.calibrationz_valid = self.calibrationz.update_calibration(
                         calibrationz_name)
-                status_list.append(status)
                 
-            if not all(status_list):
-                msg = 'Invalid hall probe. Measure only voltage data?'
+            if not all([
+                    self.calibrationx_valid,
+                    self.calibrationy_valid,
+                    self.calibrationz_valid]):
+                msg = 'Invalid hall probe calibration. Continue measurement?'
                 reply = _QMessageBox.question(
                 self, 'Message', msg, _QMessageBox.No, _QMessageBox.Yes)
                 if reply == _QMessageBox.Yes:
@@ -1080,7 +1095,7 @@ class MeasurementWidget(_QWidget):
     def measure_field_scan(
             self, first_axis, second_axis=-1, second_axis_pos=None):
         """Start line scan."""
-        self.field_scan = _FieldScan()
+        self.field_scan = _data.measurement.FieldScan()
 
         start = self.measurement_config.get_start(first_axis)
         end = self.measurement_config.get_end(first_axis)
@@ -1118,7 +1133,7 @@ class MeasurementWidget(_QWidget):
                 self.position_list = to_neg_scan_list
 
             # save positions in voltage scan
-            self.voltage_scan = _VoltageScan()
+            self.voltage_scan = _data.measurement.VoltageScan()
             self.voltage_scan.nr_voltage_scans = 1
             for axis in self.voltage_scan.axis_list:
                 if axis == first_axis:
@@ -1184,19 +1199,29 @@ class MeasurementWidget(_QWidget):
 
             _QApplication.processEvents()
 
-            if self.ui.chb_save_voltage.isChecked():
-                if not self.save_voltage_scan():
-                    return False
+            if not self.save_voltage_scan():
+                return False
 
             voltage_scan_list.append(self.voltage_scan.copy())
 
-        if self.local_hall_probe is not None:
-            self.field_scan.set_field_scan(
-                voltage_scan_list, self.calibrationx,
-                self.calibrationy, self.calibrationz)
-            success = self.save_field_scan()
+        if self.calibrationx_valid:
+            calx = self.calibrationx
         else:
-            success = True
+            calx = None
+
+        if self.calibrationy_valid:
+            caly = self.calibrationy
+        else:
+            caly = None
+
+        if self.calibrationz_valid:
+            calz = self.calibrationz
+        else:
+            calz = None
+
+        self.field_scan.set_field_scan(voltage_scan_list, calx, caly, calz)
+        success = self.save_field_scan()
+
         _QApplication.processEvents()
 
         return success
@@ -1207,9 +1232,9 @@ class MeasurementWidget(_QWidget):
         if self.stop is True:
             return False
 
-        self.voltage_scan.voltx = []
-        self.voltage_scan.volty = []
-        self.voltage_scan.voltz = []
+        self.voltage_scan.vx = []
+        self.voltage_scan.vy = []
+        self.voltage_scan.vz = []
         self.voltage_scan.dcct_current_avg = None
         self.voltage_scan.ps_current_avg = None
         self.voltage_scan.temperature = {}
@@ -1244,16 +1269,12 @@ class MeasurementWidget(_QWidget):
                     axis, end, step*(-1), 10, npts, 1)
 
         voltage_format = self.measurement_config.voltage_format
-        if voltage_format == 'SREAL':
-            formtype = 4
-        elif voltage_format == 'DREAL':
-            formtype = 5
         if self.measurement_config.voltx_enable:
-            _voltx.configure_reading_format(formtype)
+            _voltx.configure_reading_format(voltage_format)
         if self.measurement_config.volty_enable:
-            _volty.configure_reading_format(formtype)
+            _volty.configure_reading_format(voltage_format)
         if self.measurement_config.voltz_enable:
-            _voltz.configure_reading_format(formtype)
+            _voltz.configure_reading_format(voltage_format)
         _QApplication.processEvents()
 
         self.start_voltage_threads()
@@ -1269,18 +1290,18 @@ class MeasurementWidget(_QWidget):
 
         _QApplication.processEvents()
 
-        self.voltage_scan.voltx = self.workerx.voltage
-        self.voltage_scan.volty = self.workery.voltage
-        self.voltage_scan.voltz = self.workerz.voltage
+        self.voltage_scan.vx = self.workerx.voltage
+        self.voltage_scan.vy = self.workery.voltage
+        self.voltage_scan.vz = self.workerz.voltage
 
         _QApplication.processEvents()
         self.quit_voltage_threads()
 
         if axis == 5:
             npts = len(self.voltage_scan.scan_pos)
-            self.voltage_scan.voltx = self.voltage_scan.voltx[:npts]
-            self.voltage_scan.volty = self.voltage_scan.volty[:npts]
-            self.voltage_scan.voltz = self.voltage_scan.voltz[:npts]
+            self.voltage_scan.vx = self.voltage_scan.vx[:npts]
+            self.voltage_scan.vy = self.voltage_scan.vy[:npts]
+            self.voltage_scan.vz = self.voltage_scan.vz[:npts]
 
         if self.voltage_scan.npts == 0:
             return True
@@ -1292,28 +1313,28 @@ class MeasurementWidget(_QWidget):
             offset_range = self.measurement_config.offset_range
             scan_pos = self.voltage_scan.scan_pos
             if scan_pos[-1] - scan_pos[0] <= offset_range:
-                self.voltage_scan.offsetx_start = self.voltage_scan.avgx[0]
-                self.voltage_scan.offsetx_end = self.voltage_scan.avgx[-1]
-                self.voltage_scan.offsety_start = self.voltage_scan.avgy[0]
-                self.voltage_scan.offsety_end = self.voltage_scan.avgy[-1]
-                self.voltage_scan.offsetz_start = self.voltage_scan.avgz[0]
-                self.voltage_scan.offsetz_end = self.voltage_scan.avgz[-1]
+                self.voltage_scan.offsetx_start = self.voltage_scan.vx[0]
+                self.voltage_scan.offsetx_end = self.voltage_scan.vx[-1]
+                self.voltage_scan.offsety_start = self.voltage_scan.vy[0]
+                self.voltage_scan.offsety_end = self.voltage_scan.vy[-1]
+                self.voltage_scan.offsetz_start = self.voltage_scan.vz[0]
+                self.voltage_scan.offsetz_end = self.voltage_scan.vz[-1]
             else:
                 idx_start = _np.where(_np.cumsum(_np.diff(
                     scan_pos)) >= offset_range)[0][0] + 1
                 idx_end = len(scan_pos) - idx_start
                 self.voltage_scan.offsetx_start = _np.mean(
-                    self.voltage_scan.avgx[:idx_start])
+                    self.voltage_scan.vx[:idx_start])
                 self.voltage_scan.offsetx_end = _np.mean(
-                    self.voltage_scan.avgx[idx_end:])
+                    self.voltage_scan.vx[idx_end:])
                 self.voltage_scan.offsety_start = _np.mean(
-                    self.voltage_scan.avgy[:idx_start])
+                    self.voltage_scan.vy[:idx_start])
                 self.voltage_scan.offsety_end = _np.mean(
-                    self.voltage_scan.avgy[idx_end:])
+                    self.voltage_scan.vy[idx_end:])
                 self.voltage_scan.offsetz_start = _np.mean(
-                    self.voltage_scan.avgz[:idx_start])
+                    self.voltage_scan.vz[:idx_start])
                 self.voltage_scan.offsetz_end = _np.mean(
-                    self.voltage_scan.avgz[idx_end:])
+                    self.voltage_scan.vz[idx_end:])
         
         elif self.measurement_config.voltage_offset == 'configure':
                 offsetx = self.measurement_config.offsetx
@@ -1431,14 +1452,14 @@ class MeasurementWidget(_QWidget):
     def save_configuration(self):
         """Save configuration to database table."""
         try:
-            text = self.ui.cmb_idn.currentText()
+            selected_config = _data.configuration.MeasurementConfig(
+                self.database_name, mongo=self.mongo,
+                server=self.server)
+            
+            text = self.ui.cmb_idn.currentText()            
             if len(text) != 0:
                 selected_idn = int(text)
-                selected_config = _MeasurementConfig(
-                    self.database_name, mongo=self.mongo,
-                    server=self.server,idn=selected_idn)
-            else:
-                selected_config = _MeasurementConfig()
+                selected_config.db_read(selected_idn)
 
             if self.measurement_config == selected_config:
                 idn = selected_idn
@@ -1494,23 +1515,25 @@ class MeasurementWidget(_QWidget):
 
     def save_field_scan_files(self):
         """Save scan files."""
-        field_scan_list = []
-        for idn in self.field_scan_id_list:
-            fs = _FieldScan(
-                database_name=self.database_name,
-                mongo=self.mongo, server=self.server, idn=idn)
-            field_scan_list.append(fs)
-
-        directory = _QFileDialog.getExistingDirectory(
-            self, caption='Save scan files', directory=self.directory)
-
-        if isinstance(directory, tuple):
-            directory = directory[0]
-
-        if len(directory) == 0:
-            return
-
         try:
+            field_scan_list = []
+            for idn in self.field_scan_id_list:
+                fs = _data.measurement.FieldScan(
+                    database_name=self.database_name,
+                    mongo=self.mongo, server=self.server)
+                fs.db_read(idn)
+                field_scan_list.append(fs)
+    
+            directory = _QFileDialog.getExistingDirectory(
+                self, caption='Save scan files', directory=self.directory)
+    
+            if isinstance(directory, tuple):
+                directory = directory[0]
+    
+            if len(directory) == 0:
+                return
+
+
             for i, scan in enumerate(field_scan_list):
                 idn = self.field_scan_id_list[i]
                 default_filename = scan.default_filename
@@ -1576,17 +1599,23 @@ class MeasurementWidget(_QWidget):
 
     def show_fieldmap_dialog(self):
         """Open fieldmap dialog."""
-        if len(self.measurements_id_list) > 1:
-            field_scan_id_list = self.measurements_id_list
-        else:
-            field_scan_id_list = self.field_scan_id_list
-
-        self.save_fieldmap_dialog.show(field_scan_id_list)
+        try:
+            if len(self.measurements_id_list) > 1:
+                field_scan_id_list = self.measurements_id_list
+            else:
+                field_scan_id_list = self.field_scan_id_list
+    
+            self.save_fieldmap_dialog.show(field_scan_id_list)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def show_view_probe_dialog(self):
         """Open view probe dialog."""
-        self.view_probe_dialog.show(
-            self.calibrationx, self.calibrationy, self.calibrationz)
+        try:
+            self.view_probe_dialog.show(
+                self.calibrationx, self.calibrationy, self.calibrationz)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def show_view_scan_dialog(self):
         """Open view data dialog."""
@@ -1594,7 +1623,10 @@ class MeasurementWidget(_QWidget):
             if self.local_hall_probe is None:
                 voltage_scan_list = []
                 for idn in self.voltage_scan_id_list:
-                    vs = _VoltageScan(database=self.database, idn=idn)
+                    vs = _data.measurement.VoltageScan(
+                        database_name=self.database_name,
+                        mongo=self.mongo, server=self.server)
+                    vs.db_read(idn)
                     voltage_scan_list.append(vs)
 
                 self.view_scan_dialog.show(
@@ -1649,8 +1681,7 @@ class MeasurementWidget(_QWidget):
         self.ui.tbt_save_scan_files.setEnabled(True)
         self.ui.tbt_view_scan.setEnabled(True)
         self.ui.tbt_clear_graph.setEnabled(True)
-        if self.local_hall_probe is not None:
-            self.ui.tbt_create_fieldmap.setEnabled(True)
+        self.ui.tbt_create_fieldmap.setEnabled(True)
 
         msg = 'End of measurement.'
         _QMessageBox.information(

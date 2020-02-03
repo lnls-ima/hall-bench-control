@@ -26,6 +26,15 @@ MONGO = False
 SERVER = 'localhost'
 UPDATE_POSITIONS_INTERVAL = 0.5  # [s]
 UPDATE_PLOT_INTERVAL = 0.1  # [s]
+TABLE_NUMBER_ROWS = 1000
+TABLE_MAX_NUMBER_ROWS = 100
+TABLE_MAX_STR_SIZE = 100
+
+
+BASEPATH = _path.dirname(
+    _path.dirname(_path.dirname(_path.abspath(__file__))))
+if not MONGO:
+    DATABASE_NAME = _path.join(BASEPATH, DATABASE_NAME)
 
 
 def get_default_font(bold=False):
@@ -44,8 +53,7 @@ def get_default_icon_size():
 def get_icon(icon_file):
     """Get the Qt icon for the given file."""   
     img_path = _path.join(
-        _path.join(_path.dirname(
-            _path.dirname(_path.abspath(__file__))), 'resources'), 'img')
+        BASEPATH, _path.join('hallbench', _path.join('resources', 'img')))
     icon_path = _path.join(img_path, icon_file)
     icon = _QIcon()
     icon.addPixmap(
@@ -65,10 +73,11 @@ def get_ui_file(widget):
         basename = '%s.ui' % widget.__name__.lower()
     else:
         basename = '%s.ui' % widget.__class__.__name__.lower()
-    uifile = _path.join(_path.dirname(
-        _path.abspath(__file__)), _path.join('ui', basename))
+    ui_path = _path.join(
+        BASEPATH, _path.join('hallbench', _path.join('gui', 'ui')))
+    ui_file = _path.join(ui_path, basename)
 
-    return uifile
+    return ui_file
 
 
 def get_value_from_string(text):

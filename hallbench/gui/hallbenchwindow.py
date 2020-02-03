@@ -38,8 +38,8 @@ from hallbench.gui.angularerrorwidget import AngularErrorWidget \
     as _AngularErrorWidget
 from hallbench.gui.voltagetemperaturewidget import VoltageTempWidget \
     as _VoltageTempWidget
-# from hallbench.gui.databasewidget import DatabaseWidget \
-#     as _DatabaseWidget
+from hallbench.gui.databasewidget import DatabaseWidget \
+    as _DatabaseWidget
 from hallbench.devices import pmac as _pmac
 from hallbench.devices import logfile as _logfile
 
@@ -72,11 +72,9 @@ class HallBenchWindow(_QMainWindow):
             'current',
             'voltage',
             'temperature',
-            'voltage_temperature',
             'water_system',
             'air_conditioning',
-            'angular_error',
-#             'database',
+            'database',
             ]
 
         self.tab_widgets = [
@@ -87,17 +85,17 @@ class HallBenchWindow(_QMainWindow):
             _PSCurrentWidget,
             _VoltageWidget,
             _TemperatureWidget,
-            _VoltageTempWidget,
             _WaterSystemWidget,
             _AirConditioningWidget,
-            _AngularErrorWidget,
-#             _DatabaseWidget,  ##AQUIII
+            _DatabaseWidget,
             ]
 
         # add preferences dialog
         self.preferences_dialog = _PreferencesDialog(self.tab_names)
         self.preferences_dialog.chb_connection.setChecked(True)
+        self.preferences_dialog.chb_motors.setChecked(True)
         self.preferences_dialog.chb_measurement.setChecked(True)
+        self.preferences_dialog.chb_database.setChecked(True)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)
 
         self.log_dialog = _LogDialog()

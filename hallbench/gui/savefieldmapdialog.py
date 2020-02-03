@@ -18,6 +18,8 @@ import qtpy.uic as _uic
 
 from hallbench.gui.utils import get_ui_file as _get_ui_file
 import hallbench.data.magnets_info as _magnets_info
+from hallbench.data.calibration import (
+    HallProbePositions as _HallProbePositions)
 from hallbench.data.measurement import FieldScan as _FieldScan
 from hallbench.data.measurement import Fieldmap as _Fieldmap
 
@@ -38,7 +40,6 @@ class SaveFieldmapDialog(_QDialog):
         # variables initialisation
         self.fieldmap_id_list = None
         self.field_scan_id_list = None
-        self.local_hall_probe = None
 
         # add predefined magnet names
         names = _magnets_info.get_magnets_name()
@@ -49,9 +50,19 @@ class SaveFieldmapDialog(_QDialog):
         self.connect_signal_slots()
 
     @property
-    def database(self):
-        """Database filename."""
-        return _QApplication.instance().database
+    def database_name(self):
+        """Database name."""
+        return _QApplication.instance().database_name
+
+    @property
+    def mongo(self):
+        """MongoDB database."""
+        return _QApplication.instance().mongo
+
+    @property
+    def server(self):
+        """Server for MongoDB database."""
+        return _QApplication.instance().server
 
     @property
     def directory(self):
@@ -76,13 +87,13 @@ class SaveFieldmapDialog(_QDialog):
         """Clear data."""
         self.fieldmap_id_list = None
         self.field_scan_id_list = None
-        self.local_hall_probe = None
         self.disable_save_to_file()
 
     def clear_info(self):
         """Clear inputs."""
         self.clear_magnet_info()
         self.clear_axes_info()
+        self.ui.cmb_probe_names.setCurrentIndex(-1)
 
     def clear_axes_info(self):
         """Clear axes inputs."""
@@ -107,7 +118,7 @@ class SaveFieldmapDialog(_QDialog):
         self.ui.chb_ch.setChecked(False)
         self.ui.chb_cv.setChecked(False)
         self.ui.chb_qs.setChecked(False)
-        self.ui.chb_correct_displacements.setChecked(True)
+        self.ui.chb_correct_positions.setChecked(True)
         self.disable_save_to_file()
 
     def connect_signal_slots(self):
@@ -149,7 +160,7 @@ class SaveFieldmapDialog(_QDialog):
         self.ui.le_magnet_length.editingFinished.connect(
             self.disable_save_to_file)
         self.ui.te_comments.textChanged.connect(self.disable_save_to_file)
-        self.ui.chb_correct_displacements.stateChanged.connect(
+        self.ui.chb_correct_positions.stateChanged.connect(
             self.disable_save_to_file)
 
         for coil in self._coil_list:
@@ -165,6 +176,8 @@ class SaveFieldmapDialog(_QDialog):
             self.disable_invalid_axes)
         self.ui.pbt_savedb.clicked.connect(self.save_to_db)
         self.ui.pbt_savefile.clicked.connect(self.save_to_file)
+        self.ui.tbt_update_probe_names.clicked.connect(
+            self.update_probe_names)
 
     def disable_invalid_axes(self):
         """Disable invalid magnet axes."""
@@ -195,7 +208,7 @@ class SaveFieldmapDialog(_QDialog):
 
     def get_fieldmap(self, idx):
         """Get fieldmap data."""
-        if self.field_scan_id_list is None or self.local_hall_probe is None:
+        if self.field_scan_id_list is None:
             return None
 
         magnet_name = self.ui.le_magnet_name.text()
@@ -204,7 +217,9 @@ class SaveFieldmapDialog(_QDialog):
         magnet_len = self.ui.le_magnet_length.text()
         comments = self.ui.te_comments.toPlainText()
 
-        fieldmap = _Fieldmap()
+        fieldmap = _Fieldmap(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
         fieldmap.magnet_name = magnet_name if len(magnet_name) != 0 else None
         fieldmap.gap = gap if len(gap) != 0 else None
         fieldmap.control_gap = control_gap if len(control_gap) != 0 else None
@@ -218,7 +233,7 @@ class SaveFieldmapDialog(_QDialog):
         magnet_x_axis = self.magnet_x_axis()
         magnet_y_axis = self.magnet_y_axis()
 
-        correct_displacements = self.ui.chb_correct_displacements.isChecked()
+        correct_positions = self.ui.chb_correct_positions.isChecked()
 
         for coil in self._coil_list:
             if getattr(self.ui, 'chb_' + coil).isChecked():
@@ -233,14 +248,23 @@ class SaveFieldmapDialog(_QDialog):
                 setattr(fieldmap, 'nr_turns_' + coil, turns)
 
         try:
+            probe_name = self.ui.cmb_probe_names.currentText()
+            probe_positions = _HallProbePositions(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            probe_positions.update_probe(probe_name)
+            
             field_scan_list = []
             for idn in self.field_scan_id_list[idx]:
-                fs = _FieldScan(database=self.database, idn=idn)
+                fs = _FieldScan(
+                    database_name=self.database_name,
+                    mongo=self.mongo, server=self.server)
+                fs.db_read(idn)
                 field_scan_list.append(fs)
 
             fieldmap.set_fieldmap_data(
-                field_scan_list, self.local_hall_probe,
-                correct_displacements, magnet_center,
+                field_scan_list, probe_positions,
+                correct_positions, magnet_center,
                 magnet_x_axis, magnet_y_axis)
             return fieldmap
 
@@ -301,7 +325,7 @@ class SaveFieldmapDialog(_QDialog):
 
     def save_to_db(self):
         """Save fieldmap to database."""
-        if self.database is None or len(self.database) == 0:
+        if self.database_name is None:
             msg = 'Invalid database filename.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
@@ -334,7 +358,7 @@ class SaveFieldmapDialog(_QDialog):
                 fieldmap.nr_scans = nr_scans
                 fieldmap.initial_scan = initial_scan
                 fieldmap.final_scan = final_scan
-                idn = fieldmap.save_to_database(self.database)
+                idn = fieldmap.db_save()
                 self.fieldmap_id_list.append(idn)
 
             self.ui.pbt_savefile.setEnabled(True)
@@ -364,7 +388,10 @@ class SaveFieldmapDialog(_QDialog):
         try:
             if len(self.fieldmap_id_list) == 1:
                 idn = self.fieldmap_id_list[0]
-                fieldmap = _Fieldmap(database=self.database, idn=idn)
+                fieldmap = _Fieldmap(
+                    database_name=self.database_name,
+                    mongo=self.mongo, server=self.server)
+                fieldmap.db_read(idn)
 
                 default_filename = fieldmap.default_filename.replace(
                     '.dat', '_ID={0:d}.dat'.format(idn))
@@ -399,7 +426,10 @@ class SaveFieldmapDialog(_QDialog):
                     return
 
                 for idn in self.fieldmap_id_list:
-                    fieldmap = _Fieldmap(database=self.database, idn=idn)
+                    fieldmap = _Fieldmap(
+                        database_name=self.database_name,
+                        mongo=self.mongo, server=self.server)
+                    fieldmap.db_read(idn)
                     default_filename = fieldmap.default_filename.replace(
                         '.dat', '_ID={0:d}.dat'.format(idn))
                     filename = _os.path.join(directory, default_filename)
@@ -425,24 +455,22 @@ class SaveFieldmapDialog(_QDialog):
             for le in lineedits:
                 le.clear()
 
-    def show(self, field_scan_id_list, hall_probe):
+    def show(self, field_scan_id_list):
         """Show dialog."""
         if field_scan_id_list is None or len(field_scan_id_list) == 0:
             msg = 'Invalid field scan ID list.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-        if hall_probe is None:
-            msg = 'Invalid hall probe data.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
-
         try:
+            fs = _FieldScan(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            
             if not isinstance(field_scan_id_list[0], list):
                 field_scan_id_list = [field_scan_id_list]
 
-            mn = _FieldScan.get_database_param(
-                self.database, field_scan_id_list[0][0], 'magnet_name')
+            mn = fs.db_get_value('magnet_name', field_scan_id_list[0][0])
 
             if mn is not None and self.ui.le_magnet_name.text() != mn:
                 mag = mn.split('-')[0]
@@ -461,8 +489,7 @@ class SaveFieldmapDialog(_QDialog):
             for lt in field_scan_id_list:
                 ltc = []
                 for idn in lt:
-                    ltc.append(_FieldScan.get_database_param(
-                        self.database, idn, 'current_setpoint'))
+                    ltc.append(fs.db_get_value('current_setpoint', idn))
                 if all([current == ltc[0] for current in ltc]):
                     current_list.append(ltc[0])
                 else:
@@ -480,5 +507,25 @@ class SaveFieldmapDialog(_QDialog):
         self.ui.pbt_savefile.setEnabled(False)
         self.current_list = current_list
         self.field_scan_id_list = field_scan_id_list
-        self.local_hall_probe = hall_probe
+        self.update_probe_names()
         super().show()
+
+    def update_probe_names(self):
+        try:
+            probe_positions = _HallProbePositions(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            
+            probe_names = probe_positions.get_probe_list()
+        
+            current_text = self.ui.cmb_probe_names.currentText()
+            self.ui.cmb_probe_names.clear()
+            
+            self.ui.cmb_probe_names.addItems([pn for pn in probe_names])
+            if len(current_text) == 0:
+                self.ui.cmb_probe_names.setCurrentIndex(-1)
+            else:
+                self.ui.cmb_probe_names.setCurrentText(current_text)
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)

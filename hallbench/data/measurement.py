@@ -12,9 +12,7 @@ from imautils.db import database as _database
 from imautils.db import utils as _utils
 
 
-POSITION_PRECISION = 4
 CHECK_POSITION_PRECISION = 2
-CURRENT_PRECISION = 6
 CHECK_CURRENT_PRECISION = 2
 
 
@@ -52,9 +50,9 @@ class VoltageScan(_database.DatabaseAndFileDocument):
         ('pos7', {'field': 'pos7', 'dtype': _np.ndarray, 'not_null': True}),
         ('pos8', {'field': 'pos8', 'dtype': _np.ndarray, 'not_null': True}),
         ('pos9', {'field': 'pos9', 'dtype': _np.ndarray, 'not_null': True}),
-        ('voltx', {'field': 'voltx', 'dtype': _np.ndarray, 'not_null': True}),
-        ('volty', {'field': 'volty', 'dtype': _np.ndarray, 'not_null': True}),
-        ('voltz', {'field': 'voltz', 'dtype': _np.ndarray, 'not_null': True}),
+        ('vx', {'field': 'vx', 'dtype': _np.ndarray, 'not_null': True}),
+        ('vy', {'field': 'vy', 'dtype': _np.ndarray, 'not_null': True}),
+        ('vz', {'field': 'vz', 'dtype': _np.ndarray, 'not_null': True}),
         ('offsetx_start', {'field': 'offsetx_start', 'dtype': float}),
         ('offsetx_end', {'field': 'offsetx_end', 'dtype': float}),
         ('offsety_start', {'field': 'offsety_start', 'dtype': float}),
@@ -91,11 +89,6 @@ class VoltageScan(_database.DatabaseAndFileDocument):
     def __setattr__(self, name, value):
         """Set attribute."""
         if name not in ['npts', 'scan_axis']:
-            if 'current' in name:
-                value = _utils.to_float(value, precision=CURRENT_PRECISION)
-            elif 'pos' in name:
-                value = _np.around(
-                    _utils.to_array(value), decimals=POSITION_PRECISION)
             super().__setattr__(name, value)
 
     @property
@@ -110,7 +103,7 @@ class VoltageScan(_database.DatabaseAndFileDocument):
             return 0
         else:
             npts = len(getattr(self, 'pos' + str(self.scan_axis)))
-            v = [self.voltx, self.volty, self.voltz]
+            v = [self.vx, self.vy, self.vz]
             if all([vi.size == 0 for vi in v]):
                 return 0
             for vi in v:
@@ -181,16 +174,16 @@ class VoltageScan(_database.DatabaseAndFileDocument):
         npts = self.npts
         scan_pos_name = 'pos' + str(self.scan_axis)
 
-        if len(self.voltx) == 0:
-            self.voltx = _np.zeros(npts)
+        if len(self.vx) == 0:
+            self.vx = _np.zeros(npts)
 
-        if len(self.volty) == 0:
-            self.volty = _np.zeros(npts)
+        if len(self.vy) == 0:
+            self.vy = _np.zeros(npts)
 
-        if len(self.voltz) == 0:
-            self.voltz = _np.zeros(npts)
+        if len(self.vz) == 0:
+            self.vz = _np.zeros(npts)
 
-        columns = [scan_pos_name, 'voltx', 'volty', 'voltz']
+        columns = [scan_pos_name, 'vx', 'vy', 'vz']
         return super().save_file(filename, columns=columns)
 
     def valid_data(self):
@@ -230,12 +223,12 @@ class FieldScan(_database.DatabaseAndFileDocument):
         ('pos7', {'field': 'pos7', 'dtype': _np.ndarray, 'not_null': True}),
         ('pos8', {'field': 'pos8', 'dtype': _np.ndarray, 'not_null': True}),
         ('pos9', {'field': 'pos9', 'dtype': _np.ndarray, 'not_null': True}),
-        ('avgbx', {'field': 'avgbx', 'dtype': _np.ndarray, 'not_null': True}),
-        ('avgby', {'field': 'avgby', 'dtype': _np.ndarray, 'not_null': True}),
-        ('avgbz', {'field': 'avgbz', 'dtype': _np.ndarray, 'not_null': True}),
-        ('stdbx', {'field': 'stdbx', 'dtype': _np.ndarray, 'not_null': True}),
-        ('stdby', {'field': 'stdby', 'dtype': _np.ndarray, 'not_null': True}),
-        ('stdbz', {'field': 'stdbz', 'dtype': _np.ndarray, 'not_null': True}),
+        ('bx', {'field': 'bx', 'dtype': _np.ndarray, 'not_null': True}),
+        ('by', {'field': 'by', 'dtype': _np.ndarray, 'not_null': True}),
+        ('bz', {'field': 'bz', 'dtype': _np.ndarray, 'not_null': True}),
+        ('std_bx', {'field': 'std_bx', 'dtype': _np.ndarray, 'not_null': True}),
+        ('std_by', {'field': 'std_by', 'dtype': _np.ndarray, 'not_null': True}),
+        ('std_bz', {'field': 'std_bz', 'dtype': _np.ndarray, 'not_null': True}),
         ('temperature', {'field': 'temperature', 'dtype': dict}),
     ])
     _axis_list = [1, 2, 3, 5, 6, 7, 8, 9]
@@ -266,11 +259,6 @@ class FieldScan(_database.DatabaseAndFileDocument):
     def __setattr__(self, name, value):
         """Set attribute."""
         if name not in ['npts', 'scan_axis']:
-            if 'current' in name:
-                value = _utils.to_float(value, precision=CURRENT_PRECISION)
-            elif 'pos' in name:
-                value = _np.around(
-                    _utils.to_array(value), decimals=POSITION_PRECISION)
             super().__setattr__(name, value)
 
     @property
@@ -285,7 +273,7 @@ class FieldScan(_database.DatabaseAndFileDocument):
             return 0
         else:
             npts = len(getattr(self, 'pos' + str(self.scan_axis)))
-            v = [self.avgbx, self.avgby, self.avgbz]
+            v = [self.bx, self.by, self.bz]
             if all([vi.size == 0 for vi in v]):
                 return 0
             for vi in v:
@@ -356,30 +344,30 @@ class FieldScan(_database.DatabaseAndFileDocument):
         npts = self.npts
         scan_pos_name = 'pos' + str(self.scan_axis)
 
-        if len(self.avgbx) == 0:
-            self.avgbx = _np.zeros(npts)
+        if len(self.bx) == 0:
+            self.bx = _np.zeros(npts)
 
-        if len(self.avgby) == 0:
-            self.avgby = _np.zeros(npts)
+        if len(self.by) == 0:
+            self.by = _np.zeros(npts)
 
-        if len(self.avgbz) == 0:
-            self.avgbz = _np.zeros(npts)
+        if len(self.bz) == 0:
+            self.bz = _np.zeros(npts)
 
         if include_std:
-            if len(self.stdbx) == 0:
-                self.stdbx = _np.zeros(npts)
+            if len(self.std_bx) == 0:
+                self.std_bx = _np.zeros(npts)
 
-            if len(self.stdby) == 0:
-                self.stdby = _np.zeros(npts)
+            if len(self.std_by) == 0:
+                self.std_by = _np.zeros(npts)
 
-            if len(self.stdbz) == 0:
-                self.stdbz = _np.zeros(npts)
+            if len(self.std_bz) == 0:
+                self.std_bz = _np.zeros(npts)
 
-        columns = [scan_pos_name, 'avgbx', 'avgby', 'avgbz']
+        columns = [scan_pos_name, 'bx', 'by', 'bz']
         if include_std:
-            columns.append('stdbx')
-            columns.append('stdby')
-            columns.append('stdbz')
+            columns.append('std_bx')
+            columns.append('std_by')
+            columns.append('std_bz')
 
         return super().save_file(filename, columns=columns)
 
@@ -418,55 +406,69 @@ class FieldScan(_database.DatabaseAndFileDocument):
         interp_pos = _np.mean(
             [v.scan_pos for v in voltage_scan_list], axis=0)
 
-        voltx_list = []
-        volty_list = []
-        voltz_list = []
+        vx_list = []
+        vy_list = []
+        vz_list = []
         for v in voltage_scan_list:
-            if len(v.avgx) == npts:
-                ft = _interpolate.splrep(v.scan_pos, v.avgx, s=0, k=1)
-                voltx = _interpolate.splev(interp_pos, ft, der=0)
+            if len(v.vx) == npts:
+                ft = _interpolate.splrep(v.scan_pos, v.vx, s=0, k=1)
+                vx = _interpolate.splev(interp_pos, ft, der=0)
             else:
-                voltx = _np.zeros(npts)
+                vx = _np.zeros(npts)
 
-            if len(v.avgy) == npts:
-                ft = _interpolate.splrep(v.scan_pos, v.avgy, s=0, k=1)
-                volty = _interpolate.splev(interp_pos, ft, der=0)
+            if len(v.vy) == npts:
+                ft = _interpolate.splrep(v.scan_pos, v.vy, s=0, k=1)
+                vy = _interpolate.splev(interp_pos, ft, der=0)
             else:
-                volty = _np.zeros(npts)
+                vy = _np.zeros(npts)
 
-            if len(v.avgz) == npts:
-                ft = _interpolate.splrep(v.scan_pos, v.avgz, s=0, k=1)
-                voltz = _interpolate.splev(interp_pos, ft, der=0)
+            if len(v.vz) == npts:
+                ft = _interpolate.splrep(v.scan_pos, v.vz, s=0, k=1)
+                vz = _interpolate.splev(interp_pos, ft, der=0)
             else:
-                voltz = _np.zeros(npts)
+                vz = _np.zeros(npts)
 
-            voltx_list.append(voltx)
-            volty_list.append(volty)
-            voltz_list.append(voltz)
+            vx_list.append(vx)
+            vy_list.append(vy)
+            vz_list.append(vz)
 
-        avgvx = _np.mean(voltx_list, axis=0)
-        avgvy = _np.mean(volty_list, axis=0)
-        avgvz = _np.mean(voltz_list, axis=0)
-        stdvx = _np.std(voltx_list, axis=0)
-        stdvy = _np.std(volty_list, axis=0)
-        stdvz = _np.std(voltz_list, axis=0)
+        avg_vx = _np.mean(vx_list, axis=0)
+        avg_vy = _np.mean(vy_list, axis=0)
+        avg_vz = _np.mean(vz_list, axis=0)
+        std_vx = _np.std(vx_list, axis=0)
+        std_vy = _np.std(vy_list, axis=0)
+        std_vz = _np.std(vz_list, axis=0)
 
         self.magnet_name = vs.magnet_name
         self.comments = vs.comments
         self.configuration_id = vs.configuration_id
         self.date, self.hour = _utils.get_date_hour()
 
-        self.scan_pos = interp_pos
+        setattr(self, 'pos' + str(vs.scan_axis), interp_pos)
         for axis in fixed_axes:
             pos = getattr(vs, 'pos' + str(axis))
             setattr(self, 'pos' + str(axis), pos)
-
-        self.avgbx = calx.get_field(avgvx)
-        self.avgby = caly.get_field(avgvy)
-        self.avgbz = calz.get_field(avgvz)
-        self.stdbx = calx.get_field(stdvx)
-        self.stdby = caly.get_field(stdvy)
-        self.stdbz = calz.get_field(stdvz)
+        
+        if calx is not None:
+            self.bx = calx.get_field(avg_vx)
+            self.std_bx = calx.get_field(std_vx)
+        else:
+            self.bx = _np.zeros(npts)
+            self.std_bx = _np.zeros(npts)
+            
+        if caly is not None:
+            self.by = caly.get_field(avg_vy)
+            self.std_by = caly.get_field(std_vy)
+        else:
+            self.by = _np.zeros(npts)
+            self.std_by = _np.zeros(npts)
+            
+        if calz is not None:            
+            self.bz = calz.get_field(avg_vz)     
+            self.std_bz = calz.get_field(std_vz)
+        else:
+            self.bz = _np.zeros(npts)
+            self.std_bz = _np.zeros(npts)
 
         self.nr_voltage_scans = len(voltage_scan_list)
         self.voltage_scan_id_list = [v.idn for v in voltage_scan_list]
@@ -474,7 +476,7 @@ class FieldScan(_database.DatabaseAndFileDocument):
         self.temperature = get_temperature_values(voltage_scan_list)
 
         setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
-            voltage_scan_list)
+            voltage_scan_list, len(voltage_scan_list))
         self.current_setpoint = setpoint
         self.dcct_current_avg = dcct_avg
         self.dcct_current_std = dcct_std
@@ -505,6 +507,7 @@ class Fieldmap(_database.DatabaseAndFileDocument):
         ('nr_field_scans', {'field': 'nr_field_scans', 'dtype': int}),
         ('field_scan_id_list', {
             'field': 'field_scan_id_list', 'dtype': _np.ndarray}),
+        ('probe_positions_id', {'field': 'probe_positions_id', 'dtype': int}),
         ('current_setpoint', {'field': 'current_setpoint', 'dtype': float}),
         ('dcct_current_avg', {'field': 'dcct_current_avg', 'dtype': float}),
         ('dcct_current_std', {'field': 'dcct_current_std', 'dtype': float}),
@@ -746,13 +749,16 @@ class Fieldmap(_database.DatabaseAndFileDocument):
             _map[i] = _np.append(tp, tb)
         _map = _np.array(sorted(_map, key=lambda x: (x[2], x[1], x[0])))
 
-        self._magnet_center = magnet_center
-        self._magnet_x_axis = magnet_x_axis
-        self._magnet_y_axis = magnet_y_axis
-        self._corrected_positions = correct_positions
+        self.magnet_center = magnet_center
+        self.magnet_x_axis = magnet_x_axis
+        self.magnet_y_axis = magnet_y_axis
+        self.corrected_positions = correct_positions
+        self.probe_positions_id = probe_positions.idn
+        self.nr_field_scans = len(field_scan_list)
+        self.field_scan_id_list = [fs.idn for fs in field_scan_list]
         self.map = _map
 
-        self._temperature = get_temperature_values(field_scan_list)
+        self.temperature = get_temperature_values(field_scan_list)
 
         setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
             field_scan_list, field_scan_list[0].nr_voltage_scans)
@@ -792,8 +798,8 @@ def get_current_values(scan_list, nmeas):
     if len(setpoint_set) == 1:
         setpoint = list(setpoint_set)[0]
 
-    dcct_avg, dcct_std = _utils.get_average_std(dcct_avgs, dcct_stds, nmeas)
-    ps_avg, ps_std = _utils.get_average_std(ps_avgs, ps_stds, nmeas)
+    dcct_avg, dcct_std = _get_average_std(dcct_avgs, dcct_stds, nmeas)
+    ps_avg, ps_std = _get_average_std(ps_avgs, ps_stds, nmeas)
 
     return setpoint, dcct_avg, dcct_std, ps_avg, ps_std
 
@@ -837,8 +843,9 @@ def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
     return transf_vector
 
 
-def _correct_voltage_offset(vs):
+def _correct_voltage_offset(voltage_scan):
     """Subtract voltage offset from measurement values."""
+    vs = voltage_scan.copy()
     if vs.npts == 0:
         msg = "Can't correct voltage offset: Empty voltage scan."
         raise MeasurementDataError(msg)
@@ -851,37 +858,37 @@ def _correct_voltage_offset(vs):
     vf = vs.offsetx_end
     if vi is not None and vf is not None:
         if npts == 1:
-            vs.avgx = vs.avgx - (vi + vf)/2
+            vs.vx = vs.vx - (vi + vf)/2
         else:
-            vs.avgx = vs.avgx - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
+            vs.vx = vs.vx - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
     elif vi is not None:
-        vs.avgx = vs.avgx - vi
+        vs.vx = vs.vx - vi
     elif vf is not None:
-        vs.avgx = vs.avgx - vf
+        vs.vx = vs.vx - vf
 
     vi = vs.offsety_start
     vf = vs.offsety_end
     if vi is not None and vf is not None:
         if npts == 1:
-            vs.avgy = vs.avgy - (vi + vf)/2
+            vs.vy = vs.vy - (vi + vf)/2
         else:
-            vs.avgy = vs.avgy - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
+            vs.vy = vs.vy - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
     elif vi is not None:
-        vs.avgy = vs.avgy - vi
+        vs.vy = vs.vy - vi
     elif vf is not None:
-        vs.avgy = vs.avgy - vf
+        vs.vy = vs.vy - vf
 
     vi = vs.offsetz_start
     vf = vs.offsetz_end
     if vi is not None and vf is not None:
         if npts == 1:
-            vs.avgz = vs.avgz - (vi + vf)/2
+            vs.vz = vs.vz - (vi + vf)/2
         else:
-            vs.avgz = vs.avgz - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
+            vs.vz = vs.vz - vi - ((vf - vi)/(p[-1] - p[0]))*(p - p[0])
     elif vi is not None:
-        vs.avgz = vs.avgz - vi
+        vs.vz = vs.vz - vi
     elif vf is not None:
-        vs.avgz = vs.avgz - vf
+        vs.vz = vs.vz - vf
 
     return vs
 
@@ -968,9 +975,9 @@ def _get_fieldmap(field_scan_list, probe_positions, correct_positions):
 
     # get interpolation direction
     p_disp = [px_disp, py_disp, pz_disp]
-    nonzero_norm = _np.nonzero([_utils.vector_norm(pd) for pd in p_disp])[0]
+    nonzero_norm = _np.nonzero([_vector_norm(pd) for pd in p_disp])[0]
     if len(nonzero_norm) != 0:
-        interp_direction = _utils.normalized_vector(p_disp[nonzero_norm[0]])
+        interp_direction = _normalized_vector(p_disp[nonzero_norm[0]])
     else:
         interp_direction = None
 
@@ -987,11 +994,11 @@ def _get_fieldmap(field_scan_list, probe_positions, correct_positions):
                 getattr(fs, 'pos' + str(third_axis)),
                 decimals=CHECK_POSITION_PRECISION))
         dfx.append(_pd.DataFrame(
-            fs.avgx, index=index, columns=columns))
+            fs.bx, index=index, columns=columns))
         dfy.append(_pd.DataFrame(
-            fs.avgy, index=index, columns=columns))
+            fs.by, index=index, columns=columns))
         dfz.append(_pd.DataFrame(
-            fs.avgz, index=index, columns=columns))
+            fs.bz, index=index, columns=columns))
     fieldx = _pd.concat(dfx, axis=1)
     fieldy = _pd.concat(dfy, axis=1)
     fieldz = _pd.concat(dfz, axis=1)
@@ -1025,7 +1032,7 @@ def _get_fieldmap(field_scan_list, probe_positions, correct_positions):
         else:
             raise Exception("Can\'t correct sensors positions.")
 
-        if _utils.parallel_vectors(interp_direction, first_axis_direction):
+        if _parallel_vectors(interp_direction, first_axis_direction):
             axis = 0
             interpolation_grid = index
             if not (_np.allclose(
@@ -1035,7 +1042,7 @@ def _get_fieldmap(field_scan_list, probe_positions, correct_positions):
                     atol=CHECK_POSITION_PRECISION)):
                 raise Exception("Can\'t correct sensors positions.")
 
-        elif _utils.parallel_vectors(interp_direction, second_axis_direction):
+        elif _parallel_vectors(interp_direction, second_axis_direction):
             axis = 1
             interpolation_grid = columns
             if not (_np.allclose(
@@ -1290,3 +1297,54 @@ def _valid_voltage_scan_list(voltage_scan_list):
         raise MeasurementDataError(msg)
 
     return True
+
+
+def _parallel_vectors(vec1, vec2):
+    """Return True if the vectors are parallel, False otherwise."""
+    tol = 1e-15
+    norm = _np.sum((_np.cross(vec1, vec2)**2))
+    if norm < tol:
+        return True
+    else:
+        return False
+
+
+def _vector_norm(vec):
+    """Return the norm of the vector."""
+    return _np.sqrt((_np.sum(_np.array(vec)**2)))
+
+
+def _normalized_vector(vec):
+    """Return the normalized vector."""
+    normalized_vec = vec / _vector_norm(vec)
+    return normalized_vec
+
+
+def _get_average_std(avgs, stds, nmeas):
+    """Return the average and STD for a set of averages and STD values."""
+    if len(avgs) == 0 and len(stds) == 0:
+        return None, None
+
+    if len(avgs) != len(stds):
+        raise ValueError('Inconsistent size of input arguments')
+        return None, None
+
+    if nmeas == 0:
+        raise ValueError('Invalid number of measurements.')
+        return None, None
+
+    elif nmeas == 1:
+        avg = _np.mean(avgs)
+        std = _np.std(avgs, ddof=1)
+
+    else:
+        n = len(avgs)*nmeas
+        avgs = _np.array(avgs)
+        stds = _np.array(stds)
+
+        avg = _np.sum(avgs)*nmeas/n
+        std = _np.sqrt((1/(n-1))*(
+            _np.sum((nmeas-1)*(stds**2) + nmeas*(avgs**2)) -
+            (1/n)*(_np.sum(avgs*nmeas)**2)))
+
+    return avg, std

@@ -31,12 +31,19 @@ class HallCalibrationCurve(_database.DatabaseAndFileDocument):
             {'field': 'calibration_name', 'dtype': str, 'not_null': True}),
         ('calibration_magnet', 
             {'field': 'calibration_magnet', 'dtype': str, 'not_null': True}),
+        ('voltage_min', 
+            {'field': 'voltage_min', 'dtype': float}),
+        ('voltage_max', 
+            {'field': 'voltage_max', 'dtype': float}),
         ('function_type', 
             {'field': 'function_type', 'dtype': str, 'not_null': True}),
-        ('data', 
-            {'field': 'data', 'dtype': _np.ndarray, 'not_null': True}),
+        ('polynomial_coefs',
+            {'field': 'polynomial_coefs', 'dtype': _np.ndarray}),
+        ('voltage', 
+            {'field': 'voltage', 'dtype': _np.ndarray}),
+        ('magnetic_field', 
+            {'field': 'magnetic_field', 'dtype': _np.ndarray}),
     ])
-
 
     def __init__(
             self, database_name=None, mongo=False, server=None):
@@ -51,8 +58,6 @@ class HallCalibrationCurve(_database.DatabaseAndFileDocument):
 
         """
         self._function_type = None
-        self._function = None
-        self._data = []
 
         super().__init__(
             database_name=database_name, mongo=mongo, server=server)
@@ -72,39 +77,6 @@ class HallCalibrationCurve(_database.DatabaseAndFileDocument):
         else:
             raise TypeError('function_type must be a string.')
 
-    @property
-    def data(self):
-        """Hall sensor calibration data."""
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        if isinstance(value, _np.ndarray):
-            value = value.tolist()
-
-        if isinstance(value, (list, tuple)):
-            if all(isinstance(item, list) for item in value):
-                self._data = value
-                self._set_conversion_function()
-            elif not any(isinstance(item, list) for item in value):
-                self._data = [value]
-                self._set_conversion_function()
-            else:
-                raise ValueError('Invalid value for calibration data.')
-        else:
-            raise TypeError('calibration data must be a list.')
-
-    def _set_conversion_function(self):
-        if (len(self.data) != 0 and
-           self.function_type == 'interpolation'):
-            self._function = lambda v: _interpolation_conversion(
-                self.data, v)
-        elif len(self.data) != 0 and self.function_type == 'polynomial':
-            self._function = lambda v: _polynomial_conversion(
-                self.data, v)
-        else:
-            self._function = None
-
     def get_field(self, voltage):
         """Convert voltage values to magnetic field values.
 
@@ -114,14 +86,35 @@ class HallCalibrationCurve(_database.DatabaseAndFileDocument):
         Return:
             array with magnetic field values.
         """
-        if self._function is not None:
-            return self._function(_np.array(voltage))
+        if self.function_type == 'interpolation':
+            return _interpolation_conversion(
+                self.voltage, self.magnetic_field, voltage)
         else:
-            return _np.ones(len(_np.array(voltage)))*_np.nan
+            return _polynomial_conversion(
+                self.voltage_min, self.voltage_max,
+                self.polynomial_coefs, voltage)
 
     def get_calibration_list(self):
         """Get list of calibration names from database."""
         return self.db_get_values(self.db_dict['calibration_name']['field'])
+
+    def save_file(self, filename):
+        """Save data to file.
+
+        Args:
+            filename (str): file fullpath.
+        """
+        if not self.valid_data():
+            message = 'Invalid data.'
+            raise ValueError(message)
+
+        if self.function_type == 'interpolation':
+            columns = ['voltage', 'magnetic_field']
+            self.voltage_min = self.voltage[0]
+            self.voltage_max = self.voltage[-1]
+        else:
+            columns = ['polynomial_coefs']
+        return super().save_file(filename, columns=columns)
 
     def update_calibration(self, calibration_name):
         """Update calibration data."""
@@ -136,7 +129,7 @@ class HallCalibrationCurve(_database.DatabaseAndFileDocument):
         else:
             idn = docs[-1][self.db_dict['idn']['field']]
             return self.db_read(idn)
-        
+
 
 class HallProbePositions(_database.DatabaseAndFileDocument):
     """Hall probe positions and angles."""
@@ -149,8 +142,6 @@ class HallProbePositions(_database.DatabaseAndFileDocument):
         ('hour', {'field': 'hour', 'dtype': str, 'not_null': True}),
         ('probe_name', 
             {'field': 'probe_name', 'dtype': str, 'not_null': True}),
-        ('rod_shape', 
-            {'field': 'rod_shape', 'dtype': str, 'not_null': True}),
         ('sensorx_position', {
             'field': 'sensorx_position',
             'dtype': _np.ndarray, 'not_null': True}),
@@ -183,7 +174,6 @@ class HallProbePositions(_database.DatabaseAndFileDocument):
             server (str): MongoDB server.
 
         """
-        self._rod_shape = None
         self.sensorx_position = _np.array([0, 0, 0])
         self.sensory_position = _np.array([0, 0, 0])
         self.sensorz_position = _np.array([0, 0, 0])
@@ -193,21 +183,6 @@ class HallProbePositions(_database.DatabaseAndFileDocument):
 
         super().__init__(
             database_name=database_name, mongo=mongo, server=server)
-
-    @property
-    def rod_shape(self):
-        """Return the rod shape."""
-        return self._rod_shape
-
-    @rod_shape.setter
-    def rod_shape(self, value):
-        if isinstance(value, str):
-            if value in ('straight', 'L'):
-                self._rod_shape = value
-            else:
-                raise ValueError('Invalid value for rod shape.')
-        else:
-            raise TypeError('rod_shape must be a string.')
 
     def clear(self):
         """Clear calibration data."""
@@ -219,14 +194,6 @@ class HallProbePositions(_database.DatabaseAndFileDocument):
         self.sensory_direction = _np.array([0, 1, 0])
         self.sensorz_direction = _np.array([0, 0, 1])
         return sucess
-
-    def to_bench_coordinate_system(self, vector):
-        """Transform from probe coord. system to bench coord. system."""
-        if self._rod_shape == 'L':
-            tm = _utils.rotation_matrix([0, 1, 0], -_np.pi/2)
-        else:
-            tm = _np.eye(3)
-        return _np.dot(tm, vector)
 
     def get_probe_list(self):
         """Get list of probe names from database."""
@@ -247,22 +214,17 @@ class HallProbePositions(_database.DatabaseAndFileDocument):
             return self.db_read(idn)
 
 
-def _interpolation_conversion(data, voltage_array):
-    d = _np.array(data)
-    interp_func = _interpolate.splrep(d[:, 0], d[:, 1], k=1)
-    field_array = _interpolate.splev(voltage_array, interp_func)
+def _interpolation_conversion(voltage, magnetic_field, voltage_array):
+    interp_func = _interpolate.splrep(voltage, magnetic_field, k=1)
+    field_array = _interpolate.splev(voltage_array, interp_func, ext=1)
     return field_array
 
 
-def _polynomial_conversion(data, voltage_array):
-    field_array = _np.ones(len(voltage_array))*_np.nan
+def _polynomial_conversion(vmin, vmax, coeffs, voltage_array):
+    field_array = _np.zeros(len(voltage_array))
     for i in range(len(voltage_array)):
         voltage = voltage_array[i]
-        for d in data:
-            vmin = d[0]
-            vmax = d[1]
-            coeffs = d[2:]
-            if voltage > vmin and voltage <= vmax:
-                field_array[i] = sum(
-                    coeffs[j]*(voltage**j) for j in range(len(coeffs)))
+        if voltage >= vmin and voltage <= vmax:
+            field_array[i] = sum(
+                coeffs[j]*(voltage**j) for j in range(len(coeffs)))
     return field_array

@@ -966,12 +966,9 @@ def _get_fieldmap(field_scan_list, probe_positions, correct_positions):
     third_axis_direction = _get_axis_vector(third_axis)
 
     # get displacement of each sensor
-    px_disp = probe_positions.to_bench_coordinate_system(
-        probe_positions.sensorx_position)
-    py_disp = probe_positions.to_bench_coordinate_system(
-        probe_positions.sensory_position)
-    pz_disp = probe_positions.to_bench_coordinate_system(
-        probe_positions.sensorz_position)
+    px_disp = probe_positions.sensorx_position
+    py_disp = probe_positions.sensory_position
+    pz_disp = probe_positions.sensorz_position
 
     # get interpolation direction
     p_disp = [px_disp, py_disp, pz_disp]
@@ -1087,8 +1084,7 @@ def _get_fieldmap(field_scan_list, probe_positions, correct_positions):
             bx = bx_dir*fieldx.iloc[i, j]
             by = by_dir*fieldy.iloc[i, j]
             bz = bz_dir*fieldz.iloc[i, j]
-            b = bx + by + bz
-            field = probe_positions.to_bench_coordinate_system(b)
+            field = bx + by + bz
             fieldmap.append(_np.append(pos, field))
     fieldmap = _np.array(fieldmap)
     fieldmap = _np.array(sorted(fieldmap, key=lambda x: (x[2], x[1], x[0])))

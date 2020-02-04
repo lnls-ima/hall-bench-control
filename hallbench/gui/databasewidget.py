@@ -494,14 +494,9 @@ class DatabaseWidget(_QWidget):
                     mongo=self.mongo, server=self.server)
                 obj.db_read(idn)
                 default_filename = obj.default_filename
-                if '.txt' in default_filename:
-                    default_filename = default_filename.replace(
-                        '.txt', '_ID={0:d}.txt'.format(idn))
-                elif '.dat' in default_filename:
-                    default_filename = default_filename.replace(
-                        '.dat', '_ID={0:d}.dat'.format(idn))
                 objs.append(obj)
                 fns.append(default_filename)
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to read database entries.'

@@ -435,6 +435,7 @@ class PowerSupplyWidget(_QWidget):
             self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
             _ps.ps_type = self.config.ps_type
             self.config.dclink = self.ui.sb_dclink.value()
+            self.config.dcct = self.ui.chb_dcct.isChecked()
             self.config.ps_setpoint = self.ui.sbd_current_setpoint.value()
             self.config.maximum_current = float(
                 self.ui.le_maximum_current.text())
@@ -509,6 +510,7 @@ class PowerSupplyWidget(_QWidget):
                 str(self.config.maximum_current))
             self.ui.le_minimum_current.setText(
                 str(self.config.minimum_current))
+            self.ui.chb_dcct.setChecked(self.config.dcct)
             self.ui.cb_dcct_select.setCurrentText(str(self.config.dcct_head) +
                                                   ' A')
             self.ui.sbd_kp.setValue(self.config.Kp)

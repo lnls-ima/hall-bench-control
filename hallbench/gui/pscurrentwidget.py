@@ -85,11 +85,10 @@ class PSCurrentWidget(_TablePlotWidget):
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
-
-            ps_type = self.power_supply_config.ps_type
+            
             if self.chb_ps.isChecked():
-                if ps_type is not None:
-                    _ps.SetSlaveAdd(ps_type)
+                if _ps.ps_type is not None:
+                    _ps.SetSlaveAdd(_ps.ps_type)
                 else:
                     self.blockSignals(False)
                     _QApplication.restoreOverrideCursor()
@@ -172,18 +171,20 @@ class ReadValueWorker(_QObject):
             self.reading = []
 
             ts = _time.time()
-            dcct_head = self.power_supply_config.dcct_head
-            ps_type = self.power_supply_config.ps_type
 
             if self.dcct_enabled:
-                dcct_current = _dcct.read_current(
-                    dcct_head=dcct_head)
+                _dcct.dcct_head = 1000
+                dcct_current = _dcct.read_current()
             else:
                 dcct_current = _np.nan
 
-            if self.ps_enabled and ps_type is not None:
-                _ps.SetSlaveAdd(ps_type)
-                ps_current = float(_ps.Read_iLoad1())
+            if self.ps_enabled:
+                ps_type = _ps.ps_type
+                if ps_type is not None:
+                    _ps.SetSlaveAdd(ps_type)
+                    ps_current = float(_ps.Read_iLoad1())
+                else:
+                    ps_current = _np.nan
             else:
                 ps_current = _np.nan
 
@@ -193,6 +194,7 @@ class ReadValueWorker(_QObject):
             self.finished.emit(True)
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.timestamp = None
             self.reading = []
             self.finished.emit(True)

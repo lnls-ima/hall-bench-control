@@ -8,6 +8,7 @@ import time as _time
 from imautils.devices import Agilent3458ALib as _Agilent3458ALib
 from imautils.devices import Agilent34401ALib as _Agilent34401ALib
 from imautils.devices import Agilent34970ALib as _Agilent34970ALib
+from imautils.devices import F1000DRSLib as _DRSLib
 
 
 class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
@@ -115,7 +116,15 @@ class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
         voltage = self.read()
         dcct_heads = [40, 160, 320, 600, 1000, 1125]
         if voltage is not None and self.dcct_head in dcct_heads:
-            current = voltage * dcct_head/10
+            current = voltage * self.dcct_head/10
         else:
             current = _np.nan
         return current
+
+
+class PowerSupply(_DRSLib.SerialDRS_FBP):
+    """Power Supply."""
+
+    def __init__(self):
+        self.ps_type = None
+        super().__init__()

@@ -372,3 +372,16 @@ class PowerSupplyConfig(_database.DatabaseAndFileDocument):
 
         super().__init__(
             database_name=database_name, mongo=mongo, server=server)
+
+    def get_power_supply_id(self, ps_name):
+        """Get power supply database id number."""
+        docs = self.db_search_field(self.db_dict['ps_name']['field'], ps_name)
+
+        if len(docs) == 0:
+            return None
+        
+        return docs[-1][self.db_dict['idn']['field']]
+    
+    def get_power_supply_list(self):
+        """Get list of power supply names from database."""
+        return self.db_get_values(self.db_dict['ps_name']['field'])

@@ -21,7 +21,8 @@ from hallbench.gui.auxiliarywidgets import (
 from hallbench.gui.connectionwidget import ConnectionWidget \
     as _ConnectionWidget
 from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
-from hallbench.gui.supplywidget import SupplyWidget as _SupplyWidget
+from hallbench.gui.powersupplywidget import PowerSupplyWidget \
+    as _PowerSupplyWidget
 from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
 from hallbench.gui.voltagewidget import VoltageWidget \
@@ -80,7 +81,7 @@ class HallBenchWindow(_QMainWindow):
         self.tab_widgets = [
             _ConnectionWidget,
             _MotorsWidget,
-            _SupplyWidget,
+            _PowerSupplyWidget,
             _MeasurementWidget,
             _PSCurrentWidget,
             _VoltageWidget,
@@ -94,6 +95,7 @@ class HallBenchWindow(_QMainWindow):
         self.preferences_dialog = _PreferencesDialog(self.tab_names)
         self.preferences_dialog.chb_connection.setChecked(True)
         self.preferences_dialog.chb_motors.setChecked(True)
+        self.preferences_dialog.chb_power_supply.setChecked(True)
         self.preferences_dialog.chb_measurement.setChecked(True)
         self.preferences_dialog.chb_database.setChecked(True)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)

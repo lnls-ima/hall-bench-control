@@ -22,6 +22,8 @@ import pyqtgraph as _pyqtgraph
 
 from hallbench.gui import utils as _utils
 from hallbench.gui.auxiliarywidgets import PlotDialog as _PlotDialog
+from hallbench.data.configuration import (
+    PowerSupplyConfig as _PowerSupplyConfig)
 from hallbench.devices import (
     voltx as _voltx,
     volty as _volty,
@@ -32,7 +34,7 @@ from hallbench.devices import (
     )
 
 
-class SupplyWidget(_QWidget):
+class PowerSupplyWidget(_QWidget):
     """Power Supply widget class for the Hall Bench Control application."""
 
     start_measurement = _Signal([bool])
@@ -52,7 +54,7 @@ class SupplyWidget(_QWidget):
         # power supply current slope, [F1000A, F225A, F10A] [A/s]
         self.slope = [50, 90, 1000]
         self.flag_trapezoidal = False
-        self.config = self.power_supply_config
+        self.config = _PowerSupplyConfig()
         self.drs = _ps
         self.timer = _QTimer()
         self.plot_dialog = _PlotDialog()
@@ -96,19 +98,19 @@ class SupplyWidget(_QWidget):
         self.ui.pbt_pc_copy.clicked.connect(self.probe_calibration_copy)
 
     @property
-    def connection_config(self):
-        """Return the connection configuration."""
-        return _QApplication.instance().connection_config
+    def database_name(self):
+        """Database name."""
+        return _QApplication.instance().database_name
 
     @property
-    def database(self):
-        """Database filename."""
-        return _QApplication.instance().database
+    def mongo(self):
+        """MongoDB database."""
+        return _QApplication.instance().mongo
 
     @property
-    def power_supply_config(self):
-        """Power Supply configurations."""
-        return _QApplication.instance().power_supply_config
+    def server(self):
+        """Server for MongoDB database."""
+        return _QApplication.instance().server
 
     def closeEvent(self, event):
         """Close widget."""
@@ -136,10 +138,16 @@ class SupplyWidget(_QWidget):
 
     def list_power_supply(self):
         """Updates available power supply supply names."""
-        _l = self.config.get_table_column(self.database, 'name')
-        for _ in range(self.ui.cb_ps_name.count()):
-            self.ui.cb_ps_name.removeItem(0)
-        self.ui.cb_ps_name.addItems(_l)
+        try:
+            self.config.db_update_database(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            _l = self.config.get_power_supply_list()
+            for _ in range(self.ui.cb_ps_name.count()):
+                self.ui.cb_ps_name.removeItem(0)
+            self.ui.cb_ps_name.addItems(_l)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def set_address(self, address):
         if self.drs.ser.is_open:
@@ -425,6 +433,7 @@ class SupplyWidget(_QWidget):
         try:
             self.config.ps_name = self.ui.cb_ps_name.currentText()
             self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
+            _ps.ps_type = self.config.ps_type
             self.config.dclink = self.ui.sb_dclink.value()
             self.config.ps_setpoint = self.ui.sbd_current_setpoint.value()
             self.config.maximum_current = float(
@@ -639,8 +648,7 @@ class SupplyWidget(_QWidget):
             _refresh_current = round(float(self.drs.Read_iLoad1()), 3)
             self.ui.lcd_ps_reading.display(_refresh_current)
             _QApplication.processEvents()
-            if all([self.ui.chb_dcct.isChecked(),
-                    self.connection_config.dcct_enable]):
+            if all([self.ui.chb_dcct.isChecked(), _dcct.connected]):
                 self.ui.lcd_current_dcct.setEnabled(True)
                 self.ui.label_161.setEnabled(True)
                 self.ui.label_164.setEnabled(True)
@@ -1349,9 +1357,12 @@ class SupplyWidget(_QWidget):
         self.config_ps()
         _name = self.config.ps_name
         try:
-            _idn = self.config.get_database_id(self.database, 'name', _name)
-            if not len(_idn):
-                if self.config.save_to_database(self.database) is not None:
+            self.config.db_update_database(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            _idn = self.config.get_power_supply_id(_name)
+            if _idn is None:
+                if self.config.db_save() is not None:
                     self.list_power_supply()
                     self.ui.cb_ps_name.setCurrentText(self.config.ps_name)
                     _QMessageBox.information(self, 'Information', 'Power '
@@ -1367,8 +1378,7 @@ class SupplyWidget(_QWidget):
                                              _QMessageBox.Yes |
                                              _QMessageBox.No)
                 if _ans == _QMessageBox.Yes:
-                    if self.config.update_database_table(self.database,
-                                                         _idn[0]):
+                    if self.config.db_update(_idn):
                         _QMessageBox.information(self, 'Information',
                                                  'Power Supply entry updated.',
                                                  _QMessageBox.Ok)
@@ -1385,10 +1395,9 @@ class SupplyWidget(_QWidget):
         """Load Power Supply settings from database."""
         self.config.ps_name = self.ui.cb_ps_name.currentText()
         try:
-            _idn = self.config.get_database_id(self.database, 'name',
-                                               self.config.ps_name)
-            if len(_idn):
-                self.config.read_from_database(self.database, _idn[0])
+            _idn = self.config.get_power_supply_id(self.config.ps_name)
+            if _idn is not None:
+                self.config.db_read(_idn)
                 self.config_widget()
                 self.ui.gb_start_supply.setEnabled(True)
                 self.ui.tabWidget_2.setEnabled(True)

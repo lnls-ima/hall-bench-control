@@ -3,7 +3,6 @@
 import os as _os
 import time as _time
 
-from imautils.devices import F1000DRSLib as _DRSLib
 from imautils.devices import PmacLib as _PmacLib
 from imautils.devices import ElcomatLib as _ElcomatLib
 from imautils.devices import NMRLib as _NMRLib
@@ -38,4 +37,4 @@ elcomat = _ElcomatLib.ElcomatSerial(log=True)
 dcct = _devices.DCCT(log=True)
 water_udc = _UDCLib.UDCModBus(log=True)
 air_udc = _UDCLib.UDCModBus(log=True)
-ps = _DRSLib.SerialDRS_FBP()
+ps = _devices.PowerSupply()

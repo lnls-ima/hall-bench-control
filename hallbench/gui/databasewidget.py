@@ -115,6 +115,7 @@ class DatabaseWidget(_QWidget):
         self.ui.lyt_database.addWidget(self.twg_database)
         
         self.connect_signal_slots()
+        self.disable_invalid_buttons()
  
     @property
     def database_name(self):
@@ -135,6 +136,11 @@ class DatabaseWidget(_QWidget):
     def directory(self):
         """Return the default directory."""
         return _QApplication.instance().directory
+
+    @property
+    def save_field_scan_dialog(self):
+        """Save field scan dialog."""
+        return _QApplication.instance().save_field_scan_dialog
  
     @property
     def save_fieldmap_dialog(self):
@@ -179,172 +185,46 @@ class DatabaseWidget(_QWidget):
         self.ui.pbt_remove_unused_configurations.clicked.connect(
             self.remove_unused_configurations)
  
-#         self.ui.pbt_view_voltage_scan.clicked.connect(self.view_voltage_scan)
-#         self.ui.pbt_convert_to_field_scan.clicked.connect(
-#             self.convert_to_field_scan)
-#  
-#         self.ui.pbt_view_field_scan.clicked.connect(self.view_field_scan)
-#         self.ui.pbt_create_fieldmap.clicked.connect(self.create_fieldmap)
+        self.ui.pbt_view_voltage_scan.clicked.connect(self.view_voltage_scan)
+        self.ui.pbt_convert_to_field_scan.clicked.connect(
+            self.convert_to_field_scan)
+  
+        self.ui.pbt_view_field_scan.clicked.connect(self.view_field_scan)
+        self.ui.pbt_create_fieldmap.clicked.connect(self.create_fieldmap)
  
         self.ui.pbt_view_fieldmap.clicked.connect(self.view_fieldmap)
  
-#     def convert_to_field_scan(self):
-#         """Convert voltage scans to field scans."""
-#         idns = self.get_table_selected_ids(self._voltage_scan_table_name)
-#         if len(idns) == 0:
-#             return
-# 
-#         configuration_id_list = []
-#         configuration_list = []
-#         voltage_scan_list = []
-#         try:
-#             for idn in idns:
-#                 vd = _VoltageScan(database=self.database, idn=idn)
-#                 configuration_id = vd.configuration_id
-#                 if configuration_id is None:
-#                     msg = 'Invalid configuration ID found in scan list.'
-#                     _QMessageBox.critical(
-#                         self, 'Failure', msg, _QMessageBox.Ok)
-#                     return
-# 
-#                 config = _MeasurementConfig(
-#                     database=self.database, idn=configuration_id)
-#                 configuration_id_list.append(configuration_id)
-#                 configuration_list.append(config)
-#                 voltage_scan_list.append(vd)
-# 
-#             probe_names = _HallProbe.get_table_column(
-#                 self.database, 'probe_name')
-# 
-#             if len(probe_names) == 0:
-#                 msg = 'No Hall Probe found.'
-#                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-#                 return
-# 
-#             use_offset, ok = _QInputDialog.getItem(
-#                 self, "Voltage Offset", "Subtract Voltage Offset? ",
-#                 ['True', 'False'], 0, editable=False)
-# 
-#             if not ok:
-#                 return
-# 
-#             if use_offset == 'False':
-#                 subtract_voltage_offset = 0
-#                 for vs in voltage_scan_list:
-#                     vs.offsetx_start = None
-#                     vs.offsetx_end = None
-#                     vs.offsety_start = None
-#                     vs.offsety_end = None
-#                     vs.offsetz_start = None
-#                     vs.offsetz_end = None
-#             else:
-#                 subtract_voltage_offset = 1
-#                 for vs in voltage_scan_list:
-#                     off_list = [
-#                         vs.offsetx_start,
-#                         vs.offsetx_end,
-#                         vs.offsety_start,
-#                         vs.offsety_end,
-#                         vs.offsetz_start,
-#                         vs.offsetz_end,
-#                         ]
-#                     if any([off is None for off in off_list]):
-#                         msg = 'Invalid voltage offset value found.'
-#                         _QMessageBox.critical(
-#                             self, 'Failure', msg, _QMessageBox.Ok)
-#                         return
-# 
-#             probe_name, ok = _QInputDialog.getItem(
-#                 self, "Hall Probe", "Select the Hall Probe:",
-#                 probe_names, 0, editable=False)
-# 
-#             if not ok:
-#                 return
-# 
-#             idn = _HallProbe.get_hall_probe_id(self.database, probe_name)
-#             if idn is None:
-#                 msg = 'Hall probe data not found in database.'
-#                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-#                 return
-# 
-#             hall_probe = _HallProbe(database=self.database, idn=idn)
-#             field_scan_list = _data.measurement.get_field_scan_list(
-#                 voltage_scan_list, hall_probe)
-# 
-#             unique_configuration_id_list, index, inv = _np.unique(
-#                 configuration_id_list, return_index=True, return_inverse=True)
-#             for i in range(len(unique_configuration_id_list)):
-#                 configuration_id = unique_configuration_id_list[i]
-#                 config = configuration_list[index[i]]
-#                 config.probe_name = probe_name
-#                 config.subtract_voltage_offset = subtract_voltage_offset
-#                 new_config_id = config.save_to_database(self.database)
-#                 unique_configuration_id_list[i] = new_config_id
-# 
-#             idns = []
-#             for i in range(len(field_scan_list)):
-#                 field_scan = field_scan_list[i]
-#                 config_id = unique_configuration_id_list[inv[i]]
-#                 field_scan.configuration_id = int(config_id)
-#                 idn = field_scan.save_to_database(self.database)
-#                 idns.append(idn)
-# 
-#             self.update_database_tables()
-# 
-#             msg = 'Field scans saved in database.\nIDs: ' + str(idns)
-#             _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
-# 
-#         except Exception:
-#             _traceback.print_exc(file=_sys.stdout)
-#             msg = 'Failed to convert VoltageScan to FieldScan.'
-#             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-# 
-#     def create_fieldmap(self):
-#         """Create fieldmap from field scan records."""
-#         self.save_fieldmap_dialog.accept()
-#         idns = self.get_table_selected_ids(self._field_scan_table_name)
-#         if len(idns) == 0:
-#             return
-# 
-#         probe_name_list = []
-#         try:
-#             for idn in idns:
-#                 configuration_id = _FieldScan.get_database_param(
-#                     self.database, idn, 'configuration_id')
-#                 if configuration_id is None:
-#                     msg = 'Invalid configuration ID found in scan list.'
-#                     _QMessageBox.critical(
-#                         self, 'Failure', msg, _QMessageBox.Ok)
-#                     return
-# 
-#                 probe_name = _MeasurementConfig.get_probe_name_from_database(
-#                     self.database, configuration_id)
-#                 probe_name_list.append(probe_name)
-# 
-#             if not all([pn == probe_name_list[0] for pn in probe_name_list]):
-#                 msg = 'Inconsistent probe name found in scan list'
-#                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-#                 return
-# 
-#             probe_name = probe_name_list[0]
-#             if probe_name is None or len(probe_name) == 0:
-#                 msg = 'Invalid Hall probe.'
-#                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-#                 return
-# 
-#             idn = _HallProbe.get_hall_probe_id(self.database, probe_name)
-#             if idn is None:
-#                 msg = 'Hall probe data not found in database.'
-#                 _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-#                 return
-# 
-#             hall_probe = _HallProbe(database=self.database, idn=idn)
-#             self.save_fieldmap_dialog.show(idns, hall_probe)
-# 
-#         except Exception:
-#             _traceback.print_exc(file=_sys.stdout)
-#             msg = 'Failed to create Fieldmap.'
-#             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+    def convert_to_field_scan(self):
+        """Convert voltage scans to field scans."""
+        idns = self.twg_database.get_table_selected_ids(
+            self._voltage_scan_table_name)
+        if len(idns) == 0:
+            return
+  
+        try:
+            self.save_field_scan_dialog.accept()
+            self.save_field_scan_dialog.show(idns)            
+  
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to convert VoltageScan to FieldScan.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+ 
+    def create_fieldmap(self):
+        """Create fieldmap from field scan records."""        
+        idns = self.twg_database.get_table_selected_ids(
+            self._field_scan_table_name)
+        if len(idns) == 0:
+            return
+ 
+        try:
+            self.save_fieldmap_dialog.accept()
+            self.save_fieldmap_dialog.show(idns)
+ 
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to open fieldmap dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
  
     def disable_invalid_buttons(self):
         """Disable invalid buttons."""
@@ -384,6 +264,7 @@ class DatabaseWidget(_QWidget):
             else:
                 self.twg_database.hidden_tables = []
             self.twg_database.load_database()
+            self.disable_invalid_buttons()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
  
@@ -429,6 +310,7 @@ class DatabaseWidget(_QWidget):
             mc =_MeasurementConfig(
                 database_name=self.database_name,
                 mongo=self.mongo, server=self.server)
+            
             idns = mc.db_get_id_list()
             if len(idns) == 0:
                 return
@@ -558,62 +440,76 @@ class DatabaseWidget(_QWidget):
             else:
                 self.twg_database.hidden_tables = []
             self.twg_database.update_database_tables()
+            self.disable_invalid_buttons()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-#     def view_voltage_scan(self):
-#         """Open view data dialog."""
-#         idns = self.get_table_selected_ids(self._voltage_scan_table_name)
-#         if len(idns) == 0:
-#             return
-# 
-#         try:
-#             self.blockSignals(True)
-#             _QApplication.setOverrideCursor(_Qt.WaitCursor)
-# 
-#             scan_list = []
-#             for idn in idns:
-#                 scan_list.append(_VoltageScan(database=self.database, idn=idn))
-#             self.view_scan_dialog.accept()
-#             self.view_scan_dialog.show(scan_list, idns, 'Voltage [V]')
-# 
-#             self.blockSignals(False)
-#             _QApplication.restoreOverrideCursor()
-# 
-#         except Exception:
-#             self.blockSignals(False)
-#             _QApplication.restoreOverrideCursor()
-#             _traceback.print_exc(file=_sys.stdout)
-#             msg = 'Failed to show voltage scan dialog.'
-#             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-#             return
-# 
-#     def view_field_scan(self):
-#         """Open view data dialog."""
-#         idns = self.get_table_selected_ids(self._field_scan_table_name)
-#         if len(idns) == 0:
-#             return
-# 
-#         try:
-#             self.blockSignals(True)
-#             _QApplication.setOverrideCursor(_Qt.WaitCursor)
-# 
-#             scan_list = []
-#             for idn in idns:
-#                 scan_list.append(_FieldScan(database=self.database, idn=idn))
-#             self.view_scan_dialog.accept()
-#             self.view_scan_dialog.show(scan_list, idns, 'Magnetic Field [T]')
-# 
-#             self.blockSignals(False)
-#             _QApplication.restoreOverrideCursor()
-# 
-#         except Exception:
-#             self.blockSignals(False)
-#             _QApplication.restoreOverrideCursor()
-#             _traceback.print_exc(file=_sys.stdout)
-#             msg = 'Failed to show field scan dialog.'
-#             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-#             return
+    def view_voltage_scan(self):
+        """Open view data dialog."""
+        idns = self.twg_database.get_table_selected_ids(
+            self._voltage_scan_table_name)
+        if len(idns) == 0:
+            return
+ 
+        try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+ 
+            vs = _VoltageScan(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+ 
+            scan_list = []
+            for idn in idns:
+                vs.db_read(idn)
+                scan_list.append(vs.copy())
+            
+            self.view_scan_dialog.accept()
+            self.view_scan_dialog.show(scan_list, 'voltage')
+ 
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+ 
+        except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show voltage scan dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+ 
+    def view_field_scan(self):
+        """Open view data dialog."""
+        idns = self.twg_database.get_table_selected_ids(
+            self._field_scan_table_name)
+        if len(idns) == 0:
+            return
+ 
+        try:
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+ 
+            fs = _FieldScan(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+ 
+            scan_list = []
+            for idn in idns:
+                fs.db_read(idn)
+                scan_list.append(fs.copy())
+                
+            self.view_scan_dialog.accept()
+            self.view_scan_dialog.show(scan_list, 'field')
+ 
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+ 
+        except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show field scan dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def view_fieldmap(self):
         """Open view fieldmap dialog."""

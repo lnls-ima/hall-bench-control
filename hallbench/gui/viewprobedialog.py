@@ -4,21 +4,20 @@
 
 import sys as _sys
 import numpy as _np
-import json as _json
 import warnings as _warnings
 import traceback as _traceback
 import pyqtgraph as _pyqtgraph
 from qtpy.QtWidgets import (
     QDialog as _QDialog,
     QApplication as _QApplication,
+    QMessageBox as _QMessageBox,
+    QTableWidgetItem as _QTableWidgetItem,
     )
 import qtpy.uic as _uic
 
 from hallbench.gui.utils import get_ui_file as _get_ui_file
-from hallbench.gui.auxiliarywidgets import (
-    PolynomialTableDialog as _PolynomialTableDialog,
-    InterpolationTableDialog as _InterpolationTableDialog,
-    )
+from hallbench.data.calibration import (
+    HallCalibrationCurve as _HallCalibrationCurve)
 
 
 class ViewProbeDialog(_QDialog):
@@ -35,10 +34,9 @@ class ViewProbeDialog(_QDialog):
         uifile = _get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.local_hall_probe = None
-
-        self.polynomial_dialog = _PolynomialTableDialog()
-        self.interpolation_dialog = _InterpolationTableDialog()
+        self.calibrationx = _HallCalibrationCurve()
+        self.calibrationy = _HallCalibrationCurve()
+        self.calibrationz = _HallCalibrationCurve()
 
         self.graphx = []
         self.graphy = []
@@ -49,48 +47,82 @@ class ViewProbeDialog(_QDialog):
         self.legend.setParentItem(self.ui.pw_plot.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
+        self.clip = _QApplication.clipboard()
+
         self.connect_signal_slots()
 
     @property
-    def database(self):
-        """Database filename."""
-        return _QApplication.instance().database
+    def database_name(self):
+        """Database name."""
+        return _QApplication.instance().database_name
+
+    @property
+    def mongo(self):
+        """MongoDB database."""
+        return _QApplication.instance().mongo
+
+    @property
+    def server(self):
+        """Server for MongoDB database."""
+        return _QApplication.instance().server
 
     def accept(self):
         """Close dialog."""
         self.clear()
-        self.close_dialogs()
         super().accept()
-
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.clear()
-            self.close_dialogs()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
 
     def clear(self):
         """Clear."""
-        self.local_hall_probe = None
         self.graphx = []
         self.graphy = []
         self.graphz = []
         self.ui.pw_plot.clear()
-        self.interpolation_dialog.clear()
-        self.polynomial_dialog.clear()
+        self.clear_probe('x')
+        self.clear_probe('y')
+        self.clear_probe('z')
 
-    def close_dialogs(self):
-        """Close dialogs."""
-        try:
-            self.interpolation_dialog.accept()
-            self.polynomial_dialog.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            pass
+    def clear_probe(self, probe):
+        cal = getattr(self, 'calibration{0:s}'.format(probe))
+        cal.clear()
 
+        le_name = getattr(
+            self.ui, 'le_probe{0:s}_name'.format(probe))
+        le_name.setText('')
+
+        le_magnet = getattr(
+            self.ui, 'le_probe{0:s}_magnet'.format(probe))
+        le_magnet.setText('')
+        
+        le_function = getattr(
+            self.ui, 'le_probe{0:s}_function'.format(probe))
+        le_function.setText('')
+        
+        le_vmin = getattr(
+            self.ui, 'le_probe{0:s}_vmin'.format(probe))
+        le_vmin.setText('')
+
+        le_vmax = getattr(
+            self.ui, 'le_probe{0:s}_vmax'.format(probe))
+        le_vmax.setText('')
+        
+        sb_poly_prec = getattr(
+            self.ui, 'sb_probe{0:s}_poly_prec'.format(probe))
+        sb_poly_prec.setValue(4)
+
+        sb_data_prec = getattr(
+            self.ui, 'sb_probe{0:s}_data_prec'.format(probe))
+        sb_data_prec.setValue(4)
+        
+        tbl_poly = getattr(
+            self.ui, 'tbl_probe{0:s}_poly'.format(probe))
+        tbl_poly.clearContents()
+        tbl_poly.setRowCount(0)
+
+        tbl_data = getattr(
+            self.ui, 'tbl_probe{0:s}_data'.format(probe))
+        tbl_data.clearContents()
+        tbl_data.setRowCount(0)
+        
     def configure_graph(self, symbol=False):
         """Configure data plots."""
         self.ui.pw_plot.clear()
@@ -156,119 +188,146 @@ class ViewProbeDialog(_QDialog):
 
     def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.pbt_showtable.clicked.connect(self.show_table)
         self.ui.pbt_updategraph.clicked.connect(self.update_graph)
         self.ui.sbd_voltage.valueChanged.connect(self.update_field)
+        self.ui.sb_field_prec.valueChanged.connect(self.update_field)
+        self.ui.tbt_field_copy.clicked.connect(self.copy_field)
+        
+        probes = ['x', 'y', 'z']
+        for probe in probes:
+            sb_poly_prec = getattr(
+                self.ui, 'sb_probe{0:s}_poly_prec'.format(probe))
+            sb_poly_prec.valueChanged.connect(
+                lambda: self.update_table_poly(probe))
 
-    def load(self):
-        """Load hall probe parameters."""
+            sb_data_prec = getattr(
+                self.ui, 'sb_probe{0:s}_data_prec'.format(probe))
+            sb_data_prec.valueChanged.connect(
+                lambda: self.update_table_data(probe))
+
+            tbt_poly_copy = getattr(
+                self.ui, 'tbt_probe{0:s}_poly_copy'.format(probe))
+            tbt_poly_copy.clicked.connect(
+                lambda: self.copy_table_poly(probe))            
+
+            tbt_data_copy = getattr(
+                self.ui, 'tbt_probe{0:s}_data_copy'.format(probe))
+            tbt_data_copy.clicked.connect(
+                lambda: self.copy_table_data(probe))      
+
+    def copy_field(self):
         try:
-            self.ui.le_probe_name.setText(self.local_hall_probe.probe_name)
-            self.ui.le_rod_shape.setText(self.local_hall_probe.rod_shape)
+            voltage = str(self.ui.sbd_voltage.getValue())
+            fieldx = self.ui.le_fieldx.text()
+            fieldy = self.ui.le_fieldy.text()
+            fieldz = self.ui.le_fieldz.text()
 
-            if self.local_hall_probe.sensorx_name is not None:
-                sensorx_name = self.local_hall_probe.sensorx_name
-                sensorx_position = _json.dumps(
-                    self.local_hall_probe.sensorx_position.tolist())
-                sensorx_direction = _json.dumps(
-                    self.local_hall_probe.sensorx_direction.tolist())
-            else:
-                sensorx_name = ''
-                sensorx_position = ''
-                sensorx_direction = ''
+            text = voltage + "\n"
+            text += fieldx + "\n"
+            text += fieldy + "\n"
+            text += fieldz
+            self.clip.setText(text)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)  
 
-            if self.local_hall_probe.sensory_name is not None:
-                sensory_name = self.local_hall_probe.sensory_name
-                sensory_position = _json.dumps(
-                    self.local_hall_probe.sensory_position.tolist())
-                sensory_direction = _json.dumps(
-                    self.local_hall_probe.sensory_direction.tolist())
-            else:
-                sensory_name = ''
-                sensory_position = ''
-                sensory_direction = ''
+    def copy_table(self, table):
+        try:
+            text = ""
+            for r in range(table.rowCount()):
+                for c in range(table.columnCount()):
+                    text += str(table.item(r, c).text()) + "\t"
+                text = text[:-1] + "\n"
+            self.clip.setText(text)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)        
 
-            if self.local_hall_probe.sensorz_name is not None:
-                sensorz_name = self.local_hall_probe.sensorz_name
-                sensorz_position = _json.dumps(
-                    self.local_hall_probe.sensorz_position.tolist())
-                sensorz_direction = _json.dumps(
-                    self.local_hall_probe.sensorz_direction.tolist())
-            else:
-                sensorz_name = ''
-                sensorz_position = ''
-                sensorz_direction = ''
-
-            self.ui.le_sensorx_name.setText(sensorx_name)
-            self.ui.le_sensorx_position.setText(sensorx_position)
-            self.ui.le_sensorx_direction.setText(sensorx_direction)
-
-            self.ui.le_sensory_name.setText(sensory_name)
-            self.ui.le_sensory_position.setText(sensory_position)
-            self.ui.le_sensory_direction.setText(sensory_direction)
-
-            self.ui.le_sensorz_name.setText(sensorz_name)
-            self.ui.le_sensorz_position.setText(sensorz_position)
-            self.ui.le_sensorz_direction.setText(sensorz_direction)
-
-            self.set_data_enabled(True)
-            self.update_graph()
-            self.ui.le_fieldx.setText('')
-            self.ui.le_fieldy.setText('')
-            self.ui.le_fieldz.setText('')
-
+    def copy_table_poly(self, probe):
+        try:
+            table = getattr(self.ui, 'tbl_probe{0:s}_poly'.format(probe))
+            self.copy_table(table)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            self.set_data_enabled(False)
-            self.update_graph()
-            msg = 'Failed to load hall probe data.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
+            
+    def copy_table_data(self, probe):
+        try:
+            table = getattr(self.ui, 'tbl_probe{0:s}_data'.format(probe))
+            self.copy_table(table)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
-    def set_data_enabled(self, enabled):
-        """Enable or disable controls."""
-        self.ui.gb_probedata.setEnabled(enabled)
-        self.ui.pbt_showtable.setEnabled(enabled)
-        self.ui.gb_plotoptions.setEnabled(enabled)
-        self.ui.pbt_updategraph.setEnabled(enabled)
-        self.ui.gb_getfield.setEnabled(enabled)
+    def load_probe(self, probe):
+        """Load hall probe parameters."""
+        try:
+            cal = getattr(self, 'calibration{0:s}'.format(probe))
+                      
+            le_name = getattr(
+                self.ui, 'le_probe{0:s}_name'.format(probe))
+            le_name.setText(cal.calibration_name)
+    
+            le_magnet = getattr(
+                self.ui, 'le_probe{0:s}_magnet'.format(probe))
+            le_magnet.setText(cal.calibration_magnet)
+            
+            le_function = getattr(
+                self.ui, 'le_probe{0:s}_function'.format(probe))
+            le_function.setText(cal.function_type)
+            
+            sb_poly_prec = getattr(
+                self.ui, 'sb_probe{0:s}_poly_prec'.format(probe))
+            poly_prec = sb_poly_prec.value()
+            poly_format = '{0:0.%ig}' % poly_prec
+            
+            le_vmin = getattr(
+                self.ui, 'le_probe{0:s}_vmin'.format(probe))
+            if cal.voltage_min is not None:
+                le_vmin.setText(poly_format.format(cal.voltage_min))
+            else:
+                le_vmin.setText('')
+    
+            le_vmax = getattr(
+                self.ui, 'le_probe{0:s}_vmax'.format(probe))
+            if cal.voltage_max is not None:
+                le_vmax.setText(poly_format.format(cal.voltage_max))
+            else:
+                le_vmax.setText('')
+            
+            self.update_table_poly(probe)
+            self.update_table_data(probe)
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
-    def show(self, hall_probe):
+    def show(self, calibrationx_name, calibrationy_name, calibrationz_name):
         """Show dialog."""
-        self.local_hall_probe = hall_probe
-        self.load()
-        super().show()
+        try:
+            self.clear()
 
-    def show_table(self):
-        """Show probe data table."""
-        if self.local_hall_probe is None:
-            return
-
-        if self.local_hall_probe.sensorx is not None:
-            function_type_x = self.local_hall_probe.sensorx.function_type
-        else:
-            function_type_x = None
-
-        if self.local_hall_probe.sensory is not None:
-            function_type_y = self.local_hall_probe.sensory.function_type
-        else:
-            function_type_y = None
-
-        if self.local_hall_probe.sensorz is not None:
-            function_type_z = self.local_hall_probe.sensorz.function_type
-        else:
-            function_type_z = None
-
-        func_type = [function_type_x, function_type_y, function_type_z]
-
-        if all([f == 'interpolation' for f in func_type if f is not None]):
-            self.polynomial_dialog.accept()
-            self.interpolation_dialog.show(self.local_hall_probe)
-        elif all([f == 'polynomial' for f in func_type if f is not None]):
-            self.interpolation_dialog.accept()
-            self.polynomial_dialog.show(self.local_hall_probe)
-        else:
-            return
+            self.calibrationx.db_update_database(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            
+            self.calibrationy.db_update_database(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            
+            self.calibrationz.db_update_database(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            
+            self.calibrationx.update_calibration(calibrationx_name)
+            self.calibrationy.update_calibration(calibrationy_name)
+            self.calibrationz.update_calibration(calibrationz_name)
+            
+            self.update_graph()
+            self.load_probe('x')
+            self.load_probe('y')
+            self.load_probe('z')            
+            super().show()
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show hall probe dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
     def update_field(self):
         """Convert voltage to magnetic field."""
@@ -276,40 +335,28 @@ class ViewProbeDialog(_QDialog):
         self.ui.le_fieldy.setText('')
         self.ui.le_fieldz.setText('')
 
-        if self.local_hall_probe is None:
-            return
-
         try:
             volt = [self.ui.sbd_voltage.value()]
+            prec = self.ui.sb_field_prec.value()
+            self.ui.sbd_voltage.setDecimals(prec)
+            format_str = '{0:0.%ig}' % prec
 
-            if self.local_hall_probe.sensorx is not None:
-                fieldx = self.local_hall_probe.sensorx.get_field(volt)[0]
-            else:
-                fieldx = _np.nan
+            if self.calibrationx is not None:
+                fieldx = self.calibrationx.get_field(volt)[0]
+                self.ui.le_fieldx.setText(format_str.format(fieldx))
 
-            if self.local_hall_probe.sensory is not None:
-                fieldy = self.local_hall_probe.sensory.get_field(volt)[0]
-            else:
-                fieldy = _np.nan
+            if self.calibrationy is not None:
+                fieldy = self.calibrationy.get_field(volt)[0]
+                self.ui.le_fieldy.setText(format_str.format(fieldy))
 
-            if self.local_hall_probe.sensorz is not None:
-                fieldz = self.local_hall_probe.sensorz.get_field(volt)[0]
-            else:
-                fieldz = _np.nan
-
-            if not _np.isnan(fieldx):
-                self.ui.le_fieldx.setText('{0:0.4f}'.format(fieldx))
-
-            if not _np.isnan(fieldy):
-                self.ui.le_fieldy.setText('{0:0.4f}'.format(fieldy))
-
-            if not _np.isnan(fieldz):
-                self.ui.le_fieldz.setText('{0:0.4f}'.format(fieldz))
+            if self.calibrationz is not None:
+                fieldz = self.calibrationz.get_field(volt)[0]
+                self.ui.le_fieldz.setText(format_str.format(fieldz))
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to update magnetic field values.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
 
     def update_graph(self):
         """Update data plots."""
@@ -325,21 +372,18 @@ class ViewProbeDialog(_QDialog):
             self.legend.removeItem('Y')
             self.legend.removeItem('Z')
 
-            if self.local_hall_probe is None or len(voltage) == 0:
-                return
-
-            if self.local_hall_probe.sensorx is not None:
-                fieldx = self.local_hall_probe.sensorx.get_field(voltage)
+            if self.calibrationx is not None:
+                fieldx = self.calibrationx.get_field(voltage)
             else:
                 fieldx = empty_data
 
-            if self.local_hall_probe.sensory is not None:
-                fieldy = self.local_hall_probe.sensory.get_field(voltage)
+            if self.calibrationy is not None:
+                fieldy = self.calibrationy.get_field(voltage)
             else:
                 fieldy = empty_data
 
-            if self.local_hall_probe.sensorz is not None:
-                fieldz = self.local_hall_probe.sensorz.get_field(voltage)
+            if self.calibrationz is not None:
+                fieldz = self.calibrationz.get_field(voltage)
             else:
                 fieldz = empty_data
 
@@ -365,4 +409,67 @@ class ViewProbeDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to update plot.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+    
+    def update_table_poly(self, probe):
+        cal = getattr(self, 'calibration{0:s}'.format(probe))
+        
+        table = getattr(self.ui, 'tbl_probe{0:s}_poly'.format(probe))
+        table.setRowCount(0)
+        
+        sb_prec = getattr(
+            self.ui, 'sb_probe{0:s}_poly_prec'.format(probe))
+        format_str = '{0:0.%ig}' % sb_prec.value()
+
+        if len(cal.polynomial_coeffs) == 0:
             return
+
+        nr = len(cal.polynomial_coeffs)
+        table.setRowCount(nr)
+        
+        labels = []
+        for j in range(nr):
+            labels.append('C' + str(j))
+        table.setVerticalHeaderLabels(labels)
+
+        for i in range(nr):
+            table.setItem(i, 0, _QTableWidgetItem(
+                format_str.format(cal.polynomial_coeffs[i])))
+
+    def update_table_data(self, probe):
+        cal = getattr(self, 'calibration{0:s}'.format(probe))
+        
+        table = getattr(self.ui, 'tbl_probe{0:s}_data'.format(probe))
+        table.setRowCount(0)
+        
+        sb_prec = getattr(
+            self.ui, 'sb_probe{0:s}_data_prec'.format(probe))
+        format_str = '{0:0.%ig}' % sb_prec.value()
+
+        if len(cal.voltage) == 0 or len(cal.magnetic_field) == 0:
+            return
+
+        nc = 2
+        labels = ['Voltage [V]', 'Magnetic Field [T]']
+        data = [cal.voltage, cal.magnetic_field]
+        
+        if len(cal.probe_temperature) != 0:
+            nc = nc + 1
+            labels.append('Probe Temperature [C]')
+            data.append(cal.probe_temperature)
+
+        if len(cal.electronic_box_temperature) != 0:
+            nc = nc + 1
+            labels.append('Electronic Box Temperature [C]')
+            data.append(cal.electronic_box_temperature)
+
+        data = _np.array(data)
+
+        nr = len(cal.voltage)
+        table.setRowCount(nr)
+        table.setColumnCount(nc)
+        table.setHorizontalHeaderLabels(labels)
+        
+        for i in range(nr):
+            for j in range(nc):
+                table.setItem(i, j, _QTableWidgetItem(
+                    format_str.format(data[i, j])))

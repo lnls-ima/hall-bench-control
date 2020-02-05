@@ -200,7 +200,8 @@ class MeasurementWidget(_QWidget):
         self.calibrationy_valid = False
         self.calibrationz_valid = False
         self.clear_graph()
-        self.ui.tbt_view_scan.setEnabled(False)
+        self.ui.tbt_view_voltage_scan.setEnabled(False)
+        self.ui.tbt_view_field_scan.setEnabled(False)
         self.ui.tbt_clear_graph.setEnabled(False)
         self.ui.tbt_create_fieldmap.setEnabled(False)
         self.ui.tbt_save_scan_files.setEnabled(False)
@@ -209,7 +210,8 @@ class MeasurementWidget(_QWidget):
         """Clear current measurement and plots."""
         self.clear_measurement()
         self.clear_graph()
-        self.ui.tbt_view_scan.setEnabled(False)
+        self.ui.tbt_view_voltage_scan.setEnabled(False)
+        self.ui.tbt_view_field_scan.setEnabled(False)
         self.ui.tbt_clear_graph.setEnabled(False)
         self.ui.tbt_create_fieldmap.setEnabled(False)
         self.ui.tbt_save_scan_files.setEnabled(False)
@@ -318,10 +320,16 @@ class MeasurementWidget(_QWidget):
                 channels = channels + _multich.temperature_channels
 
             if len(channels) == 0:
-                return True
+                if self.stop:
+                    return False
+                else:
+                    return True   
 
             _multich.configure(channel_list=channels)
-            return True
+            if self.stop:
+                return False
+            else:
+                return True   
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -339,7 +347,7 @@ class MeasurementWidget(_QWidget):
             msg = 'Multimeter X not connected.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
-
+        
         if (self.measurement_config.volty_enable
                 and not _volty.connected):
             msg = 'Multimeter Y not connected.'
@@ -353,19 +361,26 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
-            if self.measurement_config.voltx_enable:
+            if self.measurement_config.voltx_enable and not self.stop:
                 _voltx.configure(
                     self.measurement_config.integration_time,
                     self.measurement_config.voltage_range)
-            if self.measurement_config.volty_enable:
+                _QApplication.processEvents()
+            if self.measurement_config.volty_enable and not self.stop:
                 _volty.configure(
                     self.measurement_config.integration_time,
                     self.measurement_config.voltage_range)
-            if self.measurement_config.voltz_enable:
+                _QApplication.processEvents()
+            if self.measurement_config.voltz_enable and not self.stop:
                 _voltz.configure(
                     self.measurement_config.integration_time,
                     self.measurement_config.voltage_range)
-            return True
+                _QApplication.processEvents()
+            
+            if self.stop:
+                return False
+            else:
+                return True   
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -390,7 +405,12 @@ class MeasurementWidget(_QWidget):
                 3, self.measurement_config.vel_ax3)
             _pmac.set_velocity(
                 5, self.measurement_config.vel_ax5)
-            return True
+            
+            if self.stop:
+                return False
+            else:
+                return True   
+            
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to configure pmac.'
@@ -593,7 +613,10 @@ class MeasurementWidget(_QWidget):
         self.ui.pbt_stop.clicked.connect(self.stop_measurement)
         self.ui.tbt_create_fieldmap.clicked.connect(self.show_fieldmap_dialog)
         self.ui.tbt_save_scan_files.clicked.connect(self.save_field_scan_files)
-        self.ui.tbt_view_scan.clicked.connect(self.show_view_scan_dialog)
+        self.ui.tbt_view_voltage_scan.clicked.connect(
+            self.show_view_voltage_scan_dialog)
+        self.ui.tbt_view_field_scan.clicked.connect(
+            self.show_view_field_scan_dialog)
         self.ui.tbt_clear_graph.clicked.connect(self.clear_button_clicked)
 
     def copy_current_start_position(self):
@@ -663,7 +686,8 @@ class MeasurementWidget(_QWidget):
         self.ui.pbt_measure.setEnabled(True)
         self.ui.tbt_create_fieldmap.setEnabled(True)
         self.ui.tbt_save_scan_files.setEnabled(False)
-        self.ui.tbt_view_scan.setEnabled(False)
+        self.ui.tbt_view_voltage_scan.setEnabled(False)
+        self.ui.tbt_view_field_scan.setEnabled(False)
         self.ui.tbt_clear_graph.setEnabled(True)
         self.turn_off_power_supply_current.emit(True)
 
@@ -791,9 +815,15 @@ class MeasurementWidget(_QWidget):
             voltage_offset = self.temp_measurement_config.voltage_offset
             if voltage_offset.lower() == 'ignore':
                 self.ui.rbt_ignore_offsets.setChecked(True)
+                self.ui.rbt_configure_offsets.setChecked(False)
+                self.ui.rbt_measure_offsets.setChecked(False)
             elif voltage_offset.lower() == 'configure':
+                self.ui.rbt_ignore_offsets.setChecked(False)
                 self.ui.rbt_configure_offsets.setChecked(True)
+                self.ui.rbt_measure_offsets.setChecked(False)
             elif voltage_offset.lower() == 'measure':
+                self.ui.rbt_ignore_offsets.setChecked(False)
+                self.ui.rbt_configure_offsets.setChecked(False)
                 self.ui.rbt_measure_offsets.setChecked(True)
 
             self.ui.le_offsetx.setText(str(
@@ -886,6 +916,9 @@ class MeasurementWidget(_QWidget):
 
     def load_hall_probe_data(self):
         """update hall probe from database."""
+        self.ui.pbt_measure.setEnabled(False)
+        self.ui.pbt_stop.setEnabled(True)
+        
         self.calibrationx.clear()
         self.calibrationy.clear()
         self.calibrationz.clear()
@@ -920,9 +953,12 @@ class MeasurementWidget(_QWidget):
                     return True
                 else:
                     return False
-            
-            return True
-                
+                        
+            if self.stop:
+                return False
+            else:
+                return True                
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to load Hall probe data from database.'
@@ -1309,43 +1345,13 @@ class MeasurementWidget(_QWidget):
         if not to_pos:
             self.voltage_scan.reverse()
 
-        if self.measurement_config.voltage_offset == 'measure':
-            offset_range = self.measurement_config.offset_range
-            scan_pos = self.voltage_scan.scan_pos
-            if scan_pos[-1] - scan_pos[0] <= offset_range:
-                self.voltage_scan.offsetx_start = self.voltage_scan.vx[0]
-                self.voltage_scan.offsetx_end = self.voltage_scan.vx[-1]
-                self.voltage_scan.offsety_start = self.voltage_scan.vy[0]
-                self.voltage_scan.offsety_end = self.voltage_scan.vy[-1]
-                self.voltage_scan.offsetz_start = self.voltage_scan.vz[0]
-                self.voltage_scan.offsetz_end = self.voltage_scan.vz[-1]
-            else:
-                idx_start = _np.where(_np.cumsum(_np.diff(
-                    scan_pos)) >= offset_range)[0][0] + 1
-                idx_end = len(scan_pos) - idx_start
-                self.voltage_scan.offsetx_start = _np.mean(
-                    self.voltage_scan.vx[:idx_start])
-                self.voltage_scan.offsetx_end = _np.mean(
-                    self.voltage_scan.vx[idx_end:])
-                self.voltage_scan.offsety_start = _np.mean(
-                    self.voltage_scan.vy[:idx_start])
-                self.voltage_scan.offsety_end = _np.mean(
-                    self.voltage_scan.vy[idx_end:])
-                self.voltage_scan.offsetz_start = _np.mean(
-                    self.voltage_scan.vz[:idx_start])
-                self.voltage_scan.offsetz_end = _np.mean(
-                    self.voltage_scan.vz[idx_end:])
-        
-        elif self.measurement_config.voltage_offset == 'configure':
-                offsetx = self.measurement_config.offsetx
-                offsety = self.measurement_config.offsety
-                offsetz = self.measurement_config.offsetz
-                self.voltage_scan.offsetx_start = offsetx
-                self.voltage_scan.offsetx_end = offsetx
-                self.voltage_scan.offsety_start = offsety
-                self.voltage_scan.offsety_end = offsety
-                self.voltage_scan.offsetz_start = offsetz
-                self.voltage_scan.offsetz_end = offsetz
+        self.voltage_scan = _data.measurement.configure_voltage_offset(
+            self.voltage_scan,
+            self.measurement_config.voltage_offset,
+            self.measurement_config.offsetx,
+            self.measurement_config.offsety,
+            self.measurement_config.offsetz,
+            self.measurement_config.offset_range)
 
         if self.stop is True:
             return False
@@ -1612,37 +1618,44 @@ class MeasurementWidget(_QWidget):
     def show_view_probe_dialog(self):
         """Open view probe dialog."""
         try:
-            self.view_probe_dialog.show(
-                self.calibrationx, self.calibrationy, self.calibrationz)
+            calx_name = self.temp_measurement_config.calibrationx
+            caly_name = self.temp_measurement_config.calibrationy
+            calz_name = self.temp_measurement_config.calibrationz
+            self.view_probe_dialog.show(calx_name, caly_name, calz_name)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def show_view_scan_dialog(self):
+    def show_view_voltage_scan_dialog(self):
         """Open view data dialog."""
         try:
-            if self.local_hall_probe is None:
-                voltage_scan_list = []
-                for idn in self.voltage_scan_id_list:
-                    vs = _data.measurement.VoltageScan(
-                        database_name=self.database_name,
-                        mongo=self.mongo, server=self.server)
-                    vs.db_read(idn)
-                    voltage_scan_list.append(vs)
+            voltage_scan_list = []
+            vs = _data.measurement.VoltageScan(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            for idn in self.voltage_scan_id_list:
+                vs.db_read(idn)
+                voltage_scan_list.append(vs.copy())
 
-                self.view_scan_dialog.show(
-                    voltage_scan_list,
-                    self.voltage_scan_id_list,
-                    'Voltage [V]')
-            else:
-                field_scan_list = []
-                for idn in self.field_scan_id_list:
-                    fs = _FieldScan(database=self.database, idn=idn)
-                    field_scan_list.append(fs)
+            self.view_scan_dialog.show(
+                voltage_scan_list, 'voltage')
 
-                self.view_scan_dialog.show(
-                    field_scan_list,
-                    self.field_scan_id_list,
-                    'Magnetic Field [T]')
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
+    def show_view_field_scan_dialog(self):
+        """Open view data dialog."""
+        try:
+            field_scan_list = []
+            fs = _data.measurement.FieldScan(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            for idn in self.field_scan_id_list:
+                fs.db_read(idn)
+                field_scan_list.append(fs.copy())
+
+            self.view_scan_dialog.show(
+                field_scan_list, 'field')
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -1679,7 +1692,8 @@ class MeasurementWidget(_QWidget):
         self.ui.pbt_stop.setEnabled(False)
         self.ui.pbt_measure.setEnabled(True)
         self.ui.tbt_save_scan_files.setEnabled(True)
-        self.ui.tbt_view_scan.setEnabled(True)
+        self.ui.tbt_view_voltage_scan.setEnabled(True)
+        self.ui.tbt_view_field_scan.setEnabled(True)
         self.ui.tbt_clear_graph.setEnabled(True)
         self.ui.tbt_create_fieldmap.setEnabled(True)
 
@@ -1752,13 +1766,13 @@ class MeasurementWidget(_QWidget):
             self.temp_measurement_config.comments = _s
 
             _voltx_enable = self.ui.chb_voltx_enable.isChecked()
-            self.temp_measurement_config.voltx_enable = _voltx_enable
+            self.temp_measurement_config.voltx_enable = int(_voltx_enable)
 
             _volty_enable = self.ui.chb_volty_enable.isChecked()
-            self.temp_measurement_config.volty_enable = _volty_enable
+            self.temp_measurement_config.volty_enable = int(_volty_enable)
 
             _voltz_enable = self.ui.chb_voltz_enable.isChecked()
-            self.temp_measurement_config.voltz_enable = _voltz_enable
+            self.temp_measurement_config.voltz_enable = int(_voltz_enable)
 
             voltage_format = self.ui.cmb_voltage_format.currentText().lower()
             if voltage_format == 'single':
@@ -1778,7 +1792,7 @@ class MeasurementWidget(_QWidget):
             self.temp_measurement_config.voltage_range = voltage_range
 
             if self.ui.rbt_ignore_offsets.isChecked():
-                self.temp_measurement_config.voltage_offset = 'offset'
+                self.temp_measurement_config.voltage_offset = 'ignore'
 
             elif self.ui.rbt_configure_offsets.isChecked():
                 self.temp_measurement_config.voltage_offset = 'configure'
@@ -1814,6 +1828,18 @@ class MeasurementWidget(_QWidget):
                 self.temp_measurement_config.nr_measurements = 1
             else:
                 self.temp_measurement_config.automatic_ramp = 0
+
+            calx = self.ui.cmb_calibrationx.currentText()
+            calx_val = None if len(calx) == 0 else calx
+            self.temp_measurement_config.calibrationx = calx_val
+
+            caly = self.ui.cmb_calibrationy.currentText()
+            caly_val = None if len(caly) == 0 else caly
+            self.temp_measurement_config.calibrationy = caly_val
+
+            calz = self.ui.cmb_calibrationz.currentText()
+            calz_val = None if len(calz) == 0 else calz
+            self.temp_measurement_config.calibrationz = calz_val
 
             for axis in self._measurement_axes:
                 rbt_first = getattr(self.ui, 'rbt_first_ax' + str(axis))
@@ -1879,7 +1905,11 @@ class MeasurementWidget(_QWidget):
                     return False
 
                 self.measurement_config = self.temp_measurement_config.copy()
-                return True
+                
+                if self.stop:
+                    return False
+                else:
+                    return True   
 
             else:
                 self.measurement_config = None

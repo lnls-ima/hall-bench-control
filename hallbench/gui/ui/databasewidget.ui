@@ -322,7 +322,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>../../resources/img/search.svg</normaloff>../../resources/img/search.svg</iconset>
+             <normaloff>../../resources/img/alpha_v.svg</normaloff>../../resources/img/alpha_v.svg</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -397,7 +397,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>../../resources/img/search.svg</normaloff>../../resources/img/search.svg</iconset>
+             <normaloff>../../resources/img/alpha_b.svg</normaloff>../../resources/img/alpha_b.svg</iconset>
            </property>
            <property name="iconSize">
             <size>

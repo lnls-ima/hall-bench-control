@@ -30,6 +30,8 @@ __credits__     = [
     ('map-plus.svg', 'Map Plus Icon (from https://materialdesignicons.com/)'),
     ('table-large.svg', 'Table Icon (from https://materialdesignicons.com/)'),
     ('check.svg', 'Check Icon (from https://materialdesignicons.com/)'),
+    ('alpha_v.svg', 'Alpha V Icon (from https://materialdesignicons.com/)'),
+    ('alpha_b.svg', 'Alpha B Icon (from https://materialdesignicons.com/)'),
     ]
 
 

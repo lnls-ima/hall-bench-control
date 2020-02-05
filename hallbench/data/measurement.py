@@ -378,16 +378,18 @@ class FieldScan(_database.DatabaseAndFileDocument):
             voltage_scan_list = [voltage_scan_list]
 
         _valid_voltage_scan_list(voltage_scan_list)
+        
+        corr_voltage_scan_list = []
         for vs in voltage_scan_list:
-            vs = _correct_voltage_offset(vs)
+            corr_voltage_scan_list.append(_correct_voltage_offset(vs))
 
-        vs = voltage_scan_list[0]
+        vs = corr_voltage_scan_list[0]
         npts = vs.npts
 
         fixed_axes = [a for a in vs.axis_list if a != vs.scan_axis]
         for axis in fixed_axes:
             pos_set = set()
-            for v in voltage_scan_list:
+            for v in corr_voltage_scan_list:
                 pos_attr = getattr(v, 'pos' + str(axis))
                 if len(pos_attr) == 1:
                     pos_value = _np.around(
@@ -404,12 +406,12 @@ class FieldScan(_database.DatabaseAndFileDocument):
                 raise MeasurementDataError(msg)
 
         interp_pos = _np.mean(
-            [v.scan_pos for v in voltage_scan_list], axis=0)
+            [v.scan_pos for v in corr_voltage_scan_list], axis=0)
 
         vx_list = []
         vy_list = []
         vz_list = []
-        for v in voltage_scan_list:
+        for v in corr_voltage_scan_list:
             if len(v.vx) == npts:
                 ft = _interpolate.splrep(v.scan_pos, v.vx, s=0, k=1)
                 vx = _interpolate.splev(interp_pos, ft, der=0)
@@ -470,13 +472,13 @@ class FieldScan(_database.DatabaseAndFileDocument):
             self.bz = _np.zeros(npts)
             self.std_bz = _np.zeros(npts)
 
-        self.nr_voltage_scans = len(voltage_scan_list)
-        self.voltage_scan_id_list = [v.idn for v in voltage_scan_list]
+        self.nr_voltage_scans = len(corr_voltage_scan_list)
+        self.voltage_scan_id_list = [v.idn for v in corr_voltage_scan_list]
 
-        self.temperature = get_temperature_values(voltage_scan_list)
+        self.temperature = get_temperature_values(corr_voltage_scan_list)
 
         setpoint, dcct_avg, dcct_std, ps_avg, ps_std = get_current_values(
-            voltage_scan_list, len(voltage_scan_list))
+            corr_voltage_scan_list, len(corr_voltage_scan_list))
         self.current_setpoint = setpoint
         self.dcct_current_avg = dcct_avg
         self.dcct_current_std = dcct_std
@@ -508,6 +510,8 @@ class Fieldmap(_database.DatabaseAndFileDocument):
         ('field_scan_id_list', {
             'field': 'field_scan_id_list', 'dtype': _np.ndarray}),
         ('probe_positions_id', {'field': 'probe_positions_id', 'dtype': int}),
+        ('corrected_positions', {
+                    'field': 'corrected_positions', 'dtype': int}),
         ('current_setpoint', {'field': 'current_setpoint', 'dtype': float}),
         ('dcct_current_avg', {'field': 'dcct_current_avg', 'dtype': float}),
         ('dcct_current_std', {'field': 'dcct_current_std', 'dtype': float}),
@@ -529,8 +533,6 @@ class Fieldmap(_database.DatabaseAndFileDocument):
         ('magnet_center', {'field': 'magnet_center', 'dtype': _np.ndarray}),
         ('magnet_x_axis', {'field': 'magnet_x_axis', 'dtype': int}),
         ('magnet_y_axis', {'field': 'magnet_y_axis', 'dtype': int}),
-        ('corrected_positions', {
-            'field': 'corrected_positions', 'dtype': int}),
         ('map', {'field': 'map', 'dtype': _np.ndarray}),
         ('temperature', {'field': 'temperature', 'dtype': dict}),
     ])
@@ -828,12 +830,51 @@ def get_field_scan_list(voltage_scan_list, calx, caly, calz):
     for lt in grouped_voltage_scan_list:
         field_scan = FieldScan()
         field_scan.set_field_scan(lt, calx, caly, calz)
-        field_scan.configuration_id = lt[0].configuration_id
-        field_scan.magnet_name = lt[0].magnet_name
-        field_scan.current_setpoint = lt[0].current_setpoint
-        field_scan.comments = lt[0].comments
         field_scan_list.append(field_scan)
     return field_scan_list
+
+
+def configure_voltage_offset(
+        voltage_scan, voltage_offset,
+        offsetx, offsety, offsetz, offset_range):
+    """Configure offset values of voltage scan."""
+    if voltage_offset == 'measure':
+        scan_pos = voltage_scan.scan_pos
+        if scan_pos[-1] - scan_pos[0] <= offset_range:  
+            voltage_scan.offsetx_start = voltage_scan.vx[0]
+            voltage_scan.offsetx_end = voltage_scan.vx[-1]
+            voltage_scan.offsety_start = voltage_scan.vy[0]
+            voltage_scan.offsety_end = voltage_scan.vy[-1]
+            voltage_scan.offsetz_start = voltage_scan.vz[0]
+            voltage_scan.offsetz_end = voltage_scan.vz[-1]
+        else:
+            idx_start = _np.where(_np.cumsum(_np.diff(
+                scan_pos)) >= offset_range)[0][0] + 1
+            idx_end = len(scan_pos) - idx_start
+            voltage_scan.offsetx_start = _np.mean(voltage_scan.vx[:idx_start])
+            voltage_scan.offsetx_end = _np.mean(voltage_scan.vx[idx_end:])
+            voltage_scan.offsety_start = _np.mean(voltage_scan.vy[:idx_start])
+            voltage_scan.offsety_end = _np.mean(voltage_scan.vy[idx_end:])
+            voltage_scan.offsetz_start = _np.mean(voltage_scan.vz[:idx_start])
+            voltage_scan.offsetz_end = _np.mean(voltage_scan.vz[idx_end:])
+
+    elif voltage_offset == 'configure':
+        voltage_scan.offsetx_start = offsetx
+        voltage_scan.offsetx_end = offsetx
+        voltage_scan.offsety_start = offsety
+        voltage_scan.offsety_end = offsety
+        voltage_scan.offsetz_start = offsetz
+        voltage_scan.offsetz_end = offsetz
+    
+    else:
+        voltage_scan.offsetx_start = None
+        voltage_scan.offsetx_end = None
+        voltage_scan.offsety_start = None
+        voltage_scan.offsety_end = None
+        voltage_scan.offsetz_start = None
+        voltage_scan.offsetz_end = None
+    
+    return voltage_scan
 
 
 def _change_coordinate_system(vector, transf_matrix, center=[0, 0, 0]):
@@ -1214,15 +1255,15 @@ def _group_voltage_scan_list(voltage_scan_list):
         grouped_voltage_scan_list = [voltage_scan_list]
 
     for lt in grouped_voltage_scan_list:
-        configuration_id = lt[0].configuration_id
-        if not all([vs.configuration_id == configuration_id for vs in lt]):
-            raise MeasurementDataError(
-                'Inconsistent configuration ID found in voltage scan list.')
-
         magnet_name = lt[0].magnet_name
         if not all([vs.magnet_name == magnet_name for vs in lt]):
             raise MeasurementDataError(
                 'Inconsistent magnet name found in voltage scan list.')
+
+        configuration_id = lt[0].configuration_id
+        if not all([vs.configuration_id == configuration_id for vs in lt]):
+            raise MeasurementDataError(
+                'Inconsistent configuration ID found in voltage scan list.')
 
         current_setpoint_set = set()
         for l in lt:

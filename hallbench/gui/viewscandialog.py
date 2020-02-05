@@ -40,7 +40,7 @@ class ViewScanDialog(_QDialog):
         uifile = _utils.get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.plot_label = ''
+        self.scan_type = None
         self.scan_list = []
         self.graphx = []
         self.graphy = []
@@ -63,6 +63,7 @@ class ViewScanDialog(_QDialog):
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
         self.legend.setParentItem(self.ui.pw_graph.graphicsItem())
         self.legend.setAutoFillBackground(1)
+        self.legend_items = []
 
         # Add combo boxes
         self.cmb_select_scan = _CheckableComboBox()
@@ -96,7 +97,7 @@ class ViewScanDialog(_QDialog):
             if selected_idx is None or selected_comp is None:
                 return
 
-            x, y = self.getXY(selected_idx, selected_comp)
+            x, y = self.get_x_y(selected_idx, selected_comp)
 
             func = self.ui.cmb_fitfunction.currentText()
             if func.lower() == 'linear':
@@ -136,58 +137,64 @@ class ViewScanDialog(_QDialog):
             if selected_idx is None:
                 return
 
-            unit = self.scan_dict[selected_idx]['unit']
-            if len(unit) > 0:
-                first_integral_unit = ' [' + unit + '.mm' + ']'
-                second_integral_unit = ' [' + unit + '.mm²' + ']'
-            else:
-                first_integral_unit = ''
-                second_integral_unit = ''
-            self.ui.la_first_integral.setText(
-                'First Integral{0:s}:'.format(first_integral_unit))
-            self.ui.la_second_integral.setText(
-                'Second Integral{0:s}:'.format(second_integral_unit))
-
-            x, y = self.getXY(selected_idx, 'x')
+            x, y = self.get_x_y(selected_idx, 'x')
             if x is None or y is None or len(y) == 0:
                 self.clear_integrals()
                 return
 
+            if self.scan_type == 'field':
+                if self.ui.cmb_first_integral_unit.currentIndex() == 1:
+                    fmult = 1e3
+                else:
+                    fmult = 1e-3
+
+                if self.ui.cmb_second_integral_unit.currentIndex() == 1:
+                    smult = 1e-2
+                else:
+                    smult = 1e-6
+
+            else:
+                fmult = 1e-3
+                smult = 1e-6
+                
             first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
             second_integral = _integrate.cumtrapz(
                 x=x, y=first_integral, initial=0)
 
-            self.ui.le_first_integral_x.setText(
-                '{0:.6g}'.format(first_integral[-1]))
-            self.ui.le_second_integral_x.setText(
-                '{0:.6g}'.format(second_integral[-1]))
+            fint = first_integral[-1]*fmult
+            sint = second_integral[-1]*smult
 
-            x, y = self.getXY(selected_idx, 'y')
+            self.ui.le_first_integral_x.setText('{0:.6g}'.format(fint))
+            self.ui.le_second_integral_x.setText('{0:.6g}'.format(sint))
+
+            x, y = self.get_x_y(selected_idx, 'y')
             first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
             second_integral = _integrate.cumtrapz(
                 x=x, y=first_integral, initial=0)
 
-            self.ui.le_first_integral_y.setText(
-                '{0:.6g}'.format(first_integral[-1]))
-            self.ui.le_second_integral_y.setText(
-                '{0:.6g}'.format(second_integral[-1]))
+            fint = first_integral[-1]*fmult
+            sint = second_integral[-1]*smult
 
-            x, y = self.getXY(selected_idx, 'z')
+            self.ui.le_first_integral_y.setText('{0:.6g}'.format(fint))
+            self.ui.le_second_integral_y.setText('{0:.6g}'.format(sint))
+
+            x, y = self.get_x_y(selected_idx, 'z')
             first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
             second_integral = _integrate.cumtrapz(
                 x=x, y=first_integral, initial=0)
 
-            self.ui.le_first_integral_z.setText(
-                '{0:.6g}'.format(first_integral[-1]))
-            self.ui.le_second_integral_z.setText(
-                '{0:.6g}'.format(second_integral[-1]))
+            fint = first_integral[-1]*fmult
+            sint = second_integral[-1]*smult
+
+            self.ui.le_first_integral_z.setText('{0:.6g}'.format(fint))
+            self.ui.le_second_integral_z.setText('{0:.6g}'.format(sint))
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
     def clear(self):
         """Clear all."""
-        self.plot_label = ''
+        self.scan_type = None
         self.scan_list = []
         self.graphx = []
         self.graphy = []
@@ -216,11 +223,12 @@ class ViewScanDialog(_QDialog):
         self.ui.le_second_integral_x.setText('')
         self.ui.le_second_integral_y.setText('')
         self.ui.le_second_integral_z.setText('')
-        self.ui.la_first_integral.setText('First Integral:')
-        self.ui.la_second_integral.setText('Second Integral:')
 
     def clear_graph(self):
         """Clear plots."""
+        for item in self.legend_items:
+            self.legend.removeItem(item)
+        self.legend_items = []
         self.ui.pw_graph.plotItem.curves.clear()
         self.ui.pw_graph.clear()
         self.graphx = []
@@ -235,46 +243,80 @@ class ViewScanDialog(_QDialog):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def configure_graph(self, nr_curves, plot_label):
+    def configure_graph(self, nr_curves, idn_list=None):
         """Configure graph.
 
         Args:
             nr_curves (int): number of curves to plot.
         """
-        self.graphx = []
-        self.graphy = []
-        self.graphz = []
-        self.legend.removeItem('X')
-        self.legend.removeItem('Y')
-        self.legend.removeItem('Z')
+        self.clear_graph()
 
         if nr_curves == 0:
             return
+        
+        colorx = (255, 0, 0)
+        colory = (0, 255, 0)
+        colorz = (0, 0, 255)
 
-        for idx in range(nr_curves):
-            self.graphx.append(
-                self.ui.pw_graph.plotItem.plot(
-                    _np.array([]),
-                    _np.array([]),
-                    pen=(255, 0, 0)))
+        colors = _utils.COLOR_LIST
 
-            self.graphy.append(
-                self.ui.pw_graph.plotItem.plot(
-                    _np.array([]),
-                    _np.array([]),
-                    pen=(0, 255, 0)))
-
-            self.graphz.append(
-                self.ui.pw_graph.plotItem.plot(
-                    _np.array([]),
-                    _np.array([]),
-                    pen=(0, 0, 255)))
-
-        self.legend.addItem(self.graphx[0], 'X')
-        self.legend.addItem(self.graphy[0], 'Y')
-        self.legend.addItem(self.graphz[0], 'Z')
+        if idn_list is not None and len(idn_list) > 0:
+            if nr_curves > len(colors):
+                colors = [(0, 0, 0)]*nr_curves
+            
+            for idx in range(nr_curves):
+                self.graphx.append(
+                    self.ui.pw_graph.plotItem.plot(
+                        _np.array([]),
+                        _np.array([]),
+                        pen=colors[idx]))
+    
+                self.graphy.append(
+                    self.ui.pw_graph.plotItem.plot(
+                        _np.array([]),
+                        _np.array([]),
+                        pen=colors[idx]))
+    
+                self.graphz.append(
+                    self.ui.pw_graph.plotItem.plot(
+                        _np.array([]),
+                        _np.array([]),
+                        pen=colors[idx]))
+    
+                legend_item = 'ID:{0:d}'.format(idn_list[idx])
+                self.legend_items.append(legend_item)
+                self.legend.addItem(self.graphx[idx], legend_item)
+        
+        else:
+            for idx in range(nr_curves):
+                self.graphx.append(
+                    self.ui.pw_graph.plotItem.plot(
+                        _np.array([]),
+                        _np.array([]),
+                        pen=colorx))
+    
+                self.graphy.append(
+                    self.ui.pw_graph.plotItem.plot(
+                        _np.array([]),
+                        _np.array([]),
+                        pen=colory))
+    
+                self.graphz.append(
+                    self.ui.pw_graph.plotItem.plot(
+                        _np.array([]),
+                        _np.array([]),
+                        pen=colorz))
+    
+            self.legend_items = ['X', 'Y', 'Z']
+            self.legend.addItem(self.graphx[0], self.legend_items[0])
+            self.legend.addItem(self.graphy[0], self.legend_items[1])
+            self.legend.addItem(self.graphz[0], self.legend_items[2])
+        
         self.ui.pw_graph.setLabel('bottom', 'Scan Position [mm]')
-        self.ui.pw_graph.setLabel('left', plot_label)
+        if self.scan_type == 'field':
+            self.ui.pw_graph.setLabel('left', 'Field [T]')
+        else:
+            self.ui.pw_graph.setLabel('left', 'Voltage [V]')
         self.ui.pw_graph.showGrid(x=True, y=True)
 
     def connect_signal_slots(self):
@@ -292,6 +334,10 @@ class ViewScanDialog(_QDialog):
         self.ui.sbd_xmax.valueChanged.connect(self.update_xmax)
         self.ui.cmb_fitfunction.currentIndexChanged.connect(
             self.fit_function_changed)
+        self.ui.cmb_first_integral_unit.currentIndexChanged.connect(
+            self.calc_integrals)
+        self.ui.cmb_second_integral_unit.currentIndexChanged.connect(
+            self.calc_integrals)
         self.ui.sb_polyorder.valueChanged.connect(self.poly_order_changed)
         self.ui.pbt_fit.clicked.connect(self.calc_curve_fit)
         self.ui.pbt_resetlim.clicked.connect(self.reset_xlimits)
@@ -377,7 +423,7 @@ class ViewScanDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
             return None, None
 
-    def getXY(self, selected_idx, selected_comp):
+    def get_x_y(self, selected_idx, selected_comp):
         """Get X, Y values."""
         sel = self.scan_dict[selected_idx][selected_comp]
 
@@ -485,7 +531,7 @@ class ViewScanDialog(_QDialog):
         self.blockSignals(False)
         self.update_controls_and_plot()
 
-    def show(self, scan_list, scan_id_list, plot_label=''):
+    def show(self, scan_list, scan_type='field'):
         """Update data and show dialog."""
         try:
             if scan_list is None or len(scan_list) == 0:
@@ -494,8 +540,22 @@ class ViewScanDialog(_QDialog):
                 return
 
             self.scan_list = [d.copy() for d in scan_list]
-            self.scan_id_list = scan_id_list
-            self.plot_label = plot_label
+            self.scan_id_list = [d.idn for d in scan_list]
+            self.scan_type = scan_type
+
+            self.ui.cmb_first_integral_unit.clear()
+            self.ui.cmb_second_integral_unit.clear()
+            if self.scan_type == 'field':
+                self.ui.cmb_first_integral_unit.addItem('T.m')
+                self.ui.cmb_first_integral_unit.addItem('G.cm')
+                self.ui.cmb_first_integral_unit.setCurrentIndex(1)
+                
+                self.ui.cmb_second_integral_unit.addItem('T.m2')
+                self.ui.cmb_second_integral_unit.addItem('G.m2')
+                self.ui.cmb_second_integral_unit.setCurrentIndex(1)
+            else:
+                self.ui.cmb_first_integral_unit.addItem('V.m')          
+                self.ui.cmb_second_integral_unit.addItem('V.m2')
 
             idx = 0
             for i in range(len(self.scan_list)):
@@ -510,24 +570,26 @@ class ViewScanDialog(_QDialog):
                     return
 
                 pos = data.scan_pos
-                if len(data.avgx) == 0:
-                    data.avgx = _np.zeros(len(pos))
-                if len(data.avgy) == 0:
-                    data.avgy = _np.zeros(len(pos))
-                if len(data.avgz) == 0:
-                    data.avgz = _np.zeros(len(pos))
-
+                
+                if self.scan_type == 'field':
+                    x = data.bx if len(data.bx) != 0 else _np.zeros(len(pos))
+                    y = data.by if len(data.by) != 0 else _np.zeros(len(pos))
+                    z = data.bz if len(data.bz) != 0 else _np.zeros(len(pos))
+                else:
+                    x = data.vx if len(data.vx) != 0 else _np.zeros(len(pos))
+                    y = data.vy if len(data.vy) != 0 else _np.zeros(len(pos))
+                    z = data.vz if len(data.vz) != 0 else _np.zeros(len(pos))                      
+                
                 xmin = pos[0]
                 xmax = pos[-1]
                 self.scan_dict[idx] = {
                     'xmin': xmin,
-                    'xmax': xmax,
-                    'unit': data.unit}
+                    'xmax': xmax}
 
                 self.scan_dict[idx]['x'] = {
                     'idn': idn,
                     'pos': pos,
-                    'data': data.avgx,
+                    'data': x,
                     'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
@@ -535,7 +597,7 @@ class ViewScanDialog(_QDialog):
                 self.scan_dict[idx]['y'] = {
                     'idn': idn,
                     'pos': pos,
-                    'data': data.avgy,
+                    'data': y,
                     'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
@@ -543,7 +605,7 @@ class ViewScanDialog(_QDialog):
                 self.scan_dict[idx]['z'] = {
                     'idn': idn,
                     'pos': pos,
-                    'data': data.avgz,
+                    'data': z,
                     'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
@@ -685,16 +747,20 @@ class ViewScanDialog(_QDialog):
                 show_xlines = False
             else:
                 show_xlines = True
-
-            nr_curves = len(selected_idx)
-            self.configure_graph(nr_curves, self.plot_label)
-
+            
             scan_dict = {}
+            idn_list = []
             for idx in selected_idx:
                 scan_dict[idx] = {}
                 for comp in selected_comp:
                     scan_dict[idx][comp] = self.scan_dict[idx][comp]
+                    idn_list.append(self.scan_dict[idx][comp]['idn'])
 
+            if len(selected_comp) > 1 or len(selected_idx) == 1:
+                self.configure_graph(len(selected_idx))
+            else: 
+                self.configure_graph(len(selected_idx), idn_list=idn_list)
+                
             with _warnings.catch_warnings():
                 _warnings.simplefilter("ignore")
                 x_count = 0

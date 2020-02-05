@@ -31,18 +31,22 @@ class HallCalibrationCurve(_database.DatabaseAndFileDocument):
             {'field': 'calibration_name', 'dtype': str, 'not_null': True}),
         ('calibration_magnet', 
             {'field': 'calibration_magnet', 'dtype': str, 'not_null': True}),
+        ('function_type', 
+            {'field': 'function_type', 'dtype': str, 'not_null': True}),
         ('voltage_min', 
             {'field': 'voltage_min', 'dtype': float}),
         ('voltage_max', 
             {'field': 'voltage_max', 'dtype': float}),
-        ('function_type', 
-            {'field': 'function_type', 'dtype': str, 'not_null': True}),
-        ('polynomial_coefs',
-            {'field': 'polynomial_coefs', 'dtype': _np.ndarray}),
+        ('polynomial_coeffs',
+            {'field': 'polynomial_coeffs', 'dtype': _np.ndarray}),
         ('voltage', 
             {'field': 'voltage', 'dtype': _np.ndarray}),
         ('magnetic_field', 
             {'field': 'magnetic_field', 'dtype': _np.ndarray}),
+        ('probe_temperature', 
+            {'field': 'probe_temperature', 'dtype': _np.ndarray}),
+        ('electronic_box_temperature', 
+            {'field': 'electronic_box_temperature', 'dtype': _np.ndarray}),
     ])
 
     def __init__(
@@ -92,7 +96,7 @@ class HallCalibrationCurve(_database.DatabaseAndFileDocument):
         else:
             return _polynomial_conversion(
                 self.voltage_min, self.voltage_max,
-                self.polynomial_coefs, voltage)
+                self.polynomial_coeffs, voltage)
 
     def get_calibration_list(self):
         """Get list of calibration names from database."""
@@ -108,17 +112,18 @@ class HallCalibrationCurve(_database.DatabaseAndFileDocument):
             message = 'Invalid data.'
             raise ValueError(message)
 
-        if self.function_type == 'interpolation':
+        columns = []
+        if len(self.voltage) != 0 and len(self.magnetic_field) != 0:
             columns = ['voltage', 'magnetic_field']
-            self.voltage_min = self.voltage[0]
-            self.voltage_max = self.voltage[-1]
-        else:
-            columns = ['polynomial_coefs']
+        if len(self.probe_temperature) != 0:
+            columns.append('probe_temperature')
+        if len(self.electronic_box_temperature) != 0:
+            columns.append('electronic_box_temperature')
         return super().save_file(filename, columns=columns)
 
     def update_calibration(self, calibration_name):
         """Update calibration data."""
-        if len(calibration_name) == 0:
+        if calibration_name is None or len(calibration_name) == 0:
             return False
         
         docs = self.db_search_field(
@@ -224,7 +229,8 @@ def _polynomial_conversion(vmin, vmax, coeffs, voltage_array):
     field_array = _np.zeros(len(voltage_array))
     for i in range(len(voltage_array)):
         voltage = voltage_array[i]
-        if voltage >= vmin and voltage <= vmax:
-            field_array[i] = sum(
-                coeffs[j]*(voltage**j) for j in range(len(coeffs)))
+        if vmin is not None and vmax is not None:
+            if voltage >= vmin and voltage <= vmax:
+                field_array[i] = sum(
+                    coeffs[j]*(voltage**j) for j in range(len(coeffs)))
     return field_array

@@ -5,6 +5,7 @@
 import sys as _sys
 import numpy as _np
 import pandas as _pd
+import scipy.integrate as _integrate
 import warnings as _warnings
 import traceback as _traceback
 from qtpy.QtCore import Qt as _Qt
@@ -273,11 +274,27 @@ class ViewFieldmapDialog(_QDialog):
             return
 
         try:
+            bx = self.bx_lines[idx]
+            bx_int = _integrate.cumtrapz(x=self.pos, y=bx, initial=0)[-1]
+            bx_int = bx_int*1e3
+
+            by = self.by_lines[idx]
+            by_int = _integrate.cumtrapz(x=self.pos, y=by, initial=0)[-1]
+            by_int = by_int*1e3
+
+            bz = self.bz_lines[idx]
+            bz_int = _integrate.cumtrapz(x=self.pos, y=bz, initial=0)[-1]
+            bz_int = bz_int*1e3
+            
+            self.ui.le_bx_int.setText('{0:.6g}'.format(bx_int))
+            self.ui.le_by_int.setText('{0:.6g}'.format(by_int))
+            self.ui.le_bz_int.setText('{0:.6g}'.format(bz_int))
+            
             with _warnings.catch_warnings():
                 _warnings.simplefilter("ignore")
-                self.graphx.setData(self.pos, self.bx_lines[idx])
-                self.graphy.setData(self.pos, self.by_lines[idx])
-                self.graphz.setData(self.pos, self.bz_lines[idx])
+                self.graphx.setData(self.pos, bx)
+                self.graphy.setData(self.pos, by)
+                self.graphz.setData(self.pos, bz)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

@@ -13,6 +13,8 @@ from hallbench.gui.viewprobedialog import ViewProbeDialog \
     as _ViewProbeDialog
 from hallbench.gui.viewscandialog import ViewScanDialog \
     as _ViewScanDialog
+from hallbench.gui.savefieldscandialog import SaveFieldScanDialog \
+    as _SaveFieldScanDialog
 from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
     as _SaveFieldmapDialog
 from hallbench.gui.viewfieldmapdialog import ViewFieldmapDialog \
@@ -40,6 +42,7 @@ class HallBenchApp(_QApplication):
         # create dialogs
         self.view_probe_dialog = _ViewProbeDialog()
         self.view_scan_dialog = _ViewScanDialog()
+        self.save_field_scan_dialog = _SaveFieldScanDialog()
         self.save_fieldmap_dialog = _SaveFieldmapDialog()
         self.view_fieldmap_dialog = _ViewFieldmapDialog()
 

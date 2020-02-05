@@ -95,7 +95,6 @@ class HallBenchWindow(_QMainWindow):
         self.preferences_dialog = _PreferencesDialog(self.tab_names)
         self.preferences_dialog.chb_connection.setChecked(True)
         self.preferences_dialog.chb_motors.setChecked(True)
-        self.preferences_dialog.chb_power_supply.setChecked(True)
         self.preferences_dialog.chb_measurement.setChecked(True)
         self.preferences_dialog.chb_database.setChecked(True)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)

@@ -621,12 +621,20 @@ class MeasurementWidget(_QWidget):
 
     def copy_current_start_position(self):
         """Copy current start position to line edits."""
-        for axis in self._measurement_axes:
-            le_start = getattr(self.ui, 'le_start_ax' + str(axis))
-            if axis in self.positions.keys():
-                le_start.setText('{0:0.4f}'.format(self.positions[axis]))
-            else:
-                le_start.setText('')
+        try:
+            for axis in self._measurement_axes:
+                le_start = getattr(self.ui, 'le_start_ax' + str(axis))
+                if axis in self.positions.keys():
+                    le_start.setText('{0:0.4f}'.format(self.positions[axis]))
+                else:
+                    le_start.setText('')
+                
+                vel = _pmac.get_velocity(axis)
+                le_vel = getattr(self.ui, 'le_vel_ax' + str(axis))
+                le_vel.setText('{0:0.4f}'.format(vel))
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def disable_invalid_line_edit(self):
         """Disable invalid line edit."""

@@ -217,7 +217,7 @@ class ViewProbeDialog(_QDialog):
 
     def copy_field(self):
         try:
-            voltage = str(self.ui.sbd_voltage.getValue())
+            voltage = str(self.ui.sbd_voltage.value())
             fieldx = self.ui.le_fieldx.text()
             fieldy = self.ui.le_fieldy.text()
             fieldz = self.ui.le_fieldz.text()

@@ -147,24 +147,18 @@ class HallProbePositions(_database.DatabaseAndFileDocument):
         ('hour', {'field': 'hour', 'dtype': str, 'not_null': True}),
         ('probe_name', 
             {'field': 'probe_name', 'dtype': str, 'not_null': True}),
-        ('sensorx_position', {
-            'field': 'sensorx_position',
-            'dtype': _np.ndarray, 'not_null': True}),
-        ('sensory_position', {
-            'field': 'sensory_position',
-            'dtype': _np.ndarray, 'not_null': True}),
-        ('sensorz_position', {
-            'field': 'sensorz_position',
-            'dtype': _np.ndarray, 'not_null': True}),
-        ('sensorx_direction', {
-            'field': 'sensorx_direction',
-            'dtype': _np.ndarray, 'not_null': True}),
-        ('sensory_direction', {
-            'field': 'sensory_direction',
-            'dtype': _np.ndarray, 'not_null': True}),
-        ('sensorz_direction', {
-            'field': 'sensorz_direction',
-            'dtype': _np.ndarray, 'not_null': True}),
+        ('positionx', {
+            'field': 'positionx', 'dtype': _np.ndarray, 'not_null': True}),
+        ('positiony', {
+            'field': 'positiony', 'dtype': _np.ndarray, 'not_null': True}),
+        ('positionz', {
+            'field': 'positionz', 'dtype': _np.ndarray, 'not_null': True}),
+        ('directionx', {
+            'field': 'directionx', 'dtype': _np.ndarray, 'not_null': True}),
+        ('directiony', {
+            'field': 'directiony', 'dtype': _np.ndarray, 'not_null': True}),
+        ('directionz', {
+            'field': 'directionz', 'dtype': _np.ndarray, 'not_null': True}),
     ])
 
     def __init__(
@@ -179,12 +173,12 @@ class HallProbePositions(_database.DatabaseAndFileDocument):
             server (str): MongoDB server.
 
         """
-        self.sensorx_position = _np.array([0, 0, 0])
-        self.sensory_position = _np.array([0, 0, 0])
-        self.sensorz_position = _np.array([0, 0, 0])
-        self.sensorx_direction = _np.array([1, 0, 0])
-        self.sensory_direction = _np.array([0, 1, 0])
-        self.sensorz_direction = _np.array([0, 0, 1])
+        self.positionx = _np.array([0, 0, 0])
+        self.positiony = _np.array([0, 0, 0])
+        self.positionz = _np.array([0, 0, 0])
+        self.directionx = _np.array([1, 0, 0])
+        self.directiony = _np.array([0, 1, 0])
+        self.directionz = _np.array([0, 0, 1])
 
         super().__init__(
             database_name=database_name, mongo=mongo, server=server)
@@ -192,12 +186,12 @@ class HallProbePositions(_database.DatabaseAndFileDocument):
     def clear(self):
         """Clear calibration data."""
         sucess = super().clear()
-        self.sensorx_position = _np.array([0, 0, 0])
-        self.sensory_position = _np.array([0, 0, 0])
-        self.sensorz_position = _np.array([0, 0, 0])
-        self.sensorx_direction = _np.array([1, 0, 0])
-        self.sensory_direction = _np.array([0, 1, 0])
-        self.sensorz_direction = _np.array([0, 0, 1])
+        self.positionx = _np.array([0, 0, 0])
+        self.positiony = _np.array([0, 0, 0])
+        self.positionz = _np.array([0, 0, 0])
+        self.directionx = _np.array([1, 0, 0])
+        self.directiony = _np.array([0, 1, 0])
+        self.directionz = _np.array([0, 0, 1])
         return sucess
 
     def get_probe_list(self):

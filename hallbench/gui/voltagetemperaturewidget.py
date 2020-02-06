@@ -211,7 +211,6 @@ class ReadValueWorker(_QObject):
 
     def __init__(self, voltage_mfactor):
         """Initialize object."""
-        self.pmac_axis = None
         self.voltx_enabled = False
         self.volty_enabled = False
         self.voltz_enabled = False

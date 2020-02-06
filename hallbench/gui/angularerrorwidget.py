@@ -140,6 +140,11 @@ class ReadValueWorker(_QObject):
         self.reading = []
         super().__init__()
 
+    @property
+    def positions(self):
+        """Return current positions dict."""
+        return _QApplication.instance().positions
+
     def run(self):
         """Read values from devices."""
         try:
@@ -159,7 +164,7 @@ class ReadValueWorker(_QObject):
             if self.pmac_axis is None:
                 pos = _np.nan
             else:
-                pos = _pmac.get_position(self.pmac_axis)
+                pos = self.positions[self.pmac_axis]
                 if pos is None:
                     pos = _np.nan
 

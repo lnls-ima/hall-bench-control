@@ -21,7 +21,7 @@ class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
             aper (float): A/D converter integration time in ms.
             mrange (float): measurement range in volts.
         """
-        self.send_command(self.commands.reset)
+        #self.send_command(self.commands.reset)
         self.send_command(self.commands.func_volt)
         self.send_command(self.commands.tarm_auto)
         self.send_command(self.commands.trig_auto)

@@ -191,6 +191,11 @@ class ReadValueWorker(_QObject):
         self.voltage_mfactor = voltage_mfactor
         super().__init__()
 
+    @property
+    def positions(self):
+        """Return current positions dict."""
+        return _QApplication.instance().positions
+
     def run(self):
         """Read values from devices."""
         try:
@@ -220,7 +225,7 @@ class ReadValueWorker(_QObject):
             if self.pmac_axis is None:
                 pos = _np.nan
             else:
-                pos = _pmac.get_position(self.pmac_axis)
+                pos = self.positions[self.pmac_axis]
                 if pos is None:
                     pos = _np.nan
 
@@ -232,6 +237,7 @@ class ReadValueWorker(_QObject):
             self.finished.emit(True)
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.timestamp = None
             self.reading = []
             self.finished.emit(True)

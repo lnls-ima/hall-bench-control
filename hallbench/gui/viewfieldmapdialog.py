@@ -314,6 +314,9 @@ class ViewFieldmapDialog(_QDialog):
 
         try:
             _map = self.fieldmap.map
+            if _map is None or len(_map) == 0:
+                return
+            
             x = _np.unique(_map[:, 0])
             y = _np.unique(_map[:, 1])
             z = _np.unique(_map[:, 2])

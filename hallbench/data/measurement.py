@@ -150,7 +150,11 @@ class VoltageScan(_database.DatabaseAndFileDocument):
 
         self.date, self.hour = _utils.get_date_hour()
         timestamp = _utils.date_hour_to_timestamp(self.date, self.hour)
-        filename = '{0:1s}_{1:1s}.dat'.format(timestamp, name)
+        if self.idn is not None:
+            filename = '{0:s}_{1:s}_ID={2:s}.dat'.format(
+                timestamp, name, str(self.idn))
+        else:
+            filename = '{0:s}_{1:s}.dat'.format(timestamp, name)
         return filename
 
     def reverse(self):
@@ -320,7 +324,11 @@ class FieldScan(_database.DatabaseAndFileDocument):
 
         self.date, self.hour = _utils.get_date_hour()
         timestamp = _utils.date_hour_to_timestamp(self.date, self.hour)
-        filename = '{0:1s}_{1:1s}.dat'.format(timestamp, name)
+        if self.idn is not None:
+            filename = '{0:s}_{1:s}_ID={2:s}.dat'.format(
+                timestamp, name, str(self.idn))
+        else:
+            filename = '{0:s}_{1:s}.dat'.format(timestamp, name)
         return filename
 
     def reverse(self):
@@ -583,8 +591,12 @@ class Fieldmap(_database.DatabaseAndFileDocument):
                     ac = coil
                 name = name + '_I' + ac + '=' + current + 'A'
 
-        self.date, self.hour = _utils.get_date_hour()
-        filename = '{0:1s}_{1:1s}.dat'.format(self.date, name)
+        self.date, self.hour = _utils.get_date_hour()        
+        if self.idn is not None:
+            filename = '{0:s}_{1:s}_ID={2:s}.dat'.format(
+                self.date, name, str(self.idn))
+        else:
+            filename = '{0:s}_{1:s}.dat'.format(self.date, name)
         return filename
 
     def get_fieldmap_text(self, filename=None):

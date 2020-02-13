@@ -834,11 +834,11 @@ class MeasurementWidget(_QWidget):
                 self.ui.rbt_configure_offsets.setChecked(False)
                 self.ui.rbt_measure_offsets.setChecked(True)
 
-            self.ui.le_offsetx.setText(str(
+            self.ui.le_offsetx.setText('{0:0.4f}'.format(
                 1000*self.temp_measurement_config.offsetx))
-            self.ui.le_offsety.setText(str(
+            self.ui.le_offsety.setText('{0:0.4f}'.format(
                 1000*self.temp_measurement_config.offsety))
-            self.ui.le_offsetz.setText(str(
+            self.ui.le_offsetz.setText('{0:0.4f}'.format(
                 1000*self.temp_measurement_config.offsetz))
             self.ui.le_offset_range.setText(
                 str(self.temp_measurement_config.offset_range))
@@ -1476,7 +1476,7 @@ class MeasurementWidget(_QWidget):
                 selected_config.db_read(selected_idn)
 
             if self.measurement_config == selected_config:
-                idn = selected_idn
+                self.measurement_config.idn = selected_idn
             else:
                 self.measurement_config.db_update_database(
                     self.database_name,
@@ -1487,6 +1487,7 @@ class MeasurementWidget(_QWidget):
                 self.ui.cmb_idn.setCurrentIndex(idx)
                 self.ui.pbt_load_db.setEnabled(False)
             return True
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to save configuration to database.'

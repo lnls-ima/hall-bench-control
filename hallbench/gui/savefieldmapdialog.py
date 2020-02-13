@@ -393,8 +393,7 @@ class SaveFieldmapDialog(_QDialog):
                     mongo=self.mongo, server=self.server)
                 fieldmap.db_read(idn)
 
-                default_filename = fieldmap.default_filename.replace(
-                    '.dat', '_ID={0:d}.dat'.format(idn))
+                default_filename = fieldmap.default_filename
 
                 filename = _QFileDialog.getSaveFileName(
                     self, caption='Save fieldmap file',
@@ -430,8 +429,7 @@ class SaveFieldmapDialog(_QDialog):
                         database_name=self.database_name,
                         mongo=self.mongo, server=self.server)
                     fieldmap.db_read(idn)
-                    default_filename = fieldmap.default_filename.replace(
-                        '.dat', '_ID={0:d}.dat'.format(idn))
+                    default_filename = fieldmap.default_filename
                     filename = _os.path.join(directory, default_filename)
                     fieldmap.save_file(filename)
 

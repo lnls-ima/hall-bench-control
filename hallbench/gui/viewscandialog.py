@@ -17,6 +17,7 @@ from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QTableWidgetItem as _QTableWidgetItem,
     )
+from qtpy.QtGui import QFont as _QFont
 from qtpy.QtCore import Qt as _Qt
 import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
@@ -28,6 +29,9 @@ from hallbench.gui.auxiliarywidgets import (
     )
 from hallbench.gui import utils as _utils
 from hallbench.data import measurement as _measurement
+
+
+TO_PRINT = True
 
 
 class ViewScanDialog(_QDialog):
@@ -257,6 +261,13 @@ class ViewScanDialog(_QDialog):
         colorx = (255, 0, 0)
         colory = (0, 255, 0)
         colorz = (0, 0, 255)
+        
+        if TO_PRINT:
+            width = 3
+            label_style = {'font-size': '20px'}
+        else:
+            width = 1
+            label_style = {}
 
         colors = _utils.COLOR_LIST
 
@@ -265,23 +276,24 @@ class ViewScanDialog(_QDialog):
                 colors = [(0, 0, 0)]*nr_curves
             
             for idx in range(nr_curves):
-                self.graphx.append(
-                    self.ui.pw_graph.plotItem.plot(
-                        _np.array([]),
-                        _np.array([]),
-                        pen=colors[idx]))
+                pen = _pyqtgraph.mkPen(color=colors[idx], width=width)
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphx.append(plot_data_item)
     
-                self.graphy.append(
-                    self.ui.pw_graph.plotItem.plot(
-                        _np.array([]),
-                        _np.array([]),
-                        pen=colors[idx]))
-    
-                self.graphz.append(
-                    self.ui.pw_graph.plotItem.plot(
-                        _np.array([]),
-                        _np.array([]),
-                        pen=colors[idx]))
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphy.append(plot_data_item) 
+
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphz.append(plot_data_item)
     
                 legend_item = 'ID:{0:d}'.format(idn_list[idx])
                 self.legend_items.append(legend_item)
@@ -289,35 +301,53 @@ class ViewScanDialog(_QDialog):
         
         else:
             for idx in range(nr_curves):
-                self.graphx.append(
-                    self.ui.pw_graph.plotItem.plot(
-                        _np.array([]),
-                        _np.array([]),
-                        pen=colorx))
+                pen = _pyqtgraph.mkPen(color=colorx, width=width)
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphx.append(plot_data_item)
     
-                self.graphy.append(
-                    self.ui.pw_graph.plotItem.plot(
-                        _np.array([]),
-                        _np.array([]),
-                        pen=colory))
+                pen = _pyqtgraph.mkPen(color=colory, width=width)
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphy.append(plot_data_item)
     
-                self.graphz.append(
-                    self.ui.pw_graph.plotItem.plot(
-                        _np.array([]),
-                        _np.array([]),
-                        pen=colorz))
+                pen = _pyqtgraph.mkPen(color=colorz, width=width)
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphz.append(plot_data_item)
     
             self.legend_items = ['X', 'Y', 'Z']
             self.legend.addItem(self.graphx[0], self.legend_items[0])
             self.legend.addItem(self.graphy[0], self.legend_items[1])
             self.legend.addItem(self.graphz[0], self.legend_items[2])
         
-        self.ui.pw_graph.setLabel('bottom', 'Scan Position [mm]')
+        self.ui.pw_graph.setLabel(
+            'bottom', text='Scan Position', **label_style)
+        
         if self.scan_type == 'field':
-            self.ui.pw_graph.setLabel('left', 'Field [T]')
+            self.ui.pw_graph.setLabel(
+                'left', text='Field [T]', **label_style)
         else:
-            self.ui.pw_graph.setLabel('left', 'Voltage [V]')
+            self.ui.pw_graph.setLabel(
+                'left', text='Voltage [V]', **label_style)
+        
         self.ui.pw_graph.showGrid(x=True, y=True)
+
+        if TO_PRINT:        
+            font = _QFont()
+            font.setPixelSize(20)
+            self.ui.pw_graph.getAxis('bottom').tickFont = font
+            self.ui.pw_graph.getAxis('bottom').setStyle(
+                tickTextOffset = 20)
+            self.ui.pw_graph.getAxis('left').tickFont = font
+            self.ui.pw_graph.getAxis('left').setStyle(
+                tickTextOffset = 20)    
 
     def connect_signal_slots(self):
         """Create signal/slot connections."""

@@ -377,6 +377,8 @@ class MeasurementWidget(_QWidget):
                     self.measurement_config.voltage_range)
                 _QApplication.processEvents()
             
+            _time.sleep(1)
+            
             if self.stop:
                 return False
             else:
@@ -1323,6 +1325,8 @@ class MeasurementWidget(_QWidget):
 
         self.start_voltage_threads()
 
+        _time.sleep(1)
+
         if self.stop is False:
             if to_pos:
                 self.move_axis_and_update_graph(axis, end + extra, idx)
@@ -1385,26 +1389,6 @@ class MeasurementWidget(_QWidget):
                 status = _pmac.axis_status(axis)
                 _QApplication.processEvents()
                 _time.sleep(self._update_plot_interval)
-
-#     def plot_field(self):
-#         """Plot field scan."""
-#         field_scan_list = []
-#         for idn in self.field_scan_id_list:
-#             fs = _FieldScan(database=self.database, idn=idn)
-#             field_scan_list.append(fs)
-# 
-#         self.clear_graph()
-#         nr_curves = len(field_scan_list)
-#         self.configure_graph(nr_curves, 'Magnetic Field [T]')
-# 
-#         with _warnings.catch_warnings():
-#             _warnings.simplefilter("ignore")
-#             for i in range(nr_curves):
-#                 fs = field_scan_list[i]
-#                 positions = fs.scan_pos
-#                 self.graphx[i].setData(positions, fs.avgx)
-#                 self.graphy[i].setData(positions, fs.avgy)
-#                 self.graphz[i].setData(positions, fs.avgz)
 
     def plot_voltage(self, idx):
         """Plot voltage values."""
@@ -1892,7 +1876,7 @@ class MeasurementWidget(_QWidget):
                 first_axis = self.temp_measurement_config.first_axis
                 step = self.temp_measurement_config.get_step(first_axis)
                 vel = self.temp_measurement_config.get_velocity(first_axis)
-                max_int_time = 100*(_np.abs(step/vel)*1000 - 5)
+                max_int_time = _np.max([_np.abs(step/vel)*1000 - 3.3, 0])
 
                 if self.temp_measurement_config.integration_time > max_int_time:
                     self.measurement_config = None
@@ -2022,7 +2006,7 @@ class MeasurementWidget(_QWidget):
                 step = self.get_axis_param('step', axis)
                 vel = self.get_axis_param('vel', axis)
                 if step is not None and vel is not None:
-                    max_int_time = _np.abs(step/vel)*1000 - 5
+                    max_int_time = _np.max([_np.abs(step/vel)*1000 - 3.3, 0])
                     _s = '{0:.4f}'.format(max_int_time)
                     self.ui.la_max_integration_time.setText(_s)
                 else:

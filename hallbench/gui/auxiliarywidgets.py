@@ -122,7 +122,7 @@ class CurrentPositionWidget(_QWidget):
     _list_of_axis = [1, 2, 3, 5, 6, 7, 8, 9]
     _list_of_axis_names = ["Z", "Y", "X", "A", "W", "V", "B", "C"]
     _list_of_axis_units = ["mm", "mm", "mm", "deg", "mm", "mm", "deg", "deg"]
-    _timer_interval = 250  # [ms]
+    _timer_interval = _utils.UPDATE_POSITIONS_INTERVAL/2
 
     def __init__(self, parent=None):
         """Set up the ui."""
@@ -170,7 +170,7 @@ class CurrentPositionWidget(_QWidget):
 
         self.timer = _QTimer()
         self.timer.timeout.connect(self.update_positions)
-        self.timer.start(self._timer_interval)
+        self.timer.start(self._timer_interval*1000)
 
     @property
     def positions(self):

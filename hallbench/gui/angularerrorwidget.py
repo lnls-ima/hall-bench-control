@@ -7,11 +7,9 @@ import numpy as _np
 import time as _time
 import traceback as _traceback
 from qtpy.QtWidgets import (
-    QApplication as _QApplication,
     QComboBox as _QComboBox,
     QLabel as _QLabel,
     QMessageBox as _QMessageBox,
-    QHBoxLayout as _QHBoxLayout,
     )
 from qtpy.QtCore import (
     QThread as _QThread,
@@ -23,12 +21,16 @@ from hallbench.gui.auxiliarywidgets import (
     MoveAxisWidget as _MoveAxisWidget,
     TablePlotWidget as _TablePlotWidget,
     )
+from hallbench.devices import (
+    elcomat as _elcomat,
+    pmac as _pmac,
+    )
 
 
 class AngularErrorWidget(_TablePlotWidget):
     """Angular error widget class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Angular error [arcsec]'       
+    _left_axis_1_label = 'Angular error [arcsec]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['X-axis [arcsec]', 'Y-axis [arcsec]']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
@@ -44,19 +46,19 @@ class AngularErrorWidget(_TablePlotWidget):
 
         # add move axis widget
         self.move_axis_widget = _MoveAxisWidget(self)
-        self.addWidgetsNextToPlot(self.move_axis_widget)
+        self.add_widgets_next_to_plot(self.move_axis_widget)
 
         # add measurement type combo box
-        self.meastype_la = _QLabel("Measurement Type:")
-        self.meastype_cmb = _QComboBox()
-        self.meastype_cmb.addItems(["Absolute", "Relative"])
-        self.addWidgetsNextToTable([self.meastype_la, self.meastype_cmb])
+        self.la_meastype = _QLabel("Measurement Type:")
+        self.cmb_meastype = _QComboBox()
+        self.cmb_meastype.addItems(["Absolute", "Relative"])
+        self.add_widgets_next_to_table([self.la_meastype, self.cmb_meastype])
 
         # Change default appearance
-        self.setTableColumnSize(150)
+        self.set_table_column_size(150)
 
         # Hide right axis
-        self.hideRightAxes()
+        self.hide_right_axes()
 
         # Create reading thread
         self.wthread = _QThread()
@@ -64,22 +66,7 @@ class AngularErrorWidget(_TablePlotWidget):
         self.worker.moveToThread(self.wthread)
         self.wthread.started.connect(self.worker.run)
         self.worker.finished.connect(self.wthread.quit)
-        self.worker.finished.connect(self.getReading)
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
-    def checkConnection(self, monitor=False):
-        """Check devices connection."""
-        if not self.devices.elcomat.connected:
-            if not monitor:
-                _QMessageBox.critical(
-                    self, 'Failure',
-                    'Auto-collimator not connected.', _QMessageBox.Ok)
-            return False
-        return True
+        self.worker.finished.connect(self.get_reading)
 
     def closeEvent(self, event):
         """Close widget."""
@@ -91,41 +78,51 @@ class AngularErrorWidget(_TablePlotWidget):
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def getReading(self):
+    def check_connection(self, monitor=False):
+        """Check connection."""
+        if not _elcomat.connected:
+            if not monitor:
+                _QMessageBox.critical(
+                    self, 'Failure',
+                    'Auto-collimator not connected.', _QMessageBox.Ok)
+            return False
+        return True
+
+    def get_reading(self):
         """Get reading from worker thread."""
         try:
             ts = self.worker.timestamp
             r = self.worker.reading
-            
+
             if ts is None:
                 return
-            
+
             if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
                 return
 
             self._timestamp.append(ts)
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
-            self.addLastValueToTable()
-            self.updatePlot()
-        
+            self.add_last_value_to_table()
+            self.update_plot()
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def readValue(self, monitor=False):
+    def read_value(self, monitor=False):
         """Read value."""
         if len(self._data_labels) == 0:
             return
 
-        if not self.checkConnection(monitor=monitor):
+        if not self.check_connection(monitor=monitor):
             return
 
         try:
-            self.worker.pmac_axis = self.move_axis_widget.selectedAxis()
-            mt = self.meastype_cmb.currentText().lower()
+            self.worker.pmac_axis = self.move_axis_widget.selected_axis()
+            mt = self.cmb_meastype.currentText().lower()
             self.worker.measurement_type = mt
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -144,9 +141,9 @@ class ReadValueWorker(_QObject):
         super().__init__()
 
     @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
+    def positions(self):
+        """Return current positions dict."""
+        return _QApplication.instance().positions
 
     def run(self):
         """Read values from devices."""
@@ -157,9 +154,9 @@ class ReadValueWorker(_QObject):
             ts = _time.time()
 
             if self.measurement_type == 'relative':
-                rl = self.devices.elcomat.get_relative_measurement()
+                rl = _elcomat.get_relative_measurement()
             elif self.measurement_type == 'absolute':
-                rl = self.devices.elcomat.get_absolute_measurement()
+                rl = _elcomat.get_absolute_measurement()
             else:
                 rl = []
             rl = [r if r is not None else _np.nan for r in rl]
@@ -167,7 +164,7 @@ class ReadValueWorker(_QObject):
             if self.pmac_axis is None:
                 pos = _np.nan
             else:
-                pos = self.devices.pmac.get_position(self.pmac_axis)
+                pos = self.positions[self.pmac_axis]
                 if pos is None:
                     pos = _np.nan
 

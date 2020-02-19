@@ -5,6 +5,7 @@
 import sys as _sys
 import numpy as _np
 import pandas as _pd
+import scipy.integrate as _integrate
 import warnings as _warnings
 import traceback as _traceback
 from qtpy.QtCore import Qt as _Qt
@@ -28,7 +29,7 @@ class ViewFieldmapDialog(_QDialog):
         """Set up the ui and create connections."""
         super().__init__(parent)
 
-        uifile = _utils.getUiFile(self)
+        uifile = _utils.get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
         self.text_updated = False
@@ -48,15 +49,24 @@ class ViewFieldmapDialog(_QDialog):
         self.ui.temperature_lt.addWidget(self.temperature_widget)
 
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
-        self.legend.setParentItem(self.ui.graph_pw.graphicsItem())
+        self.legend.setParentItem(self.ui.pw_graph.graphicsItem())
         self.legend.setAutoFillBackground(1)
 
-        self.connectSignalSlots()
+        self.connect_signal_slots()
 
     def accept(self):
         """Close dialog."""
         self.clear()
         super().accept()
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
 
     def clear(self):
         """Clear data."""
@@ -71,25 +81,16 @@ class ViewFieldmapDialog(_QDialog):
         self.graphy = None
         self.graphz = None
         self.xlabel = ''
-        self.clearGraph()
-        self.ui.text_te.setText('')
-        self.ui.main_tab.setCurrentIndex(0)
+        self.clear_graph()
+        self.ui.te_text.setText('')
+        self.ui.twg_main.setCurrentIndex(0)
 
-    def clearGraph(self):
+    def clear_graph(self):
         """Clear plots."""
-        self.ui.graph_pw.plotItem.curves.clear()
-        self.ui.graph_pw.clear()
+        self.ui.pw_graph.plotItem.curves.clear()
+        self.ui.pw_graph.clear()
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.clear()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def configureGraph(self):
+    def configure_graph(self):
         """Configure graph.
 
         Args:
@@ -98,7 +99,7 @@ class ViewFieldmapDialog(_QDialog):
         self.legend.removeItem('X')
         self.legend.removeItem('Y')
         self.legend.removeItem('Z')
-        self.graphx = self.ui.graph_pw.plotItem.plot(
+        self.graphx = self.ui.pw_graph.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=(255, 0, 0),
@@ -107,7 +108,7 @@ class ViewFieldmapDialog(_QDialog):
                 symbolSize=4,
                 symbolBrush=(255, 0, 0))
 
-        self.graphy = self.ui.graph_pw.plotItem.plot(
+        self.graphy = self.ui.pw_graph.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=(0, 255, 0),
@@ -116,7 +117,7 @@ class ViewFieldmapDialog(_QDialog):
                 symbolSize=4,
                 symbolBrush=(0, 255, 0))
 
-        self.graphz = self.ui.graph_pw.plotItem.plot(
+        self.graphz = self.ui.pw_graph.plotItem.plot(
                 _np.array([]),
                 _np.array([]),
                 pen=(0, 0, 255),
@@ -128,14 +129,14 @@ class ViewFieldmapDialog(_QDialog):
         self.legend.addItem(self.graphx, 'X')
         self.legend.addItem(self.graphy, 'Y')
         self.legend.addItem(self.graphz, 'Z')
-        self.ui.graph_pw.setLabel('bottom', self.xlabel)
-        self.ui.graph_pw.setLabel('left', 'Magnetic Field [T]')
-        self.ui.graph_pw.showGrid(x=True, y=True)
+        self.ui.pw_graph.setLabel('bottom', self.xlabel)
+        self.ui.pw_graph.setLabel('left', 'Magnetic Field [T]')
+        self.ui.pw_graph.showGrid(x=True, y=True)
 
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.update_plot_btn.clicked.connect(self.updatePlot)
-        self.ui.main_tab.currentChanged.connect(self.updateTab)
+        self.ui.pbt_update_plot.clicked.connect(self.update_plot)
+        self.ui.twg_main.currentChanged.connect(self.update_tab)
 
     def show(self, fieldmap, idn):
         """Update fieldmap and show dialog."""
@@ -143,13 +144,13 @@ class ViewFieldmapDialog(_QDialog):
         self.fieldmap = fieldmap
 
         try:
-            self.updateLineEdits(idn)
-            self.updatePlotOptions()
-            self.updatePlot()
+            self.update_line_edits(idn)
+            self.update_plot_options()
+            self.update_plot()
             if len(self.fieldmap.temperature) != 0:
-                self.ui.main_tab.setTabEnabled(1, True)
+                self.ui.twg_main.setTabEnabled(1, True)
             else:
-                self.ui.main_tab.setTabEnabled(1, False)
+                self.ui.twg_main.setTabEnabled(1, False)
             super().show()
 
         except Exception:
@@ -158,115 +159,113 @@ class ViewFieldmapDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updateLineEdits(self, idn):
+    def update_line_edits(self, idn):
         """Update line edit texts."""
-        self.ui.idn_le.setText('')
-        self.ui.nr_scans_le.setText('')
-        self.ui.initial_scan_le.setText('')
-        self.ui.final_scan_le.setText('')
-        self.ui.current_setpoint_le.setText('')
-        self.ui.dcct_current_le.setText('')
-        self.ui.ps_current_le.setText('')
-        self.ui.magnet_center_pos3_le.setText('')
-        self.ui.magnet_center_pos2_le.setText('')
-        self.ui.magnet_center_pos1_le.setText('')
-        self.ui.magnet_x_axis_le.setText('')
-        self.ui.magnet_y_axis_le.setText('')
-        self.ui.corrected_positions_le.setText('')
-        self.ui.comments_te.setText('')
+        self.ui.le_idn.setText('')
+        self.ui.le_nr_scans.setText('')
+        self.ui.le_initial_scan.setText('')
+        self.ui.le_final_scan.setText('')
+        self.ui.le_current_setpoint.setText('')
+        self.ui.le_dcct_current.setText('')
+        self.ui.le_ps_current.setText('')
+        self.ui.le_magnet_center_pos3.setText('')
+        self.ui.le_magnet_center_pos2.setText('')
+        self.ui.le_magnet_center_pos1.setText('')
+        self.ui.le_magnet_x_axis.setText('')
+        self.ui.le_magnet_y_axis.setText('')
+        self.ui.le_corrected_positions.setText('')
+        self.ui.te_comments.setText('')
         if self.fieldmap is None:
             return
 
         try:
-            self.ui.idn_le.setText('{0:d}'.format(idn))
+            self.ui.le_idn.setText('{0:d}'.format(idn))
+            nr_scans = self.fieldmap.nr_field_scans
+            val = str(nr_scans) if nr_scans is not None else ''
+            self.ui.le_nr_scans.setText('{0:s}'.format(val))
+
+            fs_id_list = self.fieldmap.field_scan_id_list
             val = (
-                self.fieldmap.nr_scans if self.fieldmap.nr_scans is not None
-                else '')
-            self.ui.nr_scans_le.setText('{0:d}'.format(val))
+                fs_id_list[0] if fs_id_list is not None else '')
+            self.ui.le_initial_scan.setText('{0:d}'.format(val))
 
             val = (
-                self.fieldmap.initial_scan if self.fieldmap.initial_scan
-                is not None else '')
-            self.ui.initial_scan_le.setText('{0:d}'.format(val))
-
-            val = (
-                self.fieldmap.final_scan if self.fieldmap.final_scan
-                is not None else '')
-            self.ui.final_scan_le.setText('{0:d}'.format(val))
+                fs_id_list[-1] if fs_id_list is not None else '')
+            self.ui.le_final_scan.setText('{0:d}'.format(val))
 
             dcct_avg = self.fieldmap.dcct_current_avg
             dcct_std = self.fieldmap.dcct_current_std
-            dcct_str = _utils.scientificNotation(dcct_avg, dcct_std)
-            self.ui.dcct_current_le.setText(dcct_str)
+            dcct_str = _utils.scientific_notation(dcct_avg, dcct_std)
+            self.ui.le_dcct_current.setText(dcct_str)
 
             ps_avg = self.fieldmap.ps_current_avg
             ps_std = self.fieldmap.ps_current_std
-            ps_str = _utils.scientificNotation(ps_avg, ps_std)
-            self.ui.ps_current_le.setText(ps_str)
+            ps_str = _utils.scientific_notation(ps_avg, ps_std)
+            self.ui.le_ps_current.setText(ps_str)
 
             current_setpoint = self.fieldmap.current_setpoint
             if current_setpoint is None:
-                self.ui.current_setpoint_le.setText('')
+                self.ui.le_current_setpoint.setText('')
             else:
-                self.ui.current_setpoint_le.setText(str(current_setpoint))
+                self.ui.le_current_setpoint.setText(str(current_setpoint))
 
             mc = self.fieldmap.magnet_center
             if mc is None:
-                self.ui.magnet_center_pos3_le.setText('')
-                self.ui.magnet_center_pos2_le.setText('')
-                self.ui.magnet_center_pos1_le.setText('')
+                self.ui.le_magnet_center_pos3.setText('')
+                self.ui.le_magnet_center_pos2.setText('')
+                self.ui.le_magnet_center_pos1.setText('')
             else:
-                self.ui.magnet_center_pos3_le.setText('{0:.4f}'.format(mc[0]))
-                self.ui.magnet_center_pos2_le.setText('{0:.4f}'.format(mc[1]))
-                self.ui.magnet_center_pos1_le.setText('{0:.4f}'.format(mc[2]))
+                self.ui.le_magnet_center_pos3.setText('{0:.4f}'.format(mc[0]))
+                self.ui.le_magnet_center_pos2.setText('{0:.4f}'.format(mc[1]))
+                self.ui.le_magnet_center_pos1.setText('{0:.4f}'.format(mc[2]))
 
             magnet_x_axis = self.fieldmap.magnet_x_axis
             if magnet_x_axis is not None:
                 if magnet_x_axis > 0:
-                    self.ui.magnet_x_axis_le.setText('+ Axis #{0:d}'.format(
+                    self.ui.le_magnet_x_axis.setText('+ Axis #{0:d}'.format(
                         _np.abs(magnet_x_axis)))
                 else:
-                    self.ui.magnet_x_axis_le.setText('- Axis #{0:d}'.format(
+                    self.ui.le_magnet_x_axis.setText('- Axis #{0:d}'.format(
                         _np.abs(magnet_x_axis)))
             else:
-                self.ui.magnet_x_axis_le.setText('')
+                self.ui.le_magnet_x_axis.setText('')
 
             magnet_y_axis = self.fieldmap.magnet_y_axis
             if magnet_y_axis is not None:
                 if magnet_y_axis > 0:
-                    self.ui.magnet_y_axis_le.setText('+ Axis #{0:d}'.format(
+                    self.ui.le_magnet_y_axis.setText('+ Axis #{0:d}'.format(
                         _np.abs(magnet_y_axis)))
                 else:
-                    self.ui.magnet_y_axis_le.setText('- Axis #{0:d}'.format(
+                    self.ui.le_magnet_y_axis.setText('- Axis #{0:d}'.format(
                         _np.abs(magnet_y_axis)))
             else:
-                self.ui.magnet_y_axis_le.setText('')
+                self.ui.le_magnet_y_axis.setText('')
 
             corrected_positions = self.fieldmap.corrected_positions
             if corrected_positions == 0:
-                self.ui.corrected_positions_le.setText('False')
+                self.ui.le_corrected_positions.setText('False')
             elif corrected_positions == 1:
-                self.ui.corrected_positions_le.setText('True')
+                self.ui.le_corrected_positions.setText('True')
             else:
-                self.ui.corrected_positions_le.setText('')
+                self.ui.le_corrected_positions.setText('')
 
             comments = (
                 self.fieldmap.comments if self.fieldmap.comments is not None
                 else '')
-            self.ui.comments_te.setText(comments)
+            self.ui.te_comments.setText(comments)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return
 
-    def updatePlot(self):
+    def update_plot(self):
         """Update plot."""
-        self.clearGraph()
-        self.configureGraph()
+        self.clear_graph()
+        self.configure_graph()
         if self.fieldmap is None:
             return
 
-        idx = self.ui.plot_cmb.currentIndex()
+        idx = self.ui.cmb_plot.currentIndex()
         if idx is None or idx == -1:
             return
 
@@ -275,11 +274,27 @@ class ViewFieldmapDialog(_QDialog):
             return
 
         try:
+            bx = self.bx_lines[idx]
+            bx_int = _integrate.cumtrapz(x=self.pos, y=bx, initial=0)[-1]
+            bx_int = bx_int*1e3
+
+            by = self.by_lines[idx]
+            by_int = _integrate.cumtrapz(x=self.pos, y=by, initial=0)[-1]
+            by_int = by_int*1e3
+
+            bz = self.bz_lines[idx]
+            bz_int = _integrate.cumtrapz(x=self.pos, y=bz, initial=0)[-1]
+            bz_int = bz_int*1e3
+            
+            self.ui.le_bx_int.setText('{0:.6g}'.format(bx_int))
+            self.ui.le_by_int.setText('{0:.6g}'.format(by_int))
+            self.ui.le_bz_int.setText('{0:.6g}'.format(bz_int))
+            
             with _warnings.catch_warnings():
                 _warnings.simplefilter("ignore")
-                self.graphx.setData(self.pos, self.bx_lines[idx])
-                self.graphy.setData(self.pos, self.by_lines[idx])
-                self.graphz.setData(self.pos, self.bz_lines[idx])
+                self.graphx.setData(self.pos, bx)
+                self.graphy.setData(self.pos, by)
+                self.graphz.setData(self.pos, bz)
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
@@ -287,18 +302,21 @@ class ViewFieldmapDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updatePlotOptions(self):
+    def update_plot_options(self):
         """Update plot options."""
-        self.ui.plot_la.setText('')
-        self.ui.plot_cmb.clear()
-        self.ui.plot_cmb.setEnabled(False)
-        self.ui.update_plot_btn.setEnabled(False)
+        self.ui.la_plot.setText('')
+        self.ui.cmb_plot.clear()
+        self.ui.cmb_plot.setEnabled(False)
+        self.ui.pbt_update_plot.setEnabled(False)
 
         if self.fieldmap is None:
             return
 
         try:
             _map = self.fieldmap.map
+            if _map is None or len(_map) == 0:
+                return
+            
             x = _np.unique(_map[:, 0])
             y = _np.unique(_map[:, 1])
             z = _np.unique(_map[:, 2])
@@ -310,11 +328,11 @@ class ViewFieldmapDialog(_QDialog):
                 return
 
             if len(x) != 1 and len(y) == 1 and len(z) == 1:
-                self.ui.plot_la.setText('Z [mm]:')
+                self.ui.la_plot.setText('Z [mm]:')
                 for zi in z:
-                    self.ui.plot_cmb.addItem('{0:.4f}'.format(zi))
+                    self.ui.cmb_plot.addItem('{0:.4f}'.format(zi))
                 idx = _np.floor(len(z)/2)
-                self.ui.plot_cmb.setCurrentIndex(idx)
+                self.ui.cmb_plot.setCurrentIndex(idx)
 
                 self.bx_lines = _np.array([bx])
                 self.by_lines = _np.array([by])
@@ -324,11 +342,11 @@ class ViewFieldmapDialog(_QDialog):
                 self.xlabel = 'Position X [mm]'
 
             elif len(y) != 1 and len(x) == 1 and len(x) == 1:
-                self.ui.plot_la.setText('Z [mm]:')
+                self.ui.la_plot.setText('Z [mm]:')
                 for zi in z:
-                    self.ui.plot_cmb.addItem('{0:.4f}'.format(zi))
+                    self.ui.cmb_plot.addItem('{0:.4f}'.format(zi))
                 idx = _np.floor(len(z)/2)
-                self.ui.plot_cmb.setCurrentIndex(idx)
+                self.ui.cmb_plot.setCurrentIndex(idx)
 
                 self.bx_lines = _np.array([bx])
                 self.by_lines = _np.array([by])
@@ -338,11 +356,11 @@ class ViewFieldmapDialog(_QDialog):
                 self.xlabel = 'Position Y [mm]'
 
             elif len(z) != 1 and len(x) == 1 and len(y) == 1:
-                self.ui.plot_la.setText('X [mm]:')
+                self.ui.la_plot.setText('X [mm]:')
                 for xi in x:
-                    self.ui.plot_cmb.addItem('{0:.4f}'.format(xi))
+                    self.ui.cmb_plot.addItem('{0:.4f}'.format(xi))
                 idx = _np.floor(len(x)/2)
-                self.ui.plot_cmb.setCurrentIndex(idx)
+                self.ui.cmb_plot.setCurrentIndex(idx)
 
                 self.bx_lines = _np.array([bx])
                 self.by_lines = _np.array([by])
@@ -352,11 +370,11 @@ class ViewFieldmapDialog(_QDialog):
                 self.xlabel = 'Position Z [mm]'
 
             elif len(x) != 1 or (len(x) == 1 and len(y) == 1):
-                self.ui.plot_la.setText('X [mm]:')
+                self.ui.la_plot.setText('X [mm]:')
                 for xi in x:
-                    self.ui.plot_cmb.addItem('{0:.4f}'.format(xi))
+                    self.ui.cmb_plot.addItem('{0:.4f}'.format(xi))
                 idx = _np.floor(len(x)/2)
-                self.ui.plot_cmb.setCurrentIndex(idx)
+                self.ui.cmb_plot.setCurrentIndex(idx)
 
                 bx.shape = (-1, len(x))
                 by.shape = (-1, len(x))
@@ -372,10 +390,10 @@ class ViewFieldmapDialog(_QDialog):
                     self.pos = z
                     self.xlabel = 'Position Z [mm]'
             else:
-                self.ui.plot_la.setText('Y [mm]:')
+                self.ui.la_plot.setText('Y [mm]:')
                 for yi in y:
-                    self.ui.plot_cmb.addItem('{0:.4f}'.format(yi))
-                self.ui.plot_cmb.setCurrentIndex(-1)
+                    self.ui.cmb_plot.addItem('{0:.4f}'.format(yi))
+                self.ui.cmb_plot.setCurrentIndex(-1)
 
                 bx.shape = (-1, len(y))
                 by.shape = (-1, len(y))
@@ -387,24 +405,24 @@ class ViewFieldmapDialog(_QDialog):
                 self.pos = z
                 self.xlabel = 'Position Z [mm]'
 
-            self.ui.plot_cmb.setEnabled(True)
-            self.ui.update_plot_btn.setEnabled(True)
+            self.ui.cmb_plot.setEnabled(True)
+            self.ui.pbt_update_plot.setEnabled(True)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return
 
-    def updateTab(self, idx):
+    def update_tab(self, idx):
         """Update current tab."""
-        if idx ==  1:
-            self.updateTemperatures()
+        if idx == 1:
+            self.update_temperatures()
         elif idx == 2:
-            self.updateText()
+            self.update_text()
 
-    def updateTemperatures(self):
+    def update_temperatures(self):
         """Show dialog with temperature readings."""
         if self.temperature_updated:
             return
-        
+
         if len(self.fieldmap.temperature) == 0:
             return
 
@@ -420,36 +438,36 @@ class ViewFieldmapDialog(_QDialog):
             readings = {}
             for col in df.columns:
                 readings[col] = df[col].values.tolist()
-            self.temperature_widget.updateTemperatures(timestamp, readings)
+            self.temperature_widget.update_temperatures(timestamp, readings)
             self.temperature_updated = True
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to open dialog.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updateText(self):
+    def update_text(self):
         """Update text."""
         if self.text_updated:
             return
 
-        if self.fieldmap is not None:           
+        if self.fieldmap is not None:
             try:
                 self.blockSignals(True)
                 _QApplication.setOverrideCursor(_Qt.WaitCursor)
-                
+
                 text = self.fieldmap.get_fieldmap_text()
-                self.ui.text_te.setText(text)
+                self.ui.te_text.setText(text)
                 self.text_updated = True
-                
+
                 self.blockSignals(False)
                 _QApplication.restoreOverrideCursor()
-                
+
             except Exception:
                 self.blockSignals(False)
                 _QApplication.restoreOverrideCursor()
                 _traceback.print_exc(file=_sys.stdout)
 
         else:
-            self.ui.text_te.setText('')
+            self.ui.te_text.setText('')

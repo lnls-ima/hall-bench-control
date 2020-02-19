@@ -1,27 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Hall Bench Devices."""
 
-import os as _os
+"""Main entry poin to the Hall bench control application."""
+
 import numpy as _np
 import time as _time
 
-from . import Agilent3458ALib as _Agilent3458ALib
-from . import Agilent34401ALib as _Agilent34401ALib
-from . import Agilent34970ALib as _Agilent34970ALib
-from . import DRSLib as _DRSLib
-from . import ElcomatLib as _ElcomatLib
-from . import NMRLib as _NMRLib
-from . import PmacLib as _PmacLib
-from . import UDCLib as _UDCLib
-
-
-logs_dir = 'logs'
-
-Pmac = _PmacLib.Pmac
-NMR = _NMRLib.NMRSerial
-Elcomat = _ElcomatLib.ElcomatSerial
-PowerSupply = _DRSLib.SerialDRS_FBP
-UDC = _UDCLib.UDCModBus
+from imautils.devices import Agilent3458ALib as _Agilent3458ALib
+from imautils.devices import Agilent34401ALib as _Agilent34401ALib
+from imautils.devices import Agilent34970ALib as _Agilent34970ALib
+from imautils.devices import F1000DRSLib as _DRSLib
 
 
 class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
@@ -34,7 +21,7 @@ class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
             aper (float): A/D converter integration time in ms.
             mrange (float): measurement range in volts.
         """
-        self.send_command(self.commands.reset)
+        #self.send_command(self.commands.reset)
         self.send_command(self.commands.func_volt)
         self.send_command(self.commands.tarm_auto)
         self.send_command(self.commands.trig_auto)
@@ -57,13 +44,13 @@ class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
         """Configure multimeter reading format.
 
         Args:
-            formtype (int): format type [SREAL=4, DREAL=5].
+            formtype (str): format type [SREAL, DREAL].
         """
         self.send_command(self.commands.mem_fifo)
-        if formtype == 4:
+        if formtype == 'SREAL':
             self.send_command(self.commands.oformat_sreal)
             self.send_command(self.commands.mformat_sreal)
-        elif formtype == 5:
+        elif formtype == 'DREAL':
             self.send_command(self.commands.oformat_dreal)
             self.send_command(self.commands.mformat_dreal)
 
@@ -71,13 +58,13 @@ class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
 class Multichannel(_Agilent34970ALib.Agilent34970AGPIB):
     """Multichannel class."""
 
-    def __init__(self, logfile=None):
-        """Initiaze variables and prepare logging file.
+    def __init__(self, log=False):
+        """Initiaze variables and prepare logging.
 
         Args:
-            logfile (str): log file path.
+            log (bool): True to use event logging, False otherwise.
         """
-        super().__init__(logfile)
+        super().__init__(log=log)
         self.temperature_channels = [
             '201', '202', '203', '204', '205', '206', '207', '208', '209']
         self.voltage_channels = ['101', '102', '103', '105']
@@ -120,108 +107,24 @@ class Multichannel(_Agilent34970ALib.Agilent34970AGPIB):
 class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
     """DCCT Multimeter."""
 
-    def read_current(self, dcct_head=None):
+    def __init__(self, log=False):
+        super().__init__(log=log)
+        self.dcct_head = None
+
+    def read_current(self):
         """Read dcct voltage and convert to current."""
         voltage = self.read()
         dcct_heads = [40, 160, 320, 600, 1000, 1125]
-        if voltage is not None and dcct_head in dcct_heads:
-            current = voltage * dcct_head/10
+        if voltage is not None and self.dcct_head in dcct_heads:
+            current = voltage * self.dcct_head/10
         else:
             current = _np.nan
         return current
 
 
-class HallBenchDevices(object):
-    """Hall Bench devices class."""
+class PowerSupply(_DRSLib.SerialDRS_FBP):
+    """Power Supply."""
 
     def __init__(self):
-        """Initialize variables and log files."""
-
-        # Log files
-        _dir_path = _os.path.dirname(_os.path.dirname(
-            _os.path.dirname(_os.path.abspath(__file__))))
-        _logs_path = _os.path.join(_dir_path, logs_dir)
-        if not _os.path.isdir(_logs_path):
-            _os.mkdir(_logs_path)
-        log_pmac = _os.path.join(_logs_path, 'pmac.log')
-        log_voltx = _os.path.join(_logs_path, 'voltx.log')
-        log_volty = _os.path.join(_logs_path, 'volty.log')
-        log_voltz = _os.path.join(_logs_path, 'voltz.log')
-        log_multich = _os.path.join(_logs_path, 'multich.log')
-        log_nmr = _os.path.join(_logs_path, 'nmr.log')
-        log_elcomat = _os.path.join(_logs_path, 'elcomat.log')
-        log_dcct = _os.path.join(_logs_path, 'dcct.log')
-        log_water_udc = _os.path.join(_logs_path, 'water_udc.log')
-        log_air_udc = _os.path.join(_logs_path, 'air_udc.log')
-
-        # Devices
-        self.pmac = Pmac(log_pmac)
-        self.voltx = Multimeter(log_voltx)
-        self.volty = Multimeter(log_volty)
-        self.voltz = Multimeter(log_voltz)
-        self.multich = Multichannel(log_multich)
-        self.nmr = NMR(log_nmr)
-        self.elcomat = Elcomat(log_elcomat)
-        self.dcct = DCCT(log_dcct)
-        self.water_udc = UDC(log_water_udc)
-        self.air_udc = UDC(log_air_udc)
-        self.ps = PowerSupply()
-
-    def connect(self, config):
-        """Connect devices.
-
-        Args:
-            config (ConnectionConfig): connection configuration.
-        """
-        if config.pmac_enable:
-            self.pmac.connect()
-
-        if config.voltx_enable:
-            self.voltx.connect(config.voltx_address)
-
-        if config.volty_enable:
-            self.volty.connect(config.volty_address)
-
-        if config.voltz_enable:
-            self.voltz.connect(config.voltz_address)
-
-        if config.multich_enable:
-            self.multich.connect(config.multich_address)
-
-        if config.nmr_enable:
-            self.nmr.connect(config.nmr_port, config.nmr_baudrate)
-
-        if config.elcomat_enable:
-            self.elcomat.connect(config.elcomat_port, config.elcomat_baudrate)
-
-        if config.dcct_enable:
-            self.dcct.connect(config.dcct_address)
-
-        if config.water_udc_enable:
-            self.water_udc.connect(
-                config.water_udc_port, 
-                config.water_udc_baudrate, 
-                config.water_udc_slave_address)
-
-        if config.air_udc_enable:
-            self.air_udc.connect(
-                config.air_udc_port, 
-                config.air_udc_baudrate, 
-                config.air_udc_slave_address)
-
-        if config.ps_enable:
-            self.ps.Connect(config.ps_port)
-
-    def disconnect(self):
-        """Disconnect devices."""
-        self.pmac.disconnect()
-        self.voltx.disconnect()
-        self.volty.disconnect()
-        self.voltz.disconnect()
-        self.multich.disconnect()
-        self.nmr.disconnect()
-        self.elcomat.disconnect()
-        self.dcct.disconnect()
-        self.water_udc.disconnect()
-        self.air_udc.disconnect()
-        self.ps.Disconnect()
+        self.ps_type = None
+        super().__init__()

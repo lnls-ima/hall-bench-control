@@ -7,24 +7,19 @@ import sys as _sys
 import threading as _threading
 from qtpy.QtWidgets import QApplication as _QApplication
 
+from hallbench.gui import utils as _utils
 from hallbench.gui.hallbenchwindow import HallBenchWindow as _HallBenchWindow
 from hallbench.gui.viewprobedialog import ViewProbeDialog \
     as _ViewProbeDialog
 from hallbench.gui.viewscandialog import ViewScanDialog \
     as _ViewScanDialog
+from hallbench.gui.savefieldscandialog import SaveFieldScanDialog \
+    as _SaveFieldScanDialog
 from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
     as _SaveFieldmapDialog
 from hallbench.gui.viewfieldmapdialog import ViewFieldmapDialog \
     as _ViewFieldmapDialog
 import hallbench.data as _data
-import hallbench.devices as _devices
-
-
-# Styles: ["windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"]
-_style = 'windows'
-_width = 1200
-_height = 700
-_database_filename = 'hall_bench_measurements.db'
 
 
 class HallBenchApp(_QApplication):
@@ -33,25 +28,13 @@ class HallBenchApp(_QApplication):
     def __init__(self, args):
         """Start application."""
         super().__init__(args)
-        self.setStyle(_style)
+        self.setStyle(_utils.WINDOW_STYLE)
 
-        self.directory = _os.path.dirname(_os.path.dirname(
-            _os.path.dirname(_os.path.abspath(__file__))))
-        self.database = _os.path.join(self.directory, _database_filename)
+        self.directory = _utils.BASEPATH
+        self.database_name = _utils.DATABASE_NAME
+        self.mongo = _utils.MONGO
+        self.server = _utils.SERVER
         self.create_database()
-
-        # configurations
-        _ConnectionConfig = _data.configuration.ConnectionConfig
-        _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
-        _MeasurementConfig = _data.configuration.MeasurementConfig
-        _HallProbe = _data.calibration.HallProbe
-        _HallBenchDevices = _devices.devices.HallBenchDevices
-        
-        self.connection_config = _ConnectionConfig()
-        self.measurement_config = _MeasurementConfig()
-        self.power_supply_config = _PowerSupplyConfig()
-        self.hall_probe = _HallProbe()
-        self.devices = _HallBenchDevices()
 
         # positions dict
         self.positions = {}
@@ -59,29 +42,46 @@ class HallBenchApp(_QApplication):
         # create dialogs
         self.view_probe_dialog = _ViewProbeDialog()
         self.view_scan_dialog = _ViewScanDialog()
+        self.save_field_scan_dialog = _SaveFieldScanDialog()
         self.save_fieldmap_dialog = _SaveFieldmapDialog()
         self.view_fieldmap_dialog = _ViewFieldmapDialog()
 
     def create_database(self):
         """Create database and tables."""
-        _ConnectionConfig = _data.configuration.ConnectionConfig
-        _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
-        _HallSensor = _data.calibration.HallSensor
-        _HallProbe = _data.calibration.HallProbe
-        _MeasurementConfig = _data.configuration.MeasurementConfig
-        _VoltageScan = _data.measurement.VoltageScan
-        _FieldScan = _data.measurement.FieldScan
-        _Fieldmap = _data.measurement.Fieldmap        
-        
+        _ConnectionConfig = _data.configuration.ConnectionConfig(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        _PowerSupplyConfig = _data.configuration.PowerSupplyConfig(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        _HallCalibrationCurve = _data.calibration.HallCalibrationCurve(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        _HallProbePositions = _data.calibration.HallProbePositions(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        _MeasurementConfig = _data.configuration.MeasurementConfig(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        _VoltageScan = _data.measurement.VoltageScan(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        _FieldScan = _data.measurement.FieldScan(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        _Fieldmap = _data.measurement.Fieldmap(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+ 
         status = []
-        status.append(_ConnectionConfig.create_database_table(self.database))
-        status.append(_PowerSupplyConfig.create_database_table(self.database))
-        status.append(_HallSensor.create_database_table(self.database))
-        status.append(_HallProbe.create_database_table(self.database))
-        status.append(_MeasurementConfig.create_database_table(self.database))
-        status.append(_VoltageScan.create_database_table(self.database))
-        status.append(_FieldScan.create_database_table(self.database))
-        status.append(_Fieldmap.create_database_table(self.database))
+        status.append(_ConnectionConfig.db_create_collection())
+        status.append(_PowerSupplyConfig.db_create_collection())
+        status.append(_HallCalibrationCurve.db_create_collection())
+        status.append(_HallProbePositions.db_create_collection())
+        status.append(_MeasurementConfig.db_create_collection())
+        status.append(_VoltageScan.db_create_collection())
+        status.append(_FieldScan.db_create_collection())
+        status.append(_Fieldmap.db_create_collection())
         if not all(status):
             raise Exception("Failed to create database.")
 
@@ -94,27 +94,30 @@ class GUIThread(_threading.Thread):
         _threading.Thread.__init__(self)
         self.app = None
         self.window = None
+        self.daemon = True
         self.start()
 
     def run(self):
         """Thread target function."""
         self.app = None
-        if (not _QApplication.instance()):
+        if not _QApplication.instance():
             self.app = HallBenchApp([])
-            self.window = _HallBenchWindow(width=_width, height=_height)
+            self.window = _HallBenchWindow(
+                width=_utils.WINDOW_WIDTH, height=_utils.WINDOW_HEIGHT)
             self.window.show()
-            self.window.centralizeWindow()
+            self.window.centralize_window()
             _sys.exit(self.app.exec_())
 
 
 def run():
     """Run hallbench application."""
     app = None
-    if (not _QApplication.instance()):
+    if not _QApplication.instance():
         app = HallBenchApp([])
-        window = _HallBenchWindow(width=_width, height=_height)
+        window = _HallBenchWindow(
+            width=_utils.WINDOW_WIDTH, height=_utils.WINDOW_HEIGHT)
         window.show()
-        window.centralizeWindow()
+        window.centralize_window()
         _sys.exit(app.exec_())
 
 

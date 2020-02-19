@@ -3,6 +3,7 @@
 *.db-journal
 
 fieldmaps/
+measurements/
 
 *.txt
 *.dat

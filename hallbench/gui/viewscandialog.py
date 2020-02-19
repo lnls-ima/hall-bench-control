@@ -17,6 +17,7 @@ from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QTableWidgetItem as _QTableWidgetItem,
     )
+from qtpy.QtGui import QFont as _QFont
 from qtpy.QtCore import Qt as _Qt
 import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
@@ -30,6 +31,9 @@ from hallbench.gui import utils as _utils
 from hallbench.data import measurement as _measurement
 
 
+TO_PRINT = True
+
+
 class ViewScanDialog(_QDialog):
     """View data dialog class for the Hall Bench Control application."""
 
@@ -37,10 +41,10 @@ class ViewScanDialog(_QDialog):
         """Set up the ui and create connections."""
         super().__init__(parent)
 
-        uifile = _utils.getUiFile(self)
+        uifile = _utils.get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        self.plot_label = ''
+        self.scan_type = None
         self.scan_list = []
         self.graphx = []
         self.graphy = []
@@ -61,38 +65,49 @@ class ViewScanDialog(_QDialog):
 
         # Create legend
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
-        self.legend.setParentItem(self.ui.graph_pw.graphicsItem())
+        self.legend.setParentItem(self.ui.pw_graph.graphicsItem())
         self.legend.setAutoFillBackground(1)
+        self.legend_items = []
 
         # Add combo boxes
-        self.select_scan_cmb = _CheckableComboBox()
+        self.cmb_select_scan = _CheckableComboBox()
         _layout = _QVBoxLayout()
         _layout.setContentsMargins(0, 0, 0, 0)
-        _layout.addWidget(self.select_scan_cmb)
-        self.ui.select_scan_wg.setLayout(_layout)
+        _layout.addWidget(self.cmb_select_scan)
+        self.ui.wg_select_scan.setLayout(_layout)
 
-        self.connectSignalSlots()
+        self.connect_signal_slots()
 
     def accept(self):
         """Close dialog."""
         self.clear()
-        self.closeDialogs()
+        self.close_dialogs()
         super().accept()
 
-    def calcCurveFit(self):
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.clear()
+            self.close_dialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
+    def calc_curve_fit(self):
         """Calculate curve fit."""
         try:
-            selected_idx, selected_comp = self.getSelectedScanComponent()
+            selected_idx, selected_comp = self.get_selected_scan_component()
             if selected_idx is None or selected_comp is None:
                 return
-            
-            x, y = self.getXY(selected_idx, selected_comp)
-    
-            func = self.ui.fitfunction_cmb.currentText()
+
+            x, y = self.get_x_y(selected_idx, selected_comp)
+
+            func = self.ui.cmb_fitfunction.currentText()
             if func.lower() == 'linear':
                 xfit, yfit, param, label = _linear_fit(x, y)
             elif func.lower() == 'polynomial':
-                order = self.ui.polyorder_sb.value()
+                order = self.ui.sb_polyorder.value()
                 xfit, yfit, param, label = _polynomial_fit(x, y, order)
             elif func.lower() == 'gaussian':
                 xfit, yfit, param, label = _gaussian_fit(x, y)
@@ -101,83 +116,89 @@ class ViewScanDialog(_QDialog):
                 yfit = []
                 param = {}
                 label = ''
-    
-            self.ui.fitfunction_la.setText(label)
-            self.ui.fit_ta.clearContents()
-            self.ui.fit_ta.setRowCount(len(param))
+
+            self.ui.la_fitfunction.setText(label)
+            self.ui.tbl_fit.clearContents()
+            self.ui.tbl_fit.setRowCount(len(param))
             rcount = 0
             for key, value in param.items():
-                self.ui.fit_ta.setItem(
+                self.ui.tbl_fit.setItem(
                     rcount, 0, _QTableWidgetItem(str(key)))
-                self.ui.fit_ta.setItem(
+                self.ui.tbl_fit.setItem(
                     rcount, 1, _QTableWidgetItem(str(value)))
                 rcount = rcount + 1
-    
-            self.updatePlot()
-            self.ui.graph_pw.plotItem.plot(xfit, yfit, pen=(0, 0, 0))
-        
+
+            self.update_plot()
+            self.ui.pw_graph.plotItem.plot(xfit, yfit, pen=(0, 0, 0))
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def calcIntegrals(self):
+    def calc_integrals(self):
         """Calculate integrals."""
         try:
-            selected_idx, _ = self.getSelectedScanComponent()
+            selected_idx, _ = self.get_selected_scan_component()
             if selected_idx is None:
                 return
-    
-            unit = self.scan_dict[selected_idx]['unit']
-            if len(unit) > 0:
-                first_integral_unit = ' [' + unit + '.mm' + ']'
-                second_integral_unit = ' [' + unit + '.mm²' + ']'
-            else:
-                first_integral_unit = ''
-                second_integral_unit = ''
-            self.ui.first_integral_la.setText(
-                'First Integral{0:s}:'.format(first_integral_unit))
-            self.ui.second_integral_la.setText(
-                'Second Integral{0:s}:'.format(second_integral_unit))
-    
-            x, y = self.getXY(selected_idx, 'x')
+
+            x, y = self.get_x_y(selected_idx, 'x')
             if x is None or y is None or len(y) == 0:
-                self.clearIntegrals()
+                self.clear_integrals()
                 return
-    
-            first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
-            second_integral = _integrate.cumtrapz(
-                x=x, y=first_integral, initial=0)
-    
-            self.ui.first_integral_x_le.setText(
-                '{0:.6g}'.format(first_integral[-1]))
-            self.ui.second_integral_x_le.setText(
-                '{0:.6g}'.format(second_integral[-1]))
-    
-            x, y = self.getXY(selected_idx, 'y')
+
+            if self.scan_type == 'field':
+                if self.ui.cmb_first_integral_unit.currentIndex() == 1:
+                    fmult = 1e3
+                else:
+                    fmult = 1e-3
+
+                if self.ui.cmb_second_integral_unit.currentIndex() == 1:
+                    smult = 1e-2
+                else:
+                    smult = 1e-6
+
+            else:
+                fmult = 1e-3
+                smult = 1e-6
+                
             first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
             second_integral = _integrate.cumtrapz(
                 x=x, y=first_integral, initial=0)
 
-            self.ui.first_integral_y_le.setText(
-                '{0:.6g}'.format(first_integral[-1]))
-            self.ui.second_integral_y_le.setText(
-                '{0:.6g}'.format(second_integral[-1]))
-    
-            x, y = self.getXY(selected_idx, 'z')
+            fint = first_integral[-1]*fmult
+            sint = second_integral[-1]*smult
+
+            self.ui.le_first_integral_x.setText('{0:.6g}'.format(fint))
+            self.ui.le_second_integral_x.setText('{0:.6g}'.format(sint))
+
+            x, y = self.get_x_y(selected_idx, 'y')
             first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
             second_integral = _integrate.cumtrapz(
                 x=x, y=first_integral, initial=0)
 
-            self.ui.first_integral_z_le.setText(
-                '{0:.6g}'.format(first_integral[-1]))
-            self.ui.second_integral_z_le.setText(
-                '{0:.6g}'.format(second_integral[-1]))
-        
+            fint = first_integral[-1]*fmult
+            sint = second_integral[-1]*smult
+
+            self.ui.le_first_integral_y.setText('{0:.6g}'.format(fint))
+            self.ui.le_second_integral_y.setText('{0:.6g}'.format(sint))
+
+            x, y = self.get_x_y(selected_idx, 'z')
+            first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
+            second_integral = _integrate.cumtrapz(
+                x=x, y=first_integral, initial=0)
+
+            fint = first_integral[-1]*fmult
+            sint = second_integral[-1]*smult
+
+            self.ui.le_first_integral_z.setText('{0:.6g}'.format(fint))
+            self.ui.le_second_integral_z.setText('{0:.6g}'.format(sint))
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
     def clear(self):
         """Clear all."""
-        self.plot_label = ''
+        self.scan_type = None
         self.scan_list = []
         self.graphx = []
         self.graphy = []
@@ -187,37 +208,38 @@ class ViewScanDialog(_QDialog):
         self.xmax_line = None
         self.current = None
         self.temperature = {}
-        self.clearFit()
-        self.clearIntegrals()
-        self.clearGraph()
-        self.select_scan_cmb.clear()
+        self.clear_fit()
+        self.clear_integrals()
+        self.clear_graph()
+        self.cmb_select_scan.clear()
 
-    def clearFit(self):
+    def clear_fit(self):
         """Clear fit."""
-        self.ui.fit_ta.clearContents()
-        self.ui.fit_ta.setRowCount(0)
-        self.ui.fitfunction_la.setText('')
+        self.ui.tbl_fit.clearContents()
+        self.ui.tbl_fit.setRowCount(0)
+        self.ui.la_fitfunction.setText('')
 
-    def clearIntegrals(self):
+    def clear_integrals(self):
         """Clear integrals."""
-        self.ui.first_integral_x_le.setText('')
-        self.ui.first_integral_y_le.setText('')
-        self.ui.first_integral_z_le.setText('')
-        self.ui.second_integral_x_le.setText('')
-        self.ui.second_integral_y_le.setText('')
-        self.ui.second_integral_z_le.setText('')
-        self.ui.first_integral_la.setText('First Integral:')
-        self.ui.second_integral_la.setText('Second Integral:')
+        self.ui.le_first_integral_x.setText('')
+        self.ui.le_first_integral_y.setText('')
+        self.ui.le_first_integral_z.setText('')
+        self.ui.le_second_integral_x.setText('')
+        self.ui.le_second_integral_y.setText('')
+        self.ui.le_second_integral_z.setText('')
 
-    def clearGraph(self):
+    def clear_graph(self):
         """Clear plots."""
-        self.ui.graph_pw.plotItem.curves.clear()
-        self.ui.graph_pw.clear()
+        for item in self.legend_items:
+            self.legend.removeItem(item)
+        self.legend_items = []
+        self.ui.pw_graph.plotItem.curves.clear()
+        self.ui.pw_graph.clear()
         self.graphx = []
         self.graphy = []
         self.graphz = []
 
-    def closeDialogs(self):
+    def close_dialogs(self):
         """Close dialogs."""
         try:
             self.current_dialog.accept()
@@ -225,166 +247,220 @@ class ViewScanDialog(_QDialog):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.clear()
-            self.closeDialogs()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def configureGraph(self, nr_curves, plot_label):
+    def configure_graph(self, nr_curves, idn_list=None):
         """Configure graph.
 
         Args:
             nr_curves (int): number of curves to plot.
         """
-        self.graphx = []
-        self.graphy = []
-        self.graphz = []
-        self.legend.removeItem('X')
-        self.legend.removeItem('Y')
-        self.legend.removeItem('Z')
+        self.clear_graph()
 
         if nr_curves == 0:
             return
+        
+        colorx = (255, 0, 0)
+        colory = (0, 255, 0)
+        colorz = (0, 0, 255)
+        
+        if TO_PRINT:
+            width = 3
+            label_style = {'font-size': '20px'}
+        else:
+            width = 1
+            label_style = {}
 
-        for idx in range(nr_curves):
-            self.graphx.append(
-                self.ui.graph_pw.plotItem.plot(
-                    _np.array([]),
-                    _np.array([]),
-                    pen=(255, 0, 0)))
+        colors = _utils.COLOR_LIST
 
-            self.graphy.append(
-                self.ui.graph_pw.plotItem.plot(
+        if idn_list is not None and len(idn_list) > 0:
+            if nr_curves > len(colors):
+                colors = [(0, 0, 0)]*nr_curves
+            
+            for idx in range(nr_curves):
+                pen = _pyqtgraph.mkPen(color=colors[idx], width=width)
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
                     _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphx.append(plot_data_item)
+    
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
                     _np.array([]),
-                    pen=(0, 255, 0)))
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphy.append(plot_data_item) 
 
-            self.graphz.append(
-                self.ui.graph_pw.plotItem.plot(
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
                     _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphz.append(plot_data_item)
+    
+                legend_item = 'ID:{0:d}'.format(idn_list[idx])
+                self.legend_items.append(legend_item)
+                self.legend.addItem(self.graphx[idx], legend_item)
+        
+        else:
+            for idx in range(nr_curves):
+                pen = _pyqtgraph.mkPen(color=colorx, width=width)
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
                     _np.array([]),
-                    pen=(0, 0, 255)))
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphx.append(plot_data_item)
+    
+                pen = _pyqtgraph.mkPen(color=colory, width=width)
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphy.append(plot_data_item)
+    
+                pen = _pyqtgraph.mkPen(color=colorz, width=width)
+                plot_data_item = self.ui.pw_graph.plotItem.plot(
+                    _np.array([]),
+                    _np.array([]))
+                plot_data_item.setPen(pen)
+                self.graphz.append(plot_data_item)
+    
+            self.legend_items = ['X', 'Y', 'Z']
+            self.legend.addItem(self.graphx[0], self.legend_items[0])
+            self.legend.addItem(self.graphy[0], self.legend_items[1])
+            self.legend.addItem(self.graphz[0], self.legend_items[2])
+        
+        self.ui.pw_graph.setLabel(
+            'bottom', text='Scan Position', **label_style)
+        
+        if self.scan_type == 'field':
+            self.ui.pw_graph.setLabel(
+                'left', text='Field [T]', **label_style)
+        else:
+            self.ui.pw_graph.setLabel(
+                'left', text='Voltage [V]', **label_style)
+        
+        self.ui.pw_graph.showGrid(x=True, y=True)
 
-        self.legend.addItem(self.graphx[0], 'X')
-        self.legend.addItem(self.graphy[0], 'Y')
-        self.legend.addItem(self.graphz[0], 'Z')
-        self.ui.graph_pw.setLabel('bottom', 'Scan Position [mm]')
-        self.ui.graph_pw.setLabel('left', plot_label)
-        self.ui.graph_pw.showGrid(x=True, y=True)
+        if TO_PRINT:        
+            font = _QFont()
+            font.setPixelSize(20)
+            self.ui.pw_graph.getAxis('bottom').tickFont = font
+            self.ui.pw_graph.getAxis('bottom').setStyle(
+                tickTextOffset = 20)
+            self.ui.pw_graph.getAxis('left').tickFont = font
+            self.ui.pw_graph.getAxis('left').setStyle(
+                tickTextOffset = 20)    
 
-    def connectSignalSlots(self):
+    def connect_signal_slots(self):
         """Create signal/slot connections."""
-        self.ui.update_plot_btn.clicked.connect(self.updatePlot)
-        self.select_scan_cmb.activated.connect(self.updateControlsAndPlot)
-        self.ui.x_chb.stateChanged.connect(self.updateControlsAndPlot)
-        self.ui.y_chb.stateChanged.connect(self.updateControlsAndPlot)
-        self.ui.z_chb.stateChanged.connect(self.updateControlsAndPlot)
-        self.ui.select_all_btn.clicked.connect(
-            lambda: self.setSelectionAll(True))
-        self.ui.clear_all_btn.clicked.connect(
-            lambda: self.setSelectionAll(False))
-        self.ui.xmin_sb.valueChanged.connect(self.updateXMin)
-        self.ui.xmax_sb.valueChanged.connect(self.updateXMax)
-        self.ui.fitfunction_cmb.currentIndexChanged.connect(
-            self.fitFunctionChanged)
-        self.ui.polyorder_sb.valueChanged.connect(self.polyOrderChanged)
-        self.ui.fit_btn.clicked.connect(self.calcCurveFit)
-        self.ui.resetlim_btn.clicked.connect(self.resetXLimits)
-        self.ui.view_current_btn.clicked.connect(
-            self.showCurrentDialog)
-        self.ui.view_temperature_btn.clicked.connect(
-            self.showTemperatureDialog)
-        self.ui.calc_integrals_btn.clicked.connect(self.calcIntegrals)
-        self.ui.copy_integrals_btn.clicked.connect(self.copyIntegrals)
+        self.ui.pbt_update_plot.clicked.connect(self.update_plot)
+        self.cmb_select_scan.activated.connect(self.update_controls_and_plot)
+        self.ui.chb_x.stateChanged.connect(self.update_controls_and_plot)
+        self.ui.chb_y.stateChanged.connect(self.update_controls_and_plot)
+        self.ui.chb_z.stateChanged.connect(self.update_controls_and_plot)
+        self.ui.pbt_select_all.clicked.connect(
+            lambda: self.set_selection_all(True))
+        self.ui.pbt_clear_all.clicked.connect(
+            lambda: self.set_selection_all(False))
+        self.ui.sbd_xmin.valueChanged.connect(self.update_xmin)
+        self.ui.sbd_xmax.valueChanged.connect(self.update_xmax)
+        self.ui.cmb_fitfunction.currentIndexChanged.connect(
+            self.fit_function_changed)
+        self.ui.cmb_first_integral_unit.currentIndexChanged.connect(
+            self.calc_integrals)
+        self.ui.cmb_second_integral_unit.currentIndexChanged.connect(
+            self.calc_integrals)
+        self.ui.sb_polyorder.valueChanged.connect(self.poly_order_changed)
+        self.ui.pbt_fit.clicked.connect(self.calc_curve_fit)
+        self.ui.pbt_resetlim.clicked.connect(self.reset_xlimits)
+        self.ui.pbt_view_current.clicked.connect(
+            self.show_current_dialog)
+        self.ui.pbt_view_temperature.clicked.connect(
+            self.show_temperature_dialog)
+        self.ui.pbt_calc_integrals.clicked.connect(self.calc_integrals)
+        self.ui.tbt_copy_integrals.clicked.connect(self.copy_integrals)
 
-    def copyIntegrals(self):
+    def copy_integrals(self):
         """Copy integrals data to clipboard."""
         try:
             field_integrals = [
-                self.ui.first_integral_x_le.text(),
-                self.ui.first_integral_y_le.text(),
-                self.ui.first_integral_z_le.text(),
-                self.ui.second_integral_x_le.text(),
-                self.ui.second_integral_y_le.text(),
-                self.ui.second_integral_z_le.text(),
+                self.ui.le_first_integral_x.text(),
+                self.ui.le_first_integral_y.text(),
+                self.ui.le_first_integral_z.text(),
+                self.ui.le_second_integral_x.text(),
+                self.ui.le_second_integral_y.text(),
+                self.ui.le_second_integral_z.text(),
                 ]
-    
+
             text = "\n".join(field_integrals)
             _QApplication.clipboard().setText(text)
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-
-    def fitFunctionChanged(self):
+    def fit_function_changed(self):
         """Hide or show polynomial fitting order and update dict value."""
-        self.clearFit()
-        self.updatePlot()
-        func = self.ui.fitfunction_cmb.currentText()
+        self.clear_fit()
+        self.update_plot()
+        func = self.ui.cmb_fitfunction.currentText()
         if func.lower() == 'polynomial':
-            self.ui.polyorder_la.show()
-            self.ui.polyorder_sb.show()
+            self.ui.la_polyorder.show()
+            self.ui.sb_polyorder.show()
         else:
-            self.ui.polyorder_la.hide()
-            self.ui.polyorder_sb.hide()
+            self.ui.la_polyorder.hide()
+            self.ui.sb_polyorder.hide()
 
-        selected_idx, selected_comp = self.getSelectedScanComponent()
+        selected_idx, selected_comp = self.get_selected_scan_component()
         if selected_idx is None or selected_comp is None:
             return
         self.scan_dict[selected_idx][selected_comp]['fit_function'] = func
 
-    def getSelectedScanComponent(self):
+    def get_selected_scan_component(self):
         """Get selected scan and component."""
         try:
-            selected_index, selected_comps = self.getSelectedScansComponents()
+            selected_index, selected_comps = (
+                self.get_selected_scans_components())
             if len(selected_index) == 1:
                 selected_idx = selected_index[0]
             else:
                 selected_idx = None
-    
+
             if len(selected_comps) == 1:
                 selected_comp = selected_comps[0]
             else:
                 selected_comp = None
-    
+
             return selected_idx, selected_comp
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return None, None
 
-    def getSelectedScansComponents(self):
+    def get_selected_scans_components(self):
         """Get all selected scans and components."""
         try:
-            selected_idx = self.select_scan_cmb.checkedIndexes()
-    
+            selected_idx = self.cmb_select_scan.checked_indexes()
+
             selected_comp = []
-            if self.ui.x_chb.isChecked():
+            if self.ui.chb_x.isChecked():
                 selected_comp.append('x')
-            if self.ui.y_chb.isChecked():
+            if self.ui.chb_y.isChecked():
                 selected_comp.append('y')
-            if self.ui.z_chb.isChecked():
+            if self.ui.chb_z.isChecked():
                 selected_comp.append('z')
-    
+
             return selected_idx, selected_comp
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return None, None
 
-    def getXY(self, selected_idx, selected_comp):
+    def get_x_y(self, selected_idx, selected_comp):
         """Get X, Y values."""
         sel = self.scan_dict[selected_idx][selected_comp]
 
         pos = sel['pos']
         data = sel['data']
-        xmin = self.ui.xmin_sb.value()
-        xmax = self.ui.xmax_sb.value()
+        xmin = self.ui.sbd_xmin.value()
+        xmax = self.ui.sbd_xmax.value()
 
         x = _np.array(pos)
         y = _np.array(data)
@@ -393,18 +469,18 @@ class ViewScanDialog(_QDialog):
         x = x[(x >= xmin) & (x <= xmax)]
         return x, y
 
-    def polyOrderChanged(self):
+    def poly_order_changed(self):
         """Update dict value."""
-        selected_idx, selected_comp = self.getSelectedScanComponent()
+        selected_idx, selected_comp = self.get_selected_scan_component()
         if selected_idx is None or selected_comp is None:
             return
 
-        od = self.ui.polyorder_sb.value()
+        od = self.ui.sb_polyorder.value()
         self.scan_dict[selected_idx][selected_comp]['fit_polyorder'] = od
 
-    def resetXLimits(self):
+    def reset_xlimits(self):
         """Reset X limits.."""
-        selected_idx, _ = self.getSelectedScanComponent()
+        selected_idx, _ = self.get_selected_scan_component()
         if selected_idx is None:
             return
 
@@ -418,17 +494,17 @@ class ViewScanDialog(_QDialog):
             xmax = 0
 
         self.scan_dict[selected_idx]['xmin'] = xmin
-        self.ui.xmin_sb.setValue(xmin)
+        self.ui.sbd_xmin.setValue(xmin)
 
         self.scan_dict[selected_idx]['xmax'] = xmax
-        self.ui.xmax_sb.setValue(xmax)
+        self.ui.sbd_xmax.setValue(xmax)
 
-        self.updatePlot()
+        self.update_plot()
 
-    def setCurveLabels(self):
+    def set_curve_labels(self):
         """Set curve labels."""
         self.blockSignals(True)
-        self.select_scan_cmb.clear()
+        self.cmb_select_scan.clear()
 
         p1 = set()
         p2 = set()
@@ -455,18 +531,18 @@ class ViewScanDialog(_QDialog):
                 curve_labels.append('ID:{0:d}'.format(idn) + pos)
 
         for index, element in enumerate(curve_labels):
-            self.select_scan_cmb.addItem(element)
-            item = self.select_scan_cmb.model().item(index, 0)
+            self.cmb_select_scan.addItem(element)
+            item = self.cmb_select_scan.model().item(index, 0)
             item.setCheckState(_Qt.Checked)
 
-        self.ui.x_chb.setChecked(True)
-        self.ui.y_chb.setChecked(True)
-        self.ui.z_chb.setChecked(True)
+        self.ui.chb_x.setChecked(True)
+        self.ui.chb_y.setChecked(True)
+        self.ui.chb_z.setChecked(True)
 
-        self.select_scan_cmb.setCurrentIndex(-1)
+        self.cmb_select_scan.setCurrentIndex(-1)
         self.blockSignals(False)
 
-    def setSelectionAll(self, checked):
+    def set_selection_all(self, checked):
         """Set selection all."""
         self.blockSignals(True)
         if checked:
@@ -474,18 +550,18 @@ class ViewScanDialog(_QDialog):
         else:
             state = _Qt.Unchecked
 
-        for idx in range(self.select_scan_cmb.count()):
-            item = self.select_scan_cmb.model().item(idx, 0)
+        for idx in range(self.cmb_select_scan.count()):
+            item = self.cmb_select_scan.model().item(idx, 0)
             item.setCheckState(state)
 
-        self.ui.x_chb.setChecked(checked)
-        self.ui.y_chb.setChecked(checked)
-        self.ui.z_chb.setChecked(checked)
+        self.ui.chb_x.setChecked(checked)
+        self.ui.chb_y.setChecked(checked)
+        self.ui.chb_z.setChecked(checked)
 
         self.blockSignals(False)
-        self.updateControlsAndPlot()
+        self.update_controls_and_plot()
 
-    def show(self, scan_list, scan_id_list, plot_label=''):
+    def show(self, scan_list, scan_type='field'):
         """Update data and show dialog."""
         try:
             if scan_list is None or len(scan_list) == 0:
@@ -494,8 +570,22 @@ class ViewScanDialog(_QDialog):
                 return
 
             self.scan_list = [d.copy() for d in scan_list]
-            self.scan_id_list = scan_id_list
-            self.plot_label = plot_label
+            self.scan_id_list = [d.idn for d in scan_list]
+            self.scan_type = scan_type
+
+            self.ui.cmb_first_integral_unit.clear()
+            self.ui.cmb_second_integral_unit.clear()
+            if self.scan_type == 'field':
+                self.ui.cmb_first_integral_unit.addItem('T.m')
+                self.ui.cmb_first_integral_unit.addItem('G.cm')
+                self.ui.cmb_first_integral_unit.setCurrentIndex(1)
+                
+                self.ui.cmb_second_integral_unit.addItem('T.m2')
+                self.ui.cmb_second_integral_unit.addItem('G.m2')
+                self.ui.cmb_second_integral_unit.setCurrentIndex(1)
+            else:
+                self.ui.cmb_first_integral_unit.addItem('V.m')          
+                self.ui.cmb_second_integral_unit.addItem('V.m2')
 
             idx = 0
             for i in range(len(self.scan_list)):
@@ -510,24 +600,26 @@ class ViewScanDialog(_QDialog):
                     return
 
                 pos = data.scan_pos
-                if len(data.avgx) == 0:
-                    data.avgx = _np.zeros(len(pos))
-                if len(data.avgy) == 0:
-                    data.avgy = _np.zeros(len(pos))
-                if len(data.avgz) == 0:
-                    data.avgz = _np.zeros(len(pos))
-
+                
+                if self.scan_type == 'field':
+                    x = data.bx if len(data.bx) != 0 else _np.zeros(len(pos))
+                    y = data.by if len(data.by) != 0 else _np.zeros(len(pos))
+                    z = data.bz if len(data.bz) != 0 else _np.zeros(len(pos))
+                else:
+                    x = data.vx if len(data.vx) != 0 else _np.zeros(len(pos))
+                    y = data.vy if len(data.vy) != 0 else _np.zeros(len(pos))
+                    z = data.vz if len(data.vz) != 0 else _np.zeros(len(pos))                      
+                
                 xmin = pos[0]
                 xmax = pos[-1]
                 self.scan_dict[idx] = {
                     'xmin': xmin,
-                    'xmax': xmax,
-                    'unit': data.unit}
+                    'xmax': xmax}
 
                 self.scan_dict[idx]['x'] = {
                     'idn': idn,
                     'pos': pos,
-                    'data': data.avgx,
+                    'data': x,
                     'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
@@ -535,7 +627,7 @@ class ViewScanDialog(_QDialog):
                 self.scan_dict[idx]['y'] = {
                     'idn': idn,
                     'pos': pos,
-                    'data': data.avgy,
+                    'data': y,
                     'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
@@ -543,7 +635,7 @@ class ViewScanDialog(_QDialog):
                 self.scan_dict[idx]['z'] = {
                     'idn': idn,
                     'pos': pos,
-                    'data': data.avgz,
+                    'data': z,
                     'fit_function': 'Gaussian',
                     'fit_polyorder': None,
                     }
@@ -572,19 +664,19 @@ class ViewScanDialog(_QDialog):
             self.current = _pd.DataFrame(current, columns=columns)
 
             if self.current.iloc[:, 1:].isnull().values.all():
-                self.ui.view_current_btn.setEnabled(False)
+                self.ui.pbt_view_current.setEnabled(False)
             else:
-                self.ui.view_current_btn.setEnabled(True)
+                self.ui.pbt_view_current.setEnabled(True)
 
             self.temperature = _measurement.get_temperature_values(
                 self.scan_list)
             if len(self.temperature) != 0:
-                self.ui.view_temperature_btn.setEnabled(True)
+                self.ui.pbt_view_temperature.setEnabled(True)
 
-            self.setCurveLabels()
-            self.ui.polyorder_la.hide()
-            self.ui.polyorder_sb.hide()
-            self.updateControlsAndPlot()
+            self.set_curve_labels()
+            self.ui.la_polyorder.hide()
+            self.ui.sb_polyorder.hide()
+            self.update_controls_and_plot()
             super().show()
 
         except Exception:
@@ -593,7 +685,7 @@ class ViewScanDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def showCurrentDialog(self):
+    def show_current_dialog(self):
         """Show dialog with current readings."""
         self.current_dialog.clear()
         if self.current is None:
@@ -607,7 +699,7 @@ class ViewScanDialog(_QDialog):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def showTemperatureDialog(self):
+    def show_temperature_dialog(self):
         """Show dialog with temperature readings."""
         if len(self.temperature) == 0:
             return
@@ -625,57 +717,57 @@ class ViewScanDialog(_QDialog):
             for col in df.columns:
                 readings[col] = df[col].values.tolist()
             self.temperature_dialog.show(timestamp, readings)
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to open dialog.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-    def updateControls(self):
+    def update_controls(self):
         """Enable or disable group boxes."""
-        self.clearFit()
+        self.clear_fit()
 
-        selected_idx, selected_comp = self.getSelectedScanComponent()
+        selected_idx, selected_comp = self.get_selected_scan_component()
         if selected_idx is not None and selected_comp is not None:
-            self.ui.xlimits_gb.setEnabled(True)
-            self.ui.integrals_gb.setEnabled(True)
-            self.ui.fit_gb.setEnabled(True)
+            self.ui.gb_xlimits.setEnabled(True)
+            self.ui.gb_integrals.setEnabled(True)
+            self.ui.gb_fit.setEnabled(True)
             func = self.scan_dict[selected_idx][selected_comp]['fit_function']
             if func is None:
-                self.ui.fitfunction_cmb.setCurrentIndex(-1)
+                self.ui.cmb_fitfunction.setCurrentIndex(-1)
             else:
-                idx = self.ui.fitfunction_cmb.findText(func)
-                self.ui.fitfunction_cmb.setCurrentIndex(idx)
+                idx = self.ui.cmb_fitfunction.findText(func)
+                self.ui.cmb_fitfunction.setCurrentIndex(idx)
 
             od = self.scan_dict[selected_idx][selected_comp]['fit_polyorder']
             if od is not None:
-                self.ui.polyorder_sb.setValue(od)
+                self.ui.sb_polyorder.setValue(od)
         else:
-            self.ui.fit_gb.setEnabled(False)
-            self.ui.fitfunction_cmb.setCurrentIndex(-1)
+            self.ui.gb_fit.setEnabled(False)
+            self.ui.cmb_fitfunction.setCurrentIndex(-1)
             if selected_idx is not None:
-                self.ui.xlimits_gb.setEnabled(True)
-                self.ui.integrals_gb.setEnabled(True)
-                self.ui.xlimits_gb.setEnabled(True)
+                self.ui.gb_xlimits.setEnabled(True)
+                self.ui.gb_integrals.setEnabled(True)
+                self.ui.gb_xlimits.setEnabled(True)
             else:
-                self.clearIntegrals()
-                self.ui.xlimits_gb.setEnabled(False)
-                self.ui.integrals_gb.setEnabled(False)
-                self.ui.xlimits_gb.setEnabled(False)
+                self.clear_integrals()
+                self.ui.gb_xlimits.setEnabled(False)
+                self.ui.gb_integrals.setEnabled(False)
+                self.ui.gb_xlimits.setEnabled(False)
 
-    def updateControlsAndPlot(self):
+    def update_controls_and_plot(self):
         """Update controls and plot."""
-        self.updateControls()
-        self.updatePlot()
+        self.update_controls()
+        self.update_plot()
 
-    def updatePlot(self):
+    def update_plot(self):
         """Update plot."""
         try:
-            self.clearGraph()
-            self.updateXLimits()
+            self.clear_graph()
+            self.update_xlimits()
 
-            selected_idx, selected_comp = self.getSelectedScansComponents()
+            selected_idx, selected_comp = self.get_selected_scans_components()
 
             if len(selected_idx) == 0:
                 show_xlines = False
@@ -685,16 +777,20 @@ class ViewScanDialog(_QDialog):
                 show_xlines = False
             else:
                 show_xlines = True
-
-            nr_curves = len(selected_idx)
-            self.configureGraph(nr_curves, self.plot_label)
-
+            
             scan_dict = {}
+            idn_list = []
             for idx in selected_idx:
                 scan_dict[idx] = {}
                 for comp in selected_comp:
                     scan_dict[idx][comp] = self.scan_dict[idx][comp]
+                    idn_list.append(self.scan_dict[idx][comp]['idn'])
 
+            if len(selected_comp) > 1 or len(selected_idx) == 1:
+                self.configure_graph(len(selected_idx))
+            else: 
+                self.configure_graph(len(selected_idx), idn_list=idn_list)
+                
             with _warnings.catch_warnings():
                 _warnings.simplefilter("ignore")
                 x_count = 0
@@ -717,20 +813,20 @@ class ViewScanDialog(_QDialog):
                             z_count = z_count + 1
 
             if show_xlines:
-                xmin = self.ui.xmin_sb.value()
-                xmax = self.ui.xmax_sb.value()
+                xmin = self.ui.sbd_xmin.value()
+                xmax = self.ui.sbd_xmax.value()
 
                 self.xmin_line = _pyqtgraph.InfiniteLine(
                     xmin, pen=(0, 0, 0), movable=True)
-                self.ui.graph_pw.addItem(self.xmin_line)
+                self.ui.pw_graph.addItem(self.xmin_line)
                 self.xmin_line.sigPositionChangeFinished.connect(
-                    self.updateXMinSpinBox)
+                    self.update_xmin_spin_box)
 
                 self.xmax_line = _pyqtgraph.InfiniteLine(
                     xmax, pen=(0, 0, 0), movable=True)
-                self.ui.graph_pw.addItem(self.xmax_line)
+                self.ui.pw_graph.addItem(self.xmax_line)
                 self.xmax_line.sigPositionChangeFinished.connect(
-                    self.updateXMaxSpinBox)
+                    self.update_xmax_spin_box)
             else:
                 self.xmin_line = None
                 self.xmax_line = None
@@ -739,40 +835,40 @@ class ViewScanDialog(_QDialog):
             _traceback.print_exc(file=_sys.stdout)
             return
 
-    def updateXLimits(self):
+    def update_xlimits(self):
         """Update xmin and xmax values."""
-        selected_idx, _ = self.getSelectedScanComponent()
+        selected_idx, _ = self.get_selected_scan_component()
         if selected_idx is None:
             return
 
-        self.ui.xmin_sb.setValue(
+        self.ui.sbd_xmin.setValue(
             self.scan_dict[selected_idx]['xmin'])
-        self.ui.xmax_sb.setValue(
+        self.ui.sbd_xmax.setValue(
             self.scan_dict[selected_idx]['xmax'])
 
-    def updateXMax(self):
+    def update_xmax(self):
         """Update xmax value."""
-        selected_idx, _ = self.getSelectedScanComponent()
+        selected_idx, _ = self.get_selected_scan_component()
         if selected_idx is None:
             return
 
-        self.scan_dict[selected_idx]['xmax'] = self.ui.xmax_sb.value()
+        self.scan_dict[selected_idx]['xmax'] = self.ui.sbd_xmax.value()
 
-    def updateXMaxSpinBox(self):
+    def update_xmax_spin_box(self):
         """Update xmax value."""
-        self.ui.xmax_sb.setValue(self.xmax_line.pos()[0])
+        self.ui.sbd_xmax.setValue(self.xmax_line.pos()[0])
 
-    def updateXMin(self):
+    def update_xmin(self):
         """Update xmin value."""
-        selected_idx, _ = self.getSelectedScanComponent()
+        selected_idx, _ = self.get_selected_scan_component()
         if selected_idx is None:
             return
 
-        self.scan_dict[selected_idx]['xmin'] = self.ui.xmin_sb.value()
+        self.scan_dict[selected_idx]['xmin'] = self.ui.sbd_xmin.value()
 
-    def updateXMinSpinBox(self):
+    def update_xmin_spin_box(self):
         """Update xmin value."""
-        self.ui.xmin_sb.setValue(self.xmin_line.pos()[0])
+        self.ui.sbd_xmin.setValue(self.xmin_line.pos()[0])
 
 
 def _linear_fit(x, y):

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1284</width>
-    <height>896</height>
+    <width>1291</width>
+    <height>861</height>
    </rect>
   </property>
   <property name="font">
@@ -20,17 +20,17 @@
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0" rowspan="9">
-    <widget class="QTabWidget" name="main_tab">
+    <widget class="QTabWidget" name="twg_main">
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="plot_tab">
+     <widget class="QWidget" name="tab_plot">
       <attribute name="title">
        <string>Plot</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_7">
        <item row="0" column="0">
-        <widget class="PlotWidget" name="graph_pw">
+        <widget class="PlotWidget" name="pw_graph">
          <property name="backgroundBrush">
           <brush brushstyle="SolidPattern">
            <color alpha="255">
@@ -53,7 +53,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="temperature_tab">
+     <widget class="QWidget" name="tab_temperature">
       <attribute name="title">
        <string>Temperature</string>
       </attribute>
@@ -63,13 +63,13 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="text_tab">
+     <widget class="QWidget" name="tab_text">
       <attribute name="title">
        <string>Text</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_9">
        <item row="0" column="0" colspan="2">
-        <widget class="QTextEdit" name="text_te">
+        <widget class="QTextEdit" name="te_text">
          <property name="readOnly">
           <bool>true</bool>
          </property>
@@ -85,6 +85,12 @@
       <string/>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
       <item>
        <widget class="QLabel" name="label_12">
         <property name="sizePolicy">
@@ -105,7 +111,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="idn_le">
+       <widget class="QLineEdit" name="le_idn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -121,7 +127,7 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QGroupBox" name="offset_gb">
+    <widget class="QGroupBox" name="gb_offset">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -135,8 +141,14 @@
       <string>Plot Field Line:</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
       <item row="0" column="0">
-       <widget class="QLabel" name="plot_la">
+       <widget class="QLabel" name="la_plot">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -155,7 +167,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="plot_cmb">
+       <widget class="QComboBox" name="cmb_plot">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -165,7 +177,7 @@
        </widget>
       </item>
       <item row="1" column="0" colspan="2">
-       <widget class="QPushButton" name="update_plot_btn">
+       <widget class="QPushButton" name="pbt_update_plot">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -177,11 +189,98 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Bx Integral [G.cm]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="le_bx_int">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="le_by_int">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_15">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>By Integral [G.cm]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_16">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Bz Integral [G.cm]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="le_bz_int">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QGroupBox" name="xlimits_gb">
+    <widget class="QGroupBox" name="gb_xlimits">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -195,6 +294,12 @@
       <string>Field Scans:</string>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label_6">
         <property name="font">
@@ -209,7 +314,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="nr_scans_le">
+       <widget class="QLineEdit" name="le_nr_scans">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -241,7 +346,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="initial_scan_le">
+       <widget class="QLineEdit" name="le_initial_scan">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -273,7 +378,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="final_scan_le">
+       <widget class="QLineEdit" name="le_final_scan">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -312,6 +417,12 @@
       <property name="fieldGrowthPolicy">
        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
       </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
       <item row="1" column="0">
        <widget class="QLabel" name="label_10">
         <property name="font">
@@ -326,7 +437,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="dcct_current_le">
+       <widget class="QLineEdit" name="le_dcct_current">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -358,7 +469,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="ps_current_le">
+       <widget class="QLineEdit" name="le_ps_current">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -390,7 +501,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="current_setpoint_le">
+       <widget class="QLineEdit" name="le_current_setpoint">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -426,6 +537,12 @@
       <property name="fieldGrowthPolicy">
        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
       </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label_3">
         <property name="font">
@@ -440,7 +557,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="magnet_center_pos1_le">
+       <widget class="QLineEdit" name="le_magnet_center_pos1">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -472,7 +589,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="magnet_center_pos2_le">
+       <widget class="QLineEdit" name="le_magnet_center_pos2">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -491,7 +608,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="magnet_center_pos3_le">
+       <widget class="QLineEdit" name="le_magnet_center_pos3">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -540,6 +657,12 @@
       <string>Magnet Axes:</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="font">
@@ -554,7 +677,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="magnet_x_axis_le">
+       <widget class="QLineEdit" name="le_magnet_x_axis">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -586,7 +709,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="magnet_y_axis_le">
+       <widget class="QLineEdit" name="le_magnet_y_axis">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -625,6 +748,12 @@
       <property name="fieldGrowthPolicy">
        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
       </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label_9">
         <property name="font">
@@ -639,7 +768,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="corrected_positions_le">
+       <widget class="QLineEdit" name="le_corrected_positions">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -682,9 +811,9 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="0" column="0">
-       <widget class="QTextEdit" name="comments_te">
+       <widget class="QTextEdit" name="te_comments">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -713,25 +842,25 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>main_tab</tabstop>
-  <tabstop>idn_le</tabstop>
-  <tabstop>plot_cmb</tabstop>
-  <tabstop>update_plot_btn</tabstop>
-  <tabstop>nr_scans_le</tabstop>
-  <tabstop>initial_scan_le</tabstop>
-  <tabstop>final_scan_le</tabstop>
-  <tabstop>current_setpoint_le</tabstop>
-  <tabstop>dcct_current_le</tabstop>
-  <tabstop>ps_current_le</tabstop>
-  <tabstop>magnet_center_pos1_le</tabstop>
-  <tabstop>magnet_center_pos2_le</tabstop>
-  <tabstop>magnet_center_pos3_le</tabstop>
-  <tabstop>magnet_x_axis_le</tabstop>
-  <tabstop>magnet_y_axis_le</tabstop>
-  <tabstop>corrected_positions_le</tabstop>
-  <tabstop>comments_te</tabstop>
-  <tabstop>graph_pw</tabstop>
-  <tabstop>text_te</tabstop>
+  <tabstop>twg_main</tabstop>
+  <tabstop>le_idn</tabstop>
+  <tabstop>cmb_plot</tabstop>
+  <tabstop>pbt_update_plot</tabstop>
+  <tabstop>le_nr_scans</tabstop>
+  <tabstop>le_initial_scan</tabstop>
+  <tabstop>le_final_scan</tabstop>
+  <tabstop>le_current_setpoint</tabstop>
+  <tabstop>le_dcct_current</tabstop>
+  <tabstop>le_ps_current</tabstop>
+  <tabstop>le_magnet_center_pos1</tabstop>
+  <tabstop>le_magnet_center_pos2</tabstop>
+  <tabstop>le_magnet_center_pos3</tabstop>
+  <tabstop>le_magnet_x_axis</tabstop>
+  <tabstop>le_magnet_y_axis</tabstop>
+  <tabstop>le_corrected_positions</tabstop>
+  <tabstop>te_comments</tabstop>
+  <tabstop>pw_graph</tabstop>
+  <tabstop>te_text</tabstop>
  </tabstops>
  <resources/>
  <connections/>

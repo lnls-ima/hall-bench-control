@@ -10,8 +10,6 @@ from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
-    QVBoxLayout as _QVBoxLayout,
-    QHBoxLayout as _QHBoxLayout,
     QCheckBox as _QCheckBox,
     )
 from qtpy.QtCore import (
@@ -25,12 +23,18 @@ from hallbench.gui.auxiliarywidgets import (
     MoveAxisWidget as _MoveAxisWidget,
     TablePlotWidget as _TablePlotWidget,
     )
+from hallbench.devices import (
+    pmac as _pmac,
+    voltx as _voltx,
+    volty as _volty,
+    voltz as _voltz,
+    )
 
 
 class VoltageWidget(_TablePlotWidget):
     """Voltage Widget class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Voltage [mV]'       
+    _left_axis_1_label = 'Voltage [mV]'
     _left_axis_1_format = '{0:.6f}'
     _left_axis_1_data_labels = ['X [mV]', 'Y [mV]', 'Z [mV]']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
@@ -47,23 +51,20 @@ class VoltageWidget(_TablePlotWidget):
 
         # add move axis widget
         self.move_axis_widget = _MoveAxisWidget(self)
-        self.addWidgetsNextToPlot(self.move_axis_widget)
+        self.add_widgets_next_to_plot(self.move_axis_widget)
 
         # add check box add reset multimeters button
-        self.voltx_chb = _QCheckBox(' X ')
-        self.volty_chb = _QCheckBox(' Y ')
-        self.voltz_chb = _QCheckBox(' Z ')
-        self.reset_btn = _QPushButton('Reset Multimeters')
-        self.reset_btn.clicked.connect(self.resetMultimeters)
-        self.addWidgetsNextToTable([
-            [self.voltx_chb, self.volty_chb, self.voltz_chb],
-            [self.reset_btn]])
-        
-        # Change default appearance
-        self.setTableColumnSize(140)
+        self.chb_voltx = _QCheckBox(' X ')
+        self.chb_volty = _QCheckBox(' Y ')
+        self.chb_voltz = _QCheckBox(' Z ')
+        self.pbt_reset = _QPushButton('Reset Multimeters')
+        self.pbt_reset.clicked.connect(self.reset_multimeters)
+        self.add_widgets_next_to_table([
+            [self.chb_voltx, self.chb_volty, self.chb_voltz],
+            [self.pbt_reset]])
 
-        # Hide right axis
-        self.hideRightAxes()
+        # Change default appearance
+        self.set_table_column_size(140)
 
         # Create reading thread
         self.wthread = _QThread()
@@ -71,34 +72,7 @@ class VoltageWidget(_TablePlotWidget):
         self.worker.moveToThread(self.wthread)
         self.wthread.started.connect(self.worker.run)
         self.worker.finished.connect(self.wthread.quit)
-        self.worker.finished.connect(self.getReading)
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
-    def checkConnection(self, monitor=False):
-        """Check devices connection."""
-        if self.voltx_chb.isChecked() and not self.devices.voltx.connected:
-            if not monitor:
-                msg = 'Multimeter X not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
-
-        if self.volty_chb.isChecked() and not self.devices.volty.connected:
-            if not monitor:
-                msg = 'Multimeter Y not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
-
-        if self.voltz_chb.isChecked() and not self.devices.voltz.connected:
-            if not monitor:
-                msg = 'Multimeter Z not connected.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return False
-
-        return True
+        self.worker.finished.connect(self.get_reading)
 
     def closeEvent(self, event):
         """Close widget."""
@@ -107,68 +81,90 @@ class VoltageWidget(_TablePlotWidget):
             self.timer.stop()
             self.wthread.quit()
             del self.wthread
-            self.closeDialogs()
+            self.close_dialogs()
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def getReading(self):
+    def check_connection(self, monitor=False):
+        """Check devices connection."""
+        if self.chb_voltx.isChecked() and not _voltx.connected:
+            if not monitor:
+                msg = 'Multimeter X not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+        if self.chb_volty.isChecked() and not _volty.connected:
+            if not monitor:
+                msg = 'Multimeter Y not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+        if self.chb_voltz.isChecked() and not _voltz.connected:
+            if not monitor:
+                msg = 'Multimeter Z not connected.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+
+        return True
+
+    def get_reading(self):
         """Get reading from worker thread."""
         try:
             ts = self.worker.timestamp
             r = self.worker.reading
-            
+
             if ts is None:
                 return
-            
+
             if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
                 return
 
             self._timestamp.append(ts)
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
-            self.addLastValueToTable()
-            self.updatePlot()
-            
+            self.add_last_value_to_table()
+            self.update_plot()
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def readValue(self, monitor=False):
+    def read_value(self, monitor=False):
         """Read value."""
         if len(self._data_labels) == 0:
             return
 
-        if not self.checkConnection(monitor=monitor):
+        if not self.check_connection(monitor=monitor):
             return
 
         try:
-            self.worker.pmac_axis = self.move_axis_widget.selectedAxis()
-            self.worker.voltx_enabled = self.voltx_chb.isChecked()
-            self.worker.volty_enabled = self.volty_chb.isChecked()
-            self.worker.voltz_enabled = self.voltz_chb.isChecked()
+            self.worker.pmac_axis = self.move_axis_widget.selected_axis()
+            self.worker.voltx_enabled = self.chb_voltx.isChecked()
+            self.worker.volty_enabled = self.chb_volty.isChecked()
+            self.worker.voltz_enabled = self.chb_voltz.isChecked()
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def resetMultimeters(self):
+    def reset_multimeters(self):
         """Reset multimeters."""
-        if not self.checkConnection():
+        if not self.check_connection():
             return
 
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
-            if self.voltx_chb.isChecked():
-                self.devices.voltx.reset()
+            if self.chb_voltx.isChecked():
+                _voltx.reset()
 
-            if self.volty_chb.isChecked():
-                self.devices.volty.reset()
+            if self.chb_volty.isChecked():
+                _volty.reset()
 
-            if self.voltz_chb.isChecked():
-                self.devices.voltz.reset()
+            if self.chb_voltz.isChecked():
+                _voltz.reset()
 
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -196,9 +192,9 @@ class ReadValueWorker(_QObject):
         super().__init__()
 
     @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
+    def positions(self):
+        """Return current positions dict."""
+        return _QApplication.instance().positions
 
     def run(self):
         """Read values from devices."""
@@ -209,19 +205,19 @@ class ReadValueWorker(_QObject):
             ts = _time.time()
 
             if self.voltx_enabled:
-                voltx = float(self.devices.voltx.read_from_device()[:-2])
+                voltx = float(_voltx.read_from_device()[:-2])
                 voltx = voltx*self.voltage_mfactor
             else:
                 voltx = _np.nan
 
             if self.volty_enabled:
-                volty = float(self.devices.volty.read_from_device()[:-2])
+                volty = float(_volty.read_from_device()[:-2])
                 volty = volty*self.voltage_mfactor
             else:
                 volty = _np.nan
 
             if self.voltz_enabled:
-                voltz = float(self.devices.voltz.read_from_device()[:-2])
+                voltz = float(_voltz.read_from_device()[:-2])
                 voltz = voltz*self.voltage_mfactor
             else:
                 voltz = _np.nan
@@ -229,7 +225,7 @@ class ReadValueWorker(_QObject):
             if self.pmac_axis is None:
                 pos = _np.nan
             else:
-                pos = self.devices.pmac.get_position(self.pmac_axis)
+                pos = self.positions[self.pmac_axis]
                 if pos is None:
                     pos = _np.nan
 
@@ -241,6 +237,7 @@ class ReadValueWorker(_QObject):
             self.finished.emit(True)
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.timestamp = None
             self.reading = []
             self.finished.emit(True)

@@ -5,12 +5,9 @@
 import sys as _sys
 import time as _time
 import numpy as _np
-import pyqtgraph as _pyqtgraph
 import traceback as _traceback
 from qtpy.QtWidgets import (
-    QApplication as _QApplication,
     QMessageBox as _QMessageBox,
-    QHBoxLayout as _QHBoxLayout,
     QCheckBox as _QCheckBox,
     )
 from qtpy.QtCore import (
@@ -20,16 +17,17 @@ from qtpy.QtCore import (
     )
 
 from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
+from hallbench.devices import air_udc as _air_udc
 
 
 class AirConditioningWidget(_TablePlotWidget):
     """Air Conditioning Widget class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Temperature [deg C]'       
+    _left_axis_1_label = 'Temperature [deg C]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['PV1', 'PV2']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
-    
+
     _right_axis_1_label = 'Controller Output [%]'
     _right_axis_1_format = '{0:.4f}'
     _right_axis_1_data_labels = ['Output1', 'Output2']
@@ -40,40 +38,26 @@ class AirConditioningWidget(_TablePlotWidget):
         super().__init__(parent)
 
         # add check box
-        self.pv1_chb = _QCheckBox(' PV1 ')
-        self.pv2_chb = _QCheckBox(' PV2 ')
-        self.output1_chb = _QCheckBox(' Output1')
-        self.output2_chb = _QCheckBox(' Output2')
-        self.addWidgetsNextToTable(
-            [self.pv1_chb, self.pv2_chb, self.output1_chb, self.output2_chb])
-        
+        self.chb_pv1 = _QCheckBox(' PV1 ')
+        self.chb_pv2 = _QCheckBox(' PV2 ')
+        self.chb_output1 = _QCheckBox(' Output1')
+        self.chb_output2 = _QCheckBox(' Output2')
+        self.add_widgets_next_to_table(
+            [self.chb_pv1, self.chb_pv2, self.chb_output1, self.chb_output2])
+
         # Change default appearance
-        self.setTableColumnSize(120)
-        
+        self.set_table_column_size(120)
+
         # Create reading thread
         self.wthread = _QThread()
         self.worker = ReadValueWorker()
         self.worker.moveToThread(self.wthread)
         self.wthread.started.connect(self.worker.run)
         self.worker.finished.connect(self.wthread.quit)
-        self.worker.finished.connect(self.getReading)
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
-    def checkConnection(self, monitor=False):
-        """Check devices connection."""
-        if not self.devices.air_udc.connected:
-            if not monitor:
-                _QMessageBox.critical(
-                    self, 'Failure', 'UDC not connected.', _QMessageBox.Ok)
-            return False
-        return True
+        self.worker.finished.connect(self.get_reading)
 
     def closeEvent(self, event):
-        """Close widget."""
+        """Overwrite closeEvent method."""
         try:
             self.wthread.quit()
             super().closeEvent(event)
@@ -81,7 +65,16 @@ class AirConditioningWidget(_TablePlotWidget):
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def getReading(self):
+    def check_connection(self, monitor=False):
+        """Check connection."""
+        if not _air_udc.connected:
+            if not monitor:
+                _QMessageBox.critical(
+                    self, 'Failure', 'UDC not connected.', _QMessageBox.Ok)
+            return False
+        return True
+
+    def get_reading(self):
         """Get reading from worker thread."""
         try:
             ts = self.worker.timestamp
@@ -96,27 +89,27 @@ class AirConditioningWidget(_TablePlotWidget):
             self._timestamp.append(ts)
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
-            self.addLastValueToTable()
-            self.updatePlot()
-        
+            self.add_last_value_to_table()
+            self.update_plot()
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def readValue(self, monitor=False):
+    def read_value(self, monitor=False):
         """Read value."""
         if len(self._data_labels) == 0:
             return
 
-        if not self.checkConnection(monitor=monitor):
+        if not self.check_connection(monitor=monitor):
             return
 
         try:
-            self.worker.pv1_enabled = self.pv1_chb.isChecked()
-            self.worker.pv2_enabled = self.pv2_chb.isChecked()
-            self.worker.output1_enabled = self.output1_chb.isChecked()
-            self.worker.output2_enabled = self.output2_chb.isChecked()
+            self.worker.pv1_enabled = self.chb_pv1.isChecked()
+            self.worker.pv2_enabled = self.chb_pv2.isChecked()
+            self.worker.output1_enabled = self.chb_output1.isChecked()
+            self.worker.output2_enabled = self.chb_output2.isChecked()
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -136,11 +129,6 @@ class ReadValueWorker(_QObject):
         self.reading = []
         super().__init__()
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def run(self):
         """Read values from devices."""
         try:
@@ -148,24 +136,24 @@ class ReadValueWorker(_QObject):
             self.reading = []
 
             ts = _time.time()
-            
+
             if self.pv1_enabled:
-                pv1 = self.devices.air_udc.read_pv1()
+                pv1 = _air_udc.read_pv1()
             else:
                 pv1 = _np.nan
 
             if self.pv2_enabled:
-                pv2 = self.devices.air_udc.read_pv2()
+                pv2 = _air_udc.read_pv2()
             else:
                 pv2 = _np.nan
 
             if self.output1_enabled:
-                output1 = self.devices.air_udc.read_output1()
+                output1 = _air_udc.read_output1()
             else:
                 output1 = _np.nan
 
             if self.output2_enabled:
-                output2 = self.devices.air_udc.read_output2()
+                output2 = _air_udc.read_output2()
             else:
                 output2 = _np.nan
 

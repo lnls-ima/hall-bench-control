@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>database_wg</class>
- <widget class="QWidget" name="database_wg">
+ <class>wg_database</class>
+ <widget class="QWidget" name="wg_database">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -18,422 +18,7 @@
   <property name="windowTitle">
    <string>Database</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="1" rowspan="2">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="spacing">
-      <number>20</number>
-     </property>
-     <item>
-      <spacer name="verticalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>50</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="save_btn">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Save To File</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>../../resources/img/save.png</normaloff>../../resources/img/save.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="read_btn">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Read From File</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>../../resources/img/database_add.png</normaloff>../../resources/img/database_add.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="delete_btn">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Delete</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>../../resources/img/delete.png</normaloff>../../resources/img/delete.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolBox" name="buttons_tbx">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>280</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="currentIndex">
-        <number>5</number>
-       </property>
-       <widget class="QWidget" name="hall_probe_pg">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>280</width>
-          <height>69</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>Hall Probe</string>
-        </attribute>
-        <layout class="QGridLayout" name="gridLayout_10">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="view_hall_probe_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>View Hall Probe</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="configuration_pg">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>280</width>
-          <height>69</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>Configuration</string>
-        </attribute>
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="remove_unused_configurations_btn">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Remove Unused Configurations</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="voltage_scan_pg">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>263</width>
-          <height>124</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>Voltage Scan</string>
-        </attribute>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="view_voltage_scan_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>View Voltage Scan</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/curve.png</normaloff>../../resources/img/curve.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QPushButton" name="convert_to_field_scan_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Convert to Field Scan</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/Send.png</normaloff>../../resources/img/Send.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="field_scan_pg">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>263</width>
-          <height>124</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>Field Scan</string>
-        </attribute>
-        <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="view_field_scan_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>View Field Scan</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/curve.png</normaloff>../../resources/img/curve.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QPushButton" name="create_fieldmap_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Create Fieldmap</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/map.png</normaloff>../../resources/img/map.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="fieldmap_pg">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>280</width>
-          <height>69</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>Fieldmap</string>
-        </attribute>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="view_fieldmap_btn">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>View Fieldmap</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../../resources/img/search.png</normaloff>../../resources/img/search.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="empty_pg">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>280</width>
-          <height>69</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string/>
-        </attribute>
-       </widget>
-      </widget>
-     </item>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>250</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
+  <layout class="QGridLayout" name="gridLayout_6">
    <item row="0" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
@@ -475,7 +60,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="short_version_chb">
+      <widget class="QCheckBox" name="chb_short_version">
        <property name="text">
         <string>Short Version</string>
        </property>
@@ -485,13 +70,13 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="refresh_btn">
+      <widget class="QToolButton" name="tbt_refresh">
        <property name="text">
         <string>...</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../resources/img/refresh.png</normaloff>../../resources/img/refresh.png</iconset>
+         <normaloff>../../resources/img/refresh.svg</normaloff>../../resources/img/refresh.svg</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -502,13 +87,13 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="clear_btn">
+      <widget class="QToolButton" name="tbt_clear">
        <property name="text">
         <string>...</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../resources/img/clear.png</normaloff>../../resources/img/clear.png</iconset>
+         <normaloff>../../resources/img/clear.svg</normaloff>../../resources/img/clear.svg</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -520,42 +105,383 @@
      </item>
     </layout>
    </item>
+   <item row="0" column="1" rowspan="3">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <spacer name="verticalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>50</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>7</number>
+       </property>
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="pbt_save">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Save To File</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>../../resources/img/save.svg</normaloff>../../resources/img/save.svg</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pbt_read">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Read From File</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>../../resources/img/database_plus.svg</normaloff>../../resources/img/database_plus.svg</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pbt_delete">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Delete</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>../../resources/img/close.svg</normaloff>../../resources/img/close.svg</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QStackedWidget" name="stw_buttons">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="pg_empty"/>
+       <widget class="QWidget" name="pg_configuration">
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pbt_remove_unused_configurations">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Remove Unused Configurations</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/clear.svg</normaloff>../../resources/img/clear.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="pg_voltage_scan">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="pbt_convert_to_field_scan">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Convert to Field Scan</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/send.svg</normaloff>../../resources/img/send.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pbt_view_voltage_scan">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>View Voltage Scan</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/alpha_v.svg</normaloff>../../resources/img/alpha_v.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <spacer name="verticalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="pg_field_scan">
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="pbt_create_fieldmap">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Create Fieldmap</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/map_plus.svg</normaloff>../../resources/img/map_plus.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pbt_view_field_scan">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>View Field Scan</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/alpha_b.svg</normaloff>../../resources/img/alpha_b.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <spacer name="verticalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="pg_fieldmap">
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pbt_view_fieldmap">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>View Fieldmap</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../resources/img/search.svg</normaloff>../../resources/img/search.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <spacer name="verticalSpacer_7">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <item row="1" column="0">
-    <widget class="QTabWidget" name="database_tab">
-     <property name="font">
-      <font>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="tabPosition">
-      <enum>QTabWidget::North</enum>
-     </property>
-     <property name="tabShape">
-      <enum>QTabWidget::Rounded</enum>
-     </property>
-     <property name="currentIndex">
-      <number>0</number>
-     </property>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>Tab 1</string>
-      </attribute>
-     </widget>
-    </widget>
+    <layout class="QVBoxLayout" name="lyt_database"/>
    </item>
   </layout>
  </widget>
  <tabstops>
-  <tabstop>short_version_chb</tabstop>
-  <tabstop>database_tab</tabstop>
-  <tabstop>view_hall_probe_btn</tabstop>
-  <tabstop>remove_unused_configurations_btn</tabstop>
-  <tabstop>view_voltage_scan_btn</tabstop>
-  <tabstop>convert_to_field_scan_btn</tabstop>
-  <tabstop>view_field_scan_btn</tabstop>
-  <tabstop>create_fieldmap_btn</tabstop>
-  <tabstop>view_fieldmap_btn</tabstop>
+  <tabstop>chb_short_version</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -10,7 +10,6 @@ from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
-    QHBoxLayout as _QHBoxLayout,
     QCheckBox as _QCheckBox,
     )
 from qtpy.QtCore import (
@@ -21,12 +20,16 @@ from qtpy.QtCore import (
     )
 
 from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
+from hallbench.devices import (
+    dcct as _dcct,
+    ps as _ps
+    )
 
 
 class PSCurrentWidget(_TablePlotWidget):
     """Power supply current class for the Hall Bench Control application."""
 
-    _left_axis_1_label = 'Current [A]'       
+    _left_axis_1_label = 'Current [A]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['DCCT [A]', 'PS [A]']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
@@ -36,12 +39,12 @@ class PSCurrentWidget(_TablePlotWidget):
         super().__init__(parent)
 
         # add check box and configure button
-        self.dcct_chb = _QCheckBox(' DCCT ')
-        self.ps_chb = _QCheckBox(' Power Supply ')
-        self.configure_btn = _QPushButton('Configure Devices')
-        self.configure_btn.clicked.connect(self.configureDevices)
-        self.addWidgetsNextToTable(
-            [[self.dcct_chb, self.ps_chb], [self.configure_btn]])
+        self.chb_dcct = _QCheckBox(' DCCT ')
+        self.chb_ps = _QCheckBox(' Power Supply ')
+        self.pbt_configure = _QPushButton('Configure Devices')
+        self.pbt_configure.clicked.connect(self.configure_devices)
+        self.add_widgets_next_to_table(
+            [[self.chb_dcct, self.chb_ps], [self.pbt_configure]])
 
         # Create reading thread
         self.wthread = _QThread()
@@ -49,21 +52,16 @@ class PSCurrentWidget(_TablePlotWidget):
         self.worker.moveToThread(self.wthread)
         self.wthread.started.connect(self.worker.run)
         self.worker.finished.connect(self.wthread.quit)
-        self.worker.finished.connect(self.getReading)
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
+        self.worker.finished.connect(self.get_reading)
 
     @property
     def power_supply_config(self):
         """Power supply configuration."""
         return _QApplication.instance().power_supply_config
 
-    def checkConnection(self, monitor=False):
+    def check_connection(self, monitor=False):
         """Check devices connection."""
-        if self.dcct_chb.isChecked() and not self.devices.dcct.connected:
+        if self.chb_dcct.isChecked() and not _dcct.connected:
             if not monitor:
                 _QMessageBox.critical(
                     self, 'Failure', 'DCCT not connected.', _QMessageBox.Ok)
@@ -79,19 +77,18 @@ class PSCurrentWidget(_TablePlotWidget):
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def configureDevices(self):
+    def configure_devices(self):
         """Configure channels for current measurement."""
-        if not self.checkConnection():
+        if not self.check_connection():
             return
 
         try:
             self.blockSignals(True)
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
-
-            ps_type = self.power_supply_config.ps_type
-            if self.ps_chb.isChecked():
-                if ps_type is not None:
-                    self.devices.ps.SetSlaveAdd(ps_type)
+            
+            if self.chb_ps.isChecked():
+                if _ps.ps_type is not None:
+                    _ps.SetSlaveAdd(_ps.ps_type)
                 else:
                     self.blockSignals(False)
                     _QApplication.restoreOverrideCursor()
@@ -100,8 +97,8 @@ class PSCurrentWidget(_TablePlotWidget):
                         'Invalid power supply configuration.', _QMessageBox.Ok)
                     return
 
-            if self.dcct_chb.isChecked():
-                self.devices.dcct.config()
+            if self.chb_dcct.isChecked():
+                _dcct.config()
 
             self.blockSignals(False)
             _QApplication.restoreOverrideCursor()
@@ -111,7 +108,7 @@ class PSCurrentWidget(_TablePlotWidget):
             _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
 
-    def getReading(self):
+    def get_reading(self):
         """Get reading from worker thread."""
         try:
             ts = self.worker.timestamp
@@ -126,25 +123,25 @@ class PSCurrentWidget(_TablePlotWidget):
             self._timestamp.append(ts)
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
-            self.addLastValueToTable()
-            self.updatePlot()
-        
+            self.add_last_value_to_table()
+            self.update_plot()
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def readValue(self, monitor=False):
+    def read_value(self, monitor=False):
         """Read value."""
         if len(self._data_labels) == 0:
             return
 
-        if not self.checkConnection(monitor=monitor):
+        if not self.check_connection(monitor=monitor):
             return
 
         try:
-            self.worker.dcct_enabled = self.dcct_chb.isChecked()
-            self.worker.ps_enabled = self.ps_chb.isChecked()
+            self.worker.dcct_enabled = self.chb_dcct.isChecked()
+            self.worker.ps_enabled = self.chb_ps.isChecked()
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -163,11 +160,6 @@ class ReadValueWorker(_QObject):
         super().__init__()
 
     @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
-    @property
     def power_supply_config(self):
         """Power supply configuration."""
         return _QApplication.instance().power_supply_config
@@ -179,18 +171,20 @@ class ReadValueWorker(_QObject):
             self.reading = []
 
             ts = _time.time()
-            dcct_head = self.power_supply_config.dcct_head
-            ps_type = self.power_supply_config.ps_type
 
             if self.dcct_enabled:
-                dcct_current = self.devices.dcct.read_current(
-                    dcct_head=dcct_head)
+                _dcct.dcct_head = 1000
+                dcct_current = _dcct.read_current()
             else:
                 dcct_current = _np.nan
 
-            if self.ps_enabled and ps_type is not None:
-                self.devices.ps.SetSlaveAdd(ps_type)
-                ps_current = float(self.devices.ps.Read_iLoad1())
+            if self.ps_enabled:
+                ps_type = _ps.ps_type
+                if ps_type is not None:
+                    _ps.SetSlaveAdd(ps_type)
+                    ps_current = float(_ps.Read_iLoad1())
+                else:
+                    ps_current = _np.nan
             else:
                 ps_current = _np.nan
 
@@ -200,6 +194,7 @@ class ReadValueWorker(_QObject):
             self.finished.emit(True)
 
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             self.timestamp = None
             self.reading = []
             self.finished.emit(True)

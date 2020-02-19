@@ -49,7 +49,7 @@
        </widget>
       </item>
       <item row="2" column="0" rowspan="2" colspan="3">
-       <widget class="QPushButton" name="update_plot_btn">
+       <widget class="QPushButton" name="pbt_update_plot">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -68,7 +68,7 @@
        </widget>
       </item>
       <item row="2" column="3">
-       <widget class="QPushButton" name="select_all_btn">
+       <widget class="QPushButton" name="pbt_select_all">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -87,7 +87,7 @@
        </widget>
       </item>
       <item row="3" column="3">
-       <widget class="QPushButton" name="clear_all_btn">
+       <widget class="QPushButton" name="pbt_clear_all">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -106,34 +106,34 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QCheckBox" name="x_chb">
+       <widget class="QCheckBox" name="chb_x">
         <property name="text">
          <string>X</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QCheckBox" name="y_chb">
+       <widget class="QCheckBox" name="chb_y">
         <property name="text">
          <string>Y</string>
         </property>
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="QCheckBox" name="z_chb">
+       <widget class="QCheckBox" name="chb_z">
         <property name="text">
          <string>Z</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1" colspan="3">
-       <widget class="QWidget" name="select_scan_wg" native="true"/>
+       <widget class="QWidget" name="wg_select_scan" native="true"/>
       </item>
      </layout>
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QGroupBox" name="xlimits_gb">
+    <widget class="QGroupBox" name="gb_xlimits">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -164,7 +164,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="xmin_sb">
+       <widget class="QDoubleSpinBox" name="sbd_xmin">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -195,7 +195,7 @@
        </widget>
       </item>
       <item row="0" column="2" rowspan="2">
-       <widget class="QPushButton" name="resetlim_btn">
+       <widget class="QPushButton" name="pbt_resetlim">
         <property name="text">
          <string>Reset
 Limits</string>
@@ -216,7 +216,7 @@ Limits</string>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="xmax_sb">
+       <widget class="QDoubleSpinBox" name="sbd_xmax">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -252,7 +252,7 @@ Limits</string>
    <item row="0" column="0" rowspan="5">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="PlotWidget" name="graph_pw">
+      <widget class="PlotWidget" name="pw_graph">
        <property name="backgroundBrush">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
@@ -276,7 +276,7 @@ Limits</string>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QPushButton" name="view_current_btn">
+        <widget class="QPushButton" name="pbt_view_current">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -314,7 +314,7 @@ Limits</string>
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="view_temperature_btn">
+        <widget class="QPushButton" name="pbt_view_temperature">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -340,7 +340,7 @@ Limits</string>
     </layout>
    </item>
    <item row="3" column="1">
-    <widget class="QGroupBox" name="fit_gb">
+    <widget class="QGroupBox" name="gb_fit">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -358,7 +358,7 @@ Limits</string>
        <number>4</number>
       </property>
       <item row="3" column="0" colspan="2">
-       <widget class="QPushButton" name="fit_btn">
+       <widget class="QPushButton" name="pbt_fit">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -371,7 +371,7 @@ Limits</string>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="fitfunction_cmb">
+       <widget class="QComboBox" name="cmb_fitfunction">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -412,7 +412,7 @@ Limits</string>
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="polyorder_la">
+       <widget class="QLabel" name="la_polyorder">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -431,7 +431,7 @@ Limits</string>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QSpinBox" name="polyorder_sb">
+       <widget class="QSpinBox" name="sb_polyorder">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -456,7 +456,7 @@ Limits</string>
        </widget>
       </item>
       <item row="5" column="0" colspan="2">
-       <widget class="QTableWidget" name="fit_ta">
+       <widget class="QTableWidget" name="tbl_fit">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -521,7 +521,7 @@ Limits</string>
        </widget>
       </item>
       <item row="4" column="0" colspan="2">
-       <widget class="QLabel" name="fitfunction_la">
+       <widget class="QLabel" name="la_fitfunction">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -546,7 +546,7 @@ Limits</string>
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QGroupBox" name="integrals_gb">
+    <widget class="QGroupBox" name="gb_integrals">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -560,8 +560,8 @@ Limits</string>
       <string>Integrals:</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
-      <item row="2" column="0" alignment="Qt::AlignRight">
-       <widget class="QLabel" name="label_6">
+      <item row="3" column="0" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="label_7">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -575,12 +575,200 @@ Limits</string>
          </font>
         </property>
         <property name="text">
-         <string>Y:</string>
+         <string>Z:</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="0" alignment="Qt::AlignRight">
-       <widget class="QLabel" name="label_12">
+      <item row="8" column="0" colspan="2">
+       <widget class="QPushButton" name="pbt_calc_integrals">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Calculate Integrals</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="label_10">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Z:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="label_5">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>X:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="2">
+       <widget class="QToolButton" name="tbt_copy_integrals">
+        <property name="minimumSize">
+         <size>
+          <width>40</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../../resources/img/copy.svg</normaloff>../../resources/img/copy.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1" colspan="2">
+       <widget class="QLineEdit" name="le_second_integral_z">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QLineEdit" name="le_first_integral_z">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1" colspan="2">
+       <widget class="QLineEdit" name="le_second_integral_y">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="2">
+       <widget class="QLineEdit" name="le_second_integral_x">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QLineEdit" name="le_first_integral_x">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QLineEdit" name="le_first_integral_y">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="label_6">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -617,21 +805,8 @@ Limits</string>
         </property>
        </widget>
       </item>
-      <item row="8" column="0" colspan="2">
-       <widget class="QPushButton" name="calc_integrals_btn">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Calculate Integrals</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" alignment="Qt::AlignRight">
-       <widget class="QLabel" name="label_7">
+      <item row="6" column="0" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="label_12">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -645,187 +820,12 @@ Limits</string>
          </font>
         </property>
         <property name="text">
-         <string>Z:</string>
+         <string>Y:</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="0" alignment="Qt::AlignRight">
-       <widget class="QLabel" name="label_10">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Z:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>X:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="2">
-       <widget class="QToolButton" name="copy_integrals_btn">
-        <property name="minimumSize">
-         <size>
-          <width>40</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>../../resources/img/copy.png</normaloff>../../resources/img/copy.png</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>24</width>
-          <height>24</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1" colspan="2">
-       <widget class="QLineEdit" name="second_integral_z_le">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1" colspan="2">
-       <widget class="QLineEdit" name="second_integral_y_le">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="QLineEdit" name="second_integral_x_le">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QLineEdit" name="first_integral_z_le">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QLineEdit" name="first_integral_y_le">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QLineEdit" name="first_integral_x_le">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0" colspan="3">
-       <widget class="QLabel" name="first_integral_la">
+      <item row="0" column="0">
+       <widget class="QLabel" name="la_first_integral">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -837,8 +837,18 @@ Limits</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="0" colspan="3">
-       <widget class="QLabel" name="second_integral_la">
+      <item row="0" column="1" colspan="2">
+       <widget class="QComboBox" name="cmb_first_integral_unit">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="la_second_integral">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -847,6 +857,16 @@ Limits</string>
         </property>
         <property name="text">
          <string>Second Integral:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="2">
+       <widget class="QComboBox" name="cmb_second_integral_unit">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
         </property>
        </widget>
       </item>
@@ -863,20 +883,20 @@ Limits</string>
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>graph_pw</tabstop>
-  <tabstop>update_plot_btn</tabstop>
-  <tabstop>select_all_btn</tabstop>
-  <tabstop>clear_all_btn</tabstop>
-  <tabstop>xmin_sb</tabstop>
-  <tabstop>xmax_sb</tabstop>
-  <tabstop>resetlim_btn</tabstop>
-  <tabstop>fitfunction_cmb</tabstop>
-  <tabstop>polyorder_sb</tabstop>
-  <tabstop>fit_btn</tabstop>
-  <tabstop>fit_ta</tabstop>
-  <tabstop>calc_integrals_btn</tabstop>
-  <tabstop>view_current_btn</tabstop>
-  <tabstop>view_temperature_btn</tabstop>
+  <tabstop>pw_graph</tabstop>
+  <tabstop>pbt_update_plot</tabstop>
+  <tabstop>pbt_select_all</tabstop>
+  <tabstop>pbt_clear_all</tabstop>
+  <tabstop>sbd_xmin</tabstop>
+  <tabstop>sbd_xmax</tabstop>
+  <tabstop>pbt_resetlim</tabstop>
+  <tabstop>cmb_fitfunction</tabstop>
+  <tabstop>sb_polyorder</tabstop>
+  <tabstop>pbt_fit</tabstop>
+  <tabstop>tbl_fit</tabstop>
+  <tabstop>pbt_calc_integrals</tabstop>
+  <tabstop>pbt_view_current</tabstop>
+  <tabstop>pbt_view_temperature</tabstop>
  </tabstops>
  <resources/>
  <connections/>

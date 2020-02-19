@@ -7,36 +7,22 @@ import numpy as _np
 import time as _time
 import traceback as _traceback
 from qtpy.QtWidgets import (
-    QLabel as _QLabel,
-    QWidget as _QWidget,
-    QCheckBox as _QCheckBox,
-    QGroupBox as _QGroupBox,
-    QLineEdit as _QLineEdit,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
-    QHBoxLayout as _QHBoxLayout,
-    QGridLayout as _QGridLayout,
-    QSizePolicy as _QSizePolicy,
     QApplication as _QApplication,
-    QDoubleSpinBox as _QDoubleSpinBox,
-    )
-from qtpy.QtGui import (
-    QFont as _QFont,
     )
 from qtpy.QtCore import (
     Qt as _Qt,
-    QSize as _QSize,
     Signal as _Signal,
     QThread as _QThread,
     QObject as _QObject,
     )
-import qtpy.uic as _uic
 
-import hallbench.gui.utils as _utils
 from hallbench.gui.auxiliarywidgets import (
     TablePlotWidget as _TablePlotWidget,
     TemperatureChannelsWidget as _TemperatureChannelsWidget,
     )
+from hallbench.devices import multich as _multich
 
 
 class TemperatureWidget(_TablePlotWidget):
@@ -63,15 +49,15 @@ class TemperatureWidget(_TablePlotWidget):
         self.channels = [
             ch.replace('CH', '') for ch in self._left_axis_1_data_labels]
         self.channels_widget = _TemperatureChannelsWidget(self.channels)
-        self.addWidgetsNextToPlot(self.channels_widget)
+        self.add_widgets_next_to_plot(self.channels_widget)
 
         # add configuration button
-        self.configure_btn = _QPushButton('Configure Channels')
-        self.configure_btn.clicked.connect(self.configureChannels)
-        self.addWidgetsNextToTable(self.configure_btn)
+        self.pbt_configure = _QPushButton('Configure Channels')
+        self.pbt_configure.clicked.connect(self.configure_channels)
+        self.add_widgets_next_to_table(self.pbt_configure)
 
         # Change default appearance
-        self.setTableColumnSize(80)
+        self.set_table_column_size(80)
 
         # Create reading thread
         self.wthread = _QThread()
@@ -79,22 +65,7 @@ class TemperatureWidget(_TablePlotWidget):
         self.worker.moveToThread(self.wthread)
         self.wthread.started.connect(self.worker.run)
         self.worker.finished.connect(self.wthread.quit)
-        self.worker.finished.connect(self.getReading)
-
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
-    def checkConnection(self, monitor=False):
-        """Check devices connection."""
-        if not self.devices.multich.connected:
-            if not monitor:
-                _QMessageBox.critical(
-                    self, 'Failure',
-                    'Multichannel not connected.', _QMessageBox.Ok)
-            return False
-        return True
+        self.worker.finished.connect(self.get_reading)
 
     def closeEvent(self, event):
         """Close widget."""
@@ -105,11 +76,21 @@ class TemperatureWidget(_TablePlotWidget):
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
 
-    def configureChannels(self):
+    def check_connection(self, monitor=False):
+        """Check devices connection."""
+        if not _multich.connected:
+            if not monitor:
+                _QMessageBox.critical(
+                    self, 'Failure',
+                    'Multichannel not connected.', _QMessageBox.Ok)
+            return False
+        return True
+
+    def configure_channels(self):
         """Configure channels for temperature measurement."""
         selected_channels = self.channels_widget.selected_channels
 
-        if not self.checkConnection():
+        if not self.check_connection():
             return
 
         try:
@@ -117,7 +98,7 @@ class TemperatureWidget(_TablePlotWidget):
             _QApplication.setOverrideCursor(_Qt.WaitCursor)
 
             wait = self.channels_widget.delay
-            configured = self.devices.multich.configure(
+            configured = _multich.configure(
                 selected_channels, wait=wait)
 
             self.blockSignals(False)
@@ -132,15 +113,15 @@ class TemperatureWidget(_TablePlotWidget):
             _QApplication.restoreOverrideCursor()
             _traceback.print_exc(file=_sys.stdout)
 
-    def getReading(self):
+    def get_reading(self):
         """Get reading from worker thread."""
         try:
             ts = self.worker.timestamp
             r = self.worker.reading
-            
+
             if ts is None:
                 return
-            
+
             if len(r) == 0 or all([_np.isnan(ri) for ri in r]):
                 return
 
@@ -153,18 +134,18 @@ class TemperatureWidget(_TablePlotWidget):
                     text = ''
                 else:
                     text = self._left_axis_1_format.format(temperature)
-                self.channels_widget.updateChannelText(ch, text)
+                self.channels_widget.update_channel_text(ch, text)
                 self._readings[label].append(temperature)
 
-            self.addLastValueToTable()
-            self.updatePlot()
-        
+            self.add_last_value_to_table()
+            self.update_plot()
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def readValue(self, monitor=False):
+    def read_value(self, monitor=False):
         """Read value."""
-        if not self.checkConnection(monitor=monitor):
+        if not self.check_connection(monitor=monitor):
             return
 
         selected_channels = self.channels_widget.selected_channels
@@ -179,7 +160,7 @@ class TemperatureWidget(_TablePlotWidget):
             self.worker.delay = self.channels_widget.delay
             self.worker.selected_channels = selected_channels
             self.wthread.start()
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -198,11 +179,6 @@ class ReadValueWorker(_QObject):
         self.reading = []
         super().__init__()
 
-    @property
-    def devices(self):
-        """Hall Bench Devices."""
-        return _QApplication.instance().devices
-
     def run(self):
         """Read values from devices."""
         try:
@@ -210,7 +186,7 @@ class ReadValueWorker(_QObject):
             self.reading = []
 
             ts = _time.time()
-            rl = self.devices.multich.get_converted_readings(wait=self.delay)
+            rl = _multich.get_converted_readings(wait=self.delay)
             if len(rl) == len(self.selected_channels):
                 rl = [r if _np.abs(r) < 1e37 else _np.nan for r in rl]
             else:

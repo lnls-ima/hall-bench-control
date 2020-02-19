@@ -587,8 +587,8 @@ class PowerSupplyWidget(_QWidget):
     def pid_setting(self):
         """Set power supply PID configurations."""
         try:
-            _kp = self.ui.sb_kp.value()
-            _ki = self.ui.sb_ki.value()
+            _kp = self.ui.sbd_kp.value()
+            _ki = self.ui.sbd_ki.value()
             self.config.Kp = _kp
             self.config.Ki = _ki
             _ps_type = self.config.ps_type

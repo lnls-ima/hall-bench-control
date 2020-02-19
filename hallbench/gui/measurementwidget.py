@@ -1876,7 +1876,7 @@ class MeasurementWidget(_QWidget):
                 first_axis = self.temp_measurement_config.first_axis
                 step = self.temp_measurement_config.get_step(first_axis)
                 vel = self.temp_measurement_config.get_velocity(first_axis)
-                max_int_time = _np.max([_np.abs(step/vel)*1000 - 3.3, 0])
+                max_int_time = _np.max([_np.abs(step/vel)*1000 - 3.5, 0])
 
                 if self.temp_measurement_config.integration_time > max_int_time:
                     self.measurement_config = None
@@ -2006,7 +2006,7 @@ class MeasurementWidget(_QWidget):
                 step = self.get_axis_param('step', axis)
                 vel = self.get_axis_param('vel', axis)
                 if step is not None and vel is not None:
-                    max_int_time = _np.max([_np.abs(step/vel)*1000 - 3.3, 0])
+                    max_int_time = _np.max([_np.abs(step/vel)*1000 - 3.5, 0])
                     _s = '{0:.4f}'.format(max_int_time)
                     self.ui.la_max_integration_time.setText(_s)
                 else:

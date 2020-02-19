@@ -355,76 +355,79 @@ class DatabaseWidget(_QWidget):
  
     def save_files(self):
         """Save database record to file."""
-        table_name = self.twg_database.get_current_table_name()
-        if table_name is None:
-            return
- 
-        object_class = self._table_object_dict[table_name]
- 
-        idns = self.twg_database.get_table_selected_ids(table_name)
-        nr_idns = len(idns)
-        if nr_idns == 0:
-            return
- 
-        objs = []
-        fns = []
         try:
-            for i in range(nr_idns):
-                idn = idns[i]
-                obj = object_class(
-                    database_name=self.database_name,
-                    mongo=self.mongo, server=self.server)
-                obj.db_read(idn)
-                default_filename = obj.default_filename
-                objs.append(obj)
-                fns.append(default_filename)
-        
+            table_name = self.twg_database.get_current_table_name()
+            if table_name is None:
+                return
+     
+            object_class = self._table_object_dict[table_name]
+     
+            idns = self.twg_database.get_table_selected_ids(table_name)
+            nr_idns = len(idns)
+            if nr_idns == 0:
+                return
+     
+            objs = []
+            fns = []
+            try:
+                for i in range(nr_idns):
+                    idn = idns[i]
+                    obj = object_class(
+                        database_name=self.database_name,
+                        mongo=self.mongo, server=self.server)
+                    obj.db_read(idn)
+                    default_filename = obj.default_filename
+                    objs.append(obj)
+                    fns.append(default_filename)
+            
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+                msg = 'Failed to read database entries.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return
+     
+            if nr_idns == 1:
+                filename = _QFileDialog.getSaveFileName(
+                    self, caption='Save file',
+                    directory=_os.path.join(self.directory, fns[0]),
+                    filter="Text files (*.txt *.dat)")
+     
+                if isinstance(filename, tuple):
+                    filename = filename[0]
+     
+                if len(filename) == 0:
+                    return
+     
+                fns[0] = filename
+            else:
+                directory = _QFileDialog.getExistingDirectory(
+                    self, caption='Save files', directory=self.directory)
+     
+                if isinstance(directory, tuple):
+                    directory = directory[0]
+     
+                if len(directory) == 0:
+                    return
+     
+                for i in range(len(fns)):
+                    fns[i] = _os.path.join(directory, fns[i])
+     
+            try:
+                for i in range(nr_idns):
+                    obj = objs[i]
+                    idn = idns[i]
+                    filename = fns[i]
+                    if (not filename.endswith('.txt') and
+                       not filename.endswith('.dat')):
+                        filename = filename + '.txt'
+                    obj.save_file(filename)
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+                msg = 'Failed to save files.'
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to read database entries.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
- 
-        if nr_idns == 1:
-            filename = _QFileDialog.getSaveFileName(
-                self, caption='Save file',
-                directory=_os.path.join(self.directory, fns[0]),
-                filter="Text files (*.txt *.dat)")
- 
-            if isinstance(filename, tuple):
-                filename = filename[0]
- 
-            if len(filename) == 0:
-                return
- 
-            fns[0] = filename
-        else:
-            directory = _QFileDialog.getExistingDirectory(
-                self, caption='Save files', directory=self.directory)
- 
-            if isinstance(directory, tuple):
-                directory = directory[0]
- 
-            if len(directory) == 0:
-                return
- 
-            for i in range(len(fns)):
-                fns[i] = _os.path.join(directory, fns[i])
- 
-        try:
-            for i in range(nr_idns):
-                obj = objs[i]
-                idn = idns[i]
-                filename = fns[i]
-                if (not filename.endswith('.txt') and
-                   not filename.endswith('.dat')):
-                    filename = filename + '.txt'
-                obj.save_file(filename)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            msg = 'Failed to save files.'
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
- 
+     
     def update_database_tables(self):
         """Update database tables."""
         if not self.isVisible():

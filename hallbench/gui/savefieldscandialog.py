@@ -207,8 +207,8 @@ class SaveFieldScanDialog(_QDialog):
                 mc.offsety = offsety
                 mc.offsetz = offsetz
                 mc.offset_range = offset_range
-                configuration_id = mc.db_save()
-                fs.configuration_id = configuration_id
+                # configuration_id = mc.db_save()
+                fs.configuration_id = None #configuration_id
                 self.field_scan_id_list.append(fs.db_save())
   
             self.ui.pbt_savefile.setEnabled(True)

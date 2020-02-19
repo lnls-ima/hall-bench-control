@@ -119,7 +119,7 @@ class SupplyWidget(_QWidget):
         """Close widget."""
         try:
             if self.config.status:
-               self.start_powersupply()             
+               self.start_powersupply()
             self.closeDialogs()
             event.accept()
         except Exception:
@@ -149,7 +149,7 @@ class SupplyWidget(_QWidget):
             return False
 
     def set_op_mode(self, mode=0):
-        self.drs.OpMode(mode)
+        self.drs.select_op_mode(mode)
         _time.sleep(0.1)
         if self.drs.Read_ps_OpMode() == mode:
             return True
@@ -195,7 +195,7 @@ class SupplyWidget(_QWidget):
             # Status ps is OFF
             if self.config.status is False:
                 try:
-                    self.drs.Read_iLoad1()
+                    self.drs.read_iload1()
                 except Exception:
                     _traceback.print_exc(file=_sys.stdout)
                     _QMessageBox.warning(self, 'Warning',
@@ -204,7 +204,7 @@ class SupplyWidget(_QWidget):
                     self.change_ps_button(True)
                     return
 
-                _status_interlocks = self.drs.Read_ps_SoftInterlocks()
+                _status_interlocks = self.drs.read_ps_softinterlocks()
                 if _status_interlocks != 0:
                     self.ui.pb_interlock.setEnabled(True)
                     self.config.status_interlock = True
@@ -213,7 +213,7 @@ class SupplyWidget(_QWidget):
                                          _QMessageBox.Ok)
                     self.change_ps_button(True)
                     return
-                _status_interlocks = self.drs.Read_ps_HardInterlocks()
+                _status_interlocks = self.drs.read_ps_softinterlocks()
                 if _status_interlocks != 0:
                     self.ui.pb_interlock.setEnabled(True)
                     self.config.status_interlock = True
@@ -229,9 +229,9 @@ class SupplyWidget(_QWidget):
                     self.drs.SetSlaveAdd(_ps_type-1)
                     # Turn ON ps DClink
                     try:
-                        self.drs.TurnOn()
+                        self.drs.turn_on()
                         _time.sleep(1.2)
-                        if self.drs.Read_ps_OnOff() != 1:
+                        if self.drs.read_ps_onoff() != 1:
                             _QMessageBox.warning(self, 'Warning',
                                                  'Power Supply Capacitor '
                                                  'Bank did not initialize.',
@@ -249,9 +249,9 @@ class SupplyWidget(_QWidget):
                     # Closing DC link Loop
                     try:
                         # Closed Loop
-                        self.drs.ClosedLoop()
+                        self.drs.closed_loop()
                         _time.sleep(1)
-                        if self.drs.Read_ps_OpenLoop() == 1:
+                        if self.drs.read_ps_openloop() == 1:
                             _QMessageBox.warning(self, 'Warning',
                                                  'Power Supply circuit '
                                                  'loop is not closed.',
@@ -280,10 +280,9 @@ class SupplyWidget(_QWidget):
 
                     _dclink_value = self.config.dclink
                     # Set 90 V for Capacitor Bank (default value)
-                    self.drs.SetISlowRef(_dclink_value)
+                    self.drs.set_slowref(_dclink_value)
                     _time.sleep(1)
-                    _feedback_DCLink = round(self.drs.Read_vOutMod1()/2 +
-                                             self.drs.Read_vOutMod2()/2, 3)
+                    _feedback_DCLink = self.drs.read_vdclink()
                     _i = 100
                     while _feedback_DCLink < _dclink_value and _i > 0:
                         _feedback_DCLink = round(self.drs.Read_vOutMod1()/2 +
@@ -296,35 +295,35 @@ class SupplyWidget(_QWidget):
                                              'setpoint is not set.\n'
                                              'Check the configurations.',
                                              _QMessageBox.Ok)
-                        self.drs.TurnOff()
+                        self.drs.turn_off()
                         self.change_ps_button(True)
                         return
                 # Turn on Power Supply
                 self.drs.SetSlaveAdd(_ps_type)
                 if _ps_type < 4:
                     self.pid_setting()
-                self.drs.TurnOn()
+                self.drs.turn_on()
                 _time.sleep(0.1)
                 if _ps_type == 2:
                     _time.sleep(0.9)
-                if not self.drs.Read_ps_OnOff():
+                if not self.drs.read_ps_onoff():
                     # Turn off DC link
                     self.drs.SetSlaveAdd(_ps_type-1)
-                    self.drs.TurnOff()
+                    self.drs.turn_off()
                     self.change_ps_button(True)
                     _QMessageBox.warning(self, 'Warning', 'The Power Supply '
                                          'did not turn off.',
                                          _QMessageBox.Ok)
                     return
                 # Closed Loop
-                self.drs.ClosedLoop()
+                self.drs.closed_loop()
                 _time.sleep(0.1)
                 if _ps_type == 2:
                     _time.sleep(0.9)
-                if self.drs.Read_ps_OpenLoop() == 1:
+                if self.drs.read_ps_openloop() == 1:
                     # Turn off DC link
                     self.drs.SetSlaveAdd(_ps_type-1)
-                    self.drs.TurnOff()
+                    self.drs.turn_off()
                     self.change_ps_button(True)
                     _QMessageBox.warning(self, 'Warning', 'Power Supply '
                                          'circuit loop is not closed.',
@@ -347,11 +346,11 @@ class SupplyWidget(_QWidget):
                                          _QMessageBox.Ok)
             else:
                 self.drs.SetSlaveAdd(_ps_type)
-                self.drs.TurnOff()
+                self.drs.turn_off()
                 _time.sleep(0.1)
                 if _ps_type == 2:
                     _time.sleep(0.9)
-                _status = self.drs.Read_ps_OnOff()
+                _status = self.drs.read_ps_onoff()
                 if _status:
                     _QMessageBox.warning(self, 'Warning', 'Could not turn the '
                                          'power supply off.\nPlease try '
@@ -361,11 +360,11 @@ class SupplyWidget(_QWidget):
                 if _ps_type == 2:
                     # Turn off DC link
                     self.drs.SetSlaveAdd(_ps_type-1)
-                    self.drs.TurnOff()
+                    self.drs.turn_off()
                     _time.sleep(0.1)
                     if _ps_type == 2:
                         _time.sleep(0.9)
-                    _status = self.drs.Read_ps_OnOff()
+                    _status = self.drs.read_ps_onoff()
                     if _status:
                         _QMessageBox.warning(self, 'Warning', 'Could not turn '
                                              'the power supply off.\nPlease '
@@ -416,16 +415,20 @@ class SupplyWidget(_QWidget):
             self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
             self.config.dclink = self.ui.sb_dclink.value()
             self.config.ps_setpoint = self.ui.sb_current_setpoint.value()
-            self.config.maximum_current = float(self.ui.le_maximum_current.text())
-            self.config.minimum_current = float(self.ui.le_minimum_current.text())
-            dcct_head_str = self.ui.cb_dcct_select.currentText().replace(' A', '')
+            self.config.maximum_current = float(
+                self.ui.le_maximum_current.text())
+            self.config.minimum_current = float(
+                self.ui.le_minimum_current.text())
+            dcct_head_str = self.ui.cb_dcct_select.currentText().replace(' A',
+                                                                         '')
             try:
                 self.config.dcct_head = int(dcct_head_str)
             except Exception:
                 self.config.dcct_head = None
             self.config.Kp = self.ui.sb_kp.value()
             self.config.Ki = self.ui.sb_ki.value()
-            self.config.current_array = self.table_to_array(self.ui.tw_currents)
+            self.config.current_array = self.table_to_array(
+                self.ui.tw_currents)
             self.config.trapezoidal_array = self.table_to_array(
                 self.ui.tw_trapezoidal)
             self.config.trapezoidal_offset = float(
@@ -470,7 +473,7 @@ class SupplyWidget(_QWidget):
                 self.ui.le_damp_sin2_phasef.text())
             self.config.dsinusoidal2_damp = float(
                 self.ui.le_damp_sin2_damping.text())
-        except:
+        except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
     def config_widget(self):
@@ -481,8 +484,10 @@ class SupplyWidget(_QWidget):
             self.ui.cb_ps_type.setCurrentIndex(self.config.ps_type - 2)
             self.ui.sb_dclink.setValue(self.config.dclink)
             self.ui.sb_current_setpoint.setValue(self.config.ps_setpoint)
-            self.ui.le_maximum_current.setText(str(self.config.maximum_current))
-            self.ui.le_minimum_current.setText(str(self.config.minimum_current))
+            self.ui.le_maximum_current.setText(
+                str(self.config.maximum_current))
+            self.ui.le_minimum_current.setText(
+                str(self.config.minimum_current))
             self.ui.cb_dcct_select.setCurrentText(str(self.config.dcct_head) +
                                                   ' A')
             self.ui.sb_kp.setValue(self.config.Kp)
@@ -500,19 +505,24 @@ class SupplyWidget(_QWidget):
                 self.config.sinusoidal_frequency))
             self.ui.le_sinusoidal_ncycles.setText(str(
                 self.config.sinusoidal_ncycles))
-            self.ui.le_sinusoidal_phase.setText(str(self.config.sinusoidal_phasei))
+            self.ui.le_sinusoidal_phase.setText(
+                str(self.config.sinusoidal_phasei))
             self.ui.le_sinusoidal_phasef.setText(str(
                 self.config.sinusoidal_phasef))
             self.ui.le_damp_sin_ampl.setText(str(
                 self.config.dsinusoidal_amplitude))
-            self.ui.le_damp_sin_offset.setText(str(self.config.dsinusoidal_offset))
+            self.ui.le_damp_sin_offset.setText(
+                str(self.config.dsinusoidal_offset))
             self.ui.le_damp_sin_freq.setText(str(
                 self.config.dsinusoidal_frequency))
             self.ui.le_damp_sin_ncycles.setText(str(
                 self.config.dsinusoidal_ncycles))
-            self.ui.le_damp_sin_phase.setText(str(self.config.dsinusoidal_phasei))
-            self.ui.le_damp_sin_phasef.setText(str(self.config.dsinusoidal_phasef))
-            self.ui.le_damp_sin_damping.setText(str(self.config.dsinusoidal_damp))
+            self.ui.le_damp_sin_phase.setText(
+                str(self.config.dsinusoidal_phasei))
+            self.ui.le_damp_sin_phasef.setText(
+                str(self.config.dsinusoidal_phasef))
+            self.ui.le_damp_sin_damping.setText(
+                str(self.config.dsinusoidal_damp))
             self.ui.le_damp_sin2_ampl.setText(str(
                 self.config.dsinusoidal2_amplitude))
             self.ui.le_damp_sin2_offset.setText(str(
@@ -527,7 +537,7 @@ class SupplyWidget(_QWidget):
                 self.config.dsinusoidal2_phasef))
             self.ui.le_damp_sin2_damping.setText(str(
                 self.config.dsinusoidal2_damp))
-        except:
+        except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
     def config_pid(self):
@@ -553,31 +563,31 @@ class SupplyWidget(_QWidget):
 
     def pid_setting(self):
         """Set power supply PID configurations."""
-        self.config.Kp = self.ui.sb_kp.value()
-        self.config.Ki = self.ui.sb_ki.value()
-        _ps_type = self.config.ps_type
-        if not self.set_address(_ps_type):
-            return
-        _id_mode = 0
-        _elp_PI_dawu = 3
         try:
-            # Write ID module from controller
-            self.drs.Write_dp_ID(_id_mode)
-            # Write DP Class for setting PI
-            self.drs.Write_dp_Class(_elp_PI_dawu)
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            return False
-        try:
-            _list_coeffs = _np.zeros(16)
-            _kp = self.config.Kp
-            _ki = self.config.Ki
-            _list_coeffs[0] = _kp
-            _list_coeffs[1] = _ki
-            # Write kp and ki
-            self.drs.Write_dp_Coeffs(_list_coeffs.tolist())
-            # Configure kp and ki
-            self.drs.ConfigDPModule()
+            _kp = self.ui.sb_kp.value()
+            _ki = self.ui.sb_ki.value()
+            self.config.Kp = _kp
+            self.config.Ki = _ki
+            _ps_type = self.config.ps_type
+            if not self.set_address(_ps_type):
+                return
+
+            if _ps_type == 3:
+                _umin = 0
+            else:
+                _umin = -0.90
+
+            if _ps_type in [2, 3, 4]:
+                _dsp_id = 0
+            elif _ps_type == 5:
+                _dsp_id = 1
+            elif _ps_type == 6:
+                _dsp_id = 2
+            elif _ps_type == 7:
+                _dsp_id = 3
+
+            self.drs.set_dsp_coeffs(3, _dsp_id, [_kp, _ki, 0.90, _umin])
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return False
@@ -591,13 +601,13 @@ class SupplyWidget(_QWidget):
             return
         if not self.set_op_mode(0):
             self.set_op_mode(0)
-        self.drs.SetISlowRef(0)
+        self.drs.set_slowref(0)
         _time.sleep(0.1)
-        self.drs.TurnOff()
+        self.drs.turn_off()
         _time.sleep(0.1)
         if self.config.ps_type == 2:
             _time.sleep(0.9)
-        if self.drs.Read_ps_OnOff() == 0:
+        if self.drs.read_ps_onoff() == 0:
             self.config.status = False
             self.config.main_current = 0
             self.ui.pb_ps_button.setChecked(False)
@@ -613,7 +623,7 @@ class SupplyWidget(_QWidget):
         try:
             if not self.set_address(_ps_type):
                 return
-            _refresh_current = round(float(self.drs.Read_iLoad1()), 3)
+            _refresh_current = round(float(self.drs.read_iload1()), 3)
             self.ui.lcd_ps_reading.display(_refresh_current)
             _QApplication.processEvents()
             if all([self.ui.chb_dcct.isChecked(),
@@ -671,10 +681,10 @@ class SupplyWidget(_QWidget):
                 return False
 
             # send setpoint and wait until current is set
-            self.drs.SetISlowRef(_setpoint)
+            self.drs.set_slowref(_setpoint)
             _time.sleep(0.1)
             for _ in range(30):
-                _compare = round(float(self.drs.Read_iLoad1()), 3)
+                _compare = round(float(self.drs.read_iload1()), 3)
                 self.display_current()
                 if abs(_compare - _setpoint) <= 0.5:
                     self.ui.tabWidget_2.setEnabled(True)
@@ -937,28 +947,32 @@ class SupplyWidget(_QWidget):
         # Generating curves
         try:
             if _curve_type < 3:
-                self.drs.Write_sigGen_Freq(float(_freq))
-                self.drs.Write_sigGen_Amplitude(float(_amp))
-                self.drs.Write_sigGen_Offset(float(_offset))
-                # Sinusoidal
-                if _curve_type == 1:
-                    _sigType = 0
-                # Damped Sinusoidal
-                if _curve_type in [0, 2]:
-                    if not _curve_type:
-                        _sigType = 4
-                    else:
-                        _sigType = 6
-                    self.drs.Write_sigGen_Aux(_damping)
-                self.drs.ConfigSigGen(_sigType, _n_cycles,
-                                      _phase_shift, _final_phase)
+                try:
+                    # Sinusoidal
+                    if _curve_type == 0:
+                        _sigtype = 0
+                        _damping = 0
+                    elif _curve_type in [1, 2]:
+                        # Damped Sinusoidal
+                        if _curve_type == 1:
+                            _sigtype = 1
+                        # Damped Sinusoidal^2
+                        else:
+                            _sigtype = 3
+                    # Sending curves to PS Controller
+                    self.drs.cfg_siggen(_sigtype, _n_cycles, _freq,
+                                        _amp, _offset, _phase_shift,
+                                        _final_phase, _damping, 0)
+                except Exception:
+                    _traceback.print_exc(file=_sys.stdout)
+                    _QMessageBox.warning(self, 'Warning', 'Failed to send '
+                                         'configuration to the controller.\n'
+                                         'Please, verify the parameters of the'
+                                         ' Power Supply.',
+                                         _QMessageBox.Ok)
+                    return False
             return True
         except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            _QMessageBox.warning(self, 'Warning', 'Failed to configure'
-                                 'the signal generator.\nPlease verify the '
-                                 'parameters of the Power Supply.',
-                                 _QMessageBox.Ok)
             return False
 
     def reset_interlocks(self):
@@ -967,13 +981,15 @@ class SupplyWidget(_QWidget):
             _ps_type = self.config.ps_type
             if not self.set_address(_ps_type):
                 return
+
+            _interlock = 0
             # 1000A power supply, reset capacitor bank interlock
             if _ps_type == 2:
                 self.drs.SetSlaveAdd(_ps_type - 1)
-                self.drs.ResetInterlocks()
+                self.drs.reset_interlocks()
 
             self.drs.SetSlaveAdd(_ps_type)
-            self.drs.ResetInterlocks()
+            self.drs.reset_interlocks()
             self.ui.pb_interlock.setEnabled(False)
             self.status_powersupply()
             _QMessageBox.information(self, 'Information',
@@ -1030,12 +1046,12 @@ class SupplyWidget(_QWidget):
                 if not self.trapezoidal_cycle():
                     raise Exception('Failure during trapezoidal cycle.')
             else:
-                self.drs.EnableSigGen()
+                self.drs.enable_siggen()
                 _deadline = _time.monotonic() + (1/_freq*_n_cycles)
                 while _time.monotonic() < _deadline:
                     _QApplication.processEvents()
                     _time.sleep(0.01)
-                self.drs.DisableSigGen()
+                self.drs.disable_siggen()
                 # returns to mode ISlowRef
                 if not self.set_op_mode(0):
                     _QMessageBox.warning(self, 'Warning',
@@ -1082,18 +1098,18 @@ class SupplyWidget(_QWidget):
                 if not self.verify_current_limits(_array[i, 0] + _offset):
                     return False
 
-            self.drs.SetISlowRef(_offset)
+            self.drs.set_slowref(_offset)
             for i in range(len(_array)):
                 _i0 = _offset
                 _i = _array[i, 0] + _offset
                 _t = _array[i, 1]
                 _t_border = abs(_i - _i0) / _slope
-                self.drs.SetISlowRef(_i)
+                self.drs.set_slowref(_i)
                 _deadline = _time.monotonic() + _t_border + _t
                 while _time.monotonic() < _deadline:
                     _QApplication.processEvents()
                     _time.sleep(0.01)
-                self.drs.SetISlowRef(_offset)
+                self.drs.set_slowref(_offset)
                 _deadline = _time.monotonic() + _t_border + _t
                 while _time.monotonic() < _deadline:
                     _QApplication.processEvents()
@@ -1288,17 +1304,17 @@ class SupplyWidget(_QWidget):
         """Read and display Power Supply status."""
         if self.isActiveWindow():
             try:
-                _on = self.drs.Read_ps_OnOff()
+                _on = self.drs.read_ps_onoff()
                 self.config.status = bool(_on)
-                _loop = self.drs.Read_ps_OpenLoop()
+                _loop = self.drs.read_ps_openloop()
                 self.config.status_loop = bool(_loop)
                 if all([_loop, self.ui.le_status_loop.text() == 'Closed']):
                     self.ui.le_status_loop.setText('Open')
                 elif all([not _loop,
                           self.ui.le_status_loop.text() == 'Open']):
                     self.ui.le_status_loop.setText('Closed')
-                _interlock = (self.drs.Read_ps_HardInterlocks() +
-                              self.drs.Read_ps_SoftInterlocks())
+                _interlock = (self.drs.read_ps_softinterlocks() +
+                              self.drs.read_ps_softinterlocks())
                 self.config.status_interlock = bool(_interlock)
                 if all([self.ui.le_status_con.text() == 'Not Ok',
                         self.drs.ser.is_open]):
@@ -1392,36 +1408,36 @@ class SupplyWidget(_QWidget):
         try:
             legend = _pyqtgraph.LegendItem(offset=(100, 30))
             legend.setParentItem(self.ui.pc_plot_pw.graphicsItem())
-            legend.setAutoFillBackground(1)            
-            
+            legend.setAutoFillBackground(1)
+
             self.ui.pc_plot_pw.clear()
-            p = self.ui.pc_plot_pw.plotItem  
+            p = self.ui.pc_plot_pw.plotItem
             pr1 = _pyqtgraph.ViewBox()
             p.showAxis('right')
             ax_pr1 = p.getAxis('right')
             p.scene().addItem(pr1)
             ax_pr1.linkToView(pr1)
             pr1.setXLink(p)
-    
+
             def updateViews():
                 pr1.setGeometry(p.vb.sceneBoundingRect())
                 pr1.linkedViewChanged(p.vb, pr1.XAxis)
-    
+
             updateViews()
             p.vb.sigResized.connect(updateViews)
             ax_pr1.setStyle(showValues=True)
-          
+
             penv = (0, 0, 255)
             graphv = self.ui.pc_plot_pw.plotItem.plot(
                 _np.array([]), _np.array([]), pen=penv,
                 symbol='o', symbolPen=penv, symbolSize=3, symbolBrush=penv)
-  
+
             penf = (0, 255, 0)
             graphf = _pyqtgraph.PlotDataItem(
-                _np.array([]), _np.array([]), pen=penf, 
+                _np.array([]), _np.array([]), pen=penf,
                 symbol='o', symbolPen=penf, symbolSize=3, symbolBrush=penf)
             ax_pr1.linkedView().addItem(graphf)
-    
+
             legend.addItem(graphv, 'Voltage')
             legend.addItem(graphf, 'Field')
             self.ui.pc_plot_pw.showGrid(x=True, y=True)
@@ -1433,7 +1449,7 @@ class SupplyWidget(_QWidget):
             self.graphf = graphf
 
         except Exception:
-            _traceback.print_exc(file=_sys.stdout)        
+            _traceback.print_exc(file=_sys.stdout)
 
     def probe_calibration_update_nmr_freq(self):
         try:
@@ -1442,7 +1458,7 @@ class SupplyWidget(_QWidget):
                 msg = 'NMR not connected.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
                 return False
-            
+
             nmr_freq = self.ui.pc_nmrfreq_sb.value()
             nmr.send_command(nmr.commands.frequency+str(nmr_freq))
         except Exception:
@@ -1452,11 +1468,11 @@ class SupplyWidget(_QWidget):
     def probe_calibration_measure(self):
         try:
             self.ui.pc_measure_btn.setEnabled(False)
-            
+
             self.graphv.setData([], [])
             self.graphf.setData([], [])
             self.ui.pc_volt_le.setText('')
-            self.ui.pc_voltstd_le.setText('')          
+            self.ui.pc_voltstd_le.setText('')
             self.ui.pc_field_le.setText('')
             self.ui.pc_fieldstd_le.setText('')
 
@@ -1466,46 +1482,46 @@ class SupplyWidget(_QWidget):
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
                 self.ui.pc_measure_btn.setEnabled(True)
                 return False
-            
+
             if self.ui.pc_sensorx_rb.isChecked():
                 volt = self.ui.devices.voltx
             elif self.ui.pc_sensory_rb.isChecked():
                 volt = self.ui.devices.volty
             elif self.ui.pc_sensorz_rb.isChecked():
                 volt = self.ui.devices.voltz
-            else:    
+            else:
                 msg = 'Invalid sensor selection.'
-                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)                
+                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
                 self.ui.pc_measure_btn.setEnabled(True)
                 return False
-            
+
             if not volt.connected:
                 msg = 'Multimeter not connected.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pc_measure_btn.setEnabled(True)                
-                return False                
-            
+                self.ui.pc_measure_btn.setEnabled(True)
+                return False
+
             nmr_channel = self.ui.pc_nmrchannel_cmb.currentText()
             nmr_freq = self.ui.pc_nmrfreq_sb.value()
             nmr_sense = self.ui.pc_nmrsense_cmb.currentIndex()
-            
+
             if not nmr.configure(nmr_freq, 1, nmr_sense, 1, 0, 1, nmr_channel, 1):
                 msg = 'Failed to configure NMR.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pc_measure_btn.setEnabled(True)                
-                return False                 
-            
+                self.ui.pc_measure_btn.setEnabled(True)
+                return False
+
             ps_type = self.config.ps_type
             if not self.set_address(ps_type):
                 self.ui.pc_measure_btn.setEnabled(True)
                 return False
- 
+
             if ps_type in [2, 3]:
                 slope = self.slope[ps_type - 2]
             else:
                 slope = self.slope[2]
 
-            self.drs.SetISlowRef(0)
+            self.drs.set_slowref(0)
 
             ts = []
             fs = []
@@ -1519,20 +1535,20 @@ class SupplyWidget(_QWidget):
             current_time = self.ui.pc_time_sb.value()
             reading_delay = self.ui.pc_delay_sb.value()
             reading_time = self.ui.pc_readingtime_sb.value()
-            
+
             if reading_time > current_time or reading_time == 0:
                 msg = 'Invalid reading time.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pc_measure_btn.setEnabled(True)                
-                return False                 
-            
+                self.ui.pc_measure_btn.setEnabled(True)
+                return False
+
             t_border = abs(i) / slope
             t0 = _time.monotonic()
             deadline = t0 + t_border + current_time
             tr0 = t0
-            
-            self.drs.SetISlowRef(i)
-            tr = 0            
+
+            self.drs.set_slowref(i)
+            tr = 0
             while _time.monotonic() < deadline:
                 _QApplication.processEvents()
                 t = _time.monotonic() - t0
@@ -1559,13 +1575,13 @@ class SupplyWidget(_QWidget):
                         self.graphf.setData(ts, fs)
                 else:
                     tr0 = _time.monotonic()
-                _time.sleep(0.01)      
-            
-            self.drs.SetISlowRef(0)
-            
+                _time.sleep(0.01)
+
+            self.drs.set_slowref(0)
+
             vn = [v for v in vs if not _np.isnan(v)]
             fn = [f for f in fs if not _np.isnan(f)]
-            
+
             if len(vn) > 0:
                 self.ui.pc_volt_le.setText('{0:.8f}'.format(_np.mean(vn)))
                 self.ui.pc_voltstd_le.setText('{0:.8f}'.format(_np.std(vn)))
@@ -1579,12 +1595,12 @@ class SupplyWidget(_QWidget):
             else:
                 self.ui.pc_field_le.setText('')
                 self.ui.pc_fieldstd_le.setText('')
-            
+
             self.ui.pc_measure_btn.setEnabled(True)
             msg = 'Measurement finished.'
-            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)           
+            _QMessageBox.information(self, 'Information', msg, _QMessageBox.Ok)
             return True
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             self.ui.pc_measure_btn.setEnabled(True)
@@ -1600,4 +1616,4 @@ class SupplyWidget(_QWidget):
             df.to_clipboard(header=False, index=False)
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-            return False        
+            return False

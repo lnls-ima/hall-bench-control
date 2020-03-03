@@ -193,27 +193,33 @@ class ViewProbeDialog(_QDialog):
         self.ui.sb_field_prec.valueChanged.connect(self.update_field)
         self.ui.tbt_field_copy.clicked.connect(self.copy_field)
         
-        probes = ['x', 'y', 'z']
-        for probe in probes:
-            sb_poly_prec = getattr(
-                self.ui, 'sb_probe{0:s}_poly_prec'.format(probe))
-            sb_poly_prec.valueChanged.connect(
-                lambda: self.update_table_poly(probe))
+        self.ui.sb_probex_poly_prec.valueChanged.connect(
+            lambda: self.update_table_poly('x'))
+        self.ui.sb_probey_poly_prec.valueChanged.connect(
+            lambda: self.update_table_poly('y'))
+        self.ui.sb_probez_poly_prec.valueChanged.connect(
+            lambda: self.update_table_poly('z'))
 
-            sb_data_prec = getattr(
-                self.ui, 'sb_probe{0:s}_data_prec'.format(probe))
-            sb_data_prec.valueChanged.connect(
-                lambda: self.update_table_data(probe))
+        self.ui.sb_probex_data_prec.valueChanged.connect(
+            lambda: self.update_table_data('x'))
+        self.ui.sb_probey_data_prec.valueChanged.connect(
+            lambda: self.update_table_data('y'))
+        self.ui.sb_probez_data_prec.valueChanged.connect(
+            lambda: self.update_table_data('z'))
+    
+        self.ui.tbt_probex_poly_copy.clicked.connect(
+            lambda: self.copy_table_poly('x'))            
+        self.ui.tbt_probey_poly_copy.clicked.connect(
+            lambda: self.copy_table_poly('y'))            
+        self.ui.tbt_probez_poly_copy.clicked.connect(
+            lambda: self.copy_table_poly('z'))            
 
-            tbt_poly_copy = getattr(
-                self.ui, 'tbt_probe{0:s}_poly_copy'.format(probe))
-            tbt_poly_copy.clicked.connect(
-                lambda: self.copy_table_poly(probe))            
-
-            tbt_data_copy = getattr(
-                self.ui, 'tbt_probe{0:s}_data_copy'.format(probe))
-            tbt_data_copy.clicked.connect(
-                lambda: self.copy_table_data(probe))      
+        self.ui.tbt_probex_data_copy.clicked.connect(
+            lambda: self.copy_table_data('x'))      
+        self.ui.tbt_probey_data_copy.clicked.connect(
+            lambda: self.copy_table_data('y'))  
+        self.ui.tbt_probez_data_copy.clicked.connect(
+            lambda: self.copy_table_data('z'))  
 
     def copy_field(self):
         try:
@@ -462,7 +468,7 @@ class ViewProbeDialog(_QDialog):
             labels.append('Electronic Box Temperature [C]')
             data.append(cal.electronic_box_temperature)
 
-        data = _np.array(data)
+        data = _np.transpose(data)
 
         nr = len(cal.voltage)
         table.setRowCount(nr)

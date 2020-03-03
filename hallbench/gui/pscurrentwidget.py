@@ -173,7 +173,6 @@ class ReadValueWorker(_QObject):
             ts = _time.time()
 
             if self.dcct_enabled:
-                _dcct.dcct_head = 1000
                 dcct_current = _dcct.read_current()
             else:
                 dcct_current = _np.nan

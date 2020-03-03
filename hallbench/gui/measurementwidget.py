@@ -683,27 +683,26 @@ class MeasurementWidget(_QWidget):
 
     def end_automatic_measurements(self, setpoint_changed):
         """End automatic measurements."""
-        if not self.reset_multimeters():
-            return
-
-        if not setpoint_changed:
-            msg = ('Automatic measurements failed. ' +
-                   'Current setpoint not changed.')
-            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-            return
-
         self.ui.pbt_stop.setEnabled(False)
         self.ui.pbt_measure.setEnabled(True)
         self.ui.tbt_create_fieldmap.setEnabled(True)
         self.ui.tbt_save_scan_files.setEnabled(False)
         self.ui.tbt_view_voltage_scan.setEnabled(False)
         self.ui.tbt_view_field_scan.setEnabled(False)
-        self.ui.tbt_clear_graph.setEnabled(True)
-        self.turn_off_power_supply_current.emit(True)
+        self.ui.tbt_clear_graph.setEnabled(True)       
+        #self.turn_off_power_supply_current.emit(True)
 
+        if not setpoint_changed:
+            msg = ('Automatic measurements failed. ' +
+                   'Current setpoint not changed.')
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+        
         msg = 'End of automatic measurements.'
         _QMessageBox.information(
             self, 'Measurements', msg, _QMessageBox.Ok)
+        
+        self.stop = True
 
     def fix_end_position_value(self, axis):
         """Fix end position value."""
@@ -1080,17 +1079,13 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return
 
-        if self.measurement_config.current_setpoint == 0:
-            self.change_current_setpoint.emit(True)
-            return
-
         if not self.save_configuration():
             return
 
         if not self.measure():
             return
 
-        self.change_current_setpoint.emit(True)
+        self.change_current_setpoint.emit(1)
 
     def measure_button_clicked(self):
         """Start measurements."""
@@ -1611,6 +1606,7 @@ class MeasurementWidget(_QWidget):
     def show_view_probe_dialog(self):
         """Open view probe dialog."""
         try:
+            self.update_configuration()
             calx_name = self.temp_measurement_config.calibrationx
             caly_name = self.temp_measurement_config.calibrationy
             calz_name = self.temp_measurement_config.calibrationz

@@ -3,12 +3,7 @@
 import os as _os
 import time as _time
 
-from imautils.devices import PmacLib as _PmacLib
-from imautils.devices import ElcomatLib as _ElcomatLib
-from imautils.devices import NMRLib as _NMRLib
-from imautils.devices import UDCLib as _UDCLib
 from imautils.devices.utils import configure_logging
-
 from . import devices as _devices
 
 
@@ -27,14 +22,14 @@ logfile = _os.path.join(
 configure_logging(logfile)
 
 
-pmac = _PmacLib.Pmac(log=True)
+pmac = _devices.Pmac(log=True)
 voltx = _devices.Multimeter(log=True)
 volty = _devices.Multimeter(log=True)
 voltz = _devices.Multimeter(log=True)
 multich = _devices.Multichannel(log=True)
-nmr = _NMRLib.NMRSerial(log=True)
-elcomat = _ElcomatLib.ElcomatSerial(log=True)
+nmr = _devices.NMR(log=True)
+elcomat = _devices.Autocollimator(log=True)
 dcct = _devices.DCCT(log=True)
-water_udc = _UDCLib.UDCModBus(log=True)
-air_udc = _UDCLib.UDCModBus(log=True)
+water_udc = _devices.WaterUDC(log=True)
+air_udc = _devices.AirUDC(log=True)
 ps = _devices.PowerSupply()

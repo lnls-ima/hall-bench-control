@@ -5,7 +5,7 @@
 from hallbench.gui import hallbenchapp
 
 
-THREAD = True
+THREAD = False
 
 
 if THREAD:

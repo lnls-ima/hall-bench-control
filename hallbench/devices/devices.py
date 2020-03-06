@@ -9,6 +9,15 @@ from imautils.devices import Agilent3458ALib as _Agilent3458ALib
 from imautils.devices import Agilent34401ALib as _Agilent34401ALib
 from imautils.devices import Agilent34970ALib as _Agilent34970ALib
 from imautils.devices import pydrs as _pydrs
+from imautils.devices import ElcomatLib as _ElcomatLib
+from imautils.devices import NMRLib as _NMRLib
+from imautils.devices import UDCLib as _UDCLib
+
+try:
+    from imautils.devices import PmacLib as _PmacLib
+    pmac_module = True
+except ModuleNotFoundError:
+    pmac_module = False
 
 
 class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
@@ -21,7 +30,6 @@ class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
             aper (float): A/D converter integration time in ms.
             mrange (float): measurement range in volts.
         """
-        #self.send_command(self.commands.reset)
         self.send_command(self.commands.func_volt)
         self.send_command(self.commands.tarm_auto)
         self.send_command(self.commands.trig_auto)
@@ -128,3 +136,25 @@ class PowerSupply(_pydrs.SerialDRS):
     def __init__(self):
         self.ps_type = None
         super().__init__()
+
+
+Autocollimator = _ElcomatLib.ElcomatSerial
+NMR = _NMRLib.NMRSerial
+WaterUDC = _UDCLib.UDCModBus
+AirUDC = _UDCLib.UDCModBus
+
+if pmac_module:
+    Pmac = _PmacLib.Pmac
+
+else:
+    class Pmac():
+
+        def __init__(self, log=False):
+            super().__init__()
+            self.connected = False
+
+        def connect(self):
+            return False
+
+        def disconnect(self):
+            return True

@@ -828,6 +828,8 @@ class TablePlotWidget(_QWidget):
         for j, label in enumerate(self._data_labels):
             fmt = self._data_formats[j]
             reading = self._readings[label][-1]
+            if reading is None:
+                reading = _np.nan
             self.tbl_table.setItem(
                 n-1, j+jadd, _QTableWidgetItem(fmt.format(reading)))
 
@@ -1268,7 +1270,14 @@ class TablePlotWidget(_QWidget):
                 timeinterval = _np.array(self._xvalues) - self._xvalues[0]
             
             for label in self._data_labels:
-                readings = _np.array(self._readings[label])
+                readings = []
+                for r in self._readings[label]:
+                    if r is not None:
+                        readings.append(r)
+                    else:
+                        readings.append(_np.nan)
+                readings = _np.array(readings)
+                
                 if self._is_timestamp:
                     x = timeinterval[_np.isfinite(readings)]
                 else:
@@ -1312,6 +1321,8 @@ class TablePlotWidget(_QWidget):
             for j, label in enumerate(self._data_labels):
                 fmt = self._data_formats[j]
                 reading = self._readings[label][i]
+                if reading is None:
+                    reading = _np.nan
                 self.tbl_table.setItem(
                     i, j+jadd, _QTableWidgetItem(fmt.format(reading)))
 
@@ -1432,7 +1443,7 @@ class CurrentTablePlotDialog(_QDialog, TablePlotWidget):
         TablePlotWidget.__init__(self, parent)
         self.setWindowTitle('Current Readings')
         self.resize(1000, 800)
-        self.set_table_column_size(120)
+        self.set_table_column_size(140)
         self.group_box.hide()
         self.tbt_autorange.hide()
         self.pbt_remove.hide()

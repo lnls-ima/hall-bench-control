@@ -26,6 +26,8 @@ from hallbench.gui.auxiliarywidgets import (
     TableDialog as _TableDialog,
     CheckableComboBox as _CheckableComboBox,
     TemperatureTablePlotDialog as _TemperatureTablePlotDialog,
+    IntegralsTablePlotDialog as _IntegralsTablePlotDialog,
+    CurrentTablePlotDialog as _CurrentTablePlotDialog,
     )
 from hallbench.gui import utils as _utils
 from hallbench.data import measurement as _measurement
@@ -56,12 +58,13 @@ class ViewScanDialog(_QDialog):
         self.temperature = {}
 
         # Create current dialog
-        self.current_dialog = _TableDialog()
-        self.current_dialog.setWindowTitle('Current Readings')
+        self.current_dialog = _CurrentTablePlotDialog()
 
         # Create temperature dialog
         self.temperature_dialog = _TemperatureTablePlotDialog()
-        self.temperature_dialog.setWindowTitle('Temperature Readings')
+
+        # Create integrals dialog
+        self.integrals_dialog = _IntegralsTablePlotDialog()
 
         # Create legend
         self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
@@ -244,6 +247,7 @@ class ViewScanDialog(_QDialog):
         try:
             self.current_dialog.accept()
             self.temperature_dialog.accept()
+            self.integrals_dialog.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -375,6 +379,8 @@ class ViewScanDialog(_QDialog):
             self.show_current_dialog)
         self.ui.pbt_view_temperature.clicked.connect(
             self.show_temperature_dialog)
+        self.ui.pbt_view_integrals.clicked.connect(
+            self.show_integrals_dialog)
         self.ui.pbt_calc_integrals.clicked.connect(self.calc_integrals)
         self.ui.tbt_copy_integrals.clicked.connect(self.copy_integrals)
 
@@ -643,7 +649,6 @@ class ViewScanDialog(_QDialog):
                 idx = idx + 1
 
             columns = [
-                'ID',
                 'Current Setpoint [A]',
                 'DCCT AVG [A]',
                 'DCCT STD [A]',
@@ -653,7 +658,6 @@ class ViewScanDialog(_QDialog):
             current = []
             for i, scan in enumerate(self.scan_list):
                 current.append([
-                    self.scan_id_list[i],
                     scan.current_setpoint,
                     scan.dcct_current_avg,
                     scan.dcct_current_std,
@@ -661,7 +665,8 @@ class ViewScanDialog(_QDialog):
                     scan.ps_current_std,
                     ])
             current = _np.array(current)
-            self.current = _pd.DataFrame(current, columns=columns)
+            self.current = _pd.DataFrame(
+                current, index=self.scan_id_list, columns=columns)
 
             if self.current.iloc[:, 1:].isnull().values.all():
                 self.ui.pbt_view_current.setEnabled(False)
@@ -692,7 +697,65 @@ class ViewScanDialog(_QDialog):
             return
 
         try:
-            self.current_dialog.show(self.current)
+            timestamp = self.current.index.values.tolist()
+            readings = {}
+            for col in self.current.columns:
+                readings[col] = self.current[col].values.tolist()
+
+            self.current_dialog.show(timestamp, readings)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to open dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
+
+    def show_integrals_dialog(self):
+        """Show dialog with integrals."""
+        try:
+            if self.scan_type == 'field':
+                if self.ui.cmb_first_integral_unit.currentIndex() == 1:
+                    fmult = 1e3
+                    ylabel = 'Field Integral [G.cm]'
+                    
+                else:
+                    fmult = 1e-3
+                    ylabel = 'Field Integral [T.m]'
+            
+            else:
+                fmult = 1e-3
+                ylabel = 'Voltage Integral [V.m]'
+
+            idn_list = []                       
+            
+            values = {}
+            values['IntegralX'] = []
+            values['IntegralY'] = []
+            values['IntegralZ'] = []
+            
+            for idx in self.scan_dict.keys():
+                idn_list.append(self.scan_dict[idx]['x']['idn'])
+                
+                x = self.scan_dict[idx]['x']['pos']
+                y = self.scan_dict[idx]['x']['data']
+                first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
+                fint = first_integral[-1]*fmult
+                values['IntegralX'].append(fint)         
+          
+                x = self.scan_dict[idx]['y']['pos']
+                y = self.scan_dict[idx]['y']['data']
+                first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
+                fint = first_integral[-1]*fmult
+                values['IntegralY'].append(fint)  
+
+                x = self.scan_dict[idx]['z']['pos']
+                y = self.scan_dict[idx]['z']['data']
+                first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
+                fint = first_integral[-1]*fmult
+                values['IntegralZ'].append(fint)  
+            
+            self.integrals_dialog.set_ylabel(ylabel)
+            self.integrals_dialog.show(idn_list, values)
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to open dialog.'
@@ -743,6 +806,7 @@ class ViewScanDialog(_QDialog):
             od = self.scan_dict[selected_idx][selected_comp]['fit_polyorder']
             if od is not None:
                 self.ui.sb_polyorder.setValue(od)
+            self.calc_integrals()
         else:
             self.ui.gb_fit.setEnabled(False)
             self.ui.cmb_fitfunction.setCurrentIndex(-1)

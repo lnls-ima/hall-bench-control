@@ -1053,6 +1053,10 @@ class MeasurementWidget(_QWidget):
 
             self.turn_on_current_display.emit(True)
             self.ui.la_nr_measurements.setText('')
+
+            if self.stop is True:
+                return False
+
             return True
 
         except Exception:
@@ -1109,7 +1113,7 @@ class MeasurementWidget(_QWidget):
 
             # Read power supply current
             if self.ui.chb_save_current.isChecked():
-                ps_current = float(_ps.Read_iLoad1())
+                ps_current = float(_ps.read_iload1())
                 self.voltage_scan.ps_current_avg = ps_current
 
             # Read dcct current

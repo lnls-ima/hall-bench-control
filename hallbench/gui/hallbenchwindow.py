@@ -29,6 +29,8 @@ from hallbench.gui.voltagewidget import VoltageWidget \
     as _VoltageWidget
 from hallbench.gui.pscurrentwidget import PSCurrentWidget \
     as _PSCurrentWidget
+from hallbench.gui.voltagepscurrentwidget import VoltagePSCurrentWidget \
+    as _VoltagePSCurrentWidget
 from hallbench.gui.temperaturewidget import TemperatureWidget \
     as _TemperatureWidget
 from hallbench.gui.watersystemwidget import WaterSystemWidget \
@@ -75,6 +77,7 @@ class HallBenchWindow(_QMainWindow):
             'temperature',
             'water_system',
             'air_conditioning',
+            'voltage_current',
             'database',
             ]
 
@@ -88,6 +91,7 @@ class HallBenchWindow(_QMainWindow):
             _TemperatureWidget,
             _WaterSystemWidget,
             _AirConditioningWidget,
+            _VoltagePSCurrentWidget,
             _DatabaseWidget,
             ]
 

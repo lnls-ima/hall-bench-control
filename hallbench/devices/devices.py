@@ -8,7 +8,7 @@ import time as _time
 from imautils.devices import Agilent3458ALib as _Agilent3458ALib
 from imautils.devices import Agilent34401ALib as _Agilent34401ALib
 from imautils.devices import Agilent34970ALib as _Agilent34970ALib
-from imautils.devices import F1000DRSLib as _DRSLib
+from imautils.devices import pydrs as _pydrs
 
 
 class Multimeter(_Agilent3458ALib.Agilent3458AGPIB):
@@ -122,7 +122,7 @@ class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
         return current
 
 
-class PowerSupply(_DRSLib.SerialDRS_FBP):
+class PowerSupply(_pydrs.SerialDRS):
     """Power Supply."""
 
     def __init__(self):

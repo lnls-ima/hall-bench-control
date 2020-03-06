@@ -720,6 +720,9 @@ class TableDialog(_QDialog):
 class TablePlotWidget(_QWidget):
     """Table and Plot widget."""
 
+    _bottom_axis_label = 'Time interval [s]'
+    _is_timestamp = True
+    
     _left_axis_1_label = ''
     _right_axis_1_label = ''
     _right_axis_2_label = ''
@@ -743,8 +746,8 @@ class TablePlotWidget(_QWidget):
         self.add_widgets()
         self.setFont(_font)
 
-        # variables initialisation
-        self._timestamp = []
+        # variables initialisation     
+        self._xvalues = []
         self._legend_items = []
         self._graphs = {}
         self._data_labels = (
@@ -783,6 +786,15 @@ class TablePlotWidget(_QWidget):
         """Return the default directory."""
         return _QApplication.instance().directory
 
+    @property
+    def _timestamp(self):
+        """Return the timestamp list."""
+        return self._xvalues
+
+    @_timestamp.setter
+    def _timestamp(self, value):
+        self._xvalues = value
+
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -795,23 +807,29 @@ class TablePlotWidget(_QWidget):
 
     def add_last_value_to_table(self):
         """Add the last value read to table."""
-        if len(self._timestamp) == 0:
+        if len(self._xvalues) == 0:
             return
 
         n = self.tbl_table.rowCount() + 1
         self.tbl_table.setRowCount(n)
 
-        dt = _datetime.datetime.fromtimestamp(self._timestamp[-1])
-        date = dt.strftime("%d/%m/%Y")
-        hour = dt.strftime("%H:%M:%S")
-        self.tbl_table.setItem(n-1, 0, _QTableWidgetItem(date))
-        self.tbl_table.setItem(n-1, 1, _QTableWidgetItem(hour))
+        if self._is_timestamp:
+            dt = _datetime.datetime.fromtimestamp(self._xvalues[-1])
+            date = dt.strftime("%d/%m/%Y")
+            hour = dt.strftime("%H:%M:%S")
+            self.tbl_table.setItem(n-1, 0, _QTableWidgetItem(date))
+            self.tbl_table.setItem(n-1, 1, _QTableWidgetItem(hour))
+            jadd = 2
+        else:
+            self.tbl_table.setItem(
+                n-1, 0, _QTableWidgetItem(str(self._xvalues[-1])))
+            jadd = 1
 
         for j, label in enumerate(self._data_labels):
             fmt = self._data_formats[j]
             reading = self._readings[label][-1]
             self.tbl_table.setItem(
-                n-1, j+2, _QTableWidgetItem(fmt.format(reading)))
+                n-1, j+jadd, _QTableWidgetItem(fmt.format(reading)))
 
         vbar = self.tbl_table.verticalScrollBar()
         vbar.setValue(vbar.maximum())
@@ -990,7 +1008,7 @@ class TablePlotWidget(_QWidget):
 
     def clear_button_clicked(self):
         """Clear all values."""
-        if len(self._timestamp) == 0:
+        if len(self._xvalues) == 0:
             return
 
         msg = 'Clear table data?'
@@ -1003,7 +1021,7 @@ class TablePlotWidget(_QWidget):
 
     def clear(self):
         """Clear all values."""
-        self._timestamp = []
+        self._xvalues = []
         for label in self._data_labels:
             self._readings[label] = []
         self.update_table_values()
@@ -1021,7 +1039,7 @@ class TablePlotWidget(_QWidget):
     def configure_plot(self):
         """Configure data plots."""
         self.pw_plot.clear()
-        self.pw_plot.setLabel('bottom', 'Time interval [s]')
+        self.pw_plot.setLabel('bottom', self._bottom_axis_label)
         self.pw_plot.showGrid(x=True, y=True)
 
         # Configure left axis 1
@@ -1084,7 +1102,11 @@ class TablePlotWidget(_QWidget):
 
     def configure_table(self):
         """Configure table."""
-        col_labels = ['Date', 'Time']
+        if self._is_timestamp:
+            col_labels = ['Date', 'Time']
+        else:
+            col_labels = [self._bottom_axis_label]
+
         for label in self._data_labels:
             col_labels.append(label)
         self.tbl_table.setColumnCount(len(col_labels))
@@ -1159,10 +1181,10 @@ class TablePlotWidget(_QWidget):
         """Remove value from list."""
         selected = self.tbl_table.selectedItems()
         rows = [s.row() for s in selected]
-        n = len(self._timestamp)
+        n = len(self._xvalues)
 
-        self._timestamp = [
-            self._timestamp[i] for i in range(n) if i not in rows]
+        self._xvalues = [
+            self._xvalues[i] for i in range(n) if i not in rows]
 
         for label in self._data_labels:
             readings = self._readings[label]
@@ -1234,7 +1256,7 @@ class TablePlotWidget(_QWidget):
 
     def update_plot(self):
         """Update plot values."""
-        if len(self._timestamp) == 0:
+        if len(self._xvalues) == 0:
             for label in self._data_labels:
                 self._graphs[label].setData(
                     _np.array([]), _np.array([]))
@@ -1242,16 +1264,25 @@ class TablePlotWidget(_QWidget):
 
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
-            timeinterval = _np.array(self._timestamp) - self._timestamp[0]
+            if self._is_timestamp:
+                timeinterval = _np.array(self._xvalues) - self._xvalues[0]
+            
             for label in self._data_labels:
                 readings = _np.array(self._readings[label])
-                dt = timeinterval[_np.isfinite(readings)]
+                if self._is_timestamp:
+                    x = timeinterval[_np.isfinite(readings)]
+                else:
+                    x = _np.array(self._xvalues)[_np.isfinite(readings)]
                 rd = readings[_np.isfinite(readings)]
-                self._graphs[label].setData(dt, rd)
+                self._graphs[label].setData(x, rd)
 
-        if len(self._timestamp) > 2 and self.tbt_autorange.isChecked():
-            xmin = timeinterval[0]
-            xmax = timeinterval[-1]
+        if len(self._xvalues) > 2 and self.tbt_autorange.isChecked():
+            if self._is_timestamp:
+                xmin = timeinterval[0]
+                xmax = timeinterval[-1]
+            else:
+                xmin = self._xvalues[0]
+                xmax = self._xvalues[-1]
             self.pw_plot.plotItem.getViewBox().setRange(xRange=(xmin, xmax))
 
     def update_table_analysis_dialog(self):
@@ -1261,22 +1292,28 @@ class TablePlotWidget(_QWidget):
 
     def update_table_values(self):
         """Update table values."""
-        n = len(self._timestamp)
+        n = len(self._xvalues)
         self.tbl_table.clearContents()
         self.tbl_table.setRowCount(n)
 
         for i in range(n):
-            dt = _datetime.datetime.fromtimestamp(self._timestamp[i])
-            date = dt.strftime("%d/%m/%Y")
-            hour = dt.strftime("%H:%M:%S")
-            self.tbl_table.setItem(i, 0, _QTableWidgetItem(date))
-            self.tbl_table.setItem(i, 1, _QTableWidgetItem(hour))
+            if self._is_timestamp:
+                dt = _datetime.datetime.fromtimestamp(self._xvalues[i])
+                date = dt.strftime("%d/%m/%Y")
+                hour = dt.strftime("%H:%M:%S")
+                self.tbl_table.setItem(i, 0, _QTableWidgetItem(date))
+                self.tbl_table.setItem(i, 1, _QTableWidgetItem(hour))
+                jadd = 2
+            else:
+                self.tbl_table.setItem(
+                    i, 0, _QTableWidgetItem(str(self._xvalues[i])))
+                jadd = 1
 
             for j, label in enumerate(self._data_labels):
                 fmt = self._data_formats[j]
                 reading = self._readings[label][i]
                 self.tbl_table.setItem(
-                    i, j+2, _QTableWidgetItem(fmt.format(reading)))
+                    i, j+jadd, _QTableWidgetItem(fmt.format(reading)))
 
         vbar = self.tbl_table.verticalScrollBar()
         vbar.setValue(vbar.maximum())
@@ -1315,6 +1352,102 @@ class TemperatureTablePlotDialog(_QDialog, TablePlotWidget):
         """Show dialog."""
         try:
             self._timestamp = timestamp
+            self._readings = readings
+            self._data_labels = list(self._readings.keys())
+            self._data_formats = [
+                self._left_axis_1_format]*len(self._data_labels)
+            self._left_axis_1_data_labels = self._data_labels
+            self.configure_plot()
+            self.configure_table()
+            self.update_plot()
+            self.update_table_values()
+            _QDialog.show(self)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
+
+class IntegralsTablePlotDialog(_QDialog, TablePlotWidget):
+    """Integrals table and plot dialog."""
+
+    _bottom_axis_label = 'Scan ID'
+    _is_timestamp = False
+
+    _left_axis_1_label = 'Integral'
+    _left_axis_1_format = '{0:.15g}'
+    _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+
+    def __init__(self, parent=None):
+        _QDialog.__init__(self, parent)
+        TablePlotWidget.__init__(self, parent)
+        self.setWindowTitle('Integrals')
+        self.resize(1000, 800)
+        self.set_table_column_size(200)
+        self.group_box.hide()
+        self.tbt_autorange.hide()
+        self.pbt_remove.hide()
+        self.tbt_clear.hide()
+
+    def accept(self):
+        """Close dialog."""
+        self.clear()
+        self.close_dialogs()
+        _QDialog.accept(self)
+
+    def set_ylabel(self, label):
+        self._left_axis_1_label = label
+
+    def show(self, xvalues, readings):
+        """Show dialog."""
+        try:
+            self._xvalues = xvalues
+            self._readings = readings
+            self._data_labels = list(self._readings.keys())
+            self._data_formats = [
+                self._left_axis_1_format]*len(self._data_labels)
+            self._left_axis_1_data_labels = self._data_labels
+            self.configure_plot()
+            self.configure_table()
+            self.update_plot()
+            self.update_table_values()
+            _QDialog.show(self)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
+
+class CurrentTablePlotDialog(_QDialog, TablePlotWidget):
+    """Power supply current table and plot dialog."""
+
+    _bottom_axis_label = 'Scan ID'
+    _is_timestamp = False
+
+    _left_axis_1_label = 'Current [A]'
+    _left_axis_1_format = '{0:.6g}'
+    _left_axis_1_data_colors = [
+        (230, 25, 75), (60, 180, 75), (0, 130, 200),
+        (245, 130, 48), (145, 30, 180)
+    ]
+
+    def __init__(self, parent=None):
+        _QDialog.__init__(self, parent)
+        TablePlotWidget.__init__(self, parent)
+        self.setWindowTitle('Current Readings')
+        self.resize(1000, 800)
+        self.set_table_column_size(120)
+        self.group_box.hide()
+        self.tbt_autorange.hide()
+        self.pbt_remove.hide()
+        self.tbt_clear.hide()
+
+    def accept(self):
+        """Close dialog."""
+        self.clear()
+        self.close_dialogs()
+        _QDialog.accept(self)
+
+    def show(self, xvalues, readings):
+        """Show dialog."""
+        try:
+            self._xvalues = xvalues
             self._readings = readings
             self._data_labels = list(self._readings.keys())
             self._data_formats = [

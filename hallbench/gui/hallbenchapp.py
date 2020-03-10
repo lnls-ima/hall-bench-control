@@ -19,6 +19,8 @@ from hallbench.gui.savefieldmapdialog import SaveFieldmapDialog \
     as _SaveFieldmapDialog
 from hallbench.gui.viewfieldmapdialog import ViewFieldmapDialog \
     as _ViewFieldmapDialog
+from hallbench.gui.auxiliarywidgets import CyclingTablePlotDialog \
+    as _CyclingTablePlotDialog
 import hallbench.data as _data
 
 
@@ -38,6 +40,8 @@ class HallBenchApp(_QApplication):
 
         # positions dict
         self.positions = {}
+        self.current_max = 0
+        self.current_min = 0
 
         # create dialogs
         self.view_probe_dialog = _ViewProbeDialog()
@@ -45,6 +49,7 @@ class HallBenchApp(_QApplication):
         self.save_field_scan_dialog = _SaveFieldScanDialog()
         self.save_fieldmap_dialog = _SaveFieldmapDialog()
         self.view_fieldmap_dialog = _ViewFieldmapDialog()
+        self.cycling_dialog = _CyclingTablePlotDialog()
 
     def create_database(self):
         """Create database and tables."""
@@ -52,6 +57,9 @@ class HallBenchApp(_QApplication):
             database_name=self.database_name,
             mongo=self.mongo, server=self.server)
         _PowerSupplyConfig = _data.configuration.PowerSupplyConfig(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        _CyclingCurve = _data.configuration.CyclingCurve(
             database_name=self.database_name,
             mongo=self.mongo, server=self.server)
         _HallCalibrationCurve = _data.calibration.HallCalibrationCurve(
@@ -76,6 +84,7 @@ class HallBenchApp(_QApplication):
         status = []
         status.append(_ConnectionConfig.db_create_collection())
         status.append(_PowerSupplyConfig.db_create_collection())
+        status.append(_CyclingCurve.db_create_collection())
         status.append(_HallCalibrationCurve.db_create_collection())
         status.append(_HallProbePositions.db_create_collection())
         status.append(_MeasurementConfig.db_create_collection())

@@ -620,103 +620,6 @@ class TableAnalysisDialog(_QDialog):
         self.analyse_and_show_results()
 
 
-class TableDialog(_QDialog):
-    """Table dialog class."""
-
-    def __init__(self, parent=None):
-        """Add table widget and copy button."""
-        super().__init__(parent)
-        self.resize(800, 500)
-        self.setFont(_font)
-
-        self.setWindowTitle("Data Table")
-        self.tbl_data = _QTableWidget()
-        self.tbl_data.setAlternatingRowColors(True)
-        self.tbl_data.verticalHeader().hide()
-        self.tbl_data.horizontalHeader().setStretchLastSection(True)
-        self.tbl_data.horizontalHeader().setDefaultSectionSize(120)
-
-        self.pbt_copy = _QPushButton("Copy to clipboard")
-        self.pbt_copy.clicked.connect(self.copy_to_clipboard)
-        self.pbt_copy.setFont(_font_bold)
-
-        _layout = _QVBoxLayout()
-        _layout.addWidget(self.tbl_data)
-        _layout.addWidget(self.pbt_copy)
-        self.setLayout(_layout)
-        self.table_df = None
-
-    def closeEvent(self, event):
-        """Close widget."""
-        try:
-            self.clear()
-            event.accept()
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            event.accept()
-
-    def accept(self):
-        """Close dialog."""
-        self.clear()
-        super().accept()
-
-    def add_items_to_table(self, text, i, j):
-        """Add items to table."""
-        item = _QTableWidgetItem(text)
-        item.setFlags(_Qt.ItemIsSelectable | _Qt.ItemIsEnabled)
-        self.tbl_data.setItem(i, j, item)
-
-    def clear(self):
-        """Clear data and table."""
-        self.table_df = None
-        self.tbl_data.clearContents()
-        self.tbl_data.setRowCount(0)
-        self.tbl_data.setColumnCount(0)
-
-    def copy_to_clipboard(self):
-        """Copy table data to clipboard."""
-        df = _utils.table_to_data_frame(self.tbl_data)
-        if df is not None:
-            df.to_clipboard(excel=True)
-
-    def show(self, table_df):
-        """Show dialog."""
-        self.table_df = table_df
-        self.update_table()
-        super().show()
-
-    def update_data(self, table_df):
-        """Update table data."""
-        self.table_df = table_df
-        self.update_table()
-
-    def update_table(self):
-        """Add data to table."""
-        self.tbl_data.clearContents()
-        self.tbl_data.setRowCount(0)
-        self.tbl_data.setColumnCount(0)
-
-        if self.table_df is None:
-            return
-
-        nrows = self.table_df.shape[0]
-        ncols = self.table_df.shape[1]
-
-        self.tbl_data.setRowCount(nrows)
-        self.tbl_data.setColumnCount(ncols)
-
-        columns = self.table_df.columns.values
-        self.tbl_data.setHorizontalHeaderLabels(columns)
-
-        for i in range(nrows):
-            for j in range(ncols):
-                if columns[j] == 'ID':
-                    text = '{0:d}'.format(int(self.table_df.iloc[i, j]))
-                else:
-                    text = str(self.table_df.iloc[i, j])
-                self.add_items_to_table(text, i, j)
-
-
 class TablePlotWidget(_QWidget):
     """Table and Plot widget."""
 
@@ -1469,6 +1372,72 @@ class CurrentTablePlotDialog(_QDialog, TablePlotWidget):
             self.update_plot()
             self.update_table_values()
             _QDialog.show(self)
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
+
+class CyclingTablePlotDialog(_QDialog, TablePlotWidget):
+    """Cycling table and plot dialog."""
+
+    _bottom_axis_label = 'Time interval [s]'
+    _is_timestamp = False
+
+    _left_axis_1_label = 'Current [A]'
+    _left_axis_1_format = '{0:.15g}'
+    _left_axis_1_data_colors = [(0, 0, 255)]
+
+    _right_axis_1_label = 'Current Error [A]'
+    _right_axis_1_format = '{0:.15g}'
+    _right_axis_1_data_colors = [(255, 0, 0)]
+
+    def __init__(self, parent=None):
+        _QDialog.__init__(self, parent)
+        TablePlotWidget.__init__(self, parent)
+        self.setWindowTitle('Cycling Curve')
+        self.resize(900, 800)
+        self.set_table_column_size(300)
+        self.group_box.hide()
+        self.tbt_autorange.hide()
+        self.pbt_remove.hide()
+        self.tbt_clear.hide()
+
+    def accept(self):
+        """Close dialog."""
+        self.clear()
+        self.close_dialogs()
+        _QDialog.accept(self)
+
+    def show(self, xvalues, readings, right_labels=None):
+        """Show dialog."""
+        try:
+            if isinstance(right_labels, str):
+                right_labels = [right_labels]
+            
+            self._xvalues = xvalues
+            self._readings = readings
+            self._data_labels = list(self._readings.keys())
+            
+            self._left_axis_1_data_labels = []
+            self._right_axis_1_data_labels = []
+            for label in self._data_labels:
+                if label in right_labels:
+                    self._right_axis_1_data_labels.append(label)
+                else:
+                    self._left_axis_1_data_labels.append(label)
+            
+            self._data_formats = []
+            for label in self._data_labels:
+                if label in right_labels:
+                    self._data_formats.append(self._right_axis_1_format)
+                else:
+                    self._data_formats.append(self._left_axis_1_format)
+
+            self.configure_plot()
+            self.configure_table()
+            self.update_plot()
+            self.update_table_values()
+            _QDialog.show(self)
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 

@@ -29,6 +29,7 @@ import hallbench.data as _data
 
 _ConnectionConfig = _data.configuration.ConnectionConfig
 _PowerSupplyConfig = _data.configuration.PowerSupplyConfig
+_CyclingCurve = _data.configuration.CyclingCurve
 _HallCalibrationCurve = _data.calibration.HallCalibrationCurve
 _HallProbePositions = _data.calibration.HallProbePositions
 _MeasurementConfig = _data.configuration.MeasurementConfig
@@ -42,6 +43,7 @@ class DatabaseWidget(_QWidget):
  
     _connection_table_name = _ConnectionConfig.collection_name
     _power_supply_table_name = _PowerSupplyConfig.collection_name
+    _cycling_curve_table_name = _CyclingCurve.collection_name
     _hall_sensor_table_name = _HallCalibrationCurve.collection_name
     _hall_probe_table_name = _HallProbePositions.collection_name
     _configuration_table_name = _MeasurementConfig.collection_name
@@ -76,6 +78,7 @@ class DatabaseWidget(_QWidget):
         self._table_object_dict = {
             self._connection_table_name: _ConnectionConfig,
             self._power_supply_table_name: _PowerSupplyConfig,
+            self._cycling_curve_table_name: _CyclingCurve,
             self._hall_sensor_table_name: _HallCalibrationCurve,
             self._hall_probe_table_name: _HallProbePositions,
             self._configuration_table_name: _MeasurementConfig,
@@ -87,6 +90,7 @@ class DatabaseWidget(_QWidget):
         self._table_page_dict = {
             self._connection_table_name: None,
             self._power_supply_table_name: None,
+            self._cycling_curve_table_name: self.ui.pg_cycling,
             self._hall_sensor_table_name: None,
             self._hall_probe_table_name: None,
             self._configuration_table_name: self.ui.pg_configuration,
@@ -98,6 +102,7 @@ class DatabaseWidget(_QWidget):
         self.short_version_hidden_tables = [
             self._connection_table_name,
             self._power_supply_table_name,
+            self._cycling_curve_table_name,
             self._hall_sensor_table_name,
             self._hall_probe_table_name,
             ]
@@ -108,6 +113,7 @@ class DatabaseWidget(_QWidget):
         self.ui.pbt_view_field_scan.setEnabled(True)
         self.ui.pbt_create_fieldmap.setEnabled(True)
         self.ui.pbt_view_fieldmap.setEnabled(True)
+        self.ui.pbt_cycling.setEnabled(True)
         
         self.twg_database = _databasewidgets.DatabaseTabWidget(
             database_name=self.database_name,
@@ -161,6 +167,11 @@ class DatabaseWidget(_QWidget):
     def view_fieldmap_dialog(self):
         """View fieldmap dialog."""
         return _QApplication.instance().view_fieldmap_dialog
+
+    @property
+    def cycling_dialog(self):
+        """View fieldmap dialog."""
+        return _QApplication.instance().cycling_dialog
  
     def clear(self):
         """Clear."""
@@ -193,6 +204,8 @@ class DatabaseWidget(_QWidget):
         self.ui.pbt_create_fieldmap.clicked.connect(self.create_fieldmap)
  
         self.ui.pbt_view_fieldmap.clicked.connect(self.view_fieldmap)
+        
+        self.ui.pbt_cycling.clicked.connect(self.show_cycling_curve)
  
     def convert_to_field_scan(self):
         """Convert voltage scans to field scans."""
@@ -513,6 +526,40 @@ class DatabaseWidget(_QWidget):
             _traceback.print_exc(file=_sys.stdout)
             msg = 'Failed to show field scan dialog.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+
+    def show_cycling_curve(self):
+        """Open cycling dialog."""
+        try:
+            idn = self.twg_database.get_table_selected_id(
+                self._cycling_curve_table_name)
+            if idn is None:
+                return
+            
+            self.blockSignals(True)
+            _QApplication.setOverrideCursor(_Qt.WaitCursor)
+ 
+            cycling_curve = _CyclingCurve(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            cycling_curve.db_read(idn)
+            self.cycling_dialog.accept()
+            dt = cycling_curve.cycling_error_time
+            readings = {}
+            readings['Current'] = cycling_curve.get_curve(dt)
+            readings['Current Error'] = cycling_curve.cycling_error_current
+            self.cycling_dialog.show(
+                dt, readings, right_labels='Current Error')
+ 
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+        
+        except Exception:
+            self.blockSignals(False)
+            _QApplication.restoreOverrideCursor()
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to show cycling curve dialog.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return
 
     def view_fieldmap(self):
         """Open view fieldmap dialog."""

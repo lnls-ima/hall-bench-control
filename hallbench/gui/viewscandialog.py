@@ -23,7 +23,6 @@ import qtpy.uic as _uic
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui.auxiliarywidgets import (
-    TableDialog as _TableDialog,
     CheckableComboBox as _CheckableComboBox,
     TemperatureTablePlotDialog as _TemperatureTablePlotDialog,
     IntegralsTablePlotDialog as _IntegralsTablePlotDialog,

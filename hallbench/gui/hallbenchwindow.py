@@ -41,6 +41,8 @@ from hallbench.gui.angularerrorwidget import AngularErrorWidget \
     as _AngularErrorWidget
 from hallbench.gui.voltagetemperaturewidget import VoltageTempWidget \
     as _VoltageTempWidget
+from hallbench.gui.probecalibrationwidget import ProbeCalibrationWidget \
+    as _ProbeCalibrationWidget
 from hallbench.gui.databasewidget import DatabaseWidget \
     as _DatabaseWidget
 from hallbench.devices import pmac as _pmac
@@ -78,6 +80,7 @@ class HallBenchWindow(_QMainWindow):
             'water_system',
             'air_conditioning',
             'voltage_current',
+            'probe_calibration',
             'database',
             ]
 
@@ -92,6 +95,7 @@ class HallBenchWindow(_QMainWindow):
             _WaterSystemWidget,
             _AirConditioningWidget,
             _VoltagePSCurrentWidget,
+            _ProbeCalibrationWidget,
             _DatabaseWidget,
             ]
 

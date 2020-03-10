@@ -22,7 +22,9 @@ from qtpy.QtCore import (
 from hallbench.gui import utils as _utils
 from hallbench.gui.auxiliarywidgets import PlotDialog as _PlotDialog
 from hallbench.data.configuration import (
-    PowerSupplyConfig as _PowerSupplyConfig)
+    PowerSupplyConfig as _PowerSupplyConfig,
+    CyclingCurve as _CyclingCurve,
+    )
 from hallbench.devices import (
     voltx as _voltx,
     volty as _volty,
@@ -48,12 +50,12 @@ class PowerSupplyWidget(_QWidget):
         uifile = _utils.get_ui_file(self)
         self.ui = _uic.loadUi(uifile, self)
 
-        # variables initialization
-        self.current_array_index = 0
         # power supply current slope, [F1000A, F225A, F10A] [A/s]
         self.slope = [50, 90, 1000]
-        self.flag_trapezoidal = False
+
+        self.current_array_index = 0
         self.config = _PowerSupplyConfig()
+        self.cycling_curve = _CyclingCurve()
         self.drs = _ps
         self.timer = _QTimer()
         self.plot_dialog = _PlotDialog()
@@ -65,6 +67,7 @@ class PowerSupplyWidget(_QWidget):
         self.list_power_supply()
 
         # create signal/slot connections
+        self.ui.pb_emergency.clicked.connect(self.emergency)
         self.ui.pb_ps_button.clicked.connect(self.start_power_supply)
         self.ui.pb_refresh.clicked.connect(self.display_current)
         self.ui.pb_load_ps.clicked.connect(self.load_power_supply)
@@ -82,12 +85,12 @@ class PowerSupplyWidget(_QWidget):
             self.ui.tbl_currents))
         self.ui.pb_clear_table.clicked.connect(lambda: self.clear_table(
             self.ui.tbl_currents))
-        self.ui.pb_add_row_2.clicked.connect(lambda: self.add_row(
-            self.ui.tbl_trapezoidal))
-        self.ui.pb_remove_row_2.clicked.connect(lambda: self.remove_row(
-            self.ui.tbl_trapezoidal))
-        self.ui.pb_clear_table_2.clicked.connect(lambda: self.clear_table(
-            self.ui.tbl_trapezoidal))
+        self.ui.pb_dtrapezoidal_add_row.clicked.connect(lambda: self.add_row(
+            self.ui.tbl_dtrapezoidal))
+        self.ui.pb_dtrapezoidal_remove_row.clicked.connect(
+            lambda: self.remove_row(self.ui.tbl_dtrapezoidal))
+        self.ui.pb_dtrapezoidal_clear_table.clicked.connect(
+            lambda: self.clear_table(self.ui.tbl_dtrapezoidal))
         self.ui.cb_ps_name.currentIndexChanged.connect(self.change_ps)
         self.ui.cb_ps_name.editTextChanged.connect(self.change_ps)
         self.ui.sbd_current_setpoint.valueChanged.connect(self.check_setpoint)
@@ -96,8 +99,8 @@ class PowerSupplyWidget(_QWidget):
             self.set_monopolar_bipolar_enabled)
         self.ui.pb_monopolar_bipolar.clicked.connect(
             self.configure_monopolar_bipolar)
-        self.ui.pb_plot_error.clicked.connect(self.plot_cycling_error)    
-    
+        self.ui.pb_plot_error.clicked.connect(self.plot_cycling_error)   
+        
     @property
     def database_name(self):
         """Database name."""
@@ -112,6 +115,24 @@ class PowerSupplyWidget(_QWidget):
     def server(self):
         """Server for MongoDB database."""
         return _QApplication.instance().server
+
+    @property
+    def current_max(self):
+        """Power supply maximum current."""
+        return _QApplication.instance().current_max
+
+    @current_max.setter
+    def current_max(self, value):
+        _QApplication.instance().current_max = value
+
+    @property
+    def current_min(self):
+        """Power supply minimum current."""
+        return _QApplication.instance().current_min
+
+    @current_min.setter
+    def current_min(self, value):
+        _QApplication.instance().current_min = value
 
     def plot_cycling_error(self):
         try:
@@ -372,6 +393,7 @@ class PowerSupplyWidget(_QWidget):
     def turn_on_dclink(self, wait_counter=100):
         try:
             _ps_type = self.config.ps_type
+            
             if _ps_type is None:
                 _msg = 'Please configure the power supply and try again.'
                 _QMessageBox.warning(
@@ -568,7 +590,7 @@ class PowerSupplyWidget(_QWidget):
                 self.ui.le_status_loop.setText('Closed')
                 self.ui.tabWidget_2.setEnabled(True)
                 self.ui.pb_send.setEnabled(True)
-                self.ui.tabWidget_3.setEnabled(True)
+                self.ui.twg_cycling_curves.setEnabled(True)
                 self.ui.pb_refresh.setEnabled(True)
                 self.ui.pb_send.setEnabled(True)
                 self.ui.pb_send_curve.setEnabled(True)
@@ -688,14 +710,7 @@ class PowerSupplyWidget(_QWidget):
             self.current_array_index = 0
             self.config.ps_name = self.ui.cb_ps_name.currentText()
             self.config.ps_type = self.ui.cb_ps_type.currentIndex() + 2
-            _ps.ps_type = self.config.ps_type
-            if self.config.ps_type == 3:
-                # Monopolar power supply
-                self.ui.tabWidget_3.setTabEnabled(0, False)
-                self.ui.tabWidget_3.setTabEnabled(1, False)
-            else:
-                self.ui.tabWidget_3.setTabEnabled(0, True)
-                self.ui.tabWidget_3.setTabEnabled(1, True)
+                     
             self.config.dclink = self.ui.sb_dclink.value()
             self.config.dcct = self.ui.chb_dcct.isChecked()
             self.config.ps_setpoint = self.ui.sbd_current_setpoint.value()
@@ -703,21 +718,19 @@ class PowerSupplyWidget(_QWidget):
                 self.ui.le_maximum_current.text())
             self.config.minimum_current = float(
                 self.ui.le_minimum_current.text())
+            
             dcct_head_str = self.ui.cb_dcct_select.currentText().replace(
-                ' A', '')
+                ' A', '') 
             try:
                 self.config.dcct_head = int(dcct_head_str)
             except Exception:
                 self.config.dcct_head = None
-            _dcct.dcct_head = self.config.dcct_head
+             
             self.config.Kp = self.ui.sbd_kp.value()
             self.config.Ki = self.ui.sbd_ki.value()
             self.config.current_array = self.table_to_array(
                 self.ui.tbl_currents)
-            self.config.trapezoidal_array = self.table_to_array(
-                self.ui.tbl_trapezoidal)
-            self.config.trapezoidal_offset = float(
-                self.ui.le_trapezoidal_offset.text())
+            
             self.config.sinusoidal_amplitude = float(
                 self.ui.le_sinusoidal_amplitude.text())
             self.config.sinusoidal_offset = float(
@@ -726,38 +739,72 @@ class PowerSupplyWidget(_QWidget):
                 self.ui.le_sinusoidal_frequency.text())
             self.config.sinusoidal_ncycles = int(
                 self.ui.le_sinusoidal_ncycles.text())
-            self.config.sinusoidal_phasei = float(
-                self.ui.le_sinusoidal_phase.text())
-            self.config.sinusoidal_phasef = float(
-                self.ui.le_sinusoidal_phasef.text())
+            self.config.sinusoidal_aux_param_0 = float(
+                self.ui.le_sinusoidal_aux_param_0.text())
+            self.config.sinusoidal_aux_param_1 = float(
+                self.ui.le_sinusoidal_aux_param_1.text())
+            
             self.config.dsinusoidal_amplitude = float(
-                self.ui.le_damp_sin_ampl.text())
+                self.ui.le_dsinusoidal_amplitude.text())
             self.config.dsinusoidal_offset = float(
-                self.ui.le_damp_sin_offset.text())
+                self.ui.le_dsinusoidal_offset.text())
             self.config.dsinusoidal_frequency = float(
-                self.ui.le_damp_sin_freq.text())
+                self.ui.le_dsinusoidal_frequency.text())
             self.config.dsinusoidal_ncycles = int(
-                self.ui.le_damp_sin_ncycles.text())
-            self.config.dsinusoidal_phasei = float(
-                self.ui.le_damp_sin_phase.text())
-            self.config.dsinusoidal_phasef = float(
-                self.ui.le_damp_sin_phasef.text())
-            self.config.dsinusoidal_damp = float(
-                self.ui.le_damp_sin_damping.text())
+                self.ui.le_dsinusoidal_ncycles.text())
+            self.config.dsinusoidal_aux_param_0 = float(
+                self.ui.le_dsinusoidal_aux_param_0.text())
+            self.config.dsinusoidal_aux_param_1 = float(
+                self.ui.le_dsinusoidal_aux_param_1.text())
+            self.config.dsinusoidal_aux_param_2 = float(
+                self.ui.le_dsinusoidal_aux_param_2.text())
+            
             self.config.dsinusoidal2_amplitude = float(
-                self.ui.le_damp_sin2_ampl.text())
+                self.ui.le_dsinusoidal2_amplitude.text())
             self.config.dsinusoidal2_offset = float(
-                self.ui.le_damp_sin2_offset.text())
+                self.ui.le_dsinusoidal2_offset.text())
             self.config.dsinusoidal2_frequency = float(
-                self.ui.le_damp_sin2_freq.text())
+                self.ui.le_dsinusoidal2_frequency.text())
             self.config.dsinusoidal2_ncycles = int(
-                self.ui.le_damp_sin2_ncycles.text())
-            self.config.dsinusoidal2_phasei = float(
-                self.ui.le_damp_sin2_phase.text())
-            self.config.dsinusoidal2_phasef = float(
-                self.ui.le_damp_sin2_phasef.text())
-            self.config.dsinusoidal2_damp = float(
-                self.ui.le_damp_sin2_damping.text())
+                self.ui.le_dsinusoidal2_ncycles.text())
+            self.config.dsinusoidal2_aux_param_0 = float(
+                self.ui.le_dsinusoidal2_aux_param_0.text())
+            self.config.dsinusoidal2_aux_param_1 = float(
+                self.ui.le_dsinusoidal2_aux_param_1.text())
+            self.config.dsinusoidal2_aux_param_2 = float(
+                self.ui.le_dsinusoidal2_aux_param_2.text())
+
+            self.config.trapezoidal_amplitude = float(
+                self.ui.le_trapezoidal_amplitude.text())
+            self.config.trapezoidal_offset = float(
+                self.ui.le_trapezoidal_offset.text())
+            self.config.trapezoidal_ncycles = int(
+                self.ui.le_trapezoidal_ncycles.text())
+            self.config.trapezoidal_aux_param_0 = float(
+                self.ui.le_trapezoidal_aux_param_0.text())
+            self.config.trapezoidal_aux_param_1 = float(
+                self.ui.le_trapezoidal_aux_param_1.text())
+            self.config.trapezoidal_aux_param_2 = float(
+                self.ui.le_trapezoidal_aux_param_2.text())
+            
+            self.config.dtrapezoidal_array = self.table_to_array(
+                self.ui.tbl_dtrapezoidal)
+            self.config.dtrapezoidal_offset = float(
+                self.ui.le_dtrapezoidal_offset.text())
+
+            if self.config.ps_type == 3:
+                # Monopolar power supply
+                self.ui.twg_cycling_curves.setTabEnabled(0, False)
+                self.ui.twg_cycling_curves.setTabEnabled(1, False)
+            else:
+                self.ui.twg_cycling_curves.setTabEnabled(0, True)
+                self.ui.twg_cycling_curves.setTabEnabled(1, True)
+
+            self.current_max = self.config.maximum_current
+            self.current_min = self.config.minimum_current
+            self.drs.ps_type = self.config.ps_type
+            _dcct.dcct_head = self.config.dcct_head
+            
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -780,10 +827,7 @@ class PowerSupplyWidget(_QWidget):
             self.ui.sbd_ki.setValue(self.config.Ki)
             self.array_to_table(
                 self.config.current_array, self.ui.tbl_currents)
-            self.array_to_table(
-                self.config.trapezoidal_array, self.ui.tbl_trapezoidal)
-            self.ui.le_trapezoidal_offset.setText(str(
-                self.config.trapezoidal_offset))
+
             self.ui.le_sinusoidal_amplitude.setText(str(
                 self.config.sinusoidal_amplitude))
             self.ui.le_sinusoidal_offset.setText(str(
@@ -792,38 +836,59 @@ class PowerSupplyWidget(_QWidget):
                 self.config.sinusoidal_frequency))
             self.ui.le_sinusoidal_ncycles.setText(str(
                 self.config.sinusoidal_ncycles))
-            self.ui.le_sinusoidal_phase.setText(
-                str(self.config.sinusoidal_phasei))
-            self.ui.le_sinusoidal_phasef.setText(str(
-                self.config.sinusoidal_phasef))
-            self.ui.le_damp_sin_ampl.setText(str(
+            self.ui.le_sinusoidal_aux_param_0.setText(
+                str(self.config.sinusoidal_aux_param_0))
+            self.ui.le_sinusoidal_aux_param_1.setText(str(
+                self.config.sinusoidal_aux_param_1))
+            
+            self.ui.le_dsinusoidal_amplitude.setText(str(
                 self.config.dsinusoidal_amplitude))
-            self.ui.le_damp_sin_offset.setText(
+            self.ui.le_dsinusoidal_offset.setText(
                 str(self.config.dsinusoidal_offset))
-            self.ui.le_damp_sin_freq.setText(str(
+            self.ui.le_dsinusoidal_frequency.setText(str(
                 self.config.dsinusoidal_frequency))
-            self.ui.le_damp_sin_ncycles.setText(str(
+            self.ui.le_dsinusoidal_ncycles.setText(str(
                 self.config.dsinusoidal_ncycles))
-            self.ui.le_damp_sin_phase.setText(
-                str(self.config.dsinusoidal_phasei))
-            self.ui.le_damp_sin_phasef.setText(
-                str(self.config.dsinusoidal_phasef))
-            self.ui.le_damp_sin_damping.setText(
-                str(self.config.dsinusoidal_damp))
-            self.ui.le_damp_sin2_ampl.setText(str(
+            self.ui.le_dsinusoidal_aux_param_0.setText(
+                str(self.config.dsinusoidal_aux_param_0))
+            self.ui.le_dsinusoidal_aux_param_1.setText(
+                str(self.config.dsinusoidal_aux_param_1))
+            self.ui.le_dsinusoidal_aux_param_2.setText(
+                str(self.config.dsinusoidal_aux_param_2))
+            
+            self.ui.le_dsinusoidal2_amplitude.setText(str(
                 self.config.dsinusoidal2_amplitude))
-            self.ui.le_damp_sin2_offset.setText(str(
+            self.ui.le_dsinusoidal2_offset.setText(str(
                 self.config.dsinusoidal2_offset))
-            self.ui.le_damp_sin2_freq.setText(str(
+            self.ui.le_dsinusoidal2_frequency.setText(str(
                 self.config.dsinusoidal2_frequency))
-            self.ui.le_damp_sin2_ncycles.setText(str(
+            self.ui.le_dsinusoidal2_ncycles.setText(str(
                 self.config.dsinusoidal2_ncycles))
-            self.ui.le_damp_sin2_phase.setText(str(
-                self.config.dsinusoidal2_phasei))
-            self.ui.le_damp_sin2_phasef.setText(str(
-                self.config.dsinusoidal2_phasef))
-            self.ui.le_damp_sin2_damping.setText(str(
-                self.config.dsinusoidal2_damp))
+            self.ui.le_dsinusoidal2_aux_param_0.setText(str(
+                self.config.dsinusoidal2_aux_param_0))
+            self.ui.le_dsinusoidal2_aux_param_1.setText(str(
+                self.config.dsinusoidal2_aux_param_1))
+            self.ui.le_dsinusoidal2_aux_param_2.setText(str(
+                self.config.dsinusoidal2_aux_param_2))
+
+            self.ui.le_trapezoidal_amplitude.setText(str(
+                self.config.trapezoidal_amplitude))
+            self.ui.le_trapezoidal_offset.setText(str(
+                self.config.trapezoidal_offset))
+            self.ui.le_trapezoidal_ncycles.setText(str(
+                self.config.trapezoidal_ncycles))
+            self.ui.le_trapezoidal_aux_param_0.setText(str(
+                self.config.trapezoidal_aux_param_0))
+            self.ui.le_trapezoidal_aux_param_1.setText(str(
+                self.config.trapezoidal_aux_param_1))
+            self.ui.le_trapezoidal_aux_param_2.setText(str(
+                self.config.trapezoidal_aux_param_2))
+
+            self.array_to_table(
+                self.config.dtrapezoidal_array, self.ui.tbl_dtrapezoidal)
+            self.ui.le_dtrapezoidal_offset.setText(str(
+                self.config.dtrapezoidal_offset))
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -1074,18 +1139,9 @@ class PowerSupplyWidget(_QWidget):
                                      'low.', _QMessageBox.Ok)
                 return False
         else:
-            _ps_type = self.config.ps_type
-            _factor = -1
-            if _ps_type == 3:
-                _factor = 0
-                
-            # Mudança temporária
-            if _ps_type == 2:
-                _factor = 0
-                
-            if any([(_current + offset) > _current_max,
-                    (_factor*_current + offset) < _current_min]):
-                _QMessageBox.warning(self, 'Warning', 'Peak-to-peak current '
+               
+            if (_current + offset) > _current_max:
+                _QMessageBox.warning(self, 'Warning', 'Current '
                                      'values out of bounds.', _QMessageBox.Ok)
                 return False
 
@@ -1094,6 +1150,7 @@ class PowerSupplyWidget(_QWidget):
     def send_curve(self):
         """UI function to set power supply curve generator."""
         self.ui.tabWidget_2.setEnabled(False)
+        self.ui.pb_plot_error.setEnabled(False)
         if self.curve_gen() is True:
             _QMessageBox.information(self, 'Information',
                                      'Curve sent successfully.',
@@ -1110,176 +1167,184 @@ class PowerSupplyWidget(_QWidget):
             _QApplication.processEvents()
             return False
 
-    def curve_gen(self):
+    def update_cycling_curve(self):
         """Configures power supply curve generator."""
         self.config_ps()
-        _curve_type = int(self.ui.tabWidget_3.currentIndex())
 
-        _ps_type = self.config.ps_type
-        if not self.set_address(_ps_type):
-            return
+        _tab_name = self.ui.twg_cycling_curves.currentWidget().objectName()
+        _curve_name = _tab_name.replace('tab_', '')
 
-        # Sinusoidal
-        if _curve_type == 1:
+        try:
+            _offset = float(
+                getattr(self.config, _curve_name + '_offset'))
+            
+            if not self.verify_current_limits(_offset):
+                _le_offset = getattr(
+                    self.ui, 'le_' + _curve_name + '_offset')
+                _le_offset.setText('0')
+                setattr(self.config, _curve_name + '_offset', 0)
+                return False
+
+            if _curve_name == 'dtrapezoidal':
+                self.cycling_curve.clear()
+                self.cycling_curve.power_supply = self.config.ps_name
+                self.cycling_curve.curve_name = _curve_name
+                self.cycling_curve.offset = _offset
+                self.cycling_curve.dtrapezoidal_array = self.table_to_array(
+                    self.ui.tbl_dtrapezoidal)
+                return True
+                
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            _msg = 'Please verify the Offset parameter of the curve.'
+            _QMessageBox.warning(self, 'Warning', _msg, _QMessageBox.Ok)
+            return False
+
+        try:
+            _amplitude = float(
+                getattr(self.config, _curve_name + '_amplitude'))
+            
+            if not self.verify_current_limits(abs(_amplitude), True, _offset):
+                _le_amplitude = getattr(
+                    self.ui, 'le_' + _curve_name + '_amplitude')
+                _le_amplitude.setText('0')
+                setattr(self.config, _curve_name + '_amplitude', 0)
+                return False
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            _msg =  'Please verify the Amplitude parameter of the curve.'
+            _QMessageBox.warning(self, 'Warning', _msg, _QMessageBox.Ok)
+            return False
+
+        try:
+            _ncycles = int(
+                getattr(self.config, _curve_name + '_ncycles'))
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            _msg = 'Please verify the #cycles parameter of the curve.'
+            _QMessageBox.warning(self, 'Warning', _msg, _QMessageBox.Ok)
+            return False
+
+        if _curve_name in ['sinusoidal', 'dsinusoidal', 'dsinusoidal2']:
             try:
-                _offset = float(self.config.sinusoidal_offset)
-                if not self.verify_current_limits(_offset):
-                    self.ui.le_sinusoidal_offset.setText('0')
-                    self.config.sinusoidal_offset = 0
-                    return False
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Offset parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                _amp = float(self.config.sinusoidal_amplitude)
-                if not self.verify_current_limits(abs(_amp), True, _offset):
-                    self.ui.le_sinusoidal_amplitude.setText('0')
-                    self.config.sinusoidal_amplitude = 0
-                    return False
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Amplitude parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                _freq = float(self.config.sinusoidal_frequency)
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Frequency parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                _n_cycles = int(self.config.sinusoidal_ncycles)
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     '#cycles parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                _phase_shift = float(self.config.sinusoidal_phasei)
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Phase parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                _final_phase = float(self.config.sinusoidal_phasef)
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Final phase parameter of the curve.',
-                                     _QMessageBox.Ok)
-        # Damped Sinusoidal and Damped Sinusoidal^2
-        if _curve_type in [0, 2]:
-            try:
-                if not _curve_type:
-                    _offset = float(self.config.dsinusoidal_offset)
-                else:
-                    _offset = float(self.config.dsinusoidal2_offset)
-                if not self.verify_current_limits(_offset):
-                    if not _curve_type:
-                        self.config.dsinusoidal_offset = 0
-                        self.ui.le_damp_sin_offset.setText('0')
-                    else:
-                        self.config.dsinusoidal2_offset = 0
-                        self.ui.le_damp_sin2_offset.setText('0')
-                    return False
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Offset parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                if not _curve_type:
-                    _amp = float(self.config.dsinusoidal_amplitude)
-                else:
-                    _amp = float(self.config.dsinusoidal2_amplitude)
-                if not self.verify_current_limits(abs(_amp), True, _offset):
-                    if not _curve_type:
-                        self.config.dsinusoidal_amplitude = 0
-                        self.ui.le_damp_sin_ampl.setText('0')
-                    else:
-                        self.config.dsinusoidal2_amplitude = 0
-                        self.ui.le_damp_sin2_ampl.setText('0')
-                    return False
+                _frequency = float(
+                    getattr(self.config, _curve_name + '_frequency'))
+            
             except Exception:
                 _traceback.print_exc(file=_sys.stdout)
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Amplitude parameter of the curve.',
-                                     _QMessageBox.Ok)
+                _msg = 'Please verify the Frequency parameter of the curve.'
+                _QMessageBox.warning(self, 'Warning', _msg, _QMessageBox.Ok)
+                return False
+        else:
+            _frequency = 0
+
+        try:
+            _aux_param_0 = float(
+                getattr(self.config, _curve_name + '_aux_param_0'))
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            _msg = 'Please verify the Phase parameter of the curve.'
+            _QMessageBox.warning(self, 'Warning', _msg, _QMessageBox.Ok)
+            return False
+        
+        try:
+            _aux_param_1 = float(
+                getattr(self.config, _curve_name + '_aux_param_1'))
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            _msg = 'Please verify the Final phase parameter of the curve.'
+            _QMessageBox.warning(self, 'Warning', _msg, _QMessageBox.Ok)
+            return False
+
+        if _curve_name in ['dsinusoidal', 'dsinusoidal2', 'trapezoidal']:
             try:
-                if not _curve_type:
-                    _freq = float(self.config.dsinusoidal_frequency)
-                else:
-                    _freq = float(self.config.dsinusoidal2_frequency)
+                _aux_param_2 = float(
+                    getattr(self.config, _curve_name + '_aux_param_2'))
+            
             except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Frequency parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                if not _curve_type:
-                    _n_cycles = int(self.config.dsinusoidal_ncycles)
-                else:
-                    _n_cycles = int(self.config.dsinusoidal2_ncycles)
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     '#cycles parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                if not _curve_type:
-                    _phase_shift = float(self.config.dsinusoidal_phasei)
-                else:
-                    _phase_shift = float(self.config.dsinusoidal2_phasei)
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Phase parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                if not _curve_type:
-                    _final_phase = float(self.config.dsinusoidal_phasef)
-                else:
-                    _final_phase = float(self.config.dsinusoidal2_phasef)
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Final Phase parameter of the curve.',
-                                     _QMessageBox.Ok)
-            try:
-                if not _curve_type:
-                    _damping = float(self.config.dsinusoidal_damp)
-                else:
-                    _damping = float(self.config.dsinusoidal2_damp)
-            except Exception:
-                _QMessageBox.warning(self, 'Warning', 'Please verify the '
-                                     'Damping parameter of the curve.',
-                                     _QMessageBox.Ok)
+                _traceback.print_exc(file=_sys.stdout)
+                _msg = 'Please verify the Damping parameter of the curve.'
+                _QMessageBox.warning(self, 'Warning', _msg, _QMessageBox.Ok)
+                return False
+        
+        else:
+            _aux_param_2 = 0
+        
+        _aux_param_3 = 0
+        
         _QApplication.processEvents()
 
         # Generating curves
         try:
-            if _curve_type < 3:
-                try:
-                    # Sinusoidal
-                    if _curve_type == 1:
-                        _sigtype = 0
-                        _damping = 0
-                    elif _curve_type in [0, 2]:
-                        # Damped Sinusoidal
-                        if _curve_type == 0:
-                            _sigtype = 1
-                        # Damped Sinusoidal^2
-                        else:
-                            _sigtype = 3
-                    # Sending curves to PS Controller
-                    self.drs.cfg_siggen(_sigtype, _n_cycles, _freq,
-                                        _amp, _offset, _phase_shift,
-                                        _final_phase, _damping, 0)
-                except Exception:
-                    _traceback.print_exc(file=_sys.stdout)
-                    _QMessageBox.warning(self, 'Warning', 'Failed to send '
-                                         'configuration to the controller.\n'
-                                         'Please, verify the parameters of the'
-                                         ' Power Supply.',
-                                         _QMessageBox.Ok)
-                    return False
+            if _curve_name == 'sinusoidal':
+                _sigtype = 0
+            elif _curve_name == 'dsinusoidal':
+                _sigtype = 1
+            elif _curve_name == 'trapezoidal':
+                _sigtype = 2
+            elif _curve_name == 'dsinusoidal2':
+                _sigtype = 3               
+            else:
+                return False
+                
+            self.cycling_curve.clear()
+            self.cycling_curve.power_supply = self.config.ps_name
+            self.cycling_curve.curve_name = _curve_name
+            self.cycling_curve.siggen_type = _sigtype
+            self.cycling_curve.num_cycles = _ncycles
+            self.cycling_curve.freq = _frequency
+            self.cycling_curve.amplitude = _amplitude
+            self.cycling_curve.offset = _offset
+            self.cycling_curve.aux_param_0 = _aux_param_0
+            self.cycling_curve.aux_param_1 = _aux_param_1
+            self.cycling_curve.aux_param_2 = _aux_param_2
+            self.cycling_curve.aux_param_3 = _aux_param_3
+            
             return True
+
         except Exception:
+            _traceback.print_exc(file=_sys.stdout)
             return False
 
+    def curve_gen(self):
+        """Configures power supply curve generator."""
+        
+        if not self.update_cycling_curve():
+            _msg = 'Failed to update cycling curve.'
+            _QMessageBox.warning(self, 'Warning', _msg, _QMessageBox.Ok)
+            return False
+                           
+        _ps_type = self.config.ps_type
+        if not self.set_address(_ps_type):
+            return False
+
+        try:
+            # Sending curves to PS Controller
+            self.drs.cfg_siggen(
+                self.cycling_curve.siggen_type,
+                self.cycling_curve.num_cycles,
+                self.cycling_curve.freq,
+                self.cycling_curve.amplitude,
+                self.cycling_curve.offset,
+                self.cycling_curve.aux_param_0,
+                self.cycling_curve.aux_param_1,
+                self.cycling_curve.aux_param_2,
+                self.cycling_curve.aux_param_3)           
+            return True
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            _QMessageBox.warning(self, 'Warning', 'Failed to send '
+                                 'configuration to the controller.\n'
+                                 'Please, verify the parameters of the'
+                                 ' Power Supply.',
+                                 _QMessageBox.Ok)
+            return False
+        
     def reset_interlocks(self):
         """Resets power supply hardware/software interlocks"""
         try:
@@ -1314,14 +1379,15 @@ class PowerSupplyWidget(_QWidget):
 
     def cycling_ps(self):
         """Initializes power supply cycling routine."""
-        _curve_type = int(self.ui.tabWidget_3.currentIndex())
+        _tab_name = self.ui.twg_cycling_curves.currentWidget().objectName()
+        _curve_name = _tab_name.replace('tab_', '')
 
         _ps_type = self.config.ps_type
         if not self.set_address(_ps_type):
             return
 
         try:
-            if _curve_type < 3:
+            if _curve_name != 'dtrapezoidal':
                 if not self.set_op_mode(1):
                     _QMessageBox.warning(self, 'Warning',
                                          'Could not set the sigGen '
@@ -1338,26 +1404,42 @@ class PowerSupplyWidget(_QWidget):
             self.ui.pb_send.setEnabled(False)
             self.ui.pb_load_ps.setEnabled(False)
             self.ui.pb_refresh.setEnabled(False)
-            if _curve_type == 1:
+            
+            if _curve_name == 'sinusoidal':
                 _freq = self.config.sinusoidal_frequency
                 _n_cycles = self.config.sinusoidal_ncycles
                 _offset = self.config.sinusoidal_offset
-            elif _curve_type == 0:
+                _duration = _n_cycles/_freq
+            
+            elif _curve_name == 'dsinusoidal':
                 _freq = self.config.dsinusoidal_frequency
                 _n_cycles = self.config.dsinusoidal_ncycles
                 _offset = self.config.dsinusoidal_offset
-            elif _curve_type == 2:
+                _duration = _n_cycles/_freq
+            
+            elif _curve_name == 'dsinusoidal2':
                 _freq = self.config.dsinusoidal2_frequency
                 _n_cycles = self.config.dsinusoidal2_ncycles
                 _offset = self.config.dsinusoidal2_offset
-            if _curve_type == 3:
+                _duration = _n_cycles/_freq
+            
+            elif _curve_name == 'trapezoidal':
+                _n_cycles = self.config.trapezoidal_ncycles
+                _rise_time = self.config.trapezoidal_aux_param_0
+                _cte_time = self.config.trapezoidal_aux_param_1
+                _fall_time = self.config.trapezoidal_aux_param_2
                 _offset = self.config.trapezoidal_offset
-                if not self.trapezoidal_cycle():
+                _duration = _n_cycles*(
+                    _rise_time + _fall_time + _cte_time)
+            
+            if _curve_name == 'dtrapezoidal':
+                _offset = self.config.dtrapezoidal_offset
+                if not self.dtrapezoidal_cycle():
                     raise Exception('Failure during trapezoidal cycle.')
             else:   
                 self.drs.enable_siggen()
                 _t0 = _time.monotonic()
-                _deadline = _t0 + (1/_freq*_n_cycles)
+                _deadline = _t0 + _duration
                 _prg_dialog = _QProgressDialog('Cycling Power Supply...',
                                                'Abort', _t0,
                                                _deadline + 0.3, self)
@@ -1368,6 +1450,8 @@ class PowerSupplyWidget(_QWidget):
                 
                 self.cycling_error = []
                 self.cycling_time_interval = []
+                self.cycling_curve.cycling_error_time = []
+                self.cycling_curve.cycling_error_current = []
                 
                 while _t < _deadline:
                     if _prg_dialog.wasCanceled():
@@ -1397,6 +1481,15 @@ class PowerSupplyWidget(_QWidget):
                 _QApplication.processEvents()
                 self.drs.disable_siggen()
 
+                self.cycling_curve.cycling_error_time = (
+                    self.cycling_time_interval)
+                self.cycling_curve.cycling_error_current = self.cycling_error
+                
+                self.cycling_curve.db_update_database(
+                    database_name=self.database_name,
+                    mongo=self.mongo, server=self.server)
+                self.cycling_curve.db_save()
+
                 # returns to mode ISlowRef
                 if not self.set_op_mode(0):
                     _QMessageBox.warning(self, 'Warning',
@@ -1420,6 +1513,7 @@ class PowerSupplyWidget(_QWidget):
             self.ui.pb_refresh.setEnabled(True)
             self.ui.pb_plot_error.setEnabled(True)
             _QApplication.processEvents()
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             self.ui.tabWidget_2.setEnabled(True)
@@ -1432,7 +1526,7 @@ class PowerSupplyWidget(_QWidget):
                                  _QMessageBox.Ok)
             return
 
-    def trapezoidal_cycle(self):
+    def dtrapezoidal_cycle(self):
         try:
             _ps_type = self.config.ps_type
             if not self.set_address(_ps_type):
@@ -1443,13 +1537,17 @@ class PowerSupplyWidget(_QWidget):
             else:
                 _slope = self.slope[2]
 
-            _offset = self.config.dsinusoidal2_offset
-            _array = self.config.trapezoidal_array
-    #         _array = self.table_to_array(self.ui.tbl_trapezoidal)
+            _offset = self.config.dtrapezoidal_offset
+            _array = self.config.dtrapezoidal_array
 
             for i in range(len(_array)):
                 if not self.verify_current_limits(_array[i, 0] + _offset):
                     return False
+
+            self.cycling_error = []
+            self.cycling_time_interval = []
+            self.cycling_curve.cycling_error_time = []
+            self.cycling_curve.cycling_error_current = []
 
             self.drs.set_slowref(_offset)
             for i in range(len(_array)):
@@ -1467,7 +1565,20 @@ class PowerSupplyWidget(_QWidget):
                 while _time.monotonic() < _deadline:
                     _QApplication.processEvents()
                     _time.sleep(0.01)
+
+            self.cycling_curve.clear()
+            self.cycling_curve.power_supply = self.config.ps_name
+            self.cycling_curve.curve_name = 'dtrapezoidal'
+            self.cycling_curve.offset = _offset
+            self.cycling_curve.dtrapezoidal_array = _array
+            
+            self.cycling_curve.db_update_database(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            self.cycling_curve.db_save()
+    
             return True
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             return False
@@ -1503,7 +1614,7 @@ class PowerSupplyWidget(_QWidget):
         _ncells = _tw.rowCount()
         _current_array = []
         _time_flag = False
-        if _tw == self.ui.tbl_trapezoidal:
+        if _tw == self.ui.tbl_dtrapezoidal:
             _time_flag = True
             _time_array = []
         try:
@@ -1535,7 +1646,7 @@ class PowerSupplyWidget(_QWidget):
         _ncells = _tw.rowCount()
         _array = array
         _time_flag = False
-        if _tw == self.ui.tbl_trapezoidal:
+        if _tw == self.ui.tbl_dtrapezoidal:
             _time_flag = True
         if _ncells > 0:
             self.clear_table(_tw)
@@ -1565,57 +1676,13 @@ class PowerSupplyWidget(_QWidget):
 
     def plot(self):
         try:
-            _tab_idx = self.ui.tabWidget_3.currentIndex()
-            # plot sinusoidal
-            if _tab_idx == 1:
-                a = float(self.ui.le_sinusoidal_amplitude.text())
-                offset = float(self.ui.le_sinusoidal_offset.text())
-                f = float(self.ui.le_sinusoidal_frequency.text())
-                ncycles = int(self.ui.le_sinusoidal_ncycles.text())
-                theta = float(self.ui.le_sinusoidal_phase.text())
-                if any([a == 0, f == 0, ncycles == 0]):
-                    _QMessageBox.warning(self, 'Warning',
-                                         'Please check the parameters.',
-                                         _QMessageBox.Ok)
-                    return
-                sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi) +
-                                 offset)
-            # plot damped sinusoidal
-            elif _tab_idx == 0:
-                a = float(self.ui.le_damp_sin_ampl.text())
-                offset = float(self.ui.le_damp_sin_offset.text())
-                f = float(self.ui.le_damp_sin_freq.text())
-                ncycles = int(self.ui.le_damp_sin_ncycles.text())
-                theta = float(self.ui.le_damp_sin_phase.text())
-                tau = float(self.ui.le_damp_sin_damping.text())
-                if any([a == 0, f == 0, ncycles == 0, tau == 0]):
-                    _QMessageBox.warning(self, 'Warning',
-                                         'Please check the parameters.',
-                                         _QMessageBox.Ok)
-                    return
-                sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi)*
-                                 _np.exp(-t/tau) + offset)
-            # plot damped sinusoidal^2
-            elif _tab_idx == 2:
-                a = float(self.ui.le_damp_sin2_ampl.text())
-                offset = float(self.ui.le_damp_sin2_offset.text())
-                f = float(self.ui.le_damp_sin2_freq.text())
-                ncycles = int(self.ui.le_damp_sin2_ncycles.text())
-                theta = float(self.ui.le_damp_sin2_phase.text())
-                tau = float(self.ui.le_damp_sin2_damping.text())
-                if any([a == 0, f == 0, ncycles == 0, tau == 0]):
-                    _QMessageBox.warning(self, 'Warning',
-                                         'Please check the parameters.',
-                                         _QMessageBox.Ok)
-                    return
-                sen = lambda t: (a*_np.sin(2*_np.pi*f*t + theta/360*2*_np.pi)*
-                                 _np.sin(2*_np.pi*f*t + theta/360*2*_np.pi)*
-                                 _np.exp(-t/tau) + offset)
+            self.update_cycling_curve()
+                      
             fig = self.plot_dialog.figure
             ax = self.plot_dialog.ax
             ax.clear()
-            # plot trapezoidal
-            if _tab_idx == 3:
+            
+            if self.cycling_curve.curve_name == 'dtrapezoidal':
                 _ps_type = self.config.ps_type
                 if _ps_type is None:
                     _QMessageBox.warning(self, 'Warning',
@@ -1626,8 +1693,8 @@ class PowerSupplyWidget(_QWidget):
                     _slope = self.slope[_ps_type - 2]
                 else:
                     _slope = self.slope[2]
-                _offset = float(self.ui.le_trapezoidal_offset.text())
-                _array = self.table_to_array(self.ui.tbl_trapezoidal)
+                _offset = float(self.ui.le_dtrapezoidal_offset.text())
+                _array = self.table_to_array(self.ui.tbl_dtrapezoidal)
                 _t0 = 0
                 for i in range(len(_array)):
                     _i0 = _offset
@@ -1641,15 +1708,20 @@ class PowerSupplyWidget(_QWidget):
                     ax.plot([_t0+2*_t_border+_t, _t0+2*(_t_border+_t)],
                             [_offset, _offset], 'b-')
                     _t0 = _t0+2*(_t_border+_t)
+            
             else:
-                x = _np.linspace(0, ncycles/f, ncycles*40)
-                y = sen(x)
+                duration = self.cycling_curve.get_curve_duration()
+                npts = self.cycling_curve.num_cycles*100
+                x = _np.linspace(0, duration, npts)
+                y = self.cycling_curve.get_curve(x)
                 ax.plot(x, y)
+            
             ax.set_xlabel('Time (s)', size=20)
             ax.set_ylabel('Current (I)', size=20)
             ax.grid('on', alpha=0.3)
             fig.tight_layout()
             self.plot_dialog.show()
+        
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -1677,9 +1749,6 @@ class PowerSupplyWidget(_QWidget):
                     self.ui.le_status_con.setText('Not Ok')
                 if _interlock and not self.ui.pb_interlock.isEnabled():
                     self.ui.pb_interlock.setEnabled(True)
-#                     _QMessageBox.warning(self, 'Warning',
-#                                          'Power Supply interlock active.',
-#                                          _QMessageBox.Ok)
                 elif not _interlock and self.ui.pb_interlock.isEnabled():
                     self.ui.pb_interlock.setEnabled(False)
                 _QApplication.processEvents()
@@ -1740,9 +1809,15 @@ class PowerSupplyWidget(_QWidget):
                 self.ui.gb_start_supply.setEnabled(True)
                 self.ui.tabWidget_2.setEnabled(True)
                 self.ui.pb_send.setEnabled(True)
-                self.ui.tabWidget_3.setEnabled(True)
+                self.ui.twg_cycling_curves.setEnabled(True)
                 self.ui.pb_refresh.setEnabled(True)
                 self.ui.pb_load_ps.setEnabled(False)
+  
+                self.current_max = self.config.maximum_current
+                self.current_min = self.config.minimum_current
+                self.drs.ps_type = self.config.ps_type
+                _dcct.dcct_head = self.config.dcct_head
+
                 _QMessageBox.information(self, 'Information',
                                          'Power Supply loaded.',
                                          _QMessageBox.Ok)

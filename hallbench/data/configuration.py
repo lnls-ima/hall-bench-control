@@ -2,8 +2,10 @@
 
 """Implementation of classes to handle configuration files."""
 
+import sys as _sys
 import numpy as _np
 import json as _json
+import traceback as _traceback
 import collections as _collections
 
 from imautils.db import database as _database
@@ -273,12 +275,6 @@ class PowerSupplyConfig(_database.DatabaseAndFileDocument):
         ('current_array', {
             'field': 'current array',
             'dtype': _np.ndarray, 'not_null': False}),
-        ('trapezoidal_array', {
-            'field': 'trapezoidal array',
-            'dtype': _np.ndarray, 'not_null': False}),
-        ('trapezoidal_offset', {
-            'field': 'trapezoidal offset',
-            'dtype': float, 'not_null': True}),
         ('sinusoidal_amplitude', {
             'field': 'sinusoidal amplitude',
             'dtype': float, 'not_null': True}),
@@ -291,10 +287,10 @@ class PowerSupplyConfig(_database.DatabaseAndFileDocument):
         ('sinusoidal_ncycles', {
             'field': 'sinusoidal cycles',
             'dtype': int, 'not_null': True}),
-        ('sinusoidal_phasei', {
+        ('sinusoidal_aux_param_0', {
             'field': 'sinusoidal initial phase',
             'dtype': float, 'not_null': True}),
-        ('sinusoidal_phasef', {
+        ('sinusoidal_aux_param_1', {
             'field': 'sinusoidal final phase',
             'dtype': float, 'not_null': True}),    
         ('dsinusoidal_amplitude', {
@@ -309,13 +305,13 @@ class PowerSupplyConfig(_database.DatabaseAndFileDocument):
         ('dsinusoidal_ncycles', {
             'field': 'damped sinusoidal cycles',
             'dtype': int, 'not_null': True}),
-        ('dsinusoidal_phasei', {
+        ('dsinusoidal_aux_param_0', {
             'field': 'damped sinusoidal initial phase',
             'dtype': float, 'not_null': True}),
-        ('dsinusoidal_phasef', {
+        ('dsinusoidal_aux_param_1', {
             'field': 'damped sinusoidal final phase',
             'dtype': float, 'not_null': True}),    
-        ('dsinusoidal_damp', {
+        ('dsinusoidal_aux_param_2', {
             'field': 'damped sinusoidal damping',
             'dtype': float, 'not_null': True}), 
         ('dsinusoidal2_amplitude', {
@@ -330,15 +326,39 @@ class PowerSupplyConfig(_database.DatabaseAndFileDocument):
         ('dsinusoidal2_ncycles', {
             'field': 'damped sinusoidal2 cycles',
             'dtype': int, 'not_null': True}),
-        ('dsinusoidal2_phasei', {
+        ('dsinusoidal2_aux_param_0', {
             'field': 'damped sinusoidal2 initial phase',
             'dtype': float, 'not_null': True}),
-        ('dsinusoidal2_phasef', {
+        ('dsinusoidal2_aux_param_1', {
             'field': 'damped sinusoidal2 final phase',
             'dtype': float, 'not_null': True}),    
-        ('dsinusoidal2_damp', {
+        ('dsinusoidal2_aux_param_2', {
             'field': 'damped sinusoidal2 damping',
             'dtype': float, 'not_null': True}), 
+        ('trapezoidal_amplitude', {
+            'field': 'trapezoidal amplitude',
+            'dtype': float, 'not_null': True}),
+        ('trapezoidal_offset', {
+            'field': 'trapezoidal offset',
+            'dtype': float, 'not_null': True}),
+        ('trapezoidal_ncycles', {
+            'field': 'trapezoidal cycles',
+            'dtype': int, 'not_null': True}),
+        ('trapezoidal_aux_param_0', {
+            'field': 'trapezoidal rise time',
+            'dtype': float, 'not_null': True}),
+        ('trapezoidal_aux_param_1', {
+            'field': 'trapezoidal cte time',
+            'dtype': float, 'not_null': True}), 
+        ('trapezoidal_aux_param_2', {
+            'field': 'trapezoidal fall time',
+            'dtype': float, 'not_null': True}),  
+        ('dtrapezoidal_offset', {
+            'field': 'dtrapezoidal offset',
+            'dtype': float, 'not_null': True}),
+        ('dtrapezoidal_array', {
+            'field': 'dtrapezoidal array',
+            'dtype': _np.ndarray, 'not_null': False}),
     ])
 
     def __init__(
@@ -385,3 +405,228 @@ class PowerSupplyConfig(_database.DatabaseAndFileDocument):
     def get_power_supply_list(self):
         """Get list of power supply names from database."""
         return self.db_get_values(self.db_dict['ps_name']['field'])
+    
+    
+class CyclingCurve(_database.DatabaseAndFileDocument):
+    """Read, write and store Power Supply configuration data."""
+
+    label = 'CyclingCurve'
+    collection_name = 'cycling_curve'
+    db_dict = _collections.OrderedDict([
+        ('idn', {'field': 'id', 'dtype': int, 'not_null': True}),
+        ('date', {'field': 'date', 'dtype': str, 'not_null': True}),
+        ('hour', {'field': 'hour', 'dtype': str, 'not_null': True}),
+        ('power_supply', {
+            'field': 'power_supply', 'dtype': str, 'not_null': True}),
+        ('curve_name', {
+            'field': 'curve_name', 'dtype': str, 'not_null': True}),
+        ('siggen_type', {
+            'field': 'siggen_type', 'dtype': int, 'not_null': False}),
+        ('num_cycles', {
+            'field': 'num_cycles', 'dtype': float, 'not_null': False}),
+        ('freq', {
+            'field': 'freq', 'dtype': float, 'not_null': False}),
+        ('amplitude', {
+            'field': 'amplitude', 'dtype': float, 'not_null': False}),
+        ('offset', {'field': 'offset', 'dtype': float, 'not_null': False}),
+        ('aux_param_0', {
+            'field': 'aux_param_0', 'dtype': float, 'not_null': False}),
+        ('aux_param_1', {
+            'field': 'aux_param_1', 'dtype': float, 'not_null': False}),
+        ('aux_param_2', {
+            'field': 'aux_param_2', 'dtype': float, 'not_null': False}),
+        ('aux_param_3', {
+            'field': 'aux_param_3', 'dtype': float, 'not_null': False}),
+        ('dtrapezoidal_array', {
+            'field': 'dtrapezoidal array',
+            'dtype': _np.ndarray, 'not_null': False}),
+        ('cycling_error_time', {
+            'field': 'cycling_error_time',
+            'dtype': _np.ndarray, 'not_null': False}),
+        ('cycling_error_current', {
+            'field': 'cycling_error_current',
+            'dtype': _np.ndarray, 'not_null': False}),
+    ])
+
+    def __init__(
+            self, database_name=None, mongo=False, server=None):
+        """Initialize object.
+
+        Args:
+            filename (str): connection configuration filepath.
+            database_name (str): database file path (sqlite) or name (mongo).
+            idn (int): id in database table (sqlite) / collection (mongo).
+            mongo (bool): flag indicating mongoDB (True) or sqlite (False).
+            server (str): MongoDB server.
+
+        """
+        super().__init__(
+            database_name=database_name, mongo=mongo, server=server)
+
+    def save_file(self, filename):
+        """Save data to file.
+
+        Args:
+            filename (str): file fullpath.
+        """
+        if not self.valid_data():
+            message = 'Invalid data.'
+            raise ValueError(message)
+
+        columns = ['cycling_error_time', 'cycling_error_current']
+        return super().save_file(filename, columns=columns)
+    
+    def get_sinusoidal_curve(self, time_array):
+        try:
+            w = 2*_np.pi*self.freq
+            total_time = self.num_cycles/self.freq
+            
+            current_array = self.amplitude*_np.sin(
+                w*time_array + self.aux_param_0) + self.offset
+            current_array[time_array > total_time] = self.offset
+            
+            return current_array
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return [_np.nan]*len(time_array)
+
+    def get_dsinusoidal_curve(self, time_array, correct_amplitude=True):
+        try:
+            w = 2*_np.pi*self.freq
+            total_time = self.num_cycles/self.freq
+            
+            if correct_amplitude:
+                t0 = (1/w)*_np.arctan(self.aux_param_2*w)
+                amp_corr = _np.exp(t0/self.aux_param_2)/(_np.sin(w*t0))
+            else:
+                amp_corr = 1
+            
+            current_array = self.amplitude*amp_corr*_np.sin(
+                w*time_array + self.aux_param_0)*_np.exp(
+                    -time_array/self.aux_param_2) + self.offset
+            current_array[time_array > total_time] = self.offset
+            
+            return current_array
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return [_np.nan]*len(time_array)
+
+    def get_dsinusoidal2_curve(self, time_array, correct_amplitude=True):
+        try:
+            w = 2*_np.pi*self.freq
+            total_time = self.num_cycles/self.freq
+            
+            if correct_amplitude:
+                t0 = (1/w)*_np.arctan(2*self.aux_param_2*w)
+                amp_corr = _np.exp(t0/self.aux_param_2)/(_np.sin(w*t0)**2) 
+            else:
+                amp_corr = 1
+            
+            current_array = self.amplitude*amp_corr*(_np.sin(
+                w*time_array + self.aux_param_0)**2)*_np.exp(
+                    -time_array/self.aux_param_2) + self.offset
+            current_array[time_array > total_time] = self.offset
+            
+            return current_array
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return [_np.nan]*len(time_array)
+    
+    def get_trapezoidal_curve(self, time_array):
+        try:
+            t0 = self.aux_param_0
+            t1 = self.aux_param_1
+            t2 = self.aux_param_2
+            total_time = (t0 + t1 + t2)*self.num_cycles 
+            ts = _np.array([0, t0, t0+t1, t0+t1+t2], dtype=float)
+            cs = _np.array([
+                self.offset, self.offset + self.amplitude,
+                self.offset + self.amplitude, self.offset], dtype=float)
+            
+            current_array = _np.interp(time_array, ts, cs, period=t0+t1+t2)
+            current_array[time_array>total_time] = self.offset
+            
+            return current_array
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return [_np.nan]*len(time_array)
+
+    def get_dtrapezoidal_curve(self, time_array, slope=50):
+        try:
+            t0 = 0
+            c0 = self.offset
+            ts = []
+            cs = []
+            for val in self.dtrapezoidal_array:
+                c = self.offset + val[0]
+                t = val[1]
+                t_border = abs(c - c0) / slope
+                
+                ts = _np.append(ts, [t0, t0 + t_border])
+                cs = _np.append(cs, [c0, c])
+
+                ts = _np.append(ts, [t0 + t_border, t0 + t_border + t])
+                cs = _np.append(cs, [c, c])
+
+                ts = _np.append(ts, [t0 + t_border +t, t0 + 2*t_border + t])
+                cs = _np.append(cs, [c, c0])
+                
+                ts = _np.append(
+                    ts, [t0 + 2*t_border + t, t0 + 2*(t_border + t)])
+                cs = _np.append(cs, [c0, c0])
+                
+                t0 = t0 + 2*(t_border + t)
+
+            current_array = _np.interp(time_array, ts, cs)
+            current_array[time_array > t0] = self.offset  
+
+            return current_array
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return [_np.nan]*len(time_array)
+
+    def get_curve_duration(self):
+        try:
+            if self.curve_name in [
+                    'sinusoidal', 'dsinusoidal', 'dsinusoidal2']:
+                return self.num_cycles/self.freq
+           
+            elif self.curve_name == 'trapezoidal':
+                return (
+                    self.aux_param_0 + self.aux_param_1 +
+                        self.aux_param_2)*self.num_cycles 
+
+            elif self.curve_name == 'dtrapezoidal':
+                raise NotImplemented
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return 0        
+
+    def get_curve(self, time_array, correct_amplitude=True):
+        try:
+            if self.curve_name == 'sinusoidal':
+                return self.get_sinusoidal_curve(time_array)
+
+            elif self.curve_name == 'dsinusoidal':
+                return self.get_dsinusoidal_curve(
+                    time_array, correct_amplitude=correct_amplitude) 
+            
+            elif self.curve_name == 'dsinusoidal2':
+                return self.get_dsinusoidal2_curve(
+                    time_array, correct_amplitude=correct_amplitude) 
+            
+            elif self.curve_name == 'trapezoidal':
+                return self.get_trapezoidal_curve(time_array) 
+
+            elif self.curve_name == 'dtrapezoidal':
+                return [_np.nan]*len(time_array)
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            return [_np.nan]*len(time_array)

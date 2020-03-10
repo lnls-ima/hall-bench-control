@@ -1265,18 +1265,246 @@ p, li { white-space: pre-wrap; }
         </widget>
         <widget class="QWidget" name="tab2">
          <attribute name="title">
-          <string>Demagnetization Curves</string>
+          <string>Cycling Curves</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_15">
+          <item row="2" column="0">
+           <spacer name="verticalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>100</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pb_send_curve">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Send</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../resources/img/send.svg</normaloff>../../resources/img/send.svg</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Maximum</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pb_cycle">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Cycle</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../resources/img/cycle.svg</normaloff>../../resources/img/cycle.svg</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Maximum</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pb_plot">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Plot</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../resources/img/plot.svg</normaloff>../../resources/img/plot.svg</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_12">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Maximum</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pb_plot_error">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Plot Error</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../resources/img/plot.svg</normaloff>../../resources/img/plot.svg</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_11">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
           <item row="0" column="0">
-           <widget class="QTabWidget" name="tabWidget_3">
+           <widget class="QTabWidget" name="twg_cycling_curves">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="currentIndex">
              <number>0</number>
             </property>
-            <widget class="QWidget" name="tab0">
+            <widget class="QWidget" name="tab_dsinusoidal">
              <attribute name="title">
               <string>Damped Sinusoidal</string>
              </attribute>
@@ -1365,7 +1593,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="2" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_freq">
+                  <widget class="QLineEdit" name="le_dsinusoidal_frequency">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -1413,7 +1641,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="4" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_phase">
+                  <widget class="QLineEdit" name="le_dsinusoidal_aux_param_0">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -1448,7 +1676,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="3" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_ncycles">
+                  <widget class="QLineEdit" name="le_dsinusoidal_ncycles">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -1496,7 +1724,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="0" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_ampl">
+                  <widget class="QLineEdit" name="le_dsinusoidal_amplitude">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -1528,7 +1756,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="1" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_offset">
+                  <widget class="QLineEdit" name="le_dsinusoidal_offset">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -1605,7 +1833,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="6" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_damping">
+                  <widget class="QLineEdit" name="le_dsinusoidal_aux_param_2">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -1624,7 +1852,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="5" column="2">
-                  <widget class="QLineEdit" name="le_damp_sin_phasef">
+                  <widget class="QLineEdit" name="le_dsinusoidal_aux_param_1">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -1647,7 +1875,7 @@ p, li { white-space: pre-wrap; }
               </item>
              </layout>
             </widget>
-            <widget class="QWidget" name="tab1">
+            <widget class="QWidget" name="tab_sinusoidal">
              <attribute name="title">
               <string>Sinusoidal</string>
              </attribute>
@@ -1897,7 +2125,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="4" column="1">
-                  <widget class="QLineEdit" name="le_sinusoidal_phase">
+                  <widget class="QLineEdit" name="le_sinusoidal_aux_param_0">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -1951,7 +2179,7 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item row="5" column="1">
-                  <widget class="QLineEdit" name="le_sinusoidal_phasef">
+                  <widget class="QLineEdit" name="le_sinusoidal_aux_param_1">
                    <property name="minimumSize">
                     <size>
                      <width>60</width>
@@ -2017,22 +2245,9 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="0" column="2">
-               <spacer name="horizontalSpacer_8">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
              </layout>
             </widget>
-            <widget class="QWidget" name="tab">
+            <widget class="QWidget" name="tab_dsinusoidal2">
              <attribute name="title">
               <string>Damped Sinusoidal^2</string>
              </attribute>
@@ -2072,7 +2287,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item row="0" column="2">
-                <widget class="QLineEdit" name="le_damp_sin2_ampl">
+                <widget class="QLineEdit" name="le_dsinusoidal2_amplitude">
                  <property name="minimumSize">
                   <size>
                    <width>60</width>
@@ -2120,7 +2335,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item row="1" column="2">
-                <widget class="QLineEdit" name="le_damp_sin2_offset">
+                <widget class="QLineEdit" name="le_dsinusoidal2_offset">
                  <property name="minimumSize">
                   <size>
                    <width>60</width>
@@ -2168,7 +2383,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item row="2" column="2">
-                <widget class="QLineEdit" name="le_damp_sin2_freq">
+                <widget class="QLineEdit" name="le_dsinusoidal2_frequency">
                  <property name="minimumSize">
                   <size>
                    <width>60</width>
@@ -2216,7 +2431,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item row="3" column="2">
-                <widget class="QLineEdit" name="le_damp_sin2_ncycles">
+                <widget class="QLineEdit" name="le_dsinusoidal2_ncycles">
                  <property name="minimumSize">
                   <size>
                    <width>60</width>
@@ -2264,7 +2479,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item row="4" column="2">
-                <widget class="QLineEdit" name="le_damp_sin2_phase">
+                <widget class="QLineEdit" name="le_dsinusoidal2_aux_param_0">
                  <property name="minimumSize">
                   <size>
                    <width>60</width>
@@ -2312,7 +2527,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item row="5" column="2">
-                <widget class="QLineEdit" name="le_damp_sin2_phasef">
+                <widget class="QLineEdit" name="le_dsinusoidal2_aux_param_1">
                  <property name="minimumSize">
                   <size>
                    <width>60</width>
@@ -2344,7 +2559,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item row="6" column="2">
-                <widget class="QLineEdit" name="le_damp_sin2_damping">
+                <widget class="QLineEdit" name="le_dsinusoidal2_aux_param_2">
                  <property name="minimumSize">
                   <size>
                    <width>60</width>
@@ -2413,9 +2628,332 @@ p, li { white-space: pre-wrap; }
               </property>
              </widget>
             </widget>
-            <widget class="QWidget" name="tab_2">
+            <widget class="QWidget" name="tab_trapezoidal">
              <attribute name="title">
               <string>Trapezoidal</string>
+             </attribute>
+             <layout class="QGridLayout" name="gridLayout_20">
+              <item row="0" column="1">
+               <widget class="QGroupBox" name="groupBox_22">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="title">
+                 <string>Settings</string>
+                </property>
+                <layout class="QGridLayout" name="gridLayout_19">
+                 <item row="0" column="0" colspan="2">
+                  <widget class="QLabel" name="label_98">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Amplitude (A)</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <widget class="QLineEdit" name="le_trapezoidal_amplitude">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>0.0</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="3">
+                  <widget class="QLabel" name="label_130">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>A</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QLineEdit" name="le_trapezoidal_offset">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>0.0</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="3">
+                  <widget class="QLabel" name="label_102">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>A</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0" colspan="2">
+                  <widget class="QLabel" name="label_129">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Offset (B)</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="2">
+                  <widget class="QLineEdit" name="le_trapezoidal_ncycles">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>0</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0" colspan="2">
+                  <widget class="QLabel" name="label_162">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string># of Cycles</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="2">
+                  <widget class="QLineEdit" name="le_trapezoidal_aux_param_0">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>0.0</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0" colspan="2">
+                  <widget class="QLabel" name="label_99">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Rise Time</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="3">
+                  <widget class="QLabel" name="label_165">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="3">
+                  <widget class="QLabel" name="label_166">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>s</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="3">
+                  <widget class="QLabel" name="label_168">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>s</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="2">
+                  <widget class="QLineEdit" name="le_trapezoidal_aux_param_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>0.0</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="2">
+                  <widget class="QLineEdit" name="le_trapezoidal_aux_param_1">
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>0.0</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="3">
+                  <widget class="QLabel" name="label_169">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>s</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="0" colspan="2">
+                  <widget class="QLabel" name="label_167">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Constant Time</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="1">
+                  <widget class="QLabel" name="label_107">
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Fall Time</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <spacer name="horizontalSpacer_13">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_dtrapezoidal">
+             <attribute name="title">
+              <string>Damped Trapezoidal</string>
              </attribute>
              <widget class="QGroupBox" name="groupBox_21">
               <property name="geometry">
@@ -2435,7 +2973,7 @@ p, li { white-space: pre-wrap; }
               <property name="title">
                <string>Settings</string>
               </property>
-              <widget class="QTableWidget" name="tbl_trapezoidal">
+              <widget class="QTableWidget" name="tbl_dtrapezoidal">
                <property name="geometry">
                 <rect>
                  <x>42</x>
@@ -2488,7 +3026,7 @@ p, li { white-space: pre-wrap; }
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="le_trapezoidal_offset">
+                 <widget class="QLineEdit" name="le_dtrapezoidal_offset">
                   <property name="minimumSize">
                    <size>
                     <width>60</width>
@@ -2538,7 +3076,7 @@ p, li { white-space: pre-wrap; }
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_9">
                 <item>
-                 <widget class="QPushButton" name="pb_add_row_2">
+                 <widget class="QPushButton" name="pb_dtrapezoidal_add_row">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -2566,7 +3104,7 @@ p, li { white-space: pre-wrap; }
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pb_remove_row_2">
+                 <widget class="QPushButton" name="pb_dtrapezoidal_remove_row">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -2589,7 +3127,7 @@ p, li { white-space: pre-wrap; }
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pb_clear_table_2">
+                 <widget class="QPushButton" name="pb_dtrapezoidal_clear_table">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -2639,756 +3177,6 @@ p, li { white-space: pre-wrap; }
               </property>
              </widget>
             </widget>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pb_send_curve">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>150</width>
-                <height>40</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Send</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>../../resources/img/send.svg</normaloff>../../resources/img/send.svg</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_7">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Maximum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pb_cycle">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>150</width>
-                <height>40</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Cycle</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>../../resources/img/cycle.svg</normaloff>../../resources/img/cycle.svg</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Maximum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pb_plot">
-              <property name="minimumSize">
-               <size>
-                <width>150</width>
-                <height>40</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Plot</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>../../resources/img/plot.svg</normaloff>../../resources/img/plot.svg</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_12">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Maximum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pb_plot_error">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>150</width>
-                <height>40</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Plot Error</string>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>../../resources/img/plot.svg</normaloff>../../resources/img/plot.svg</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_11">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item row="2" column="0">
-           <spacer name="verticalSpacer_7">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>100</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tab_3">
-         <attribute name="title">
-          <string>Probe Calibration</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_21">
-          <item row="0" column="0">
-           <widget class="QGroupBox" name="groupBox_3">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="title">
-             <string>Measurement Configuration</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_19">
-             <item row="0" column="0" colspan="2">
-              <layout class="QHBoxLayout" name="horizontalLayout_10">
-               <item>
-                <widget class="QRadioButton" name="rbt_pc_sensorx">
-                 <property name="font">
-                  <font>
-                   <weight>50</weight>
-                   <bold>false</bold>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Sensor X</string>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="rbt_pc_sensory">
-                 <property name="font">
-                  <font>
-                   <weight>50</weight>
-                   <bold>false</bold>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Sensor Y</string>
-                 </property>
-                 <property name="checked">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="rbt_pc_sensorz">
-                 <property name="font">
-                  <font>
-                   <weight>50</weight>
-                   <bold>false</bold>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Sensor Z</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_4">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Current [A]:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QDoubleSpinBox" name="sbd_pc_current">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="decimals">
-                <number>3</number>
-               </property>
-               <property name="minimum">
-                <double>-1000.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>1000.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Constant Current Time[s]:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="1">
-              <widget class="QSpinBox" name="sb_pc_time">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="maximum">
-                <number>1000</number>
-               </property>
-               <property name="value">
-                <number>10</number>
-               </property>
-              </widget>
-             </item>
-             <item row="6" column="0">
-              <widget class="QLabel" name="label_7">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Reading Delay[s]:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="6" column="1">
-              <widget class="QSpinBox" name="sb_pc_delay">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="maximum">
-                <number>1000</number>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="0">
-              <widget class="QLabel" name="label_8">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Reading Time[s]:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="1">
-              <widget class="QSpinBox" name="sb_pc_readingtime">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="maximum">
-                <number>1000</number>
-               </property>
-               <property name="value">
-                <number>10</number>
-               </property>
-              </widget>
-             </item>
-             <item row="13" column="0" colspan="2">
-              <widget class="QPushButton" name="pbt_pc_updatefreq">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>40</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Update NMR Frequency</string>
-               </property>
-              </widget>
-             </item>
-             <item row="14" column="0" colspan="2">
-              <widget class="QPushButton" name="pbt_pc_measure">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>40</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Set Current and Measure</string>
-               </property>
-              </widget>
-             </item>
-             <item row="11" column="0">
-              <widget class="QLabel" name="label_14">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>NMR Frequency:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="9" column="0">
-              <widget class="QLabel" name="label_13">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>NMR Channel:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="11" column="1">
-              <widget class="QSpinBox" name="sb_pc_nmrfreq">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="maximum">
-                <number>4095</number>
-               </property>
-              </widget>
-             </item>
-             <item row="9" column="1">
-              <widget class="QComboBox" name="cmb_pc_nmrchannel">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <item>
-                <property name="text">
-                 <string>A</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>B</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>C</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>D</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>E</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>F</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>G</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>H</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item row="10" column="0">
-              <widget class="QLabel" name="label_15">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>NMR Field Sense:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="10" column="1">
-              <widget class="QComboBox" name="cmb_pc_nmrsense">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="currentIndex">
-                <number>1</number>
-               </property>
-               <item>
-                <property name="text">
-                 <string>Negative</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Positive</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="0" column="1" rowspan="2">
-           <widget class="PlotWidget" name="pw_pc_plot">
-            <property name="backgroundBrush">
-             <brush brushstyle="NoBrush">
-              <color alpha="255">
-               <red>255</red>
-               <green>255</green>
-               <blue>255</blue>
-              </color>
-             </brush>
-            </property>
-            <property name="foregroundBrush">
-             <brush brushstyle="NoBrush">
-              <color alpha="255">
-               <red>252</red>
-               <green>255</green>
-               <blue>255</blue>
-              </color>
-             </brush>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QGroupBox" name="groupBox_4">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="title">
-             <string>Results</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_20">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_9">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Average Field [T]:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="le_pc_field">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_11">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>STD Field [T]:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="le_pc_fieldstd">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_10">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Average Voltage [V]:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="le_pc_volt">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_12">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>STD Voltage [V]:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QLineEdit" name="le_pc_voltstd">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0" colspan="2">
-              <widget class="QPushButton" name="pbt_pc_copy">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>40</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Copy</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
          </layout>
@@ -3923,13 +3711,6 @@ Status:</string>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>PlotWidget</class>
-   <extends>QGraphicsView</extends>
-   <header>pyqtgraph</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>pb_refresh</tabstop>
   <tabstop>pb_interlock</tabstop>
@@ -3959,14 +3740,14 @@ Status:</string>
   <tabstop>pb_remove_row</tabstop>
   <tabstop>pb_clear_table</tabstop>
   <tabstop>textBrowser</tabstop>
-  <tabstop>tabWidget_3</tabstop>
-  <tabstop>le_damp_sin_ampl</tabstop>
-  <tabstop>le_damp_sin_offset</tabstop>
-  <tabstop>le_damp_sin_freq</tabstop>
-  <tabstop>le_damp_sin_ncycles</tabstop>
-  <tabstop>le_damp_sin_phase</tabstop>
-  <tabstop>le_damp_sin_phasef</tabstop>
-  <tabstop>le_damp_sin_damping</tabstop>
+  <tabstop>twg_cycling_curves</tabstop>
+  <tabstop>le_dsinusoidal_amplitude</tabstop>
+  <tabstop>le_dsinusoidal_offset</tabstop>
+  <tabstop>le_dsinusoidal_frequency</tabstop>
+  <tabstop>le_dsinusoidal_ncycles</tabstop>
+  <tabstop>le_dsinusoidal_aux_param_0</tabstop>
+  <tabstop>le_dsinusoidal_aux_param_1</tabstop>
+  <tabstop>le_dsinusoidal_aux_param_2</tabstop>
   <tabstop>pb_send_curve</tabstop>
   <tabstop>pb_cycle</tabstop>
   <tabstop>pb_plot</tabstop>
@@ -3974,32 +3755,20 @@ Status:</string>
   <tabstop>le_sinusoidal_offset</tabstop>
   <tabstop>le_sinusoidal_frequency</tabstop>
   <tabstop>le_sinusoidal_ncycles</tabstop>
-  <tabstop>le_sinusoidal_phase</tabstop>
-  <tabstop>le_sinusoidal_phasef</tabstop>
-  <tabstop>le_damp_sin2_ampl</tabstop>
-  <tabstop>le_damp_sin2_offset</tabstop>
-  <tabstop>le_damp_sin2_freq</tabstop>
-  <tabstop>le_damp_sin2_ncycles</tabstop>
-  <tabstop>le_damp_sin2_phase</tabstop>
-  <tabstop>le_damp_sin2_phasef</tabstop>
-  <tabstop>le_damp_sin2_damping</tabstop>
-  <tabstop>le_trapezoidal_offset</tabstop>
-  <tabstop>tbl_trapezoidal</tabstop>
-  <tabstop>pb_add_row_2</tabstop>
-  <tabstop>pb_remove_row_2</tabstop>
-  <tabstop>pb_clear_table_2</tabstop>
-  <tabstop>rbt_pc_sensorx</tabstop>
-  <tabstop>rbt_pc_sensorz</tabstop>
-  <tabstop>sbd_pc_current</tabstop>
-  <tabstop>sb_pc_time</tabstop>
-  <tabstop>sb_pc_delay</tabstop>
-  <tabstop>sb_pc_readingtime</tabstop>
-  <tabstop>pbt_pc_measure</tabstop>
-  <tabstop>le_pc_field</tabstop>
-  <tabstop>le_pc_fieldstd</tabstop>
-  <tabstop>le_pc_volt</tabstop>
-  <tabstop>le_pc_voltstd</tabstop>
-  <tabstop>pw_pc_plot</tabstop>
+  <tabstop>le_sinusoidal_aux_param_0</tabstop>
+  <tabstop>le_sinusoidal_aux_param_1</tabstop>
+  <tabstop>le_dsinusoidal2_amplitude</tabstop>
+  <tabstop>le_dsinusoidal2_offset</tabstop>
+  <tabstop>le_dsinusoidal2_frequency</tabstop>
+  <tabstop>le_dsinusoidal2_ncycles</tabstop>
+  <tabstop>le_dsinusoidal2_aux_param_0</tabstop>
+  <tabstop>le_dsinusoidal2_aux_param_1</tabstop>
+  <tabstop>le_dsinusoidal2_aux_param_2</tabstop>
+  <tabstop>le_dtrapezoidal_offset</tabstop>
+  <tabstop>tbl_dtrapezoidal</tabstop>
+  <tabstop>pb_dtrapezoidal_add_row</tabstop>
+  <tabstop>pb_dtrapezoidal_remove_row</tabstop>
+  <tabstop>pb_dtrapezoidal_clear_table</tabstop>
  </tabstops>
  <resources/>
  <connections>

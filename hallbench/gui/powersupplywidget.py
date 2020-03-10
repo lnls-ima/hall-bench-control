@@ -1325,8 +1325,8 @@ class PowerSupplyWidget(_QWidget):
         try:
             # Sending curves to PS Controller
             self.drs.cfg_siggen(
-                self.cycling_curve.siggen_type,
-                self.cycling_curve.num_cycles,
+                int(self.cycling_curve.siggen_type),
+                int(self.cycling_curve.num_cycles),
                 self.cycling_curve.freq,
                 self.cycling_curve.amplitude,
                 self.cycling_curve.offset,

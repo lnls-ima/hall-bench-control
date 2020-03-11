@@ -519,7 +519,7 @@ class MeasurementWidget(_QWidget):
 
         self.ui.le_voltage_range.editingFinished.connect(
             lambda: self.set_float_line_edit_text(
-                self.ui.le_voltage_range, precision=1))
+                self.ui.le_voltage_range, precision=3))
 
         self.ui.le_offsetx.editingFinished.connect(
             lambda: self.set_float_line_edit_text(self.ui.le_offsetx))

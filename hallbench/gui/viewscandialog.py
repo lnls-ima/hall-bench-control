@@ -818,6 +818,7 @@ class ViewScanDialog(_QDialog):
                 self.ui.gb_xlimits.setEnabled(False)
                 self.ui.gb_integrals.setEnabled(False)
                 self.ui.gb_xlimits.setEnabled(False)
+            self.calc_integrals()
 
     def update_controls_and_plot(self):
         """Update controls and plot."""

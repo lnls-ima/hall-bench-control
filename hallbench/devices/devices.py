@@ -8,7 +8,7 @@ import time as _time
 from imautils.devices import Agilent3458ALib as _Agilent3458ALib
 from imautils.devices import Agilent34401ALib as _Agilent34401ALib
 from imautils.devices import Agilent34970ALib as _Agilent34970ALib
-from imautils.devices import pydrs as _pydrs
+from imautils.devices import pydrs_firmware_updated as _pydrs
 from imautils.devices import ElcomatLib as _ElcomatLib
 from imautils.devices import NMRLib as _NMRLib
 from imautils.devices import UDCLib as _UDCLib

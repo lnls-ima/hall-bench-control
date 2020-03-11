@@ -225,29 +225,6 @@ class HallBenchWindow(_QMainWindow):
                 idx = self.ui.twg_main.indexOf(tab_current)
                 self.ui.twg_main.setCurrentIndex(idx)
 
-            if (hasattr(self, 'tab_measurement') and
-                    hasattr(self, 'tab_power_supply')):
-                self.tab_measurement.change_current_setpoint.connect(
-                    self.tab_power_supply.change_setpoint_and_emit_signal)
-     
-                self.tab_measurement.turn_off_power_supply_current.connect(
-                    self.tab_power_supply.set_current_to_zero)
-    
-                self.tab_measurement.turn_on_current_display.connect(
-                    self.tab_power_supply.turn_on_current_display)
-    
-                self.tab_measurement.turn_off_current_display.connect(
-                    self.tab_power_supply.turn_off_current_display)
-                 
-                self.tab_power_supply.current_setpoint_changed.connect(
-                    self.tab_measurement.update_current_setpoint)
-     
-                self.tab_power_supply.start_measurement.connect(
-                    self.tab_measurement.measure_and_emit_signal)
-     
-                self.tab_power_supply.current_ramp_end.connect(
-                    self.tab_measurement.end_automatic_measurements)
-
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -264,7 +241,30 @@ class HallBenchWindow(_QMainWindow):
         self.ui.tbt_preferences.clicked.connect(self.preferences_dialog.show)
         self.ui.tbt_database.clicked.connect(self.change_database)
         self.ui.tbt_log.clicked.connect(self.open_log)
-        
+
+        if (hasattr(self, 'tab_measurement') and
+                hasattr(self, 'tab_power_supply')):
+            self.tab_measurement.change_current_setpoint.connect(
+                self.tab_power_supply.change_setpoint_and_emit_signal)
+ 
+            self.tab_measurement.turn_off_power_supply_current.connect(
+                self.tab_power_supply.set_current_to_zero)
+
+            self.tab_measurement.turn_on_current_display.connect(
+                self.tab_power_supply.turn_on_current_display)
+
+            self.tab_measurement.turn_off_current_display.connect(
+                self.tab_power_supply.turn_off_current_display)
+             
+            self.tab_power_supply.current_setpoint_changed.connect(
+                self.tab_measurement.update_current_setpoint)
+ 
+            self.tab_power_supply.start_measurement.connect(
+                self.tab_measurement.measure_and_emit_signal)
+ 
+            self.tab_power_supply.current_ramp_end.connect(
+                self.tab_measurement.end_automatic_measurements)
+
     def open_log(self):
         """Open log info."""
         try:

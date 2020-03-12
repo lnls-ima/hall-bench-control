@@ -248,6 +248,135 @@ class MeasurementConfig(_database.DatabaseAndFileDocument):
         setattr(self, attr, value)
 
 
+class IntegratorMeasurementConfig(_database.DatabaseAndFileDocument):
+    """Read, write and stored measurement configuration data."""
+
+    label = 'Integrator Configuration'
+    collection_name = 'integrator_configurations'
+    db_dict = _collections.OrderedDict([
+        ('idn', {'field': 'id', 'dtype': int, 'not_null': True}),
+        ('date', {'field': 'date', 'dtype': str, 'not_null': True}),
+        ('hour', {'field': 'hour', 'dtype': str, 'not_null': True}),
+        ('magnet_name',
+            {'field': 'magnet_name', 'dtype': str, 'not_null': True}),
+        ('operator', {'field': 'operator', 'dtype': str, 'not_null': False}),      
+        ('current_setpoint',
+            {'field': 'current_setpoint', 'dtype': float, 'not_null': False}),
+        ('comments', {'field': 'comments', 'dtype': str, 'not_null': False}),
+        ('software_version', 
+            {'field': 'software_version', 'dtype': str, 'not_null': False}),
+        ('nr_measurements',
+            {'field': 'nr_measurements', 'dtype': int, 'not_null': True}),
+        ('integrator_gain',
+            {'field': 'integrator_gain', 'dtype': int, 'not_null': True}),
+        ('first_axis',
+            {'field': 'first_axis', 'dtype': int, 'not_null': True}),
+        ('second_axis',
+            {'field': 'second_axis', 'dtype': int, 'not_null': True}),
+        ('start_ax1',
+            {'field': 'start_ax1', 'dtype': float, 'not_null': True}),
+        ('end_ax1', {'field': 'end_ax1', 'dtype': float, 'not_null': True}),
+        ('step_ax1', {'field': 'step_ax1', 'dtype': float, 'not_null': True}),
+        ('extra_ax1',
+            {'field': 'extra_ax1', 'dtype': float, 'not_null': True}),
+        ('vel_ax1', {'field': 'vel_ax1', 'dtype': float, 'not_null': True}),
+        ('start_ax2',
+            {'field': 'start_ax2', 'dtype': float, 'not_null': True}),
+        ('end_ax2', {'field': 'end_ax2', 'dtype': float, 'not_null': True}),
+        ('step_ax2', {'field': 'step_ax2', 'dtype': float, 'not_null': True}),
+        ('extra_ax2',
+            {'field': 'extra_ax2', 'dtype': float, 'not_null': True}),
+        ('vel_ax2', {'field': 'vel_ax2', 'dtype': float, 'not_null': True}),
+        ('start_ax3',
+            {'field': 'start_ax3', 'dtype': float, 'not_null': True}),
+        ('end_ax3', {'field': 'end_ax3', 'dtype': float, 'not_null': True}),
+        ('step_ax3', {'field': 'step_ax3', 'dtype': float, 'not_null': True}),
+        ('extra_ax3',
+            {'field': 'extra_ax3', 'dtype': float, 'not_null': True}),
+        ('vel_ax3', {'field': 'vel_ax3', 'dtype': float, 'not_null': True}),
+        ('start_ax5',
+            {'field': 'start_ax5', 'dtype': float, 'not_null': True}),
+        ('end_ax5', {'field': 'end_ax5', 'dtype': float, 'not_null': True}),
+        ('step_ax5', {'field': 'step_ax5', 'dtype': float, 'not_null': True}),
+        ('extra_ax5',
+            {'field': 'extra_ax5', 'dtype': float, 'not_null': True}),
+        ('vel_ax5', {'field': 'vel_ax5', 'dtype': float, 'not_null': True}),
+        ('voltage_offset',
+            {'field': 'voltage_offset', 'dtype': str, 'not_null': False}),
+        ('offset',
+            {'field': 'offset', 'dtype': float, 'not_null': False}),
+        ('on_the_fly',
+            {'field': 'on_the_fly', 'dtype': int, 'not_null': False}),
+        ('save_current',
+            {'field': 'save_current', 'dtype': float, 'not_null': False}),
+        ('save_temperature',
+            {'field': 'save_temperature', 'dtype': float, 'not_null': False}),
+        ('automatic_ramp',
+            {'field': 'automatic_ramp', 'dtype': float, 'not_null': False}),
+    ])
+
+    def __init__(
+            self, database_name=None, mongo=False, server=None):
+        """Initialize object.
+
+        Args:
+            filename (str): connection configuration filepath.
+            database_name (str): database file path (sqlite) or name (mongo).
+            idn (int): id in database table (sqlite) / collection (mongo).
+            mongo (bool): flag indicating mongoDB (True) or sqlite (False).
+            server (str): MongoDB server.
+
+        """
+        self.comments = ''
+        super().__init__(
+            database_name=database_name, mongo=mongo, server=server)
+
+    def get_end(self, axis):
+        """Get end position for the given axis."""
+        return getattr(self, 'end_ax' + str(axis))
+ 
+    def get_extra(self, axis):
+        """Get extra position for the given axis."""
+        return getattr(self, 'extra_ax' + str(axis))
+ 
+    def get_start(self, axis):
+        """Get start position for the given axis."""
+        return getattr(self, 'start_ax' + str(axis))
+ 
+    def get_step(self, axis):
+        """Get position step for the given axis."""
+        return getattr(self, 'step_ax' + str(axis))
+ 
+    def get_velocity(self, axis):
+        """Get velocity for the given axis."""
+        return getattr(self, 'vel_ax' + str(axis))
+  
+    def set_end(self, axis, value):
+        """Set end position value for the given axis."""
+        attr = 'end_ax' + str(axis)
+        setattr(self, attr, value)
+ 
+    def set_extra(self, axis, value):
+        """Get extra position for the given axis."""
+        attr = 'extra_ax' + str(axis)
+        setattr(self, attr, value)
+ 
+    def set_start(self, axis, value):
+        """Set start position value for the given axis."""
+        attr = 'start_ax' + str(axis)
+        setattr(self, attr, value)
+ 
+    def set_step(self, axis, value):
+        """Set position step value for the given axis."""
+        attr = 'step_ax' + str(axis)
+        setattr(self, attr, value)
+ 
+    def set_velocity(self, axis, value):
+        """Set velocity value for the given axis."""
+        attr = 'vel_ax' + str(axis)
+        setattr(self, attr, value)
+
+
 class PowerSupplyConfig(_database.DatabaseAndFileDocument):
     """Read, write and store Power Supply configuration data."""
 

@@ -276,7 +276,7 @@ class ViewScanDialog(_QDialog):
 
         if idn_list is not None and len(idn_list) > 0:
             if nr_curves > len(colors):
-                colors = [(0, 0, 0)]*nr_curves
+                colors = list(colors)*int(_np.ceil(nr_curves/len(colors)))
             
             for idx in range(nr_curves):
                 pen = _pyqtgraph.mkPen(color=colors[idx], width=width)

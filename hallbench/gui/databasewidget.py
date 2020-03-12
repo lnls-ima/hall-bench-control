@@ -33,6 +33,7 @@ _CyclingCurve = _data.configuration.CyclingCurve
 _HallCalibrationCurve = _data.calibration.HallCalibrationCurve
 _HallProbePositions = _data.calibration.HallProbePositions
 _MeasurementConfig = _data.configuration.MeasurementConfig
+_IntegratorMeasurementConfig = _data.configuration.IntegratorMeasurementConfig
 _VoltageScan = _data.measurement.VoltageScan
 _FieldScan = _data.measurement.FieldScan
 _Fieldmap = _data.measurement.Fieldmap
@@ -47,6 +48,8 @@ class DatabaseWidget(_QWidget):
     _hall_sensor_table_name = _HallCalibrationCurve.collection_name
     _hall_probe_table_name = _HallProbePositions.collection_name
     _configuration_table_name = _MeasurementConfig.collection_name
+    _integrator_configuration_table_name = (
+        _IntegratorMeasurementConfig.collection_name)
     _voltage_scan_table_name = _VoltageScan.collection_name
     _field_scan_table_name = _FieldScan.collection_name
     _fieldmap_table_name = _Fieldmap.collection_name
@@ -82,6 +85,8 @@ class DatabaseWidget(_QWidget):
             self._hall_sensor_table_name: _HallCalibrationCurve,
             self._hall_probe_table_name: _HallProbePositions,
             self._configuration_table_name: _MeasurementConfig,
+            self._integrator_configuration_table_name: (
+                _IntegratorMeasurementConfig),
             self._voltage_scan_table_name: _VoltageScan,
             self._field_scan_table_name: _FieldScan,
             self._fieldmap_table_name: _Fieldmap,
@@ -94,6 +99,7 @@ class DatabaseWidget(_QWidget):
             self._hall_sensor_table_name: None,
             self._hall_probe_table_name: None,
             self._configuration_table_name: self.ui.pg_configuration,
+            self._integrator_configuration_table_name: None,
             self._voltage_scan_table_name: self.ui.pg_voltage_scan,
             self._field_scan_table_name: self.ui.pg_field_scan,
             self._fieldmap_table_name: self.ui.pg_fieldmap,

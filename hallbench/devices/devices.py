@@ -12,6 +12,7 @@ from imautils.devices import pydrs_firmware_updated as _pydrs
 from imautils.devices import ElcomatLib as _ElcomatLib
 from imautils.devices import NMRLib as _NMRLib
 from imautils.devices import UDCLib as _UDCLib
+from imautils.devices import FDI2056 as _FDI2056
 
 try:
     from imautils.devices import PmacLib as _PmacLib
@@ -142,10 +143,11 @@ Autocollimator = _ElcomatLib.ElcomatSerial
 NMR = _NMRLib.NMRSerial
 WaterUDC = _UDCLib.UDCModBus
 AirUDC = _UDCLib.UDCModBus
+Integrator = _FDI2056.EthernetCom
+
 
 if pmac_module:
     Pmac = _PmacLib.Pmac
-
 else:
     class Pmac():
 

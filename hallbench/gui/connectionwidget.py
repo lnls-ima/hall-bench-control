@@ -27,7 +27,8 @@ from hallbench.devices import (
     dcct as _dcct,
     water_udc as _water_udc,
     air_udc as _air_udc,
-    ps as _ps
+    ps as _ps,
+    integrator as _integrator,
     )
 
 

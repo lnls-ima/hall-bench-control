@@ -16,6 +16,7 @@ from qtpy.QtWidgets import (
     QApplication as _QApplication,
     QVBoxLayout as _QVBoxLayout,
     QMessageBox as _QMessageBox,
+    QProgressDialog as _QProgressDialog,
     )
 from qtpy.QtCore import (
     QThread as _QThread,
@@ -266,13 +267,34 @@ class IntegratorMeasurementWidget(_QWidget):
         self.clear()
 
         if (not self.update_configuration()
-                or not self.configure_integrator()
+                or not self.check_integrator_gain()
                 or not self.configure_pmac()
                 or not self.configure_multichannel()):
             self.measurement_configured = False
         else:
             self.measurement_configured = True
 
+    def check_integrator_gain(self):
+        try:
+            _integrator.send('INP:GAIN?')
+            _time.sleep(0.1)
+            gain = int(_integrator.read())
+            
+            if self.measurement_config.integrator_gain != gain:
+                msg = (
+                    'Integrator gain diferent from selected value. ' + 
+                    'Please configure the device and try again.')
+                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+                return False
+            
+            return True
+            
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to check integrator gain.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+   
     def configure_multichannel(self):
         """Configure multichannel to monitor dcct current and temperatures."""
         if (not self.ui.chb_save_temperature.isChecked() and
@@ -310,14 +332,68 @@ class IntegratorMeasurementWidget(_QWidget):
 
     def configure_integrator(self):
         """Configure multimeters."""
-        if self.measurement_config is None:
-            return False
-
         try:
-            _integrator.connect(bench=4)
+            if _integrator.connect(bench=4):
+                self.ui.la_integrator_led.setEnabled(True)
+            else:
+                self.ui.la_integrator_led.setEnabled(False)
+            
+            integrator_gain = int(self.ui.cmb_integrator_gain.currentText())
             _integrator.main_settings(
-                self.measurement_config.integrator_gain, source="External")
-                       
+                integrator_gain, source="External")
+            
+            if self.ui.rbt_configure_calibrate.isChecked():
+                _integrator.send(_integrator.FDIShortCircuitOn)
+                _time.sleep(1)
+                
+                _integrator.send(_integrator.FDICalibrate)
+
+                max_time = 200
+                prg_dialog = _QProgressDialog(
+                    'Performing integrator calibration...',
+                    '', 0, max_time)
+                prg_dialog.setWindowTitle('Information')
+                prg_dialog.autoClose()
+                prg_dialog.setCancelButton(None)
+                prg_dialog.show()
+    
+                t0 = _time.time()
+                t = _time.time()
+                while (t - t0) < max_time:
+                    prg_dialog.setValue(t-t0)
+                    _QApplication.processEvents()
+                    _time.sleep(0.5)
+                    t = _time.time()
+
+                _integrator.send(_integrator.FDIShortCircuitOff)
+            
+            elif self.ui.rbt_configure_adjust.isChecked():
+                _integrator.send(_integrator.FDIShortCircuitOn)
+                _time.sleep(1)
+                
+                _integrator.send('ADJ,A,2')
+                
+                max_time = 20
+                prg_dialog = _QProgressDialog(
+                    'Performing integrator gain and offset adjustment...',
+                    '', 0, max_time)
+                prg_dialog.setWindowTitle('Information')
+                prg_dialog.autoClose()
+                prg_dialog.setCancelButton(None)
+                prg_dialog.show()
+    
+                t0 = _time.time()
+                t = _time.time()
+                while (t - t0) < max_time:
+                    prg_dialog.setValue(t-t0)
+                    _QApplication.processEvents()
+                    _time.sleep(0.5)
+                    t = _time.time()
+
+                _integrator.send(_integrator.FDIShortCircuitOff)
+
+                _integrator.send(_integrator.FDIShortCircuitOff)                
+                        
             if self.stop:
                 return False
             else:
@@ -508,6 +584,9 @@ class IntegratorMeasurementWidget(_QWidget):
             self.show_view_voltage_scan_dialog)
         self.ui.tbt_clear_graph.clicked.connect(self.clear_button_clicked)
         self.ui.tbt_copy_analysis.clicked.connect(self.analysis)
+        self.ui.pbt_configure_integrator.clicked.connect(
+            self.configure_integrator)
+        self.ui.le_offset.editingFinished.connect(self.update_configuration)
 
     def copy_current_start_position(self):
         """Copy current start position to line edits."""
@@ -682,9 +761,22 @@ class IntegratorMeasurementWidget(_QWidget):
                 self.ui.rbt_ignore_offsets.setChecked(False)
                 self.ui.rbt_configure_offsets.setChecked(True)
 
-            self.ui.le_offset.setText('{0:0.4f}'.format(
-                1000*self.temp_measurement_config.offset))
-
+            offset_Vs = self.temp_measurement_config.offset
+            exponent = int('{0:e}'.format(offset_Vs).split('e')[-1])
+            if exponent >= 0:
+                offset = offset_Vs
+                self.ui.cmb_offset_unit.setCurrentIndex(0)
+            elif exponent >= -3 and exponent <= -1:
+                offset = offset_Vs*1e3
+                self.ui.cmb_offset_unit.setCurrentIndex(1)
+            elif exponent >= -6 and exponent <= -4:
+                offset = offset_Vs*1e6
+                self.ui.cmb_offset_unit.setCurrentIndex(2)
+            else:
+                offset = offset_Vs*1e9
+                self.ui.cmb_offset_unit.setCurrentIndex(3)
+            self.ui.le_offset.setText('{0:0.4f}'.format(offset))
+            
             self.ui.chb_on_the_fly.setChecked(
                 self.temp_measurement_config.on_the_fly)
             self.ui.chb_save_current.setChecked(
@@ -1058,7 +1150,11 @@ class IntegratorMeasurementWidget(_QWidget):
         if self.stop is True:
             return False
 
-        self.measure_current_and_temperature()
+        if not self.measure_current_and_temperature():
+            msg = 'Failed measure current and temperature.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+            return False
+        
         _QApplication.processEvents()
 
         if self.stop is True:
@@ -1398,8 +1494,10 @@ class IntegratorMeasurementWidget(_QWidget):
             elif self.ui.rbt_configure_offsets.isChecked():
                 self.temp_measurement_config.voltage_offset = 'configure'
 
+            offset_unit_idx = self.ui.cmb_offset_unit.currentIndex()
             offset = _utils.get_value_from_string(self.ui.le_offset.text())
-            self.temp_measurement_config.offset = offset
+            offset_Vs = offset/(10**(3*offset_unit_idx))
+            self.temp_measurement_config.offset = offset_Vs
 
             _ch = self.ui.chb_on_the_fly.isChecked()
             self.temp_measurement_config.on_the_fly = int(_ch)

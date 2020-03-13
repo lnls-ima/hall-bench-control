@@ -1121,13 +1121,13 @@ class MeasurementWidget(_QWidget):
             self.voltage_scan.dcct_current_avg = dcct_current
 
             # Read multichannel
-            r = _multich.get_converted_readings()
-            channels = _multich.config_channels
-            for i, ch in enumerate(channels):
-                temperature_dict[ch] = [[ts, r[i]]]
-            _QApplication.processEvents()
-
             if self.ui.chb_save_temperature.isChecked():
+                r = _multich.get_converted_readings()
+                channels = _multich.config_channels
+                for i, ch in enumerate(channels):
+                    temperature_dict[ch] = [[ts, r[i]]]
+                _QApplication.processEvents()
+
                 self.voltage_scan.temperature = temperature_dict
 
             _QApplication.processEvents()

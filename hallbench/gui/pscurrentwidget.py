@@ -181,7 +181,7 @@ class ReadValueWorker(_QObject):
                 ps_type = _ps.ps_type
                 if ps_type is not None:
                     _ps.SetSlaveAdd(ps_type)
-                    ps_current = float(_ps.Read_iLoad1())
+                    ps_current = float(_ps.read_iload1())
                 else:
                     ps_current = _np.nan
             else:

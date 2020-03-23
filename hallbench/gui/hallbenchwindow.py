@@ -23,6 +23,8 @@ from hallbench.gui.connectionwidget import ConnectionWidget \
 from hallbench.gui.motorswidget import MotorsWidget as _MotorsWidget
 from hallbench.gui.powersupplywidget import PowerSupplyWidget \
     as _PowerSupplyWidget
+from hallbench.gui.trimpowersupplywidget import TrimPowerSupplyWidget \
+    as _TrimPowerSupplyWidget
 from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
 from hallbench.gui.integratormeasurementwidget import (
@@ -75,6 +77,7 @@ class HallBenchWindow(_QMainWindow):
             'connection',
             'motors',
             'power_supply',
+            'trim_power_supply',
             'measurement',
             'integrator_measurement',
             'current',
@@ -91,6 +94,7 @@ class HallBenchWindow(_QMainWindow):
             _ConnectionWidget,
             _MotorsWidget,
             _PowerSupplyWidget,
+            _TrimPowerSupplyWidget,
             _MeasurementWidget,
             _IntegratorMeasurementWidget,
             _PSCurrentWidget,
@@ -108,8 +112,8 @@ class HallBenchWindow(_QMainWindow):
         self.preferences_dialog.chb_connection.setChecked(True)
         self.preferences_dialog.chb_motors.setChecked(True)
         self.preferences_dialog.chb_power_supply.setChecked(True)
-        self.preferences_dialog.chb_measurement.setChecked(False)
-        self.preferences_dialog.chb_integrator_measurement.setChecked(True)
+        self.preferences_dialog.chb_measurement.setChecked(True)
+        self.preferences_dialog.chb_integrator_measurement.setChecked(False)
         self.preferences_dialog.chb_database.setChecked(True)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)
 

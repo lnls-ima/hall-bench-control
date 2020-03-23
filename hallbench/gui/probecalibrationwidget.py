@@ -19,7 +19,8 @@ from hallbench.devices import (
     volty as _volty,
     voltz as _voltz,
     nmr as _nmr,
-    ps as _ps
+    ps as _ps,
+    multich as _multich,
     )
 from test.test_set import cube
 
@@ -37,12 +38,16 @@ class ProbeCalibrationWidget(_QWidget):
         self.config_plot()
         
         self.slope = [50, 90, 1000]
-                
+
+        self.temperature_channels = []
+        self.temperature_readings = []
+
         # create signal/slot connections
         self.ui.pbt_measure.clicked.connect(self.measure)
         self.ui.pbt_configure_nmr.clicked.connect(self.configure_nmr)
         self.ui.pbt_copy.clicked.connect(self.copy_to_clipboard)
         self.ui.pbt_refresh.clicked.connect(self.display_current)
+        self.ui.tbt_clear.clicked.connect(self.clear_readings)
 
     @property
     def current_max(self):
@@ -53,6 +58,22 @@ class ProbeCalibrationWidget(_QWidget):
     def current_min(self):
         """Power supply minimum current."""
         return _QApplication.instance().current_min
+
+    def clear_readings(self):
+        try:
+            self.temperature_channels = []
+            self.temperature_readings = []
+            self.graphv.setData([], [])
+            self.graphf.setData([], [])
+            self.ui.le_current.setText('')
+            self.ui.le_currentstd.setText('')
+            self.ui.le_volt.setText('')
+            self.ui.le_voltstd.setText('')
+            self.ui.le_field.setText('')
+            self.ui.le_fieldstd.setText('')
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def config_plot(self):
         try:
@@ -129,8 +150,12 @@ class ProbeCalibrationWidget(_QWidget):
         try:
             self.ui.pbt_measure.setEnabled(False)
 
+            self.temperature_channels = []
+            self.temperature_readings = []
             self.graphv.setData([], [])
             self.graphf.setData([], [])
+            self.ui.le_current.setText('')
+            self.ui.le_currentstd.setText('')
             self.ui.le_volt.setText('')
             self.ui.le_voltstd.setText('')
             self.ui.le_field.setText('')
@@ -224,7 +249,18 @@ class ProbeCalibrationWidget(_QWidget):
             t0 = _time.monotonic()
             deadline = t0 + t_border + current_time
             tr0 = t0
-
+          
+            chs = _multich.get_scan_channels()
+            
+            rl = _multich.get_converted_readings(wait=1)
+            if len(rl) == len(chs):
+                rl = [r if _np.abs(r) < 1e37 else _np.nan for r in rl]
+            else:
+                rl = [_np.nan]*len(chs)
+            
+            self.temperature_channels = chs
+            self.temperature_readings = rl
+            
             _ps.set_slowref(i)
             
             tr = 0
@@ -353,7 +389,16 @@ class ProbeCalibrationWidget(_QWidget):
             fstd = self.ui.le_fieldstd.text()
             v = self.ui.le_volt.text()
             vstd = self.ui.le_voltstd.text()
-            df = _pd.DataFrame([[c, cstd, f, fstd, v, vstd]])
+            readings = [c, cstd, f, fstd, v, vstd]
+            header = [
+                'current', 'current_std',
+                'field', 'field_std',
+                'voltage', 'voltage_std',
+                ]
+            for idx, tr in enumerate(self.temperature_readings):
+                readings.append(tr)
+                header.append(self.temperature_channels[idx])
+            df = _pd.DataFrame([readings], columns=header)
             df.to_clipboard(header=False, index=False)
         
         except Exception:

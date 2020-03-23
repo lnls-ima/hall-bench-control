@@ -111,6 +111,7 @@ class DatabaseWidget(_QWidget):
             self._cycling_curve_table_name,
             self._hall_sensor_table_name,
             self._hall_probe_table_name,
+            self._integrator_configuration_table_name,
             ]
  
         self.ui.pbt_remove_unused_configurations.setEnabled(True)

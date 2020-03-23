@@ -9,6 +9,7 @@ from imautils.devices import Agilent3458ALib as _Agilent3458ALib
 from imautils.devices import Agilent34401ALib as _Agilent34401ALib
 from imautils.devices import Agilent34970ALib as _Agilent34970ALib
 from imautils.devices import pydrs_firmware_updated as _pydrs
+from imautils.devices import pydrs as _pydrs_old
 from imautils.devices import ElcomatLib as _ElcomatLib
 from imautils.devices import NMRLib as _NMRLib
 from imautils.devices import UDCLib as _UDCLib
@@ -132,6 +133,14 @@ class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
 
 
 class PowerSupply(_pydrs.SerialDRS):
+    """Power Supply."""
+
+    def __init__(self):
+        self.ps_type = None
+        super().__init__()
+
+
+class TrimPowerSupply(_pydrs_old.SerialDRS):
     """Power Supply."""
 
     def __init__(self):

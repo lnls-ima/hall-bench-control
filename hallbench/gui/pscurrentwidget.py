@@ -54,11 +54,6 @@ class PSCurrentWidget(_TablePlotWidget):
         self.worker.finished.connect(self.wthread.quit)
         self.worker.finished.connect(self.get_reading)
 
-    @property
-    def power_supply_config(self):
-        """Power supply configuration."""
-        return _QApplication.instance().power_supply_config
-
     def check_connection(self, monitor=False):
         """Check devices connection."""
         if self.chb_dcct.isChecked() and not _dcct.connected:
@@ -159,11 +154,6 @@ class ReadValueWorker(_QObject):
         self.reading = []
         super().__init__()
 
-    @property
-    def power_supply_config(self):
-        """Power supply configuration."""
-        return _QApplication.instance().power_supply_config
-
     def run(self):
         """Read values from devices."""
         try:
@@ -180,7 +170,10 @@ class ReadValueWorker(_QObject):
             if self.ps_enabled:
                 ps_type = _ps.ps_type
                 if ps_type is not None:
-                    _ps.SetSlaveAdd(ps_type)
+                    if ps_type == 2:
+                        _ps.SetSlaveAdd(1)
+                    else:
+                        _ps.SetSlaveAdd(ps_type)
                     ps_current = float(_ps.read_iload1())
                 else:
                     ps_current = _np.nan

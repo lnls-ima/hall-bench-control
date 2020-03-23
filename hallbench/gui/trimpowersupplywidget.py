@@ -6,6 +6,7 @@ import sys as _sys
 import numpy as _np
 import time as _time
 import traceback as _traceback
+import serial.tools.list_ports as _list_ports
 import qtpy.uic as _uic
 from qtpy.QtWidgets import (
     QWidget as _QWidget,
@@ -31,11 +32,11 @@ from hallbench.devices import (
     voltz as _voltz,
     nmr as _nmr,
     dcct as _dcct,
-    ps as _ps
+    trimps as _ps
     )
 
 
-class PowerSupplyWidget(_QWidget):
+class TrimPowerSupplyWidget(_QWidget):
     """Power Supply widget class for the Hall Bench Control application."""
 
     start_measurement = _Signal([bool])
@@ -65,8 +66,11 @@ class PowerSupplyWidget(_QWidget):
 
         # fill combobox
         self.list_power_supply()
+        self.update_serial_ports()
 
         # create signal/slot connections
+        self.ui.pb_connect.clicked.connect(self.connect_ps)
+        self.ui.pb_disconnect.clicked.connect(self.disconnect_ps)        
         self.ui.pb_emergency.clicked.connect(self.emergency)
         self.ui.pb_ps_button.clicked.connect(self.start_power_supply)
         self.ui.pb_refresh.clicked.connect(self.display_current)
@@ -99,7 +103,7 @@ class PowerSupplyWidget(_QWidget):
             self.set_monopolar_bipolar_enabled)
         self.ui.pb_monopolar_bipolar.clicked.connect(
             self.configure_monopolar_bipolar)
-        self.ui.pb_plot_error.clicked.connect(self.plot_cycling_error)   
+        self.ui.pb_plot_error.clicked.connect(self.plot_cycling_error)        
         
     @property
     def database_name(self):
@@ -133,6 +137,45 @@ class PowerSupplyWidget(_QWidget):
     @current_min.setter
     def current_min(self, value):
         _QApplication.instance().current_min = value
+
+    def update_serial_ports(self):
+        """Update avaliable serial ports."""
+        _l = [p[0] for p in _list_ports.comports()]
+
+        if len(_l) == 0:
+            return
+
+        _ports = []
+        _s = ''
+        _k = str
+        if 'COM' in _l[0]:
+            _s = 'COM'
+            _k = int
+
+        for key in _l:
+            _ports.append(key.strip(_s))
+        _ports.sort(key=_k)
+        _ports = [_s + key for key in _ports]
+
+        self.ui.cmb_port.clear()
+        self.ui.cmb_port.addItems(_ports)
+
+    def connect_ps(self):
+        try:
+            port = self.ui.cmb_port.currentText()
+            _ps.Connect(port)
+            self.ui.la_connection_led.setEnabled(True)
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
+    def disconnect_ps(self):
+        try:
+            _ps.Disconnect()
+            self.ui.la_connection_led.setEnabled(False)
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
 
     def plot_cycling_error(self):
         try:

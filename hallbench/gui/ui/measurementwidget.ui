@@ -1847,7 +1847,7 @@ Over:</string>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>70</height>
+              <height>40</height>
              </size>
             </property>
            </widget>
@@ -1868,7 +1868,7 @@ Over:</string>
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>50</height>
+         <height>40</height>
         </size>
        </property>
        <property name="font">
@@ -1893,6 +1893,38 @@ Over:</string>
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pbt_measure_kyma">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Measure Kyma Undulator</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../../resources/img/a.png</normaloff>../../resources/img/a.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="shortcut">
+        <string>Ctrl+S</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pbt_stop">
        <property name="enabled">
         <bool>false</bool>
@@ -1906,7 +1938,7 @@ Over:</string>
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>50</height>
+         <height>40</height>
         </size>
        </property>
        <property name="font">

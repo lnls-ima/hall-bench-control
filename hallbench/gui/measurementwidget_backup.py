@@ -2,7 +2,6 @@
 
 """Measurement widget for the Hall Bench Control application."""
 
-import epics as _epics
 import sys as _sys
 import os as _os
 import time as _time
@@ -613,8 +612,6 @@ class MeasurementWidget(_QWidget):
         self.ui.rbt_measure_offsets.toggled.connect(self.change_offset_page)
 
         self.ui.pbt_measure.clicked.connect(self.measure_button_clicked)
-        self.ui.pbt_measure_kyma.clicked.connect(
-            self.measure_kyma_button_clicked)
         self.ui.pbt_stop.clicked.connect(self.stop_measurement)
         self.ui.tbt_create_fieldmap.clicked.connect(self.show_fieldmap_dialog)
         self.ui.tbt_save_scan_files.clicked.connect(self.save_field_scan_files)
@@ -1103,101 +1100,6 @@ class MeasurementWidget(_QWidget):
                 self.start_measurement()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
-
-    def measure_kyma_button_clicked(self):
-        """Configure and start automatic undulator measurements."""
-        self.measurements_id_list = []
-        self.configure_measurement()
-        if not self.measurement_configured:
-            return
-
-        self.ui.pbt_measure.setEnabled(False)
-        self.ui.pbt_stop.setEnabled(True)
-
-        und = "1991a"
-        comments = und + " Redo, plane 1mm, Phase "
-        phases = _np.arange(0, 12)
-        vel = 0.5
-        tol = 0.01
-        
-        operational_pv = und + ":IsOperational"
-        interface_pv = und + ":Interface"
-        command_pv = und + ":Command"
-        phase_pv = und + ":Phase"
-        phase_rbv_pv = und + ":Phase_RBV"
-        vel_pv = und + ":PhaseVelo"
-        vel_rbv_pv = und + ":PhaseVelo_RBV"
-        moving_pv = und + ":Moving"
-         
-        for ph in phases:
-            self.clear_measurement()
-    
-            try:
-                if not _epics.caget(operational_pv):
-                    msg = 'Undulator is not operational.'
-                    _QMessageBox.critical(
-                        self, 'Failure', msg, _QMessageBox.Ok)
-                    return   
- 
-                if (_epics.caget(interface_pv) != 1 and
-                        _epics.caget(interface_pv) != "Remote"):
-                    msg = 'Undulator not on remote mode.'
-                    _QMessageBox.critical(
-                        self, 'Failure', msg, _QMessageBox.Ok)
-                    return
- 
-                if not _epics.caput(vel_pv, vel):
-                    msg = 'Failed to set undulator velocity.'
-                    _QMessageBox.critical(
-                        self, 'Failure', msg, _QMessageBox.Ok)
-                    return
-                 
-                _time.sleep(0.1)
-                if not _epics.caput(phase_pv, ph):
-                    msg = 'Failed to set undulator phase.'
-                    _QMessageBox.critical(
-                        self, 'Failure', msg, _QMessageBox.Ok)
-                    return
-                 
-                _time.sleep(0.1)
-                _epics.caput(command_pv, "Start")
-                _time.sleep(10)
-                 
-                ph_rbv = _epics.caget(phase_rbv_pv)
-                if _np.abs(ph - ph_rbv) > tol:
-                    msg = 'Failed to change undulator phase.'
-                    _QMessageBox.critical(
-                        self, 'Failure', msg, _QMessageBox.Ok)
-                    return
-                
-                self.measurement_config.comments = comments + str(ph)
-                self.ui.te_comments.setText(self.measurement_config.comments)
-
-            except Exception:
-                _traceback.print_exc(file=_sys.stdout)
-                msg = 'Failed to change undulator phase.'
-                _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
-                return
-    
-            if not self.save_configuration():
-                return
-    
-            if not self.measure():
-                return
-
-        self.ui.pbt_stop.setEnabled(False)
-        self.ui.pbt_measure.setEnabled(True)
-        self.ui.tbt_create_fieldmap.setEnabled(True)
-        self.ui.tbt_save_scan_files.setEnabled(False)
-        self.ui.tbt_view_voltage_scan.setEnabled(False)
-        self.ui.tbt_view_field_scan.setEnabled(False)
-        self.ui.tbt_clear_graph.setEnabled(True)       
-      
-        msg = 'End of automatic measurements.'
-        _QMessageBox.information(
-            self, 'Measurements', msg, _QMessageBox.Ok)
-        
-        self.stop = True
 
     def measure_current_and_temperature(self):
         """Measure current and temperatures."""

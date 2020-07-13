@@ -210,6 +210,69 @@
    <item row="0" column="0" rowspan="3">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="title">
+        <string>NMR Search Mode</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QRadioButton" name="rbt_manual">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Manual</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="rbt_frequency">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Frequency</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="rbt_auto">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Auto</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QGroupBox" name="groupBox_3">
        <property name="enabled">
         <bool>true</bool>
@@ -223,10 +286,115 @@
        <property name="title">
         <string>Measurement Configuration</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_19">
-        <property name="verticalSpacing">
-         <number>15</number>
-        </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="6" column="1">
+         <widget class="QComboBox" name="cmb_nmrchannel">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <item>
+           <property name="text">
+            <string>A</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>B</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>C</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>D</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>E</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>F</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>G</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>H</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_15">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>NMR Field Sense:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Reading Time[s]:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QDoubleSpinBox" name="sbd_current">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>-1000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1000.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Current [A]:</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0" colspan="2">
          <layout class="QHBoxLayout" name="horizontalLayout_10">
           <property name="spacing">
@@ -279,39 +447,7 @@
           </item>
          </layout>
         </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Current [A]:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QDoubleSpinBox" name="sbd_current">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="minimum">
-           <double>-1000.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>1000.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="label_6">
           <property name="font">
            <font>
@@ -324,7 +460,49 @@
           </property>
          </widget>
         </item>
+        <item row="4" column="1">
+         <widget class="QSpinBox" name="sb_delay">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Reading Delay[s]:</string>
+          </property>
+         </widget>
+        </item>
         <item row="5" column="1">
+         <widget class="QSpinBox" name="sb_readingtime">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
          <widget class="QSpinBox" name="sb_time">
           <property name="font">
            <font>
@@ -341,7 +519,7 @@
          </widget>
         </item>
         <item row="6" column="0">
-         <widget class="QLabel" name="label_7">
+         <widget class="QLabel" name="label_13">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -349,25 +527,12 @@
            </font>
           </property>
           <property name="text">
-           <string>Reading Delay[s]:</string>
+           <string>NMR Channel:</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
-         <widget class="QSpinBox" name="sb_delay">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="maximum">
-           <number>1000</number>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_8">
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_14">
           <property name="font">
            <font>
             <weight>50</weight>
@@ -375,27 +540,11 @@
            </font>
           </property>
           <property name="text">
-           <string>Reading Time[s]:</string>
+           <string>NMR Frequency:</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
-         <widget class="QSpinBox" name="sb_readingtime">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="maximum">
-           <number>1000</number>
-          </property>
-          <property name="value">
-           <number>10</number>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="0" colspan="2">
+        <item row="11" column="0" colspan="2">
          <widget class="QPushButton" name="pbt_configure_nmr">
           <property name="minimumSize">
            <size>
@@ -408,7 +557,36 @@
           </property>
          </widget>
         </item>
-        <item row="14" column="0" colspan="2">
+        <item row="8" column="1">
+         <widget class="QSpinBox" name="sb_nmrfreq">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="maximum">
+           <number>4095</number>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0" colspan="2">
+         <widget class="QCheckBox" name="chb_zerocurrent">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Set current to zero after measurement</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0" colspan="2">
          <widget class="QPushButton" name="pbt_measure">
           <property name="minimumSize">
            <size>
@@ -427,109 +605,7 @@
           </property>
          </widget>
         </item>
-        <item row="11" column="0">
-         <widget class="QLabel" name="label_14">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>NMR Frequency:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="0">
-         <widget class="QLabel" name="label_13">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>NMR Channel:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="1">
-         <widget class="QSpinBox" name="sb_nmrfreq">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="maximum">
-           <number>4095</number>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="1">
-         <widget class="QComboBox" name="cmb_nmrchannel">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <item>
-           <property name="text">
-            <string>A</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>B</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>C</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>D</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>E</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>F</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>G</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>H</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="10" column="0">
-         <widget class="QLabel" name="label_15">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>NMR Field Sense:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="10" column="1">
+        <item row="7" column="1">
          <widget class="QComboBox" name="cmb_nmrsense">
           <property name="font">
            <font>
@@ -550,6 +626,38 @@
             <string>Positive</string>
            </property>
           </item>
+         </widget>
+        </item>
+        <item row="9" column="0">
+         <widget class="QLabel" name="label">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>NMR Search Time:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="1">
+         <widget class="QSpinBox" name="sb_nmrsearchtime">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>6</number>
+          </property>
+          <property name="value">
+           <number>1</number>
+          </property>
          </widget>
         </item>
        </layout>

@@ -103,7 +103,7 @@ class ProbeCalibrationWidget(_QWidget):
                 _np.array([]), _np.array([]), pen=penv,
                 symbol='o', symbolPen=penv, symbolSize=3, symbolBrush=penv)
 
-            penf = (0, 255, 0)
+            penf = (255, 0, 0)
             graphf = _pyqtgraph.PlotDataItem(
                 _np.array([]), _np.array([]), pen=penf,
                 symbol='o', symbolPen=penf, symbolSize=3, symbolBrush=penf)
@@ -128,13 +128,22 @@ class ProbeCalibrationWidget(_QWidget):
                 msg = 'NMR not connected.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
                 return False
+            
+            if self.ui.rbt_manual.isChecked():
+                mode = 0
+            elif self.ui.rbt_frequency.isChecked():
+                mode = 1
+            else:
+                mode = 2
 
             nmr_channel = self.ui.cmb_nmrchannel.currentText()
             nmr_freq = self.ui.sb_nmrfreq.value()
             nmr_sense = self.ui.cmb_nmrsense.currentIndex()
+            nmr_searchtime = self.ui.sb_nmrsearchtime.value()
 
             if not _nmr.configure(
-                    nmr_freq, 1, nmr_sense, 1, 0, 1, nmr_channel, 1):
+                    mode, nmr_freq, nmr_sense, 1, 0,
+                    nmr_searchtime, nmr_channel, 1):
                 msg = 'Failed to configure NMR.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
                 self.ui.pbt_measure.setEnabled(True)
@@ -161,12 +170,6 @@ class ProbeCalibrationWidget(_QWidget):
             self.ui.le_field.setText('')
             self.ui.le_fieldstd.setText('')
 
-            if not _nmr.connected:
-                msg = 'NMR not connected.'
-                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pbt_measure.setEnabled(True)
-                return False
-
             if self.ui.rbt_sensorx.isChecked():
                 volt = _voltx
             elif self.ui.rbt_sensory.isChecked():
@@ -181,17 +184,6 @@ class ProbeCalibrationWidget(_QWidget):
 
             if not volt.connected:
                 msg = 'Multimeter not connected.'
-                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pbt_measure.setEnabled(True)
-                return False
-
-            nmr_channel = self.ui.cmb_nmrchannel.currentText()
-            nmr_freq = self.ui.sb_nmrfreq.value()
-            nmr_sense = self.ui.cmb_nmrsense.currentIndex()
-
-            if not _nmr.configure(
-                    nmr_freq, 1, nmr_sense, 1, 0, 1, nmr_channel, 1):
-                msg = 'Failed to configure NMR.'
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
                 self.ui.pbt_measure.setEnabled(True)
                 return False
@@ -221,8 +213,7 @@ class ProbeCalibrationWidget(_QWidget):
                 slope = self.slope[2]
 
             current = float(_ps.read_iload1())
-            _ps.set_slowref(0)
-            _time.sleep(abs(current) / slope)
+                    
             self.display_current()
             
             ts = []
@@ -245,11 +236,7 @@ class ProbeCalibrationWidget(_QWidget):
                 self.ui.pbt_measure.setEnabled(True)
                 return False
 
-            t_border = abs(i) / slope
-            t0 = _time.monotonic()
-            deadline = t0 + t_border + current_time
-            tr0 = t0
-          
+       
             chs = _multich.get_scan_channels()
             
             rl = _multich.get_converted_readings(wait=1)
@@ -262,6 +249,12 @@ class ProbeCalibrationWidget(_QWidget):
             self.temperature_readings = rl
             
             _ps.set_slowref(i)
+            _time.sleep(1)
+            
+            t_border = abs(current-i) / slope
+            t0 = _time.monotonic()
+            deadline = t0 + t_border + current_time
+            tr0 = t0
             
             tr = 0
             while _time.monotonic() < deadline:
@@ -272,22 +265,34 @@ class ProbeCalibrationWidget(_QWidget):
                     
                     try:
                         c = float(_ps.read_iload1())
+                        _QApplication.processEvents()
                         cs.append(c)
                         self.ui.lcd_ps_reading.display(round(c, 3))
                     except Exception:
                         cs.append(_np.nan)
                         
                     b = _nmr.read_b_value().strip().replace('\r\n', '')
-                    if b.endswith('T') and b.startswith('L'):
-                        try:
-                            b = b.replace('T', '')
-                            fs.append(float(b[1:]))
-                        except Exception:
+                    _QApplication.processEvents()
+                    if b.endswith('T'):
+                        if b.startswith('L'):
+                            try:
+                                b = b.replace('T', '')
+                                fs.append(float(b[1:]))
+                            except Exception:
+                                fs.append(_np.nan)
+                        elif b.startswith('S') and self.ui.rbt_manual.isChecked():
+                            try:
+                                b = b.replace('T', '')
+                                fs.append(float(b[1:]))
+                            except Exception:
+                                fs.append(_np.nan)
+                        else:
                             fs.append(_np.nan)
                     else:
                         fs.append(_np.nan)
                     try:
                         v = float(volt.read_from_device()[:-2])
+                        _QApplication.processEvents()
                         vs.append(v)
                     except Exception:
                         vs.append(_np.nan)
@@ -299,10 +304,11 @@ class ProbeCalibrationWidget(_QWidget):
                 else:
                     tr0 = _time.monotonic()
                     
-                
                 _time.sleep(0.01)
 
-            _ps.set_slowref(0)
+            if self.ui.chb_zerocurrent.isChecked():
+                _ps.set_slowref(0)
+                _time.sleep(abs(i) / slope)
 
             cn = [c for c in cs if not _np.isnan(c)]
             vn = [v for v in vs if not _np.isnan(v)]
@@ -329,7 +335,6 @@ class ProbeCalibrationWidget(_QWidget):
                 self.ui.le_field.setText('')
                 self.ui.le_fieldstd.setText('')
 
-            _time.sleep(abs(i) / slope)
             self.display_current()
 
             self.ui.pbt_measure.setEnabled(True)

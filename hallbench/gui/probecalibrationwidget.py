@@ -306,6 +306,8 @@ class ProbeCalibrationWidget(_QWidget):
                     
                 _time.sleep(0.01)
 
+            print(_nmr.read_dac_value())
+
             if self.ui.chb_zerocurrent.isChecked():
                 _ps.set_slowref(0)
                 _time.sleep(abs(i) / slope)

@@ -5,7 +5,7 @@ import time as _time
 
 from imautils.devices.utils import configure_logging
 from . import devices as _devices
-
+from . import powersupply
 
 _timestamp = _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime())
 

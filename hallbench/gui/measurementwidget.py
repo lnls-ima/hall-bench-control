@@ -1114,8 +1114,8 @@ class MeasurementWidget(_QWidget):
         self.ui.pbt_measure.setEnabled(False)
         self.ui.pbt_stop.setEnabled(True)
 
-        und = "1991a"
-        comments = und + " Redo, plane 1mm, Phase "
+        und = "1991d"
+        comments = und + " Phase "
         phases = _np.arange(0, 12)
         vel = 0.5
         tol = 0.01

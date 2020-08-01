@@ -12,5 +12,3 @@ if THREAD:
     thread = hallbenchapp.run_in_thread()
 else:
     hallbenchapp.run()
-
-

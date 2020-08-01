@@ -93,15 +93,26 @@ class Multichannel(_Agilent34970ALib.Agilent34970AGPIB):
                     ch = self._config_channels[i]
                     rd = rlist[i]
                     if ch in self.voltage_channels:
-                        # Voltage to temperature (Transducer 135-14)
+#                         # Voltage to temperature (Transducer 135-14)
+#                         if ch == '101':
+#                             temp = (rd + 50e-3)/20e-3
+#                         elif ch == '102':
+#                             temp = (rd + 40e-3)/20e-3
+#                         elif ch == '103':
+#                             temp = (rd + 50e-3)/20e-3
+#                         elif ch == '105':
+#                             temp = (rd + 30e-3)/20e-3
+#                         else:
+#                             temp = _np.nan
+                        # Voltage to temperature (Transducer 133-14)
                         if ch == '101':
-                            temp = (rd + 50e-3)/20e-3
+                            temp = (rd + 20e-3)/20e-3
                         elif ch == '102':
-                            temp = (rd + 40e-3)/20e-3
+                            temp = (rd + 25e-3)/20e-3
                         elif ch == '103':
-                            temp = (rd + 50e-3)/20e-3
+                            temp = (rd + 35e-3)/20e-3
                         elif ch == '105':
-                            temp = (rd + 30e-3)/20e-3
+                            temp = (rd + 45e-3)/20e-3
                         else:
                             temp = _np.nan
                         conv_rlist.append(temp)

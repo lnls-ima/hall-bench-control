@@ -60,13 +60,13 @@ class SaveFieldScanDialog(_QDialog):
 
     def accept(self):
         """Close dialog."""
-        self.clear()
+        #self.clear()
         super().accept()
 
     def closeEvent(self, event):
         """Close widget."""
         try:
-            self.clear()
+            #self.clear()
             event.accept()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)

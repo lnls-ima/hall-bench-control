@@ -532,7 +532,7 @@ class TableAnalysisDialog(_QDialog):
         self.setLayout(_layout)
         self.table_df = None
 
-        self.resize(500, 200)
+        self.resize(750, 200)
 
     def closeEvent(self, event):
         """Close widget."""
@@ -558,10 +558,10 @@ class TableAnalysisDialog(_QDialog):
         if self.table_df is None:
             return
 
-        self.tbl_results.setColumnCount(3)
+        self.tbl_results.setColumnCount(5)
 
         self.tbl_results.setHorizontalHeaderLabels(
-            ['Mean', 'STD', 'Peak-Valey'])
+            ['Mean', 'STD', 'Minimum', 'Maximum', 'Peak-Valey'])
 
         labels = [
             l for l in self.table_df.columns if l not in ['Date', 'Time']]
@@ -581,14 +581,20 @@ class TableAnalysisDialog(_QDialog):
             if len(values) == 0:
                 mean = _np.nan
                 std = _np.nan
+                min = _np.nan
+                max = _np.nan
                 peak_valey = _np.nan
             else:
                 mean = _np.mean(values)
                 std = _np.std(values)
-                peak_valey = _np.max(values) - _np.min(values)
+                min = _np.min(values)
+                max = _np.max(values)
+                peak_valey = max - min 
             self.add_items_to_table('{0:.4f}'.format(mean), i, 0)
             self.add_items_to_table('{0:.4f}'.format(std), i, 1)
-            self.add_items_to_table('{0:.4f}'.format(peak_valey), i, 2)
+            self.add_items_to_table('{0:.4f}'.format(min), i, 2)
+            self.add_items_to_table('{0:.4f}'.format(max), i, 3)
+            self.add_items_to_table('{0:.4f}'.format(peak_valey), i, 4)
 
     def accept(self):
         """Close dialog."""
@@ -780,8 +786,8 @@ class TablePlotWidget(_QWidget):
         self.horizontal_layout_3.addWidget(label)
 
         self.sbd_monitor_step = _QDoubleSpinBox()
-        self.sbd_monitor_step.setDecimals(1)
-        self.sbd_monitor_step.setMinimum(0.1)
+        self.sbd_monitor_step.setDecimals(2)
+        self.sbd_monitor_step.setMinimum(0.01)
         self.sbd_monitor_step.setMaximum(60.0)
         self.sbd_monitor_step.setProperty("value", 10.0)
         self.horizontal_layout_3.addWidget(self.sbd_monitor_step)

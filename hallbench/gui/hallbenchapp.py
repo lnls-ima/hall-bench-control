@@ -75,6 +75,10 @@ class HallBenchApp(_QApplication):
             _data.configuration.IntegratorMeasurementConfig(
                 database_name=self.database_name,
                 mongo=self.mongo, server=self.server))
+        _NMRMeasurementConfig = (
+            _data.configuration.NMRMeasurementConfig(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server))
         _VoltageScan = _data.measurement.VoltageScan(
             database_name=self.database_name,
             mongo=self.mongo, server=self.server)
@@ -93,6 +97,7 @@ class HallBenchApp(_QApplication):
         status.append(_HallProbePositions.db_create_collection())
         status.append(_MeasurementConfig.db_create_collection())
         status.append(_IntegratorMeasurementConfig.db_create_collection())
+        status.append(_NMRMeasurementConfig.db_create_collection())
         status.append(_VoltageScan.db_create_collection())
         status.append(_FieldScan.db_create_collection())
         status.append(_Fieldmap.db_create_collection())

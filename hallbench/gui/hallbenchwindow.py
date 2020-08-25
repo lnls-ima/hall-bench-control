@@ -29,6 +29,8 @@ from hallbench.gui.measurementwidget import MeasurementWidget \
     as _MeasurementWidget
 from hallbench.gui.integratormeasurementwidget import (
     IntegratorMeasurementWidget as _IntegratorMeasurementWidget)
+from hallbench.gui.nmrmeasurementwidget import (
+    NMRMeasurementWidget as _NMRMeasurementWidget)
 from hallbench.gui.voltagewidget import VoltageWidget \
     as _VoltageWidget
 from hallbench.gui.pscurrentwidget import PSCurrentWidget \
@@ -80,6 +82,7 @@ class HallBenchWindow(_QMainWindow):
             'trim_power_supply',
             'measurement',
             'integrator_measurement',
+            'nmr_measurement',
             'current',
             'voltage',
             'temperature',
@@ -97,6 +100,7 @@ class HallBenchWindow(_QMainWindow):
             _TrimPowerSupplyWidget,
             _MeasurementWidget,
             _IntegratorMeasurementWidget,
+            _NMRMeasurementWidget,
             _PSCurrentWidget,
             _VoltageWidget,
             _TemperatureWidget,

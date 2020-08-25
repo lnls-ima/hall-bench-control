@@ -88,11 +88,11 @@ folder = (
     "hall-bench-control\\fieldmaps\\CalibrationData")
 coeffs = [1, 2, 3]
 voltage_lim = 4
-voltage_offset = 0.6610/1000
+voltage_offset = 0.68/1000
 
 filenames = [
-    'Senis_133-14_X.txt',
-    'M23.txt',
+    'Z_Senis.txt',
+    'Z_LNLS.txt',
     ]
 
 labels = [f.replace('.txt', '') for f in filenames]

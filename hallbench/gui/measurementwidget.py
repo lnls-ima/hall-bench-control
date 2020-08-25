@@ -1114,8 +1114,8 @@ class MeasurementWidget(_QWidget):
         self.ui.pbt_measure.setEnabled(False)
         self.ui.pbt_stop.setEnabled(True)
 
-        und = "1991d"
-        comments = und + " Phase "
+        und = "1991c"
+        comments = "Probes 133-14, " + und + " Phase "
         phases = _np.arange(0, 12)
         vel = 0.5
         tol = 0.01
@@ -1161,7 +1161,7 @@ class MeasurementWidget(_QWidget):
                  
                 _time.sleep(0.1)
                 _epics.caput(command_pv, "Start")
-                _time.sleep(10)
+                _time.sleep(20)
                  
                 ph_rbv = _epics.caget(phase_rbv_pv)
                 if _np.abs(ph - ph_rbv) > tol:
@@ -1629,16 +1629,8 @@ class MeasurementWidget(_QWidget):
             if len(directory) == 0:
                 return
 
-
-            for i, scan in enumerate(field_scan_list):
-                idn = self.field_scan_id_list[i]
+            for scan in field_scan_list:
                 default_filename = scan.default_filename
-                if '.txt' in default_filename:
-                    default_filename = default_filename.replace(
-                        '.txt', '_ID={0:d}.txt'.format(idn))
-                elif '.dat' in default_filename:
-                    default_filename = default_filename.replace(
-                        '.dat', '_ID={0:d}.dat'.format(idn))
                 default_filename = _os.path.join(directory, default_filename)
                 scan.save_file(default_filename)
 

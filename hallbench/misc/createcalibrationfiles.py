@@ -24,7 +24,13 @@ def plot_fit_results(calibration_name, voltage, field, poly, residual, error):
         bbox={'edgecolor': 'black', 'facecolor': 'white'})
     ax[0].set_title(calibration_name)
 
+    result = _np.polynomial.polynomial.polyfit(
+        voltage, residual, [2], full=True)
+    fit_residual = _np.polynomial.polynomial.polyval(voltage, result[0])
+    print('residual: ', result[0]/1e4)
+
     ax[1].plot(voltage, residual, '-or')
+    ax[1].plot(voltage, fit_residual, '--k')
     ax[1].grid()
     ax[1].set_ylabel('Polynomial Fit\nResidue [G]')
     ax[1].set_xlabel('Voltage [V]')
@@ -89,12 +95,15 @@ def find_polynomial_fit(
     current_sp = data[:, 3].astype(float)
     field = data[:, 6].astype(float)
     voltage = data[:, 8].astype(float)
-    temp_probe = data[:, 11].astype(float)
-    temp_box = data[:, 13].astype(float)
 
-    print(data[0])
-    print(temp_probe[0])
-    print(temp_box[0])
+    if _np.shape(data)[1] >= 14:
+        valid_temp = 1
+        temp_probe = data[:, 11].astype(float)
+        temp_box = data[:, 13].astype(float)
+    else:
+        valid_temp = 0
+        temp_probe = _np.zeros(len(voltage))
+        temp_box = _np.zeros(len(voltage))
 
     if voltage_lim is None:
         voltage_lim = _np.max(_np.abs(voltage))
@@ -133,6 +142,10 @@ def find_polynomial_fit(
     print(coeffs)
     print(poly)
     print(error*1e6)
+    if not valid_temp:
+        temp_probe = None
+        temp_box = None
+
     return voltage, field, poly, temp_probe, temp_box
 
 
@@ -168,6 +181,7 @@ def write_file_and_plot(fd, filename):
     hc.calibration_magnet = d['calibration_magnet']
     hc.voltage_min = d['voltage_min']
     hc.voltage_max = d['voltage_max']
+    hc.voltage_offset = d['voltage_offset']
     hc.voltage = voltage
     hc.magnetic_field = field
     hc.probe_temperature = temp_probe
@@ -192,7 +206,7 @@ coeffs = [1, 3, 5, 7]
 sign = 1
 voltage_min = -10
 voltage_max = 10
-voltage_offset = 0
+voltage_offset = -1*0.1810/1000
 calibration_name = date + '_Probe133-14X_BySenis_2T'
 calibration_magnet = 'ElectromagnetBrukerBM6'
 fd[filename] = {
@@ -207,7 +221,7 @@ coeffs = [1, 3, 5, 7]
 sign = 1
 voltage_min = -10
 voltage_max = 10
-voltage_offset = 0
+voltage_offset = -0.1830/1000
 calibration_name = date + '_Probe133-14Y_BySenis_2T'
 calibration_magnet = 'ElectromagnetBrukerBE15'
 fd[filename] = {
@@ -222,7 +236,7 @@ coeffs = [1, 3, 5, 7]
 sign = 1
 voltage_min = -10
 voltage_max = 10
-voltage_offset = 0
+voltage_offset = 0*0.6610/1000
 calibration_name = date + '_Probe133-14Z_BySenis_2T'
 calibration_magnet = 'ElectromagnetBrukerBE15'
 fd[filename] = {
@@ -238,7 +252,7 @@ coeffs = [1, 2, 3, 5, 7]
 sign = 1
 voltage_min = -10
 voltage_max = 10
-voltage_offset = 0
+voltage_offset = -0.280/1000
 calibration_name = date + '_Probe134-14X_BySenis_2T'
 calibration_magnet = 'ElectromagnetBrukerBM6'
 fd[filename] = {
@@ -249,11 +263,11 @@ fd[filename] = {
 
 filename = '134-14Y_BySenis.txt'
 date = '2020-05-12'
-coeffs = [0, 1, 2, 3, 5, 7] # Aqui
+coeffs = [1, 2, 3, 5, 7]
 sign = 1
 voltage_min = -10
 voltage_max = 10
-voltage_offset = 0
+voltage_offset = -1*1.163/1000
 calibration_name = date + '_Probe134-14Y_BySenis_2T'
 calibration_magnet = 'ElectromagnetBrukerBE15'
 fd[filename] = {
@@ -268,7 +282,7 @@ coeffs = [1, 2, 3, 5, 7]
 sign = 1
 voltage_min = -10
 voltage_max = 10
-voltage_offset = 0
+voltage_offset = 0.237/1000
 calibration_name = date + '_Probe134-14Z_BySenis_2T'
 calibration_magnet = 'ElectromagnetBrukerBE15'
 fd[filename] = {
@@ -277,7 +291,7 @@ fd[filename] = {
     'calibration_name': calibration_name,
     'calibration_magnet': calibration_magnet}
 
-# LNLS calibration data for probe 135-14Y, calibration dipole
+# LNLS calibration data for probe 135-14Y
 filename = '135-14Y_M1.txt'
 date = '2020-02-21'
 coeffs = [1, 3]
@@ -356,7 +370,7 @@ fd[filename] = {
 filename = '135-14Y_M6.txt'
 date = '2020-06-11'
 coeffs = [1, 2, 3, 5, 7]
-sign = 1
+sign = -1
 voltage_min = -10
 voltage_max = 10
 voltage_offset = 1.4740/1000
@@ -371,7 +385,7 @@ fd[filename] = {
 filename = '135-14Y_M7.txt'
 date = '2020-06-11'
 coeffs = [1, 2, 3, 4, 5, 7, 9]
-sign = 1
+sign = -1
 voltage_min = -15
 voltage_max = 15
 voltage_offset = 1.4740/1000
@@ -386,7 +400,7 @@ fd[filename] = {
 filename = '135-14Y_M8.txt'
 date = '2020-06-12'
 coeffs = [1, 2, 3, 4, 5, 7, 9]
-sign = 1
+sign = -1
 voltage_min = -15
 voltage_max = 15
 voltage_offset = 1.4740/1000
@@ -401,7 +415,7 @@ fd[filename] = {
 filename = '135-14Y_M9.txt'
 date = '2020-06-13'
 coeffs = [1, 2, 3, 5, 7]
-sign = 1
+sign = -1
 voltage_min = -7
 voltage_max = 7
 voltage_offset = 1.4740/1000
@@ -416,7 +430,7 @@ fd[filename] = {
 filename = '135-14Y_M10.txt'
 date = '2020-07-16'
 coeffs = [1, 2, 3, 5, 7]
-sign = 1
+sign = -1
 voltage_min = -11
 voltage_max = 11
 voltage_offset = 1.4740/1000
@@ -431,7 +445,7 @@ fd[filename] = {
 filename = '135-14Y_M11.txt'
 date = '2020-07-17'
 coeffs = [1, 2, 3, 5, 7]
-sign = 1
+sign = -1
 voltage_min = -11
 voltage_max = 11
 voltage_offset = 1.4740/1000
@@ -446,7 +460,7 @@ fd[filename] = {
 filename = '135-14Y_M12.txt'
 date = '2020-07-21'
 coeffs = [1, 2, 3, 5, 7]
-sign = 1
+sign = -1
 voltage_min = -11
 voltage_max = 11
 voltage_offset = 1.4740/1000
@@ -461,7 +475,7 @@ fd[filename] = {
 filename = '135-14Y_M13.txt'
 date = '2020-07-21'
 coeffs = [1, 2, 3, 5, 7]
-sign = 1
+sign = -1
 voltage_min = -10
 voltage_max = 10
 voltage_offset = 1.4740/1000
@@ -476,7 +490,7 @@ fd[filename] = {
 filename = '135-14Y_M14.txt'
 date = '2020-07-21'
 coeffs = [1, 2, 3]
-sign = 1
+sign = -1
 voltage_min = -5
 voltage_max = 5
 voltage_offset = 1.4740/1000
@@ -491,7 +505,7 @@ fd[filename] = {
 filename = '135-14Y_M15.txt'
 date = '2020-07-22'
 coeffs = [1, 2, 3, 5, 7]
-sign = 1
+sign = -1
 voltage_min = -10
 voltage_max = 10
 voltage_offset = 1.4740/1000
@@ -536,7 +550,7 @@ fd[filename] = {
 filename = '135-14Y_M18.txt'
 date = '2020-07-30'
 coeffs = [1, 2, 3, 5, 7, 9]
-sign = 1
+sign = -1
 voltage_min = -13
 voltage_max = 13
 voltage_offset = 1.4740/1000
@@ -551,7 +565,7 @@ fd[filename] = {
 filename = '135-14Y_M19.txt'
 date = '2020-07-30'
 coeffs = [1, 2, 3, 5, 7, 9]
-sign = 1
+sign = -1
 voltage_min = -15
 voltage_max = 15
 voltage_offset = 1.4740/1000
@@ -572,22 +586,24 @@ voltage_min = -3.5
 voltage_max = 3.5
 voltage_offset = -0.1830/1000
 calibration_magnet = 'CalibrationDipole'
-calibration_name = date + '_Probe133-14Y_M18_0.7T'
+calibration_name = date + '_Probe133-14Y_M1_0.7T'
 fd[filename] = {
     'date': date, 'coeffs': coeffs, 'sign': sign, 'voltage_min': voltage_min,
     'voltage_max': voltage_max, 'voltage_offset': voltage_offset,
     'calibration_name': calibration_name,
     'calibration_magnet': calibration_magnet}
 
+selected_filename = filename
+
 filename = '133-14Y_M2.txt'
 date = '2020-07-28'
 coeffs = [1, 2, 3, 5, 7]
-sign = 1
+sign = -1
 voltage_min = -11
 voltage_max = 11
 voltage_offset = -0.1830/1000
 calibration_magnet = 'GMWDipole'
-calibration_name = date + '_Probe133-14Y_2T'
+calibration_name = date + '_Probe133-14Y_M2_2T'
 fd[filename] = {
     'date': date, 'coeffs': coeffs, 'sign': sign, 'voltage_min': voltage_min,
     'voltage_max': voltage_max, 'voltage_offset': voltage_offset,
@@ -597,12 +613,12 @@ fd[filename] = {
 filename = '133-14Y_M3.txt'
 date = '2020-07-29'
 coeffs = [1, 2, 3, 5, 7, 9]
-sign = 1
+sign = -1
 voltage_min = -15
 voltage_max = 15
 voltage_offset = -0.1830/1000
 calibration_magnet = 'GMWDipole'
-calibration_name = date + '_Probe133-14Y_3T'
+calibration_name = date + '_Probe133-14Y_M3_3T'
 fd[filename] = {
     'date': date, 'coeffs': coeffs, 'sign': sign, 'voltage_min': voltage_min,
     'voltage_max': voltage_max, 'voltage_offset': voltage_offset,
@@ -612,12 +628,12 @@ fd[filename] = {
 filename = '133-14Y_M4.txt'
 date = '2020-07-30'
 coeffs = [1, 2, 3, 5, 7, 9]
-sign = 1
+sign = -1
 voltage_min = -13
 voltage_max = 13
 voltage_offset = -0.1830/1000
 calibration_magnet = 'GMWDipole'
-calibration_name = date + '_Probe133-14Y_2.6T'
+calibration_name = date + '_Probe133-14Y_M4_2.6T'
 fd[filename] = {
     'date': date, 'coeffs': coeffs, 'sign': sign, 'voltage_min': voltage_min,
     'voltage_max': voltage_max, 'voltage_offset': voltage_offset,
@@ -628,10 +644,10 @@ fd[filename] = {
 filename = '133-14Z.txt'
 date = '2020-07-30'
 coeffs = [1, 2, 3]
-sign = 1
+sign = -1
 voltage_min = -3.5
 voltage_max = 3.5
-voltage_offset = -0.1830/1000
+voltage_offset = 0.6610/1000
 calibration_magnet = 'CalibrationDipole'
 calibration_name = date + '_Probe133-14Z_0.7T'
 fd[filename] = {
@@ -640,5 +656,4 @@ fd[filename] = {
     'calibration_name': calibration_name,
     'calibration_magnet': calibration_magnet}
 
-
-write_file_and_plot(fd, '133-14X_BySenis.txt')
+write_file_and_plot(fd, selected_filename)

@@ -28,6 +28,7 @@ from hallbench.devices import multich as _multich
 class TemperatureWidget(_TablePlotWidget):
     """Temperature Widget class for the Hall Bench Control application."""
 
+    _monitor_name = 'temperature'
     _left_axis_1_label = 'Temperature [deg C]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = [
@@ -138,6 +139,7 @@ class TemperatureWidget(_TablePlotWidget):
                 self._readings[label].append(temperature)
 
             self.add_last_value_to_table()
+            self.add_last_value_to_file()
             self.update_plot()
 
         except Exception:

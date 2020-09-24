@@ -29,6 +29,7 @@ from hallbench.devices import (
 class VoltagePSCurrentWidget(_TablePlotWidget):
     """Power supply current class for the Hall Bench Control application."""
 
+    _monitor_name = 'voltage_current'
     _left_axis_1_label = 'Current [A]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['DCCT [A]']
@@ -117,6 +118,7 @@ class VoltagePSCurrentWidget(_TablePlotWidget):
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
             self.add_last_value_to_table()
+            self.add_last_value_to_file()
             self.update_plot()
 
         except Exception:

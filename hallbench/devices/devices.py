@@ -141,7 +141,20 @@ class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
         else:
             current = _np.nan
         return current
-
+    
+    def read_fast(self):
+        self.send_command(self.commands.read)
+        try:
+            val = float(self.read_from_device()[:-1])
+        except Exception:
+            val = None        
+        dcct_heads = [40, 160, 320, 600, 1000, 1125]
+        if val is not None and self.dcct_head in dcct_heads:
+            current = val * self.dcct_head/10
+        else:
+            current = _np.nan
+        return current
+    
 
 class PowerSupply(_pydrs.SerialDRS):
     """Power Supply."""

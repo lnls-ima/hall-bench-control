@@ -34,6 +34,7 @@ from hallbench.devices import (
 class VoltageWidget(_TablePlotWidget):
     """Voltage Widget class for the Hall Bench Control application."""
 
+    _monitor_name = 'voltage'
     _left_axis_1_label = 'Voltage [mV]'
     _left_axis_1_format = '{0:.6f}'
     _left_axis_1_data_labels = ['X [mV]', 'Y [mV]', 'Z [mV]']
@@ -125,6 +126,7 @@ class VoltageWidget(_TablePlotWidget):
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
             self.add_last_value_to_table()
+            self.add_last_value_to_file()
             self.update_plot()
 
         except Exception:

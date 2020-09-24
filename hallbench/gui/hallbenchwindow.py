@@ -33,8 +33,8 @@ from hallbench.gui.nmrmeasurementwidget import (
     NMRMeasurementWidget as _NMRMeasurementWidget)
 from hallbench.gui.voltagewidget import VoltageWidget \
     as _VoltageWidget
-from hallbench.gui.pscurrentwidget import PSCurrentWidget \
-    as _PSCurrentWidget
+from hallbench.gui.currentwidget import CurrentWidget \
+    as _CurrentWidget
 from hallbench.gui.voltagepscurrentwidget import VoltagePSCurrentWidget \
     as _VoltagePSCurrentWidget
 from hallbench.gui.temperaturewidget import TemperatureWidget \
@@ -88,7 +88,7 @@ class HallBenchWindow(_QMainWindow):
             'temperature',
             'water_system',
             'air_conditioning',
-            'voltage_current',
+            'angular_error',
             'probe_calibration',
             'database',
             ]
@@ -101,12 +101,12 @@ class HallBenchWindow(_QMainWindow):
             _MeasurementWidget,
             _IntegratorMeasurementWidget,
             _NMRMeasurementWidget,
-            _PSCurrentWidget,
+            _CurrentWidget,
             _VoltageWidget,
             _TemperatureWidget,
             _WaterSystemWidget,
             _AirConditioningWidget,
-            _VoltagePSCurrentWidget,
+            _AngularErrorWidget,
             _ProbeCalibrationWidget,
             _DatabaseWidget,
             ]

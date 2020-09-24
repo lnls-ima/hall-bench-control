@@ -3,6 +3,7 @@
 """Implementation of classes to store and analyse measurement data."""
 
 import os as _os
+import re as _re
 import numpy as _np
 import pandas as _pd
 import collections as _collections
@@ -452,7 +453,7 @@ class FieldScan(_database.DatabaseAndFileDocument):
         self.magnet_name = vs.magnet_name
         self.comments = vs.comments
         self.configuration_id = vs.configuration_id
-        self.date, self.hour = _utils.get_date_hour()
+        #self.date, self.hour = _utils.get_date_hour()
 
         setattr(self, 'pos' + str(vs.scan_axis), interp_pos)
         for axis in fixed_axes:
@@ -546,14 +547,11 @@ class Fieldmap(_database.DatabaseAndFileDocument):
     ])
 
     def __init__(
-            self, filename=None, database_name=None, idn=None,
-            mongo=False, server=None):
+            self, database_name=None, mongo=False, server=None):
         """Initialize object.
 
         Args:
-            filename (str): connection configuration filepath.
             database_name (str): database file path (sqlite) or name (mongo).
-            idn (int): id in database table (sqlite) / collection (mongo).
             mongo (bool): flag indicating mongoDB (True) or sqlite (False).
             server (str): MongoDB server.
 
@@ -580,6 +578,10 @@ class Fieldmap(_database.DatabaseAndFileDocument):
             if len(z) > 1:
                 name = name + '_Z={0:.0f}_{1:.0f}mm'.format(z[0], z[-1])
 
+        mt = _re.search('phase(\d+)', self.comments.lower().replace(' ', ''))
+        if mt:
+            name = name + '_Y={0:.0f}mm'.format(y[0])
+
         for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
             current = getattr(self, 'current_' + coil)
             if current is not None and len(current) != 0:
@@ -590,13 +592,20 @@ class Fieldmap(_database.DatabaseAndFileDocument):
                 else:
                     ac = coil
                 name = name + '_I' + ac + '=' + current + 'A'
-
-        self.date, self.hour = _utils.get_date_hour()        
+        
+        if self.date is None or self.hour is None:        
+            self.date, self.hour = _utils.get_date_hour()        
         if self.idn is not None:
             filename = '{0:s}_{1:s}_ID={2:s}.dat'.format(
                 self.date, name, str(self.idn))
         else:
             filename = '{0:s}_{1:s}.dat'.format(self.date, name)
+        
+        if mt:
+            phase = mt.group(1)
+            filename = filename.replace(
+                '.dat', '') + '_Phase={0:s}mm.dat'.format(phase)
+
         return filename
 
     def get_fieldmap_text(self, filename=None):
@@ -631,6 +640,11 @@ class Fieldmap(_database.DatabaseAndFileDocument):
         header_info.append(['gap[mm]', gap])
         header_info.append(['control_gap[mm]', control_gap])
         header_info.append(['magnet_length[mm]', magnet_length])
+        
+        mt = _re.search('phase(\d+)', self.comments.lower().replace(' ', ''))
+        if mt:
+            phase = mt.group(1)
+            header_info.append(['phase[mm]', phase])
 
         for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
             current = getattr(self, 'current_' + coil)

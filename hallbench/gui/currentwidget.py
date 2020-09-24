@@ -2,35 +2,42 @@
 
 """Temperature widget for the Hall Bench Control application."""
 
+import os as _os
 import sys as _sys
 import numpy as _np
 import time as _time
 import traceback as _traceback
 from qtpy.QtWidgets import (
-    QApplication as _QApplication,
+    QLabel as _QLabel,
+    QCheckBox as _QCheckBox,
+    QLineEdit as _QLineEdit,
     QMessageBox as _QMessageBox,
     QPushButton as _QPushButton,
-    QCheckBox as _QCheckBox,
+    QSizePolicy as _QSizePolicy,
     )
 from qtpy.QtCore import (
-    Qt as _Qt,
+    Signal as _Signal,
     QThread as _QThread,
     QObject as _QObject,
-    Signal as _Signal,
     )
 
-from hallbench.gui.auxiliarywidgets import TablePlotWidget as _TablePlotWidget
+from hallbench.gui import utils as _utils
+from hallbench.gui.auxiliarywidgets import (
+    TableAnalysisDialog as _TableAnalysisDialog,
+    TablePlotWidget as _TablePlotWidget,
+    )
 from hallbench.devices import (
     dcct as _dcct,
-    ps as _ps
+    ps as _ps,
     )
 
 
-class PSCurrentWidget(_TablePlotWidget):
+class CurrentWidget(_TablePlotWidget):
     """Power supply current class for the Hall Bench Control application."""
 
+    _monitor_name = 'current'
     _left_axis_1_label = 'Current [A]'
-    _left_axis_1_format = '{0:.4f}'
+    _left_axis_1_format = '{0:.8f}'
     _left_axis_1_data_labels = ['DCCT [A]', 'PS [A]']
     _left_axis_1_data_colors = [(255, 0, 0), (0, 255, 0)]
 
@@ -38,13 +45,35 @@ class PSCurrentWidget(_TablePlotWidget):
         """Set up the ui and signal/slot connections."""
         super().__init__(parent)
 
+        size_policy = _QSizePolicy(
+            _QSizePolicy.Maximum, _QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+
         # add check box and configure button
         self.chb_dcct = _QCheckBox(' DCCT ')
         self.chb_ps = _QCheckBox(' Power Supply ')
-        self.pbt_configure = _QPushButton('Configure Devices')
-        self.pbt_configure.clicked.connect(self.configure_devices)
-        self.add_widgets_next_to_table(
-            [[self.chb_dcct, self.chb_ps], [self.pbt_configure]])
+        label_range = _QLabel('Multimeter Range:')
+        label_nplc = _QLabel('Multimeter NPLC:')
+        label_autozero = _QLabel('Multimeter Autozero:')
+        self.le_range = _QLineEdit()
+        self.le_range.setText('10')
+        self.le_range.setSizePolicy(size_policy)
+        self.le_nplc = _QLineEdit()
+        self.le_nplc.setText('10')
+        self.le_nplc.setSizePolicy(size_policy)
+        self.le_autozero = _QLineEdit()
+        self.le_autozero.setText('OFF')
+        self.le_autozero.setSizePolicy(size_policy)
+        self.btn_config = _QPushButton('Configure')
+        self.add_widgets_next_to_table([
+            [self.chb_dcct, self.chb_ps], 
+            [label_range, self.le_range], 
+            [label_nplc, self.le_nplc], 
+            [label_autozero, self.le_autozero], 
+            [self.btn_config]])
+
+        self.btn_config.clicked.connect(self.configure_devices)
 
         # Create reading thread
         self.wthread = _QThread()
@@ -54,15 +83,31 @@ class PSCurrentWidget(_TablePlotWidget):
         self.worker.finished.connect(self.wthread.quit)
         self.worker.finished.connect(self.get_reading)
 
-    def check_connection(self, monitor=False):
+    def check_connection(self):
         """Check devices connection."""
         if self.chb_dcct.isChecked() and not _dcct.connected:
-            if not monitor:
-                _QMessageBox.critical(
-                    self, 'Failure', 'DCCT not connected.', _QMessageBox.Ok)
             return False
         return True
 
+    def configure_devices(self):
+        if not self.check_connection():
+            return
+        
+        try:
+            if self.chb_ps.isChecked() and _ps.ps_type is not None:
+                _ps.SetSlaveAdd(_ps.ps_type)
+
+            if self.chb_dcct.isChecked():
+                range = self.le_range.text()
+                nplc = self.le_nplc.text()
+                autozero = self.le_autozero.text()
+                _dcct.send_command('CONF:VOLT:DC ' + range + ', DEF')
+                _dcct.send_command('VOLT:NPLC ' + nplc)
+                _dcct.send_command('SENS:ZERO:AUTO ' + autozero)
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            
     def closeEvent(self, event):
         """Close widget."""
         try:
@@ -71,37 +116,6 @@ class PSCurrentWidget(_TablePlotWidget):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
             event.accept()
-
-    def configure_devices(self):
-        """Configure channels for current measurement."""
-        if not self.check_connection():
-            return
-
-        try:
-            self.blockSignals(True)
-            _QApplication.setOverrideCursor(_Qt.WaitCursor)
-            
-            if self.chb_ps.isChecked():
-                if _ps.ps_type is not None:
-                    _ps.SetSlaveAdd(_ps.ps_type)
-                else:
-                    self.blockSignals(False)
-                    _QApplication.restoreOverrideCursor()
-                    _QMessageBox.critical(
-                        self, 'Failure',
-                        'Invalid power supply configuration.', _QMessageBox.Ok)
-                    return
-
-            if self.chb_dcct.isChecked():
-                _dcct.config()
-
-            self.blockSignals(False)
-            _QApplication.restoreOverrideCursor()
-
-        except Exception:
-            self.blockSignals(False)
-            _QApplication.restoreOverrideCursor()
-            _traceback.print_exc(file=_sys.stdout)
 
     def get_reading(self):
         """Get reading from worker thread."""
@@ -119,18 +133,22 @@ class PSCurrentWidget(_TablePlotWidget):
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
             self.add_last_value_to_table()
+            self.add_last_value_to_file()
             self.update_plot()
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
     def read_value(self, monitor=False):
-        """Read value."""
+        """Read value."""          
         if len(self._data_labels) == 0:
             return
 
-        if not self.check_connection(monitor=monitor):
-            return
+        if not self.check_connection():
+            if not monitor:
+                _QMessageBox.critical(
+                    self, 'Failure', 'DCCT not connected.', _QMessageBox.Ok)
+            return            
 
         try:
             self.worker.dcct_enabled = self.chb_dcct.isChecked()
@@ -163,7 +181,7 @@ class ReadValueWorker(_QObject):
             ts = _time.time()
 
             if self.dcct_enabled:
-                dcct_current = _dcct.read_current()
+                dcct_current = _dcct.read_fast()
             else:
                 dcct_current = _np.nan
 
@@ -175,6 +193,10 @@ class ReadValueWorker(_QObject):
                     else:
                         _ps.SetSlaveAdd(ps_type)
                     ps_current = float(_ps.read_iload1())
+                    if ps_current > 10000 or ps_current < -10000:
+                        ps_current = _np.nan
+                    if _np.abs(ps_current) < 1e-15:
+                        ps_current = _np.nan
                 else:
                     ps_current = _np.nan
             else:

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import os as _os
 import sys as _sys
+import time as _time
 import numpy as _np
 import datetime as _datetime
 import warnings as _warnings
@@ -602,7 +604,7 @@ class TableAnalysisDialog(_QDialog):
             self.add_items_to_table('{0:.4f}'.format(min), i, 2)
             self.add_items_to_table('{0:.4f}'.format(max), i, 3)
             self.add_items_to_table('{0:.4f}'.format(peak_valey), i, 4)
-            self.add_items_to_table('{0:.4f}'.format(peak_valey_perc), i, 4)
+            self.add_items_to_table('{0:.4f}'.format(peak_valey_perc), i, 5)
 
     def accept(self):
         """Close dialog."""
@@ -635,6 +637,656 @@ class TableAnalysisDialog(_QDialog):
 
 
 class TablePlotWidget(_QWidget):
+    """Table and Plot widget."""
+
+    _monitor_name = ''
+    _bottom_axis_label = 'Time interval [s]'
+    _bottom_axis_format = '{0:.3f}'
+    _is_timestamp = True
+    
+    _left_axis_1_label = ''
+    _right_axis_1_label = ''
+    _right_axis_2_label = ''
+
+    _left_axis_1_format = '{0:.4f}'
+    _right_axis_1_format = '{0:.4f}'
+    _right_axis_2_format = '{0:.4f}'
+
+    _left_axis_1_data_labels = []
+    _right_axis_1_data_labels = []
+    _right_axis_2_data_labels = []
+
+    _left_axis_1_data_colors = []
+    _right_axis_1_data_colors = []
+    _right_axis_2_data_colors = []
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Table and Plot")
+        self.resize(1230, 900)
+        self.add_widgets()
+        self.setFont(_font)
+
+        # variables initialisation
+        self.filename = None
+        self._xvalues = []
+        self._legend_items = []
+        self._graphs = {}
+        self._data_labels = (
+            self._left_axis_1_data_labels +
+            self._right_axis_1_data_labels +
+            self._right_axis_2_data_labels)
+        self._data_formats = (
+            [self._left_axis_1_format]*len(self._left_axis_1_data_labels) +
+            [self._right_axis_1_format]*len(self._right_axis_1_data_labels) +
+            [self._right_axis_2_format]*len(self._right_axis_2_data_labels))
+        self._readings = {}
+        for i, label in enumerate(self._data_labels):
+            self._readings[label] = []
+
+        # create timer to monitor values
+        self.timer = _QTimer(self)
+        self.update_monitor_interval()
+        self.timer.timeout.connect(lambda: self.read_value(monitor=True))
+
+        # create table analysis dialog
+        self.table_analysis_dialog = TableAnalysisDialog()
+
+        # add legend to plot
+        self.legend = _pyqtgraph.LegendItem(offset=(70, 30))
+        self.legend.setParentItem(self.pw_plot.graphicsItem())
+        self.legend.setAutoFillBackground(1)
+
+        self.right_axis_1 = None
+        self.right_axis_2 = None
+        self.configure_plot()
+        self.configure_table()
+        self.connect_signal_slots()
+
+    @property
+    def directory(self):
+        """Return the default directory."""
+        return _QApplication.instance().directory
+
+    @property
+    def _timestamp(self):
+        """Return the timestamp list."""
+        return self._xvalues
+
+    @_timestamp.setter
+    def _timestamp(self, value):
+        self._xvalues = value
+
+    def closeEvent(self, event):
+        """Close widget."""
+        try:
+            self.timer.stop()
+            self.close_dialogs()
+            event.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            event.accept()
+
+    def add_last_value_to_table(self):
+        """Add the last value read to table."""
+        if len(self._xvalues) == 0:
+            return
+
+        n = self.tbl_table.rowCount() + 1
+        self.tbl_table.setRowCount(n)
+
+        if self._is_timestamp:
+            dt = self._xvalues[-1] - self._xvalues[0]
+            self.tbl_table.setItem(
+                n-1, 0, _QTableWidgetItem(
+                    self._bottom_axis_format.format(dt)))            
+        else:
+            self.tbl_table.setItem(
+                n-1, 0, _QTableWidgetItem(
+                    self._bottom_axis_format.format(self._xvalues[-1])))
+
+        for j, label in enumerate(self._data_labels):
+            fmt = self._data_formats[j]
+            reading = self._readings[label][-1]
+            if reading is None:
+                reading = _np.nan
+            self.tbl_table.setItem(
+                n-1, j+1, _QTableWidgetItem(fmt.format(reading)))
+
+        vbar = self.tbl_table.verticalScrollBar()
+        vbar.setValue(vbar.maximum())
+
+    def add_last_value_to_file(self):
+        """Add the last value read to file."""
+        if len(self._xvalues) == 0:
+            return
+
+        if self.filename is None:
+            return
+
+        line = []
+        if self._is_timestamp:
+            dt = self._xvalues[-1] - self._xvalues[0]
+            line.append(self._bottom_axis_format.format(dt))
+        else:
+            line.append(self._bottom_axis_format.format(self._xvalues[-1]))
+
+        for j, label in enumerate(self._data_labels):
+            fmt = self._data_formats[j]
+            reading = self._readings[label][-1]
+            if reading is None:
+                reading = _np.nan
+            line.append(fmt.format(reading))
+
+        with open(self.filename, '+a') as f:
+            f.write('\t'.join(line)+'\n')
+            
+    def add_widgets(self):
+        """Add widgets and layouts."""
+        # Layouts
+        self.vertical_layout_1 = _QVBoxLayout()
+        self.vertical_layout_2 = _QVBoxLayout()
+        self.vertical_layout_2.setSpacing(20)
+        self.vertical_layout_3 = _QVBoxLayout()
+        self.horizontal_layout_1 = _QHBoxLayout()
+        self.horizontal_layout_2 = _QHBoxLayout()
+        self.horizontal_layout_3 = _QHBoxLayout()
+        self.horizontal_layout_4 = _QHBoxLayout()
+
+        # Plot Widget
+        self.pw_plot = _pyqtgraph.PlotWidget()
+        brush = _QBrush(_QColor(255, 255, 255))
+        brush.setStyle(_Qt.NoBrush)
+        self.pw_plot.setBackgroundBrush(brush)
+        self.pw_plot.setForegroundBrush(brush)
+        self.horizontal_layout_1.addWidget(self.pw_plot)
+
+        # Read button
+        self.pbt_read = _QPushButton("Read")
+        self.pbt_read.setMinimumSize(_QSize(0, 45))
+        self.pbt_read.setFont(_font_bold)
+        self.vertical_layout_2.addWidget(self.pbt_read)
+
+        # Monitor button
+        self.pbt_monitor = _QPushButton("Monitor")
+        self.pbt_monitor.setMinimumSize(_QSize(0, 45))
+        self.pbt_monitor.setFont(_font_bold)
+        self.pbt_monitor.setCheckable(True)
+        self.pbt_monitor.setChecked(False)
+        self.vertical_layout_2.addWidget(self.pbt_monitor)
+
+        # Monitor frequency
+        label = _QLabel("Frequency [Hz]:")
+        label.setAlignment(
+            _Qt.AlignRight | _Qt.AlignTrailing | _Qt.AlignVCenter)
+        self.horizontal_layout_3.addWidget(label)
+
+        self.sbd_monitor_freq = _QDoubleSpinBox()
+        self.sbd_monitor_freq.setDecimals(2)
+        self.sbd_monitor_freq.setMinimum(0.01)
+        self.sbd_monitor_freq.setMaximum(100.00)
+        self.sbd_monitor_freq.setProperty("value", 1)
+        self.horizontal_layout_3.addWidget(self.sbd_monitor_freq)
+        self.vertical_layout_2.addLayout(self.horizontal_layout_3)
+
+        # Group box with read and monitor buttons
+        self.group_box = _QGroupBox()
+        self.group_box.setMinimumSize(_QSize(270, 0))
+        self.group_box.setTitle("")
+        self.group_box.setLayout(self.vertical_layout_2)
+
+        # Table widget
+        self.tbl_table = _QTableWidget()
+        sizePolicy = _QSizePolicy(
+            _QSizePolicy.Expanding, _QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.tbl_table.sizePolicy().hasHeightForWidth())
+        self.tbl_table.setSizePolicy(sizePolicy)
+        self.tbl_table.setVerticalScrollBarPolicy(_Qt.ScrollBarAlwaysOn)
+        self.tbl_table.setHorizontalScrollBarPolicy(_Qt.ScrollBarAsNeeded)
+        self.tbl_table.setEditTriggers(_QAbstractItemView.NoEditTriggers)
+        self.tbl_table.setColumnCount(0)
+        self.tbl_table.setRowCount(0)
+        self.tbl_table.horizontalHeader().setVisible(True)
+        self.tbl_table.horizontalHeader().setCascadingSectionResizes(False)
+        self.tbl_table.horizontalHeader().setDefaultSectionSize(200)
+        self.tbl_table.horizontalHeader().setHighlightSections(True)
+        self.tbl_table.horizontalHeader().setMinimumSectionSize(80)
+        self.tbl_table.horizontalHeader().setStretchLastSection(True)
+        self.tbl_table.verticalHeader().setVisible(False)
+        self.horizontal_layout_4.addWidget(self.tbl_table)
+
+        # Tool buttons
+        self.tbt_autorange = _QToolButton()
+        self.tbt_autorange.setIcon(_utils.get_icon(_autorange_icon_file))
+        self.tbt_autorange.setIconSize(_icon_size)
+        self.tbt_autorange.setCheckable(True)
+        self.tbt_autorange.setToolTip('Turn on plot autorange.')
+        self.vertical_layout_3.addWidget(self.tbt_autorange)
+
+        self.tbt_save = _QToolButton()
+        self.tbt_save.setIcon(_utils.get_icon(_save_icon_file))
+        self.tbt_save.setIconSize(_icon_size)
+        self.tbt_save.setToolTip('Save table data to file.')
+        self.vertical_layout_3.addWidget(self.tbt_save)
+
+        self.tbt_copy = _QToolButton()
+        self.tbt_copy.setIcon(_utils.get_icon(_copy_icon_file))
+        self.tbt_copy.setIconSize(_icon_size)
+        self.tbt_copy.setToolTip('Copy table data.')
+        self.vertical_layout_3.addWidget(self.tbt_copy)
+
+        self.pbt_stats = _QToolButton()
+        self.pbt_stats.setIcon(_utils.get_icon(_stats_icon_file))
+        self.pbt_stats.setIconSize(_icon_size)
+        self.pbt_stats.setToolTip('Show data statistics.')
+        self.vertical_layout_3.addWidget(self.pbt_stats)
+
+        self.pbt_remove = _QToolButton()
+        self.pbt_remove.setIcon(_utils.get_icon(_delete_icon_file))
+        self.pbt_remove.setIconSize(_icon_size)
+        self.pbt_remove.setToolTip('Remove selected lines from table.')
+        self.vertical_layout_3.addWidget(self.pbt_remove)
+
+        self.tbt_clear = _QToolButton()
+        self.tbt_clear.setIcon(_utils.get_icon(_clear_icon_file))
+        self.tbt_clear.setIconSize(_icon_size)
+        self.tbt_clear.setToolTip('Clear table data.')
+        self.vertical_layout_3.addWidget(self.tbt_clear)
+
+        spacer_item = _QSpacerItem(
+            20, 100, _QSizePolicy.Minimum, _QSizePolicy.Fixed)
+        self.vertical_layout_3.addItem(spacer_item)
+        self.horizontal_layout_4.addLayout(self.vertical_layout_3)
+
+        self.horizontal_layout_2.addWidget(self.group_box)
+        self.horizontal_layout_2.addLayout(self.horizontal_layout_4)
+        self.vertical_layout_1.addLayout(self.horizontal_layout_1)
+        self.vertical_layout_1.addLayout(self.horizontal_layout_2)
+        self.setLayout(self.vertical_layout_1)
+
+    def add_widgets_next_to_plot(self, widget_list):
+        """Add widgets on the side of plot widget."""
+        if not isinstance(widget_list, (list, tuple)):
+            widget_list = [[widget_list]]
+
+        if not isinstance(widget_list[0], (list, tuple)):
+            widget_list = [widget_list]
+
+        for idx, lt in enumerate(widget_list):
+            _layout = _QVBoxLayout()
+            _layout.setContentsMargins(0, 0, 0, 0)
+            for wg in lt:
+                if isinstance(wg, _QPushButton):
+                    wg.setMinimumHeight(45)
+                    wg.setFont(_font_bold)
+                _layout.addWidget(wg)
+            self.horizontal_layout_1.insertLayout(idx, _layout)
+
+    def add_widgets_next_to_table(self, widget_list):
+        """Add widgets on the side of table widget."""
+        if not isinstance(widget_list, (list, tuple)):
+            widget_list = [[widget_list]]
+
+        if not isinstance(widget_list[0], (list, tuple)):
+            widget_list = [widget_list]
+
+        for idx, lt in enumerate(widget_list):
+            _layout = _QHBoxLayout()
+            for wg in lt:
+                if isinstance(wg, _QPushButton):
+                    wg.setMinimumHeight(45)
+                    wg.setFont(_font_bold)
+                _layout.addWidget(wg)
+            self.vertical_layout_2.insertLayout(idx, _layout)
+
+    def clear_legend_items(self):
+        """Clear plot legend."""
+        for label in self._legend_items:
+            self.legend.removeItem(label)
+
+    def clear_button_clicked(self):
+        """Clear all values."""
+        if len(self._xvalues) == 0:
+            return
+
+        msg = 'Clear table data?'
+        reply = _QMessageBox.question(
+            self, 'Message', msg, buttons=_QMessageBox.No | _QMessageBox.Yes,
+            defaultButton=_QMessageBox.No)
+
+        if reply == _QMessageBox.Yes:
+            self.clear()
+
+    def clear(self):
+        """Clear all values."""
+        self._xvalues = []
+        for label in self._data_labels:
+            self._readings[label] = []
+        self.update_table_values()
+        self.update_plot()
+        self.update_table_analysis_dialog()
+
+    def close_dialogs(self):
+        """Close dialogs."""
+        try:
+            self.table_analysis_dialog.accept()
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            pass
+
+    def configure_plot(self):
+        """Configure data plots."""
+        self.pw_plot.clear()
+        self.pw_plot.setLabel('bottom', self._bottom_axis_label)
+        self.pw_plot.showGrid(x=True, y=True)
+
+        # Configure left axis 1
+        self.pw_plot.setLabel('left', self._left_axis_1_label)
+
+        colors = self._left_axis_1_data_colors
+        data_labels = self._left_axis_1_data_labels
+        if len(colors) != len(data_labels):
+            colors = [(0, 0, 255)]*len(data_labels)
+
+        for i, label in enumerate(data_labels):
+            pen = colors[i]
+            graph = self.pw_plot.plotItem.plot(
+                _np.array([]), _np.array([]), pen=pen, symbol='o',
+                symbolPen=pen, symbolSize=3, symbolBrush=pen)
+            self._graphs[label] = graph
+
+        # Configure right axis 1
+        data_labels = self._right_axis_1_data_labels
+        colors = self._right_axis_1_data_colors
+        if len(colors) != len(data_labels):
+            colors = [(0, 0, 255)]*len(data_labels)
+
+        if len(data_labels) != 0:
+            self.right_axis_1 = _utils.plot_item_add_first_right_axis(
+                self.pw_plot.plotItem)
+            self.right_axis_1.setLabel(self._right_axis_1_label)
+            self.right_axis_1.setStyle(showValues=True)
+
+            for i, label in enumerate(data_labels):
+                pen = colors[i]
+                graph = _pyqtgraph.PlotDataItem(
+                    _np.array([]), _np.array([]), pen=pen, symbol='o',
+                    symbolPen=pen, symbolSize=3, symbolBrush=pen)
+                self.right_axis_1.linkedView().addItem(graph)
+                self._graphs[label] = graph
+
+        # Configure right axis 2
+        data_labels = self._right_axis_2_data_labels
+        colors = self._right_axis_2_data_colors
+        if len(colors) != len(data_labels):
+            colors = [(0, 0, 255)]*len(data_labels)
+
+        if len(data_labels) != 0:
+            self.right_axis_2 = _utils.plot_item_add_second_right_axis(
+                self.pw_plot.plotItem)
+            self.right_axis_2.setLabel(self._right_axis_2_label)
+            self.right_axis_2.setStyle(showValues=True)
+
+            for i, label in enumerate(data_labels):
+                pen = colors[i]
+                graph = _pyqtgraph.PlotDataItem(
+                    _np.array([]), _np.array([]), pen=pen, symbol='o',
+                    symbolPen=pen, symbolSize=3, symbolBrush=pen)
+                self.right_axis_2.linkedView().addItem(graph)
+                self._graphs[label] = graph
+
+        # Update legend
+        self.update_legend_items()
+
+    def configure_table(self):
+        """Configure table."""
+        col_labels = [self._bottom_axis_label]
+
+        for label in self._data_labels:
+            col_labels.append(label)
+        self.tbl_table.setColumnCount(len(col_labels))
+        self.tbl_table.setHorizontalHeaderLabels(col_labels)
+        self.tbl_table.setAlternatingRowColors(True)
+
+    def connect_signal_slots(self):
+        """Create signal/slot connections."""
+        self.pbt_read.clicked.connect(lambda: self.read_value(monitor=False))
+        self.pbt_monitor.toggled.connect(self.monitor_value)
+        self.sbd_monitor_freq.valueChanged.connect(
+            self.update_monitor_interval)
+        self.tbt_autorange.toggled.connect(self.enable_autorange)
+        self.tbt_save.clicked.connect(self.save_to_file)
+        self.tbt_copy.clicked.connect(self.copy_to_clipboard)
+        self.pbt_stats.clicked.connect(self.show_table_analysis_dialog)
+        self.pbt_remove.clicked.connect(self.remove_value)
+        self.tbt_clear.clicked.connect(self.clear_button_clicked)
+
+    def copy_to_clipboard(self):
+        """Copy table data to clipboard."""
+        df = _utils.table_to_data_frame(self.tbl_table)
+        if df is not None:
+            df.to_clipboard(excel=True)
+
+    def enable_autorange(self, checked):
+        """Enable or disable plot autorange."""
+        if checked:
+            if self.right_axis_2 is not None:
+                self.right_axis_2.linkedView().enableAutoRange(
+                    axis=_pyqtgraph.ViewBox.YAxis)
+            if self.right_axis_1 is not None:
+                self.right_axis_1.linkedView().enableAutoRange(
+                    axis=_pyqtgraph.ViewBox.YAxis)
+            self.pw_plot.plotItem.enableAutoRange(
+                axis=_pyqtgraph.ViewBox.YAxis)
+        else:
+            if self.right_axis_2 is not None:
+                self.right_axis_2.linkedView().disableAutoRange(
+                    axis=_pyqtgraph.ViewBox.YAxis)
+            if self.right_axis_1 is not None:
+                self.right_axis_1.linkedView().disableAutoRange(
+                    axis=_pyqtgraph.ViewBox.YAxis)
+            self.pw_plot.plotItem.disableAutoRange(
+                axis=_pyqtgraph.ViewBox.YAxis)
+
+    def hide_right_axes(self):
+        """Hide right axes."""
+        if self.right_axis_1 is not None:
+            self.right_axis_1.setStyle(showValues=False)
+            self.right_axis_1.setLabel('')
+        if self.right_axis_2 is not None:
+            self.right_axis_2.setStyle(showValues=False)
+            self.right_axis_2.setLabel('')
+
+    def monitor_value(self, checked):
+        """Monitor values."""
+        if checked:
+            try:
+                folder = _os.path.join(_utils.BASEPATH, 'monitor')
+                timestamp = _time.strftime(
+                    '%Y-%m-%d_%H-%M-%S', _time.localtime())
+                filename = '{0:s}_{1:s}_{2:s}.txt'.format(
+                    timestamp, 'monitor', self._monitor_name)
+                filename = _os.path.join(folder, filename)
+                
+                col_labels = [self._bottom_axis_label]
+                for label in self._data_labels:
+                    col_labels.append(label)
+                
+                with open(filename, 'w') as f:
+                    f.write('\t'.join(col_labels) + '\n')
+                self.filename = filename
+            
+            except Exception:
+                self.filename = None
+                _traceback.print_exc(file=_sys.stdout)
+                
+            self.pbt_read.setEnabled(False)
+            self.timer.start()
+
+        else:
+            self.filename = None
+            self.timer.stop()
+            self.pbt_read.setEnabled(True)
+
+#     def monitor_value(self, checked):
+#         """Monitor values."""
+#         if checked:
+#             self.pbt_read.setEnabled(False)
+#             self.timer.start()
+#         else:
+#             self.timer.stop()
+#             self.pbt_read.setEnabled(True)
+
+    def read_value(self, monitor=False):
+        """Read value."""
+        pass
+
+    def remove_value(self):
+        """Remove value from list."""
+        selected = self.tbl_table.selectedItems()
+        rows = [s.row() for s in selected]
+        n = len(self._xvalues)
+
+        self._xvalues = [
+            self._xvalues[i] for i in range(n) if i not in rows]
+
+        for label in self._data_labels:
+            readings = self._readings[label]
+            self._readings[label] = [
+                readings[i] for i in range(n) if i not in rows]
+
+        self.update_table_values()
+        self.update_plot()
+        self.update_table_analysis_dialog()
+
+    def save_to_file(self):
+        """Save table values to file."""
+        df = _utils.table_to_data_frame(self.tbl_table)
+        if df is None:
+            _QMessageBox.critical(
+                self, 'Failure', 'Empty table.', _QMessageBox.Ok)
+            return
+
+        filename = _QFileDialog.getSaveFileName(
+            self, caption='Save measurements file.', directory=self.directory,
+            filter="Text files (*.txt *.dat)")
+
+        if isinstance(filename, tuple):
+            filename = filename[0]
+
+        if len(filename) == 0:
+            return
+
+        try:
+            if (not filename.endswith('.txt')
+               and not filename.endswith('.dat')):
+                filename = filename + '.txt'
+            df.to_csv(filename, sep='\t')
+
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+            msg = 'Failed to save data to file.'
+            _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
+
+    def set_table_column_size(self, size):
+        """Set table horizontal header default section size."""
+        self.tbl_table.horizontalHeader().setDefaultSectionSize(size)
+
+    def show_table_analysis_dialog(self):
+        """Show table analysis dialog."""
+        df = _utils.table_to_data_frame(self.tbl_table)
+        self.table_analysis_dialog.accept()
+        self.table_analysis_dialog.show(df)
+
+    def update_legend_items(self):
+        """Update legend items."""
+        self.clear_legend_items()
+        self._legend_items = []
+        for label in self._data_labels:
+            legend_label = label.split('[')[0]
+            self._legend_items.append(legend_label)
+            self.legend.addItem(self._graphs[label], legend_label)
+
+    def update_monitor_interval(self):
+        """Update monitor interval value."""
+        self.timer.setInterval(1000/self.sbd_monitor_freq.value())
+
+    def update_plot(self):
+        """Update plot values."""
+        if len(self._xvalues) == 0:
+            for label in self._data_labels:
+                self._graphs[label].setData(
+                    _np.array([]), _np.array([]))
+            return
+
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("ignore")
+            if self._is_timestamp:
+                timeinterval = _np.array(self._xvalues) - self._xvalues[0]
+            
+            for label in self._data_labels:
+                readings = []
+                for r in self._readings[label]:
+                    if r is not None:
+                        readings.append(r)
+                    else:
+                        readings.append(_np.nan)
+                readings = _np.array(readings)
+                
+                if self._is_timestamp:
+                    x = timeinterval[_np.isfinite(readings)]
+                else:
+                    x = _np.array(self._xvalues)[_np.isfinite(readings)]
+                rd = readings[_np.isfinite(readings)]
+                self._graphs[label].setData(x, rd)
+
+        if len(self._xvalues) > 2 and self.tbt_autorange.isChecked():
+            if self._is_timestamp:
+                xmin = timeinterval[0]
+                xmax = timeinterval[-1]
+            else:
+                xmin = self._xvalues[0]
+                xmax = self._xvalues[-1]
+            self.pw_plot.plotItem.getViewBox().setRange(xRange=(xmin, xmax))
+
+    def update_table_analysis_dialog(self):
+        """Update table analysis dialog."""
+        self.table_analysis_dialog.update_data(
+            _utils.table_to_data_frame(self.tbl_table))
+
+    def update_table_values(self):
+        """Update table values."""
+        n = len(self._xvalues)
+        self.tbl_table.clearContents()
+        self.tbl_table.setRowCount(n)
+
+        for i in range(n):
+            if self._is_timestamp:
+                dt = self._xvalues[i] - self._xvalues[0]
+                self.tbl_table.setItem(
+                    i, 0, _QTableWidgetItem(
+                        self._bottom_axis_format.format(dt)))
+            else:
+                self.tbl_table.setItem(
+                    i, 0, _QTableWidgetItem(
+                        self._bottom_axis_format.format(self._xvalues[i])))
+
+            for j, label in enumerate(self._data_labels):
+                fmt = self._data_formats[j]
+                reading = self._readings[label][i]
+                if reading is None:
+                    reading = _np.nan
+                self.tbl_table.setItem(
+                    i, j+1, _QTableWidgetItem(fmt.format(reading)))
+
+        vbar = self.tbl_table.verticalScrollBar()
+        vbar.setValue(vbar.maximum())
+
+
+class TablePlotWidget_Old(_QWidget):
     """Table and Plot widget."""
 
     _bottom_axis_label = 'Time interval [s]'

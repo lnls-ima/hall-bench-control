@@ -3,6 +3,8 @@
 *.db-journal
 
 fieldmaps/
+monitor/
+logs/
 measurements/
 
 *.txt

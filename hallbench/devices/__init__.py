@@ -5,7 +5,7 @@ import time as _time
 
 from imautils.devices.utils import configure_logging
 from . import devices as _devices
-from . import powersupply
+from . import powersupply as _powersupply
 
 _timestamp = _time.strftime('%Y-%m-%d_%H-%M-%S', _time.localtime())
 
@@ -33,5 +33,6 @@ dcct = _devices.DCCT(log=True)
 water_udc = _devices.WaterUDC(log=True)
 air_udc = _devices.AirUDC(log=True)
 ps = _devices.PowerSupply()
+new_ps = _powersupply.PowerSupply(log=True)
 trimps = _devices.TrimPowerSupply()
 integrator = _devices.Integrator()

@@ -338,7 +338,7 @@ class MeasurementWidget(_QWidget):
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
             return False
 
-    def configure_multimeters(self):
+    def configure_multimeters(self, voltage_range=None):
         """Configure multimeters."""
         if self.measurement_config is None:
             return False
@@ -362,20 +362,20 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
+            if voltage_range is None:
+                voltage_range = self.measurement_config.voltage_range
+            
             if self.measurement_config.voltx_enable and not self.stop:
                 _voltx.configure(
-                    self.measurement_config.integration_time,
-                    self.measurement_config.voltage_range)
+                    self.measurement_config.integration_time, voltage_range)
                 _QApplication.processEvents()
             if self.measurement_config.volty_enable and not self.stop:
                 _volty.configure(
-                    self.measurement_config.integration_time,
-                    self.measurement_config.voltage_range)
+                    self.measurement_config.integration_time, voltage_range)
                 _QApplication.processEvents()
             if self.measurement_config.voltz_enable and not self.stop:
                 _voltz.configure(
-                    self.measurement_config.integration_time,
-                    self.measurement_config.voltage_range)
+                    self.measurement_config.integration_time, voltage_range)
                 _QApplication.processEvents()
             
             _time.sleep(1)
@@ -983,6 +983,11 @@ class MeasurementWidget(_QWidget):
             return False
 
         try:
+            bc = self.ui.chb_bc.isChecked()
+        except Exception:
+            bc = False
+
+        try:
             self.turn_off_current_display.emit(True)
 
             nr_measurements = self.measurement_config.nr_measurements
@@ -1015,7 +1020,7 @@ class MeasurementWidget(_QWidget):
                             return False
                         self.move_axis(second_axis, pos)
                         if not self.measure_field_scan(
-                                first_axis, second_axis, pos):
+                                first_axis, second_axis, pos, bc=bc):
                             return False
 
                     # move to initial position
@@ -1028,7 +1033,7 @@ class MeasurementWidget(_QWidget):
                 else:
                     if self.stop is True:
                         return False
-                    if not self.measure_field_scan(first_axis):
+                    if not self.measure_field_scan(first_axis, bc=bc):
                         return False
 
                 if self.stop is True:
@@ -1209,14 +1214,22 @@ class MeasurementWidget(_QWidget):
             temperature_dict = {}
             ts = _time.time()
 
-            # Read power supply current
-            if self.ui.chb_save_current.isChecked():
-                ps_current = float(_ps.read_iload1())
-                self.voltage_scan.ps_current_avg = ps_current
+            nr_current_meas = 10
 
-            # Read dcct current
-            dcct_current = _dcct.read_current()
-            self.voltage_scan.dcct_current_avg = dcct_current
+            # Read power supply and dcct current
+            if self.ui.chb_save_current.isChecked():
+                ps_currents = []
+                dcct_currents = []
+                for i in range(nr_current_meas):
+                    ps_currents.append(float(_ps.read_iload1()))
+                    dcct_currents.append(_dcct.read_current())
+                
+                ps_currents = [c for c in ps_currents if not _np.isnan(c)]
+                dcct_currents = [c for c in dcct_currents if not _np.isnan(c)]
+                self.voltage_scan.ps_current_avg = _np.mean(ps_currents)
+                self.voltage_scan.ps_current_std = _np.std(ps_currents)
+                self.voltage_scan.dcct_current_avg = _np.mean(dcct_currents)
+                self.voltage_scan.dcct_current_std = _np.std(dcct_currents)
 
             # Read multichannel
             if self.ui.chb_save_temperature.isChecked():
@@ -1236,7 +1249,7 @@ class MeasurementWidget(_QWidget):
             return False
 
     def measure_field_scan(
-            self, first_axis, second_axis=-1, second_axis_pos=None):
+            self, first_axis, second_axis=-1, second_axis_pos=None, bc=False):
         """Start line scan."""
         self.field_scan = _data.measurement.FieldScan()
 
@@ -1258,7 +1271,10 @@ class MeasurementWidget(_QWidget):
         to_neg_scan_list = (scan_list - aper_displacement/2)[::-1]
 
         self.clear_graph()
-        self.configure_graph(2, 'Voltage [V]')
+        if bc:
+            self.configure_graph(6, 'Voltage [V]')
+        else:
+            self.configure_graph(2, 'Voltage [V]')
         _QApplication.processEvents()
 
         voltage_scan_list = []
@@ -1300,9 +1316,14 @@ class MeasurementWidget(_QWidget):
 
             _QApplication.processEvents()
 
-            if not self.measure_voltage_scan(
-                    idx, to_pos, first_axis, start, end, step, extra, npts):
-                return False
+            if bc:
+                if not self.measure_bc_voltage_scan(
+                        idx, to_pos, first_axis, start, end, step, extra, npts):
+                    return False                
+            else:
+                if not self.measure_voltage_scan(
+                        idx, to_pos, first_axis, start, end, step, extra, npts):
+                    return False
 
             for axis in self.voltage_scan.axis_list:
                 if axis not in [first_axis, second_axis]:
@@ -1319,10 +1340,16 @@ class MeasurementWidget(_QWidget):
             if self.voltage_scan.npts == 0:
                 _warnings.warn(
                     'Invalid number of points in voltage scan.')
-                if not self.measure_voltage_scan(
-                        idx, to_pos, first_axis,
-                        start, end, step, extra, npts):
-                    return False
+                if bc:
+                    if not self.measure_bc_voltage_scan(
+                            idx, to_pos, first_axis,
+                            start, end, step, extra, npts):
+                        return False   
+                else:
+                    if not self.measure_voltage_scan(
+                            idx, to_pos, first_axis,
+                            start, end, step, extra, npts):
+                        return False
 
                 if self.stop is True:
                     return False
@@ -1467,6 +1494,241 @@ class MeasurementWidget(_QWidget):
         else:
             return True
 
+    def measure_bc_voltage_scan(
+            self, idx, to_pos, axis, start, end, step, extra, npts):
+        """Measure one voltage scan."""
+        if self.stop is True:
+            return False
+
+        mstart = (start + end)/2 - 20
+        mend = (start + end)/2 + 20
+
+        vel = self.measurement_config.get_velocity(axis)
+        integration_time = self.measurement_config.integration_time/1000
+        aper_displacement = integration_time*vel
+
+        self.voltage_scan.vx = []
+        self.voltage_scan.vy = []
+        self.voltage_scan.vz = []
+        self.voltage_scan.dcct_current_avg = None
+        self.voltage_scan.ps_current_avg = None
+        self.voltage_scan.temperature = {}
+
+        if self.stop is True:
+            return False
+
+        self.measure_current_and_temperature()
+        _QApplication.processEvents()
+
+        npts1 = _np.ceil(round((mstart - start) / step, 4) + 1)
+        npts2 = _np.ceil(round((mend - mstart) / step, 4) + 1)
+        npts3 = _np.ceil(round((end - mend) / step, 4) + 1)
+        
+        vx = []
+        vy = []
+        vz = []
+        
+        # Part 1
+        self.configure_multimeters(voltage_range=10)
+
+        if self.stop is True:
+            return False
+
+        if to_pos:
+            self.move_axis(axis, start - extra)
+            pos = _np.linspace(start, mstart, npts1) + aper_displacement/2
+        else:
+            self.move_axis(axis, end + extra)
+            pos = (_np.linspace(mend, end, npts3) + aper_displacement/2)[::-1]
+        _QApplication.processEvents()
+        
+        if self.stop is True:
+            return False
+        else:
+            if to_pos:
+                _pmac.set_trigger(
+                    axis, start, step, 10, npts1, 1)
+            else:
+                _pmac.set_trigger(
+                    axis, end, step*(-1), 10, npts3, 1)
+
+        voltage_format = self.measurement_config.voltage_format
+        if self.measurement_config.voltx_enable:
+            _voltx.configure_reading_format(voltage_format)
+        if self.measurement_config.volty_enable:
+            _volty.configure_reading_format(voltage_format)
+        if self.measurement_config.voltz_enable:
+            _voltz.configure_reading_format(voltage_format)
+        _QApplication.processEvents()
+
+        self.start_voltage_threads()
+
+        _time.sleep(1)
+
+        if self.stop is False:
+            if to_pos:
+                self.move_axis_and_update_graph(
+                    axis, mstart + extra, idx, pos=pos)
+            else:
+                self.move_axis_and_update_graph(
+                    axis, mend - extra, idx, pos=pos)
+
+        self.stop_trigger()
+        self.wait_voltage_threads()
+
+        _QApplication.processEvents()
+
+        vx.append(self.workerx.voltage)
+        vy.append(self.workery.voltage)
+        vz.append(self.workerz.voltage)
+
+        # Part 2
+        self.configure_multimeters(voltage_range=15)
+        
+        if self.stop is True:
+            return False
+
+        if to_pos:
+            self.move_axis(axis, mstart - extra)
+            pos = _np.linspace(mstart, mend, npts2) + aper_displacement/2
+        else:
+            self.move_axis(axis, mend + extra)
+            pos = (_np.linspace(
+                mstart, mend, npts2) + aper_displacement/2)[::-1]
+        _QApplication.processEvents()
+        
+        if self.stop is True:
+            return False
+        else:
+            if to_pos:
+                _pmac.set_trigger(
+                    axis, mstart, step, 10, npts2, 1)
+            else:
+                _pmac.set_trigger(
+                    axis, mend, step*(-1), 10, npts2, 1)
+
+        voltage_format = self.measurement_config.voltage_format
+        if self.measurement_config.voltx_enable:
+            _voltx.configure_reading_format(voltage_format)
+        if self.measurement_config.volty_enable:
+            _volty.configure_reading_format(voltage_format)
+        if self.measurement_config.voltz_enable:
+            _voltz.configure_reading_format(voltage_format)
+        _QApplication.processEvents()
+
+        self.start_voltage_threads()
+
+        _time.sleep(1)
+
+        if self.stop is False:
+            if to_pos:
+                self.move_axis_and_update_graph(
+                    axis, mend + extra, idx + 2, pos=pos)
+            else:
+                self.move_axis_and_update_graph(
+                    axis, mstart - extra, idx + 2, pos=pos)
+
+        self.stop_trigger()
+        self.wait_voltage_threads()
+
+        _QApplication.processEvents()
+
+        vx.append(self.workerx.voltage[1::])
+        vy.append(self.workery.voltage[1::])
+        vz.append(self.workerz.voltage[1::])
+
+        # Part 3
+        self.configure_multimeters(voltage_range=10)
+        
+        if self.stop is True:
+            return False
+
+        if to_pos:
+            self.move_axis(axis, mend - extra)
+            pos = _np.linspace(mend, end, npts3) + aper_displacement/2
+        else:
+            self.move_axis(axis, mstart + extra)
+            pos = (_np.linspace(
+                start, mstart, npts1) + aper_displacement/2)[::-1]
+        _QApplication.processEvents()
+        
+        if self.stop is True:
+            return False
+        else:
+            if to_pos:
+                _pmac.set_trigger(
+                    axis, mend, step, 10, npts3, 1)
+            else:
+                _pmac.set_trigger(
+                    axis, mstart, step*(-1), 10, npts1, 1)
+
+        voltage_format = self.measurement_config.voltage_format
+        if self.measurement_config.voltx_enable:
+            _voltx.configure_reading_format(voltage_format)
+        if self.measurement_config.volty_enable:
+            _volty.configure_reading_format(voltage_format)
+        if self.measurement_config.voltz_enable:
+            _voltz.configure_reading_format(voltage_format)
+        _QApplication.processEvents()
+
+        self.start_voltage_threads()
+
+        _time.sleep(1)
+
+        if self.stop is False:
+            if to_pos:
+                self.move_axis_and_update_graph(
+                    axis, end + extra, idx + 4, pos=pos)
+            else:
+                self.move_axis_and_update_graph(
+                    axis, start - extra, idx + 4, pos=pos)
+
+        self.stop_trigger()
+        self.wait_voltage_threads()
+
+        _QApplication.processEvents()
+
+        vx.append(self.workerx.voltage[1::])
+        vy.append(self.workery.voltage[1::])
+        vz.append(self.workerz.voltage[1::])
+
+        # Join parts
+        vx_flat = [item for sublist in vx for item in sublist]
+        vy_flat = [item for sublist in vy for item in sublist]
+        vz_flat = [item for sublist in vz for item in sublist]
+        
+        self.voltage_scan.vx = vx_flat
+        self.voltage_scan.vy = vy_flat
+        self.voltage_scan.vz = vz_flat
+
+        _QApplication.processEvents()
+        self.quit_voltage_threads()
+
+        if axis == 5:
+            npts = len(self.voltage_scan.scan_pos)
+            self.voltage_scan.vx = self.voltage_scan.vx[:npts]
+            self.voltage_scan.vy = self.voltage_scan.vy[:npts]
+            self.voltage_scan.vz = self.voltage_scan.vz[:npts]
+
+        if self.voltage_scan.npts == 0:
+            return True
+
+        if not to_pos:
+            self.voltage_scan.reverse()
+
+        self.voltage_scan = _data.measurement.configure_voltage_offset(
+            self.voltage_scan,
+            self.measurement_config.voltage_offset,
+            self.measurement_config.offsetx,
+            self.measurement_config.offsety,
+            self.measurement_config.offsetz,
+            self.measurement_config.offset_range)
+
+        if self.stop is True:
+            return False
+        else:
+            return True
+
     def move_axis(self, axis, position):
         """Move bench axis."""
         if self.stop is False:
@@ -1476,20 +1738,23 @@ class MeasurementWidget(_QWidget):
                 status = _pmac.axis_status(axis)
                 _QApplication.processEvents()
 
-    def move_axis_and_update_graph(self, axis, position, idx):
+    def move_axis_and_update_graph(self, axis, position, idx, pos=None):
         """Move bench axis and update plot with the measure data."""
         if self.stop is False:
             _pmac.set_position(axis, position)
             status = _pmac.axis_status(axis)
             while (status is None or (status & 1) == 0) and self.stop is False:
-                self.plot_voltage(idx)
+                self.plot_voltage(idx, pos=pos)
                 status = _pmac.axis_status(axis)
                 _QApplication.processEvents()
                 _time.sleep(self._update_plot_interval)
 
-    def plot_voltage(self, idx):
+    def plot_voltage(self, idx, pos=None):
         """Plot voltage values."""
-        npts = len(self.position_list)
+        if pos is None:
+            pos = self.position_list
+        
+        npts = len(pos)
         voltagex = [v for v in self.workerx.voltage[:npts]]
         voltagey = [v for v in self.workery.voltage[:npts]]
         voltagez = [v for v in self.workerz.voltage[:npts]]
@@ -1497,11 +1762,11 @@ class MeasurementWidget(_QWidget):
         with _warnings.catch_warnings():
             _warnings.simplefilter("ignore")
             self.graphx[idx].setData(
-                self.position_list[:len(voltagex)], voltagex)
+                pos[:len(voltagex)], voltagex)
             self.graphy[idx].setData(
-                self.position_list[:len(voltagey)], voltagey)
+                pos[:len(voltagey)], voltagey)
             self.graphz[idx].setData(
-                self.position_list[:len(voltagez)], voltagez)
+                pos[:len(voltagez)], voltagez)
 
     def reset_multimeters(self):
         """Reset connected multimeters."""

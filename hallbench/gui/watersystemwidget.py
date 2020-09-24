@@ -23,6 +23,7 @@ from hallbench.devices import water_udc as _water_udc
 class WaterSystemWidget(_TablePlotWidget):
     """Water System Widget class for the Hall Bench Control application."""
 
+    _monitor_name = 'water_temperature'
     _left_axis_1_label = 'Temperature [deg C]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['PV1', 'PV2']
@@ -90,6 +91,7 @@ class WaterSystemWidget(_TablePlotWidget):
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
             self.add_last_value_to_table()
+            self.add_last_value_to_file()
             self.update_plot()
 
         except Exception:

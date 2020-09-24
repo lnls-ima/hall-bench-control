@@ -31,6 +31,7 @@ from hallbench.devices import (
 class VoltageTempWidget(_TablePlotWidget):
     """Voltage and Temperature Widget class."""
 
+    _monitor_name = 'voltage_temperature'
     _left_axis_1_label = 'Voltage [mV]'
     _left_axis_1_format = '{0:.6f}'
     _left_axis_1_data_labels = ['X [mV]', 'Y [mV]', 'Z [mV]']
@@ -75,8 +76,7 @@ class VoltageTempWidget(_TablePlotWidget):
 
         self.wait = None
         self.updateWait()
-        self.sbd_monitor_step.valueChanged.connect(self.updateWait)
-        self.cmb_monitor_unit.currentIndexChanged.connect(self.updateWait)
+        self.sbd_monitor_freq.valueChanged.connect(self.updateWait)
 
     def closeEvent(self, event):
         """Close widget."""
@@ -173,6 +173,7 @@ class VoltageTempWidget(_TablePlotWidget):
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
             self.add_last_value_to_table()
+            self.add_last_value_to_file()
             self.update_plot()
 
         except Exception:
@@ -201,7 +202,7 @@ class VoltageTempWidget(_TablePlotWidget):
 
     def updateWait(self):
         """Update wait value."""
-        self.wait = self.sbd_monitor_step.value()/2
+        self.wait = (1/self.sbd_monitor_freq.value())/2
 
 
 class ReadValueWorker(_QObject):

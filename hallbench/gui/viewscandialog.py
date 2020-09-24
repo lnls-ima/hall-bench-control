@@ -136,6 +136,21 @@ class ViewScanDialog(_QDialog):
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
+    def calc_gaussian_all(self, selected_comp):
+        selected_idx = self.cmb_select_scan.checked_indexes()
+
+        x0s = []
+        for idx in selected_idx:
+            x, y = self.get_x_y(idx, selected_comp)
+            try:
+                xfit, yfit, param, label = _gaussian_fit(x, y)
+                x0 = param['x0']
+            except Exception:
+                x0 = _np.nan
+            x0s.append(x0)
+        df = _pd.DataFrame(x0s)
+        df.to_clipboard(excel=True, header=False, index=False)
+
     def calc_integrals(self):
         """Calculate integrals."""
         try:

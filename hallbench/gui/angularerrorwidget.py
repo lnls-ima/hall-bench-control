@@ -30,6 +30,7 @@ from hallbench.devices import (
 class AngularErrorWidget(_TablePlotWidget):
     """Angular error widget class for the Hall Bench Control application."""
 
+    _monitor_name = 'angular_error'
     _left_axis_1_label = 'Angular error [arcsec]'
     _left_axis_1_format = '{0:.4f}'
     _left_axis_1_data_labels = ['X-axis [arcsec]', 'Y-axis [arcsec]']
@@ -104,6 +105,7 @@ class AngularErrorWidget(_TablePlotWidget):
             for i, label in enumerate(self._data_labels):
                 self._readings[label].append(r[i])
             self.add_last_value_to_table()
+            self.add_last_value_to_file()
             self.update_plot()
 
         except Exception:

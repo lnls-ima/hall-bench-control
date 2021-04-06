@@ -5,6 +5,7 @@
 import os as _os
 import sys as _sys
 import json as _json
+import numpy as _np
 import traceback as _traceback
 from qtpy.QtCore import Qt as _Qt
 from qtpy.QtWidgets import (
@@ -142,6 +143,9 @@ class SaveFieldmapDialog(_QDialog):
         self.ui.chb_qs.stateChanged.connect(
             lambda: self.set_coil_frame_enabled(
                 self.ui.chb_qs, self.ui.qs_fm))
+        
+        self.ui.chb_one_for_each.stateChanged.connect(
+            self.separate_field_scan_id_list)        
 
         self.ui.sbd_centerpos3.valueChanged.connect(self.disable_save_to_file)
         self.ui.sbd_centerpos2.valueChanged.connect(self.disable_save_to_file)
@@ -259,7 +263,7 @@ class SaveFieldmapDialog(_QDialog):
                 fs = _FieldScan(
                     database_name=self.database_name,
                     mongo=self.mongo, server=self.server)
-                fs.db_read(idn)
+                fs.db_read(int(idn))
                 field_scan_list.append(fs)
 
             fieldmap.comments = field_scan_list[0].comments
@@ -443,6 +447,16 @@ class SaveFieldmapDialog(_QDialog):
             msg = 'Failed to save Fieldmaps to file.'
             _QMessageBox.critical(self, 'Failure', msg, _QMessageBox.Ok)
 
+    def separate_field_scan_id_list(self):
+        try:
+            if self.ui.chb_one_for_each.isChecked():
+                self.field_scan_id_list = _np.array(
+                    self.field_scan_id_list).ravel()
+                self.field_scan_id_list = [[f] for f in self.field_scan_id_list]
+        
+        except Exception:
+            _traceback.print_exc(file=_sys.stdout)
+
     def set_coil_frame_enabled(self, checkbox, frame):
         """Enable or disable coil frame."""
         self.disable_save_to_file()
@@ -465,7 +479,7 @@ class SaveFieldmapDialog(_QDialog):
             fs = _FieldScan(
                 database_name=self.database_name,
                 mongo=self.mongo, server=self.server)
-            
+
             if not isinstance(field_scan_id_list[0], list):
                 field_scan_id_list = [field_scan_id_list]
 

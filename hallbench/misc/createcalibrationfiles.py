@@ -152,7 +152,7 @@ def find_polynomial_fit(
 def write_file_and_plot(fd, filename):
     folder = (
         "C:\\Arq\\Work_At_LNLS\\eclipse-workspace\\" +
-        "hall-bench-control\\fieldmaps\\CalibrationData")
+        "hall-bench-control\\fieldmaps\\2020-08-01_CalibrationData\\RawData")
     fullfilename = _os.path.join(folder, filename)
     d = fd[filename]
 
@@ -188,7 +188,7 @@ def write_file_and_plot(fd, filename):
     hc.electronic_box_temperature = temp_box
     hc.polynomial_coeffs = poly
 
-    save_folder = _os.path.join(folder, 'FilesToDatabase')
+    save_folder = _os.path.join(folder, 'calibration_files')
     hc.save_file(_os.path.join(save_folder, d['calibration_name'] + '.txt'))
 
     df = _pd.DataFrame([d['calibration_name']])
@@ -593,11 +593,9 @@ fd[filename] = {
     'calibration_name': calibration_name,
     'calibration_magnet': calibration_magnet}
 
-selected_filename = filename
-
 filename = '133-14Y_M2.txt'
 date = '2020-07-28'
-coeffs = [1, 2, 3, 5, 7]
+coeffs = [1, 2, 3, 5, 7, 9]
 sign = -1
 voltage_min = -11
 voltage_max = 11
@@ -609,6 +607,8 @@ fd[filename] = {
     'voltage_max': voltage_max, 'voltage_offset': voltage_offset,
     'calibration_name': calibration_name,
     'calibration_magnet': calibration_magnet}
+
+selected_filename = filename
 
 filename = '133-14Y_M3.txt'
 date = '2020-07-29'

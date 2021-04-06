@@ -1119,10 +1119,10 @@ class MeasurementWidget(_QWidget):
         self.ui.pbt_measure.setEnabled(False)
         self.ui.pbt_stop.setEnabled(True)
 
-        und = "1991c"
+        und = "1995"
         comments = "Probes 133-14, " + und + " Phase "
-        phases = _np.arange(0, 12)
-        vel = 0.5
+        phases = _np.around(_np.linspace(0, 29, 17), decimals=3)
+        vel = 1
         tol = 0.01
         
         operational_pv = und + ":IsOperational"
@@ -1166,7 +1166,7 @@ class MeasurementWidget(_QWidget):
                  
                 _time.sleep(0.1)
                 _epics.caput(command_pv, "Start")
-                _time.sleep(20)
+                _time.sleep(40)
                  
                 ph_rbv = _epics.caget(phase_rbv_pv)
                 if _np.abs(ph - ph_rbv) > tol:
@@ -1175,7 +1175,7 @@ class MeasurementWidget(_QWidget):
                         self, 'Failure', msg, _QMessageBox.Ok)
                     return
                 
-                self.measurement_config.comments = comments + str(ph)
+                self.measurement_config.comments = comments + str(ph) + ' mm'
                 self.ui.te_comments.setText(self.measurement_config.comments)
 
             except Exception:

@@ -245,7 +245,7 @@ class PowerSupplyWidget(_QWidget):
                 return
                         
             else:
-                self.drs.set_param('Min_Ref', 0, -400)
+                self.drs.set_param('Min_Ref', 0, self.config.minimum_current)
                 self.drs.set_param('Min_Ref_OpenLoop', 0, -40)
                 self.drs.set_param('PWM_Min_Duty', 0, -0.9)
                 self.drs.set_param('PWM_Min_Duty_OpenLoop', 0, -0.4)                

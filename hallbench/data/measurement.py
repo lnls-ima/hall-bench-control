@@ -578,7 +578,10 @@ class Fieldmap(_database.DatabaseAndFileDocument):
             if len(z) > 1:
                 name = name + '_Z={0:.0f}_{1:.0f}mm'.format(z[0], z[-1])
 
-        mt = _re.search('phase(\d+)', self.comments.lower().replace(' ', ''))
+        mt = _re.search('phase(\d+)', self.comments.lower().replace(
+            ' ', ''))
+#         mt = _re.search('phase(\d+\.\d+)', self.comments.lower().replace(
+#             ' ', ''))
         if mt:
             name = name + '_Y={0:.0f}mm'.format(y[0])
 
@@ -649,10 +652,56 @@ class Fieldmap(_database.DatabaseAndFileDocument):
         for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
             current = getattr(self, 'current_' + coil)
             turns = getattr(self, 'nr_turns_' + coil)
+            
+            try:
+                if coil == 'main':
+                    current = '{0:.3f}'.format(self.dcct_current_avg)
+            except Exception:
+                pass
+            
             if current is not None:
                 header_info.append(['current_' + coil + '[A]', current])
                 header_info.append(['nr_turns_' + coil, turns])
 
+        try:
+            probex_ch = '101'
+            probex_temp = _np.mean(_np.array(self.temperature[probex_ch])[:, 1])
+            
+            probey_ch = '102'
+            probey_temp = _np.mean(_np.array(self.temperature[probey_ch])[:, 1])
+            
+            probez_ch = '103'
+            probez_temp = _np.mean(_np.array(self.temperature[probez_ch])[:, 1])
+            
+            transd_ch = '105'
+            transd_temp = _np.mean(_np.array(self.temperature[transd_ch])[:, 1])      
+            
+            room_ch = '209'
+            room_temp = _np.mean(_np.array(self.temperature[room_ch])[:, 1])
+            
+#             magnet_chs = ['205', '207']
+#             magnet_avgs = []
+#             for ch in magnet_chs:
+#                 magnet_avgs.append(
+#                     _np.mean(_np.array(self.temperature[ch])[:, 1]))
+#             magnet_temp = _np.mean(magnet_avgs)
+    
+            header_info.append([
+                'probex_temp[degC]', '{0:.2f}'.format(probex_temp)])
+            header_info.append([
+                'probey_temp[degC]', '{0:.2f}'.format(probey_temp)])
+            header_info.append([
+                'probez_temp[degC]', '{0:.2f}'.format(probez_temp)])
+            header_info.append([
+                'transd_temp[degC]', '{0:.2f}'.format(transd_temp)])
+            header_info.append([
+                'room_temp[degC]', '{0:.2f}'.format(room_temp)])
+#             header_info.append([
+#                 'magnet_temp[degC]', '{0:.2f}'.format(magnet_temp)])
+        
+        except Exception:
+            pass
+        
         header_info.append(['center_pos_z[mm]', '0'])
         header_info.append(['center_pos_x[mm]', '0'])
         header_info.append(['rotation[deg]', '0'])

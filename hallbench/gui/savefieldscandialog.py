@@ -307,6 +307,24 @@ class SaveFieldScanDialog(_QDialog):
             self.field_scan_id_list = []
             self.update_probe_calibrations()
             self.disable_save_to_file()
+
+            try:
+                vs = _data.measurement.VoltageScan(
+                    database_name=self.database_name,
+                    mongo=self.mongo, server=self.server)
+                vs.db_read(self.voltage_scan_id_list[0])
+            
+                offsetx = vs.offsetx_start*1000
+                offsety = vs.offsety_start*1000
+                offsetz = vs.offsetz_start*1000
+            
+                self.ui.le_offsetx.setText(str(offsetx))
+                self.ui.le_offsety.setText(str(offsety))
+                self.ui.le_offsetz.setText(str(offsetz))
+                
+            except Exception:
+                _traceback.print_exc(file=_sys.stdout)
+            
             super().show()
 
         except Exception:

@@ -14,6 +14,8 @@ from imautils.devices import ElcomatLib as _ElcomatLib
 from imautils.devices import NMRLib as _NMRLib
 from imautils.devices import UDCLib as _UDCLib
 from imautils.devices import FDI2056 as _FDI2056
+from imautils.devices import HeidenhainLib as _HeidenhainLib
+
 
 try:
     from imautils.devices import PmacLib as _PmacLib
@@ -141,20 +143,20 @@ class DCCT(_Agilent34401ALib.Agilent34401AGPIB):
         else:
             current = _np.nan
         return current
-    
+
     def read_fast(self):
         self.send_command(self.commands.read)
         try:
             val = float(self.read_from_device()[:-1])
         except Exception:
-            val = None        
+            val = None
         dcct_heads = [40, 160, 320, 600, 1000, 1125]
         if val is not None and self.dcct_head in dcct_heads:
             current = val * self.dcct_head/10
         else:
             current = _np.nan
         return current
-    
+
 
 class PowerSupply(_pydrs.SerialDRS):
     """Power Supply."""
@@ -177,6 +179,7 @@ NMR = _NMRLib.NMRSerial
 WaterUDC = _UDCLib.UDCModBus
 AirUDC = _UDCLib.UDCModBus
 Integrator = _FDI2056.EthernetCom
+Display = _HeidenhainLib.HeidenhainSerial
 
 
 if pmac_module:

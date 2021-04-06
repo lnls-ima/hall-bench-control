@@ -51,6 +51,8 @@ from hallbench.gui.probecalibrationwidget import ProbeCalibrationWidget \
     as _ProbeCalibrationWidget
 from hallbench.gui.databasewidget import DatabaseWidget \
     as _DatabaseWidget
+from hallbench.gui.displaywidget import DisplayWidget \
+    as _DisplayWidget
 from hallbench.devices import pmac as _pmac
 from hallbench.devices import logfile as _logfile
 
@@ -91,6 +93,7 @@ class HallBenchWindow(_QMainWindow):
             'angular_error',
             'probe_calibration',
             'database',
+            'display',
             ]
 
         self.tab_widgets = [
@@ -109,6 +112,7 @@ class HallBenchWindow(_QMainWindow):
             _AngularErrorWidget,
             _ProbeCalibrationWidget,
             _DatabaseWidget,
+            _DisplayWidget,
             ]
 
         # add preferences dialog
@@ -119,6 +123,7 @@ class HallBenchWindow(_QMainWindow):
         self.preferences_dialog.chb_measurement.setChecked(True)
         self.preferences_dialog.chb_integrator_measurement.setChecked(False)
         self.preferences_dialog.chb_database.setChecked(True)
+        self.preferences_dialog.chb_display.setChecked(False)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)
 
         self.log_dialog = _LogDialog()
@@ -259,7 +264,7 @@ class HallBenchWindow(_QMainWindow):
                 hasattr(self, 'tab_power_supply')):
             self.tab_measurement.change_current_setpoint.connect(
                 self.tab_power_supply.change_setpoint_and_emit_signal)
- 
+
             self.tab_measurement.turn_off_power_supply_current.connect(
                 self.tab_power_supply.set_current_to_zero)
 
@@ -268,13 +273,13 @@ class HallBenchWindow(_QMainWindow):
 
             self.tab_measurement.turn_off_current_display.connect(
                 self.tab_power_supply.turn_off_current_display)
-             
+
             self.tab_power_supply.current_setpoint_changed.connect(
                 self.tab_measurement.update_current_setpoint)
- 
+
             self.tab_power_supply.start_measurement.connect(
                 self.tab_measurement.measure_and_emit_signal)
- 
+
             self.tab_power_supply.current_ramp_end.connect(
                 self.tab_measurement.end_automatic_measurements)
 
@@ -289,12 +294,12 @@ class HallBenchWindow(_QMainWindow):
             self.log_dialog.show()
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
- 
+
     def update_positions(self):
         """Update pmac positions."""
         if self.stop_positions_update:
             return
-        
+
         if not _pmac.connected:
             self.positions = {}
             return

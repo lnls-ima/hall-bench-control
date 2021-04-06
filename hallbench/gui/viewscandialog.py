@@ -177,7 +177,7 @@ class ViewScanDialog(_QDialog):
             else:
                 fmult = 1e-3
                 smult = 1e-6
-                
+
             first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
             second_integral = _integrate.cumtrapz(
                 x=x, y=first_integral, initial=0)
@@ -275,11 +275,11 @@ class ViewScanDialog(_QDialog):
 
         if nr_curves == 0:
             return
-        
+
         colorx = (255, 0, 0)
         colory = (0, 255, 0)
         colorz = (0, 0, 255)
-        
+
         if TO_PRINT:
             width = 3
             label_style = {'font-size': '20px'}
@@ -292,7 +292,7 @@ class ViewScanDialog(_QDialog):
         if idn_list is not None and len(idn_list) > 0:
             if nr_curves > len(colors):
                 colors = list(colors)*int(_np.ceil(nr_curves/len(colors)))
-            
+
             for idx in range(nr_curves):
                 pen = _pyqtgraph.mkPen(color=colors[idx], width=width)
                 plot_data_item = self.ui.pw_graph.plotItem.plot(
@@ -300,23 +300,23 @@ class ViewScanDialog(_QDialog):
                     _np.array([]))
                 plot_data_item.setPen(pen)
                 self.graphx.append(plot_data_item)
-    
+
                 plot_data_item = self.ui.pw_graph.plotItem.plot(
                     _np.array([]),
                     _np.array([]))
                 plot_data_item.setPen(pen)
-                self.graphy.append(plot_data_item) 
+                self.graphy.append(plot_data_item)
 
                 plot_data_item = self.ui.pw_graph.plotItem.plot(
                     _np.array([]),
                     _np.array([]))
                 plot_data_item.setPen(pen)
                 self.graphz.append(plot_data_item)
-    
+
                 legend_item = 'ID:{0:d}'.format(idn_list[idx])
                 self.legend_items.append(legend_item)
                 self.legend.addItem(self.graphx[idx], legend_item)
-        
+
         else:
             for idx in range(nr_curves):
                 pen = _pyqtgraph.mkPen(color=colorx, width=width)
@@ -325,39 +325,39 @@ class ViewScanDialog(_QDialog):
                     _np.array([]))
                 plot_data_item.setPen(pen)
                 self.graphx.append(plot_data_item)
-    
+
                 pen = _pyqtgraph.mkPen(color=colory, width=width)
                 plot_data_item = self.ui.pw_graph.plotItem.plot(
                     _np.array([]),
                     _np.array([]))
                 plot_data_item.setPen(pen)
                 self.graphy.append(plot_data_item)
-    
+
                 pen = _pyqtgraph.mkPen(color=colorz, width=width)
                 plot_data_item = self.ui.pw_graph.plotItem.plot(
                     _np.array([]),
                     _np.array([]))
                 plot_data_item.setPen(pen)
                 self.graphz.append(plot_data_item)
-    
+
             self.legend_items = ['X', 'Y', 'Z']
             self.legend.addItem(self.graphx[0], self.legend_items[0])
             self.legend.addItem(self.graphy[0], self.legend_items[1])
             self.legend.addItem(self.graphz[0], self.legend_items[2])
-        
+
         self.ui.pw_graph.setLabel(
             'bottom', text='Scan Position', **label_style)
-        
+
         if self.scan_type == 'field':
             self.ui.pw_graph.setLabel(
                 'left', text='Field [T]', **label_style)
         else:
             self.ui.pw_graph.setLabel(
                 'left', text='Voltage [V]', **label_style)
-        
+
         self.ui.pw_graph.showGrid(x=True, y=True)
 
-        if TO_PRINT:        
+        if TO_PRINT:
             font = _QFont()
             font.setPixelSize(20)
             self.ui.pw_graph.getAxis('bottom').tickFont = font
@@ -365,7 +365,7 @@ class ViewScanDialog(_QDialog):
                 tickTextOffset = 20)
             self.ui.pw_graph.getAxis('left').tickFont = font
             self.ui.pw_graph.getAxis('left').setStyle(
-                tickTextOffset = 20)    
+                tickTextOffset = 20)
 
     def connect_signal_slots(self):
         """Create signal/slot connections."""
@@ -599,12 +599,12 @@ class ViewScanDialog(_QDialog):
                 self.ui.cmb_first_integral_unit.addItem('T.m')
                 self.ui.cmb_first_integral_unit.addItem('G.cm')
                 self.ui.cmb_first_integral_unit.setCurrentIndex(1)
-                
+
                 self.ui.cmb_second_integral_unit.addItem('T.m2')
                 self.ui.cmb_second_integral_unit.addItem('G.m2')
                 self.ui.cmb_second_integral_unit.setCurrentIndex(1)
             else:
-                self.ui.cmb_first_integral_unit.addItem('V.m')          
+                self.ui.cmb_first_integral_unit.addItem('V.m')
                 self.ui.cmb_second_integral_unit.addItem('V.m2')
 
             idx = 0
@@ -620,7 +620,7 @@ class ViewScanDialog(_QDialog):
                     return
 
                 pos = data.scan_pos
-                
+
                 if self.scan_type == 'field':
                     x = data.bx if len(data.bx) != 0 else _np.zeros(len(pos))
                     y = data.by if len(data.by) != 0 else _np.zeros(len(pos))
@@ -628,8 +628,8 @@ class ViewScanDialog(_QDialog):
                 else:
                     x = data.vx if len(data.vx) != 0 else _np.zeros(len(pos))
                     y = data.vy if len(data.vy) != 0 else _np.zeros(len(pos))
-                    z = data.vz if len(data.vz) != 0 else _np.zeros(len(pos))                      
-                
+                    z = data.vz if len(data.vz) != 0 else _np.zeros(len(pos))
+
                 xmin = pos[0]
                 xmax = pos[-1]
                 self.scan_dict[idx] = {
@@ -730,43 +730,43 @@ class ViewScanDialog(_QDialog):
                 if self.ui.cmb_first_integral_unit.currentIndex() == 1:
                     fmult = 1e3
                     ylabel = 'Field Integral [G.cm]'
-                    
+
                 else:
                     fmult = 1e-3
                     ylabel = 'Field Integral [T.m]'
-            
+
             else:
                 fmult = 1e-3
                 ylabel = 'Voltage Integral [V.m]'
 
-            idn_list = []                       
-            
+            idn_list = []
+
             values = {}
             values['IntegralX'] = []
             values['IntegralY'] = []
             values['IntegralZ'] = []
-            
+
             for idx in self.scan_dict.keys():
                 idn_list.append(self.scan_dict[idx]['x']['idn'])
-                
+
                 x = self.scan_dict[idx]['x']['pos']
                 y = self.scan_dict[idx]['x']['data']
                 first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
                 fint = first_integral[-1]*fmult
-                values['IntegralX'].append(fint)         
-          
+                values['IntegralX'].append(fint)
+
                 x = self.scan_dict[idx]['y']['pos']
                 y = self.scan_dict[idx]['y']['data']
                 first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
                 fint = first_integral[-1]*fmult
-                values['IntegralY'].append(fint)  
+                values['IntegralY'].append(fint)
 
                 x = self.scan_dict[idx]['z']['pos']
                 y = self.scan_dict[idx]['z']['data']
                 first_integral = _integrate.cumtrapz(x=x, y=y, initial=0)
                 fint = first_integral[-1]*fmult
-                values['IntegralZ'].append(fint)  
-            
+                values['IntegralZ'].append(fint)
+
             self.integrals_dialog.set_ylabel(ylabel)
             self.integrals_dialog.show(idn_list, values)
 
@@ -856,7 +856,7 @@ class ViewScanDialog(_QDialog):
                 show_xlines = False
             else:
                 show_xlines = True
-            
+
             scan_dict = {}
             idn_list = []
             for idx in selected_idx:
@@ -867,9 +867,9 @@ class ViewScanDialog(_QDialog):
 
             if len(selected_comp) > 1 or len(selected_idx) == 1:
                 self.configure_graph(len(selected_idx))
-            else: 
+            else:
                 self.configure_graph(len(selected_idx), idn_list=idn_list)
-                
+
             with _warnings.catch_warnings():
                 _warnings.simplefilter("ignore")
                 x_count = 0
@@ -1027,7 +1027,7 @@ def _gaussian_fit(x, y):
             y0 = _np.max(y)
 
         popt, pcov = _optimize.curve_fit(
-            gaussian, x, y, p0=[y0, a, mean, sigma])
+            gaussian, x, y, p0=[y0, a, mean, sigma], maxfev=10000)
 
         xfit = _np.linspace(x[0], x[-1], 100)
         yfit = gaussian(xfit, popt[0], popt[1], popt[2], popt[3])

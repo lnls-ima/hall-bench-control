@@ -207,7 +207,7 @@ class CurrentPositionWidget(_QWidget):
 
 class LogDialog(_QDialog):
     """Log dialog."""
-    
+
     def __init__(self, parent=None):
         """Set up the ui."""
         super().__init__(parent)
@@ -220,7 +220,7 @@ class LogDialog(_QDialog):
         main_layout = _QHBoxLayout()
         main_layout.addWidget(self.te_text)
         self.setLayout(main_layout)
-        
+
 
 class MoveAxisWidget(_QWidget):
     """Move axis widget class for the Hall Bench Control application."""
@@ -598,7 +598,7 @@ class TableAnalysisDialog(_QDialog):
                     peak_valey_perc = 100*peak_valey/mean
                 except Exception:
                     peak_valey_perc = _np.nan
-                    
+
             self.add_items_to_table('{0:.4f}'.format(mean), i, 0)
             self.add_items_to_table('{0:.4f}'.format(std), i, 1)
             self.add_items_to_table('{0:.4f}'.format(min), i, 2)
@@ -643,7 +643,7 @@ class TablePlotWidget(_QWidget):
     _bottom_axis_label = 'Time interval [s]'
     _bottom_axis_format = '{0:.3f}'
     _is_timestamp = True
-    
+
     _left_axis_1_label = ''
     _right_axis_1_label = ''
     _right_axis_2_label = ''
@@ -739,7 +739,7 @@ class TablePlotWidget(_QWidget):
             dt = self._xvalues[-1] - self._xvalues[0]
             self.tbl_table.setItem(
                 n-1, 0, _QTableWidgetItem(
-                    self._bottom_axis_format.format(dt)))            
+                    self._bottom_axis_format.format(dt)))
         else:
             self.tbl_table.setItem(
                 n-1, 0, _QTableWidgetItem(
@@ -780,7 +780,7 @@ class TablePlotWidget(_QWidget):
 
         with open(self.filename, '+a') as f:
             f.write('\t'.join(line)+'\n')
-            
+
     def add_widgets(self):
         """Add widgets and layouts."""
         # Layouts
@@ -1110,19 +1110,19 @@ class TablePlotWidget(_QWidget):
                 filename = '{0:s}_{1:s}_{2:s}.txt'.format(
                     timestamp, 'monitor', self._monitor_name)
                 filename = _os.path.join(folder, filename)
-                
+
                 col_labels = [self._bottom_axis_label]
                 for label in self._data_labels:
                     col_labels.append(label)
-                
+
                 with open(filename, 'w') as f:
                     f.write('\t'.join(col_labels) + '\n')
                 self.filename = filename
-            
+
             except Exception:
                 self.filename = None
                 _traceback.print_exc(file=_sys.stdout)
-                
+
             self.pbt_read.setEnabled(False)
             self.timer.start()
 
@@ -1226,7 +1226,7 @@ class TablePlotWidget(_QWidget):
             _warnings.simplefilter("ignore")
             if self._is_timestamp:
                 timeinterval = _np.array(self._xvalues) - self._xvalues[0]
-            
+
             for label in self._data_labels:
                 readings = []
                 for r in self._readings[label]:
@@ -1235,7 +1235,7 @@ class TablePlotWidget(_QWidget):
                     else:
                         readings.append(_np.nan)
                 readings = _np.array(readings)
-                
+
                 if self._is_timestamp:
                     x = timeinterval[_np.isfinite(readings)]
                 else:
@@ -1291,7 +1291,7 @@ class TablePlotWidget_Old(_QWidget):
 
     _bottom_axis_label = 'Time interval [s]'
     _is_timestamp = True
-    
+
     _left_axis_1_label = ''
     _right_axis_1_label = ''
     _right_axis_2_label = ''
@@ -1315,7 +1315,7 @@ class TablePlotWidget_Old(_QWidget):
         self.add_widgets()
         self.setFont(_font)
 
-        # variables initialisation     
+        # variables initialisation
         self._xvalues = []
         self._legend_items = []
         self._graphs = {}
@@ -1837,7 +1837,7 @@ class TablePlotWidget_Old(_QWidget):
             _warnings.simplefilter("ignore")
             if self._is_timestamp:
                 timeinterval = _np.array(self._xvalues) - self._xvalues[0]
-            
+
             for label in self._data_labels:
                 readings = []
                 for r in self._readings[label]:
@@ -1846,7 +1846,7 @@ class TablePlotWidget_Old(_QWidget):
                     else:
                         readings.append(_np.nan)
                 readings = _np.array(readings)
-                
+
                 if self._is_timestamp:
                     x = timeinterval[_np.isfinite(readings)]
                 else:
@@ -2078,11 +2078,11 @@ class CyclingTablePlotDialog(_QDialog, TablePlotWidget):
         try:
             if isinstance(right_labels, str):
                 right_labels = [right_labels]
-            
+
             self._xvalues = xvalues
             self._readings = readings
             self._data_labels = list(self._readings.keys())
-            
+
             self._left_axis_1_data_labels = []
             self._right_axis_1_data_labels = []
             for label in self._data_labels:
@@ -2090,7 +2090,7 @@ class CyclingTablePlotDialog(_QDialog, TablePlotWidget):
                     self._right_axis_1_data_labels.append(label)
                 else:
                     self._left_axis_1_data_labels.append(label)
-            
+
             self._data_formats = []
             for label in self._data_labels:
                 if label in right_labels:
@@ -2103,7 +2103,7 @@ class CyclingTablePlotDialog(_QDialog, TablePlotWidget):
             self.update_plot()
             self.update_table_values()
             _QDialog.show(self)
-        
+
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
@@ -2190,7 +2190,7 @@ class TemperatureChannelsWidget(_QWidget):
                 chb_label = chb_label + ' (Z)'
             chb = _QCheckBox(chb_label)
             chb.setFont(_font)
-            chb.setChecked(False)
+            chb.setChecked(True)
             chb.stateChanged.connect(self.clear_channel_text)
             setattr(self, 'chb_channel' + ch, chb)
 

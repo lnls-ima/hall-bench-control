@@ -14,19 +14,18 @@ from qtpy.QtWidgets import (
 import pyqtgraph as _pyqtgraph
 
 from hallbench.gui import utils as _utils
+from hallbench.data.calibration import (
+    HallCalibrationCurve as _HallCalibrationCurve)
 from hallbench.devices import (
     voltx as _voltx,
     volty as _volty,
     voltz as _voltz,
-    nmr as _nmr,
     ps as _ps,
     multich as _multich,
     )
-from test.test_set import cube
 
 
-class ProbeCalibrationWidget(_QWidget):
-    """Probe Calibration widget class for the Hall Bench Control application."""
+class CurrentFieldWidget(_QWidget):
 
     def __init__(self, parent=None):
         """Set up the ui."""
@@ -42,12 +41,33 @@ class ProbeCalibrationWidget(_QWidget):
         self.temperature_channels = []
         self.temperature_readings = []
 
+        self.calibration = _HallCalibrationCurve()
+        self.calibration.db_update_database(
+            database_name=self.database_name,
+            mongo=self.mongo, server=self.server)
+        calibratrion_names = self.calibration.get_calibration_list()
+        self.ui.cmb_calibration.addItems(calibratrion_names)
+
         # create signal/slot connections
         self.ui.pbt_measure.clicked.connect(self.measure)
-        self.ui.pbt_configure_nmr.clicked.connect(self.configure_nmr)
         self.ui.pbt_copy.clicked.connect(self.copy_to_clipboard)
         self.ui.pbt_refresh.clicked.connect(self.display_current)
         self.ui.tbt_clear.clicked.connect(self.clear_readings)
+
+    @property
+    def database_name(self):
+        """Database name."""
+        return _QApplication.instance().database_name
+
+    @property
+    def mongo(self):
+        """MongoDB database."""
+        return _QApplication.instance().mongo
+
+    @property
+    def server(self):
+        """Server for MongoDB database."""
+        return _QApplication.instance().server
 
     @property
     def current_max(self):
@@ -63,7 +83,7 @@ class ProbeCalibrationWidget(_QWidget):
         try:
             self.temperature_channels = []
             self.temperature_readings = []
-            self.graphv.setData([], [])
+            self.graphc.setData([], [])
             self.graphf.setData([], [])
             self.ui.le_current.setText('')
             self.ui.le_currentstd.setText('')
@@ -99,7 +119,7 @@ class ProbeCalibrationWidget(_QWidget):
             ax_pr1.setStyle(showValues=True)
 
             penv = (0, 0, 255)
-            graphv = self.ui.pw_plot.plotItem.plot(
+            graphc = self.ui.pw_plot.plotItem.plot(
                 _np.array([]), _np.array([]), pen=penv,
                 symbol='o', symbolPen=penv, symbolSize=3, symbolBrush=penv)
 
@@ -109,59 +129,33 @@ class ProbeCalibrationWidget(_QWidget):
                 symbol='o', symbolPen=penf, symbolSize=3, symbolBrush=penf)
             ax_pr1.linkedView().addItem(graphf)
 
-            legend.addItem(graphv, 'Voltage')
+            legend.addItem(graphc, 'Current')
             legend.addItem(graphf, 'Field')
             self.ui.pw_plot.showGrid(x=True, y=True)
             self.ui.pw_plot.setLabel('bottom', 'Time interval [s]')
-            self.ui.pw_plot.setLabel('left', 'Voltage [V]')
+            self.ui.pw_plot.setLabel('left', 'Current [A]')
             ax_pr1.setLabel('Field [T]')
 
-            self.graphv = graphv
+            self.graphc = graphc
             self.graphf = graphf
 
         except Exception:
             _traceback.print_exc(file=_sys.stdout)
 
-    def configure_nmr(self):
-        try:
-            if not _nmr.connected:
-                msg = 'NMR not connected.'
-                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                return False
-
-            if self.ui.rbt_manual.isChecked():
-                mode = 0
-            elif self.ui.rbt_frequency.isChecked():
-                mode = 1
-            else:
-                mode = 2
-
-            nmr_channel = self.ui.cmb_nmrchannel.currentText()
-            nmr_freq = self.ui.sb_nmrfreq.value()
-            nmr_sense = self.ui.cmb_nmrsense.currentIndex()
-            nmr_searchtime = self.ui.sb_nmrsearchtime.value()
-
-            if not _nmr.configure(
-                    mode, nmr_freq, nmr_sense, 1, 0,
-                    nmr_searchtime, nmr_channel, 1):
-                msg = 'Failed to configure NMR.'
-                _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
-                self.ui.pbt_measure.setEnabled(True)
-                return False
-
-            return True
-
-        except Exception:
-            _traceback.print_exc(file=_sys.stdout)
-            return False
-
     def measure(self):
         try:
+            self.calibration = _HallCalibrationCurve()
+            self.calibration.db_update_database(
+                database_name=self.database_name,
+                mongo=self.mongo, server=self.server)
+            calibration_name = self.ui.cmb_calibration.currentText()
+            self.calibration.update_calibration(calibration_name)
+
             self.ui.pbt_measure.setEnabled(False)
 
             self.temperature_channels = []
             self.temperature_readings = []
-            self.graphv.setData([], [])
+            self.graphc.setData([], [])
             self.graphf.setData([], [])
             self.ui.le_current.setText('')
             self.ui.le_currentstd.setText('')
@@ -187,8 +181,6 @@ class ProbeCalibrationWidget(_QWidget):
                 _QMessageBox.warning(self, 'Warning', msg, _QMessageBox.Ok)
                 self.ui.pbt_measure.setEnabled(True)
                 return False
-
-            volt.reset()
 
             if _ps.ser.is_open:
                 if _ps.ps_type is None:
@@ -239,7 +231,6 @@ class ProbeCalibrationWidget(_QWidget):
                 return False
 
             if self.ui.chb_temperature.isChecked():
-                _multich.configure()
                 chs = _multich.get_scan_channels()
 
                 rl = _multich.get_converted_readings(wait=1)
@@ -272,44 +263,40 @@ class ProbeCalibrationWidget(_QWidget):
                         cs.append(c)
                         self.ui.lcd_ps_reading.display(round(c, 3))
                     except Exception:
+                        _traceback.print_exc(file=_sys.stdout)
                         cs.append(_np.nan)
 
-                    b = _nmr.read_b_value().strip().replace('\r\n', '')
-                    _QApplication.processEvents()
-                    if b.endswith('T'):
-                        if b.startswith('L'):
-                            try:
-                                b = b.replace('T', '')
-                                fs.append(float(b[1:]))
-                            except Exception:
-                                fs.append(_np.nan)
-                        elif b.startswith('S') and self.ui.rbt_manual.isChecked():
-                            try:
-                                b = b.replace('T', '')
-                                fs.append(float(b[1:]))
-                            except Exception:
-                                fs.append(_np.nan)
-                        else:
-                            fs.append(_np.nan)
-                    else:
-                        fs.append(_np.nan)
                     try:
                         v = float(volt.read_from_device()[:-2])
                         _QApplication.processEvents()
                         vs.append(v)
                     except Exception:
+                        _traceback.print_exc(file=_sys.stdout)
                         vs.append(_np.nan)
+
+                    try:
+                        f = self.calibration.get_field([v])
+                        fs.append(f[0])
+                    except Exception:
+                        _traceback.print_exc(file=_sys.stdout)
+                        fs.append(_np.nan)
+
                     tr = _time.monotonic() - tr0
-                    if not all([_np.isnan(v) for v in vs]):
-                        self.graphv.setData(ts, vs)
+                    if not all([_np.isnan(c) for c in cs]):
+                        self.graphc.setData(ts, cs)
                     if not all([_np.isnan(f) for f in fs]):
                         self.graphf.setData(ts, fs)
                 else:
+                    _QApplication.processEvents()
                     tr0 = _time.monotonic()
+                    try:
+                        self.ui.lcd_ps_reading.display(
+                            round(float(_ps.read_iload1()), 3))
+                    except Exception:
+                        pass
+                    _time.sleep(0.1)
 
                 _time.sleep(0.01)
-
-            print(_nmr.read_dac_value())
 
             if self.ui.chb_zerocurrent.isChecked():
                 _ps.set_slowref(0)

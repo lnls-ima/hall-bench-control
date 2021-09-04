@@ -53,6 +53,8 @@ from hallbench.gui.databasewidget import DatabaseWidget \
     as _DatabaseWidget
 from hallbench.gui.displaywidget import DisplayWidget \
     as _DisplayWidget
+from hallbench.gui.currentfieldwidget import CurrentFieldWidget \
+    as _CurrentFieldWidget
 from hallbench.devices import pmac as _pmac
 from hallbench.devices import logfile as _logfile
 
@@ -94,6 +96,7 @@ class HallBenchWindow(_QMainWindow):
             'probe_calibration',
             'database',
             'display',
+            'current_field',
             ]
 
         self.tab_widgets = [
@@ -113,6 +116,7 @@ class HallBenchWindow(_QMainWindow):
             _ProbeCalibrationWidget,
             _DatabaseWidget,
             _DisplayWidget,
+            _CurrentFieldWidget,
             ]
 
         # add preferences dialog
@@ -124,6 +128,7 @@ class HallBenchWindow(_QMainWindow):
         self.preferences_dialog.chb_integrator_measurement.setChecked(False)
         self.preferences_dialog.chb_database.setChecked(True)
         self.preferences_dialog.chb_display.setChecked(False)
+        self.preferences_dialog.chb_current_field.setChecked(False)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)
 
         self.log_dialog = _LogDialog()

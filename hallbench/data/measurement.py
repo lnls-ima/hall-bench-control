@@ -387,7 +387,7 @@ class FieldScan(_database.DatabaseAndFileDocument):
             voltage_scan_list = [voltage_scan_list]
 
         _valid_voltage_scan_list(voltage_scan_list)
-        
+
         corr_voltage_scan_list = []
         for vs in voltage_scan_list:
             corr_voltage_scan_list.append(_correct_voltage_offset(vs))
@@ -459,23 +459,23 @@ class FieldScan(_database.DatabaseAndFileDocument):
         for axis in fixed_axes:
             pos = getattr(vs, 'pos' + str(axis))
             setattr(self, 'pos' + str(axis), pos)
-        
+
         if calx is not None:
             self.bx = calx.get_field(avg_vx)
             self.std_bx = calx.get_field(std_vx)
         else:
             self.bx = _np.zeros(npts)
             self.std_bx = _np.zeros(npts)
-            
+
         if caly is not None:
             self.by = caly.get_field(avg_vy)
             self.std_by = caly.get_field(std_vy)
         else:
             self.by = _np.zeros(npts)
             self.std_by = _np.zeros(npts)
-            
-        if calz is not None:            
-            self.bz = calz.get_field(avg_vz)     
+
+        if calz is not None:
+            self.bz = calz.get_field(avg_vz)
             self.std_bz = calz.get_field(std_vz)
         else:
             self.bz = _np.zeros(npts)
@@ -595,15 +595,15 @@ class Fieldmap(_database.DatabaseAndFileDocument):
                 else:
                     ac = coil
                 name = name + '_I' + ac + '=' + current + 'A'
-        
-        if self.date is None or self.hour is None:        
-            self.date, self.hour = _utils.get_date_hour()        
+
+        if self.date is None or self.hour is None:
+            self.date, self.hour = _utils.get_date_hour()
         if self.idn is not None:
             filename = '{0:s}_{1:s}_ID={2:s}.dat'.format(
                 self.date, name, str(self.idn))
         else:
             filename = '{0:s}_{1:s}.dat'.format(self.date, name)
-        
+
         if mt:
             phase = mt.group(1)
             filename = filename.replace(
@@ -643,7 +643,7 @@ class Fieldmap(_database.DatabaseAndFileDocument):
         header_info.append(['gap[mm]', gap])
         header_info.append(['control_gap[mm]', control_gap])
         header_info.append(['magnet_length[mm]', magnet_length])
-        
+
         mt = _re.search('phase(\d+)', self.comments.lower().replace(' ', ''))
         if mt:
             phase = mt.group(1)
@@ -652,13 +652,13 @@ class Fieldmap(_database.DatabaseAndFileDocument):
         for coil in ['main', 'trim', 'ch', 'cv', 'qs']:
             current = getattr(self, 'current_' + coil)
             turns = getattr(self, 'nr_turns_' + coil)
-            
+
             try:
                 if coil == 'main':
                     current = '{0:.3f}'.format(self.dcct_current_avg)
             except Exception:
                 pass
-            
+
             if current is not None:
                 header_info.append(['current_' + coil + '[A]', current])
                 header_info.append(['nr_turns_' + coil, turns])
@@ -666,26 +666,26 @@ class Fieldmap(_database.DatabaseAndFileDocument):
         try:
             probex_ch = '101'
             probex_temp = _np.mean(_np.array(self.temperature[probex_ch])[:, 1])
-            
+
             probey_ch = '102'
             probey_temp = _np.mean(_np.array(self.temperature[probey_ch])[:, 1])
-            
+
             probez_ch = '103'
             probez_temp = _np.mean(_np.array(self.temperature[probez_ch])[:, 1])
-            
+
             transd_ch = '105'
-            transd_temp = _np.mean(_np.array(self.temperature[transd_ch])[:, 1])      
-            
+            transd_temp = _np.mean(_np.array(self.temperature[transd_ch])[:, 1])
+
             room_ch = '209'
             room_temp = _np.mean(_np.array(self.temperature[room_ch])[:, 1])
-            
-#             magnet_chs = ['205', '207']
-#             magnet_avgs = []
-#             for ch in magnet_chs:
-#                 magnet_avgs.append(
-#                     _np.mean(_np.array(self.temperature[ch])[:, 1]))
-#             magnet_temp = _np.mean(magnet_avgs)
-    
+
+            magnet_chs = ['208']
+            magnet_avgs = []
+            for ch in magnet_chs:
+                magnet_avgs.append(
+                    _np.mean(_np.array(self.temperature[ch])[:, 1]))
+            magnet_temp = _np.mean(magnet_avgs)
+
             header_info.append([
                 'probex_temp[degC]', '{0:.2f}'.format(probex_temp)])
             header_info.append([
@@ -698,10 +698,10 @@ class Fieldmap(_database.DatabaseAndFileDocument):
                 'room_temp[degC]', '{0:.2f}'.format(room_temp)])
 #             header_info.append([
 #                 'magnet_temp[degC]', '{0:.2f}'.format(magnet_temp)])
-        
+
         except Exception:
             pass
-        
+
         header_info.append(['center_pos_z[mm]', '0'])
         header_info.append(['center_pos_x[mm]', '0'])
         header_info.append(['rotation[deg]', '0'])
@@ -915,7 +915,7 @@ def configure_voltage_offset(
     """Configure offset values of voltage scan."""
     if voltage_offset == 'measure':
         scan_pos = voltage_scan.scan_pos
-        if scan_pos[-1] - scan_pos[0] <= offset_range:  
+        if scan_pos[-1] - scan_pos[0] <= offset_range:
             voltage_scan.offsetx_start = voltage_scan.vx[0]
             voltage_scan.offsetx_end = voltage_scan.vx[-1]
             voltage_scan.offsety_start = voltage_scan.vy[0]
@@ -940,7 +940,7 @@ def configure_voltage_offset(
         voltage_scan.offsety_end = offsety
         voltage_scan.offsetz_start = offsetz
         voltage_scan.offsetz_end = offsetz
-    
+
     else:
         voltage_scan.offsetx_start = None
         voltage_scan.offsetx_end = None
@@ -948,7 +948,7 @@ def configure_voltage_offset(
         voltage_scan.offsety_end = None
         voltage_scan.offsetz_start = None
         voltage_scan.offsetz_end = None
-    
+
     return voltage_scan
 
 

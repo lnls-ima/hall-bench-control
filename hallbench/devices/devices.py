@@ -118,11 +118,11 @@ class Multichannel(_Agilent34970ALib.Agilent34970AGPIB):
                         # Voltage to temperature(Transducer SN TRIC-30003121)
                         if ch == '101':
                             temp = (rd - 120e-3)/20e-3
-                        elif ch == '102':
+                        elif ch == '105':
                             temp = (rd + 25e-3)/20e-3
                         elif ch == '103':
                             temp = (rd + 35e-3)/20e-3
-                        elif ch == '105':
+                        elif ch == '102':
                             temp = (rd - 1170e-3)/20.05e-3
                         else:
                             temp = _np.nan

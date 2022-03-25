@@ -55,6 +55,8 @@ from hallbench.gui.displaywidget import DisplayWidget \
     as _DisplayWidget
 from hallbench.gui.currentfieldwidget import CurrentFieldWidget \
     as _CurrentFieldWidget
+from imautils.gui.undulatorwidget import UndulatorWidget \
+    as _UndulatorWidget
 from hallbench.devices import pmac as _pmac
 from hallbench.devices import logfile as _logfile
 
@@ -97,6 +99,7 @@ class HallBenchWindow(_QMainWindow):
             'database',
             'display',
             'current_field',
+            'undulator',
             ]
 
         self.tab_widgets = [
@@ -117,6 +120,7 @@ class HallBenchWindow(_QMainWindow):
             _DatabaseWidget,
             _DisplayWidget,
             _CurrentFieldWidget,
+            _UndulatorWidget,
             ]
 
         # add preferences dialog
@@ -129,6 +133,7 @@ class HallBenchWindow(_QMainWindow):
         self.preferences_dialog.chb_database.setChecked(True)
         self.preferences_dialog.chb_display.setChecked(False)
         self.preferences_dialog.chb_current_field.setChecked(False)
+        self.preferences_dialog.chb_undulator.setChecked(True)
         self.preferences_dialog.preferences_changed.connect(self.change_tabs)
 
         self.log_dialog = _LogDialog()
